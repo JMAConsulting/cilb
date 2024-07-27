@@ -1,0 +1,12 @@
+name: 'Webform Authorize.Net'
+type: module
+description: 'Provides a handler and integration to make payments using Authorize.Net. Utilizes Accept Hosted, a mobile-optimized payment form hosted by Authorize.net.'
+core_version_requirement: ^9.4 || ^10
+package: 'Webform'
+dependencies:
+  - webform:webform
+
+# Information added by Drupal.org packaging script on 2023-11-21
+version: '1.0.2'
+project: 'webform_authorizenet'
+datestamp: 1700598680

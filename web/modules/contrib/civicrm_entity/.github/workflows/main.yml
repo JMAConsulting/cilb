@@ -1,0 +1,113 @@
+name: Integration Tests
+on:
+  workflow_dispatch:
+  push:
+    branches: [ 4.0.x ]
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+    branches:
+      - 4.0.x
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - drupal: '10.2.*'
+            civicrm: '5.69.*'
+            php: '8.1'
+          - drupal: '10.3.0-beta1@beta'
+            civicrm: 'dev-master'
+            php: '8.3'
+          - drupal: '11.0.0-beta1@beta'
+            civicrm: 'dev-master'
+            php: '8.3'
+    name: Drupal ${{ matrix.drupal }} | CiviCRM ${{ matrix.civicrm }}
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: db
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - name: Setup secondary database for CiviCRM
+        run: |
+          mysql -uroot -h127.0.0.1 -P${{ job.services.mysql.ports[3306] }} -e 'CREATE DATABASE IF NOT EXISTS db_civicrm;'
+      - uses: actions/checkout@v2
+      - uses: shivammathur/setup-php@v2
+        with:
+            php-version: ${{ matrix.php }}
+            extensions: dom, curl, libxml, mbstring, zip, pdo, mysql, pdo_mysql, bcmath, soap, intl, gd, exif, iconv
+            coverage: none
+            tools: composer:v2
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - uses: actions/cache@v2
+        with:
+            path: ${{ steps.composercache.outputs.dir }}
+            key: ${{ runner.os }}-${{ matrix.drupal }}-composer-${{ hashFiles('**/composer.json') }}
+            restore-keys: ${{ runner.os }}-composer-
+      - name: Setup problem matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+      # Notes
+      # - Must enable patching for civicrm/civicrm-core
+      # - CiviCRM requires `compile-mode: all`
+      - name: Setup Drupal
+        run: |
+          COMPOSER_MEMORY_LIMIT=-1 composer create-project drupal/recommended-project:${{ matrix.drupal }} ~/drupal --no-interaction --no-install
+          cd ~/drupal
+          composer config extra.enable-patching true
+          composer config extra.compile-mode all
+          composer config minimum-stability dev
+          composer config prefer-stable true
+          composer config preferred-install dist
+          composer config allow-plugins.civicrm/composer-compile-plugin true
+          composer config allow-plugins.civicrm/composer-downloads-plugin true
+          composer config allow-plugins.civicrm/civicrm-asset-plugin true
+          composer config allow-plugins.cweagans/composer-patches true
+          composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer config repositories.0 composer https://packages.drupal.org/8
+          composer config repositories.1 path $GITHUB_WORKSPACE
+          composer install --no-interaction
+          COMPOSER_MEMORY_LIMIT=-1 composer require drupal/core-dev-pinned:${{ matrix.drupal }} --no-suggest
+      - name: Install CiviCRM ${{ matrix.civicrm }}
+        run: |
+          cd ~/drupal
+          COMPOSER_MEMORY_LIMIT=-1 composer require composer/installers:'^1.0' civicrm/civicrm-asset-plugin:'~1.1' civicrm/civicrm-{core,packages,drupal-8}:${{ matrix.civicrm }} -W
+      - name: Install civicrm_entity
+        run: |
+          cd ~/drupal
+          COMPOSER_MEMORY_LIMIT=-1 composer require drupal/civicrm_entity *@dev
+      - name: Install integration test modules
+        run: |
+          cd ~/drupal
+          COMPOSER_MEMORY_LIMIT=-1 composer require drupal/fullcalendar_view
+      - uses: nanasess/setup-chromedriver@master
+      - name: Run chromedriver
+        run: chromedriver &
+      - name: Run php built-in server
+        run: php -S 127.0.0.1:8080 -t ~/drupal/web &
+      - name: Run PHPUnit
+        run: |
+          mkdir -p $BROWSERTEST_OUTPUT_DIRECTORY
+          cd ~/drupal/web
+          ../vendor/bin/phpunit -c core modules/contrib/civicrm_entity
+        env:
+          SYMFONY_DEPRECATIONS_HELPER: disabled
+          SIMPLETEST_DB: mysql://root:@127.0.0.1:${{ job.services.mysql.ports[3306] }}/db
+          SIMPLETEST_CIVICRM_DB: mysql://root:@127.0.0.1:${{ job.services.mysql.ports[3306] }}/db_civicrm
+          SIMPLETEST_BASE_URL: http://127.0.0.1:8080
+          MINK_DRIVER_ARGS_WEBDRIVER: '["chrome", {"browserName":"chrome","goog:chromeOptions":{"args":["--disable-gpu", "--no-sandbox", "--headless"]}}, "http://127.0.0.1:9515"]'
+          BROWSERTEST_OUTPUT_DIRECTORY: '/home/runner/drupal/web/sites/simpletest/browser_output'
+      - uses: actions/upload-artifact@v2
+        if: ${{ failure() || success() }}
+        with:
+          name: phpunit_browser_output
+          # For some reason Drupal prints here and not our specified BROWSERTEST_OUTPUT_DIRECTORY.
+          path: '/home/runner/drupal/web/sites/simpletest/browser_output'

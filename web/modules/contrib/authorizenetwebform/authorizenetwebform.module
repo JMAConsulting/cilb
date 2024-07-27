@@ -1,0 +1,476 @@
+<?php
+/**
+ * @file
+ * Authorize.Net Webform Module File
+ *
+ * The Authorize.Net Webform module allows a site admin to require payment
+ * through Authorize.Net for any webform.
+ */
+
+// @todo: Document when this is something other than live.
+define('AUTHORIZENETWEBFORM_MODE', 'live'); // Can be 'live' or 'test'.
+
+/**
+ * Implements hook_menu().
+ *
+ * Add menu item for administering the module.
+ */
+function authorizenetwebform_menu() {
+  $items = array();
+
+  $items['admin/config/content/authorizenetwebform'] = array(
+    'title' => 'Authorize.Net Payment Webform',
+    'description' => 'Configure Authorize.Net webform integration',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('authorizenetwebform_admin_settings'),
+    'access arguments' => array('access administration pages'),
+    'file' => 'authorizenetwebform.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function authorizenetwebform_form_webform_component_edit_form_alter(&$form, &$form_state) {
+  $node = node_load($form['nid']['#value']);
+  // If the user has specified the Authorize.Net action, then we will be
+  // posting the form to Authorize.Net.
+  if (isset($node->use_authorizenet) && $node->use_authorizenet) {
+    module_load_include('inc', 'authorizenetwebform', 'authorizenetwebform_fields');
+    foreach (authorizenetwebform_available_fields() as $anwafkey => $anwafvalue) {
+      $anwafkey = strtolower($anwafkey);
+      $anwaf_array[$anwafkey] = $anwafvalue;
+    }
+    $variable = 'authorizenetwebform_key_map_' . $form['nid']['#value'];
+    $map = variable_get($variable,array());
+    $form_key = $form['form_key']['#default_value'];
+    $selected = array_key_exists($form_key, $map) ? $map[$form_key] : '';
+    $valid_fields = array_merge($anwaf_array, authorizenetwebform_load_custom_fields('webform'));
+    $anet_form_key = array(
+      '#type' => 'select',
+      '#title' => t('Authorize.Net Field Key'),
+      '#multiple' => FALSE,
+      '#options' => $valid_fields,
+      '#description' => t('Select an Authorize.Net field that this form field will map to.  If you switch the form to an email for this will be used as the machine readable key.'),
+      '#weight' => $form['form_key']['#weight'],
+      '#default_value' => $selected,
+    );
+    $form['#submit'][] = 'authorizenet_field_key_submit';
+    $form['advanced']['anet_field_key'] = $anet_form_key;
+    $form['advanced']['#collapsed'] = FALSE;
+  }
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ *
+ * Allow for editing webforms to enable the user to pay for a webform submission
+ * with a credit or debit card through Authorize.Net
+ */
+function authorizenetwebform_form_node_form_alter(&$form, &$form_state, $form_id) {
+  $webform_types = webform_node_types();
+
+  // Handle editing of webform nodes.
+  if (in_array($form['type']['#value'], $webform_types)) {
+
+    $pos = 1;
+
+    // @todo find out if this ever exists.
+    if (array_key_exists('mailsettings', $form)) {
+      // Collapse the email info on the page assuming that it is going to be an
+      // Authorize.net form
+      $form['mailsettings']['#collapsed'] = TRUE;
+      $pos = array_search('mailsettings', array_keys($form)) + 1;
+    }
+
+    $authorizenet_form['authorizenetsettings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Credit Card Payments'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#weight' => -2,
+    );
+
+    $authorizenet_form['authorizenetsettings']['use_authorizenet'] = array(
+      '#type' => 'radios',
+      '#title' => t('Require a Credit Card Payment via Authorize.net'),
+      '#options' => array(
+        1 => t('Yes'),
+        0 => t('No'),
+      ),
+      '#description' => t('If yes, the form\'s results will be processed via Authorize.Net.  The credit card enetered will be validated & authorized before the form is formally submitted.'),
+      '#default_value' => isset($form['#node']->use_authorizenet) ? (int) $form['#node']->use_authorizenet : 0,
+    );
+
+    // Integrate the Authorize.Net setting into the node form.
+    $form = array_merge(array_slice($form, 0, $pos), $authorizenet_form, array_slice($form, $pos));
+  }
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ *
+ * Handle webform client forms (instances of webforms that are submitted)
+ * webform names client forms with the pattern web_form_client_form_$nid, use
+ * this knowledge to manipulate the forms that webform displays.
+ */
+function authorizenetwebform_form_webform_client_form_alter(&$form, &$form_state, $form_id) {
+  $node = $form['#node']; // Nice shorthand.
+
+  // If not using Authorize.Net, return.
+  if (!isset($node->use_authorizenet) || empty($node->use_authorizenet)) {
+    return;
+  }
+
+  // New validation handler.
+  $form['#validate'][] = 'authorizenetwebform_validate';
+
+  // New submit handler. Adding it as the *second* submit handler.
+  $first = array_shift($form['#submit']);
+  array_unshift($form['#submit'], $first, 'authorizenetwebform_submit');
+}
+
+/**
+ * Submit handler for storing the field key mapping.
+ *
+ * @see authorizenetwebform_form_webform_component_edit_form_alter().
+ */
+function authorizenet_field_key_submit($form, &$form_state) {
+  $variable = 'authorizenetwebform_key_map_' . $form_state['values']['nid'];
+  $map = variable_get($variable, array());
+  $values = $form_state['values'];
+  $form_key = $values['form_key'];
+  $anet_form_key = $values['advanced']['anet_field_key'];
+  if (($existing_key = array_search($anet_form_key, $map)) !== FALSE) {
+    unset($map[$existing_key]);
+  }
+  $map[$form_key] = $anet_form_key;
+  variable_set($variable, $map);
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function authorizenetwebform_node_load($nodes, $types) {
+  // Reject if none of the nodes are webforms.
+  $webform_types = webform_node_types();
+  $contains_webform = FALSE;
+  foreach ($nodes as $node) {
+    if (in_array($node->type, $webform_types)) {
+      $contains_webform = TRUE;
+    }
+  }
+
+  if (!$contains_webform) {
+    return;
+  }
+
+  // Otherwise, loop through the nodes.
+  foreach ($nodes as $nid => $node) {
+    $result = db_query("SELECT enabled FROM {authorizenetwebform} WHERE nid = ?", array($node->nid))->fetchField();
+    $node->use_authorizenet = (bool) $result;
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function authorizenetwebform_node_insert($node) {
+  $webform_types = webform_node_types();
+  if (in_array($node->type, $webform_types)) {
+    db_insert('authorizenetwebform')
+      ->fields(array(
+        'nid' => $node->nid,
+        'enabled' => $node->use_authorizenet,
+      ))
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function authorizenetwebform_node_update($node) {
+  $webform_types = webform_node_types();
+
+  if (in_array($node->type, $webform_types) && isset($node->use_authorizenet)) {
+    db_merge('authorizenetwebform')
+      ->key(array('nid' => $node->nid))
+      ->insertFields(array(
+        'nid' => $node->nid,
+        'enabled' => (int) $node->use_authorizenet,
+      ))
+      ->updateFields(array(
+        'enabled' => (int) $node->use_authorizenet,
+      ))
+      ->execute();
+  }
+}
+
+/**
+ * Helper function: Returns an array of all entries submitted, but with the
+ * key replaced based on the authorizenet mapping for the web form.
+ *
+ * @see authorizenetwebform_handle().
+ */
+function authorizenetwebform_translate_keys($submitted, $map) {
+  $ret = array();
+  reset($submitted);
+
+  while (list($k, $v) = each($submitted)) {
+    if (array_key_exists($k, $map)) {
+      $k = $map[$k];
+    }
+    $ret[$k] = $v;
+  }
+
+  return $ret;
+}
+
+/*
+ * Process a webform submission through Authorize.Net
+ *
+ * @param $step
+ *  Identify whether the webform is being validated ("validate") or submitted
+ *  ("submit")
+ * @param $node
+ *  The full webform object
+ * @param $form
+ *  A form array
+ * @param $form_state
+ *  A form state array
+ * @return $form_state
+ *  A form state array
+ */
+function authorizenetwebform_handle($step, $node, $form_state) {
+  // Do nothing if there are errors in the form validation.
+  if (form_get_errors()) {
+    return $form_state;
+  }
+
+  // Otherwise, prepare for processing.
+  module_load_include('inc', 'authorizenetwebform', '/authorizenetwebform_fields');
+  $form_values = $form_state['values'];
+
+  // Flatten the user-submitted data (for data nested within fieldsets).
+  $flattened_values = _authorizenetwebform_array_flatten($form_state['values']['submitted'], true);
+
+  // Get key mappings for this webform.
+  $nid = $form_values['details']['nid'];
+  $variable = 'authorizenetwebform_key_map_' . $nid;
+  $map = variable_get($variable,array());
+
+  // We will also want to access keys in the other direction.
+  $flipped_map = array_flip($map);
+
+  // Get an array with the webform keys replaced with the authorizenet keys
+  $submitted = authorizenetwebform_translate_keys($flattened_values, $map);
+
+  // Not the greatest way to store the transaction id (kind of hackish),
+  // but the best we can do until #288199 is fixed.
+  if (empty($submitted['x_trans_id']) && $step == 'submit') {
+    $submitted['x_trans_id'] = $_SESSION['anwf_trans_id'];
+    unset($_SESSION['anwf_trans_id']);
+  }
+
+  // Build a submission array that will be sent to authorize.net.
+  $master_fields = array_merge(authorizenetwebform_available_fields(), authorizenetwebform_load_custom_fields(NULL));
+  $submission = array();
+  foreach ($master_fields as $mkey => $mvalue) {
+    if (array_key_exists(strtolower($mkey), $submitted)) {
+      $submission[$mkey] = $submitted[strtolower($mkey)];
+    }
+    elseif ($mkey == 'x_exp_date' && array_key_exists('month', $submitted) && array_key_exists('year', $submitted)) {
+      $submission[$mkey] = $submitted['year'] . '-' . $submitted['month'];
+    }
+  }
+
+  if (isset($submission['anwf_quantity']) && is_numeric($submission['anwf_quantity'])) {
+    $submission['x_amount'] = ((double) $submission['x_amount']) * ((double) $submission['anwf_quantity']);
+  }
+  $post_vars = array();
+  foreach ($submission as $key => $value) {
+    if (strcmp(substr($key, 0, 2), "x_") == 0 && $value != "") {
+      $post_vars[$key] = $value;
+    }
+  }
+
+  // Set POST url.
+  if (variable_get('authorizenetwebform_url', 'main') == 'test') {
+    $post_url = 'https://test.authorize.net/gateway/transact.dll';
+  }
+  else {
+    $post_url = 'https://secure.authorize.net/gateway/transact.dll';
+  }
+
+  // Authorize.net required field information.
+  $post_vars['x_login'] = variable_get('authorizenetwebform_login', NULL);
+  $post_vars['x_tran_key'] = variable_get('authorizenetwebform_transaction', NULL);
+  $post_vars['x_version']      = '3.1';
+  $post_vars['x_delim_data']    = 'TRUE';
+  $post_vars['x_delim_char']    = '|';
+  $post_vars['x_relay_response']  = 'FALSE';
+  $post_vars['x_method'] = 'CC';
+  if (AUTHORIZENETWEBFORM_MODE == 'test') {
+    $post_vars['x_test_request '] = 'TRUE';
+  }
+
+  if ($step == 'validate') {
+    $post_vars['x_type'] = 'AUTH_ONLY';
+  }
+
+  if ($step == 'submit') {
+    // If there was a problem getting the Auth previously, we need to auth and
+    // capture here in one step.
+    if (!array_key_exists('x_trans_id', $post_vars)) {
+      $post_vars['x_type'] = 'AUTH_CAPTURE';
+    }
+    else {
+      $post_vars['x_type'] = 'PRIOR_AUTH_CAPTURE';
+    }
+  }
+
+  // This section takes the input fields and converts them to the proper format
+  // for an http post.  For example: "x_login=username&x_tran_key=a1B2c3D4"
+  $post_string = "";
+  foreach ($post_vars as $key => $value) {
+    $post_string .= "$key=" . urlencode($value) . "&";
+  }
+  $post_string = rtrim($post_string, "& ");
+  $request = curl_init($post_url); // initiate curl object
+    curl_setopt($request, CURLOPT_HEADER, 0); // set to 0 to eliminate header info from response
+    curl_setopt($request, CURLOPT_RETURNTRANSFER, 1); // Returns response data instead of TRUE(1)
+    curl_setopt($request, CURLOPT_POSTFIELDS, $post_string); // use HTTP POST to send form data
+    curl_setopt($request, CURLOPT_SSL_VERIFYPEER, FALSE); // uncomment this line if you get no gateway response.
+    $post_response = curl_exec($request); // execute curl post and store results in $post_response
+  @curl_close ($ch); // close curl object
+
+  // This line takes the response and breaks it into an array using the
+  // specified delimiting character.
+  $response_array = explode($post_vars["x_delim_char"], $post_response);
+
+  if ($step == 'validate') {
+    if ($response_array[2] > 1) {
+      watchdog('authorizenetwebform', 'Error response from Authorize.net: %response', array("%response" => "<pre>". print_r($response_array, TRUE) ."</pre>"));
+      // There was some type of error getting an authorization. Flag it.
+      form_set_error('submitted][x_card_num', t('There was an error processing your credit card: %anetresponse If the error persists, please try another card.', array("%anetresponse" => $response_array[3])));
+    }
+    if ($response_array[6] != '') {
+
+      // Setting items in the original form_values to replace.
+      $replacements = array(
+        $flipped_map['x_trans_id'] => $response_array[6],
+      );
+
+      // Not the greatest way to store the transaction id (kind of hackish),
+      // but the best we can do until #288199 is fixed.
+      $_SESSION['anwf_trans_id'] = $response_array[6];
+    }
+  }
+  if ($step == 'submit') {
+    if ($response_array[2] > 1) {
+      watchdog('authorizenetwebform', 'Error response from Authorize.net: %response', array("%response" => "<pre>". print_r($response_array, TRUE) ."</pre>"));
+      // There was some type of error getting an authorization. Flag it.
+      $cc_key = $flipped_map['x_card_num'];
+      $form_key = "submitted][$cc_key";
+      form_set_error($form_key, t('There was an error processing your credit card: %anetresponse If the error persists, please try another card.', array("%anetresponse" => $response_array[3])));
+    }
+
+    $replacements = array();
+    $cids = _authorizenetwebform_flatten_array_by_cids($node);
+
+    // Blank out all but the last 4 CC #'s
+    $cc = $submitted[$cids[$flipped_map['x_card_num']]];
+    $anon_cc = substr_replace($cc, str_repeat('x', 12), 0, 12);
+    $replacements[$cids[$flipped_map['x_card_num']]] = $anon_cc;
+
+    // Blank out the expiration date as well.
+    $replacements[$cids[$flipped_map['x_exp_date']]] = 'xxxx-xx';
+
+    // Blank out the security code as well.
+    $replacements[$cids[$flipped_map['x_card_code']]] = 'xxx';
+
+    if ($response_array[6] != "") {
+      // We have a transaction ID. Set it in the webform.
+      $replacements[$cids[$flipped_map['x_trans_id']]] = $response_array[6];
+    }
+  }
+
+  // Replace the old values with the new ones.
+  array_walk_recursive($form_values['submitted'], '_authorizenetwebform_replace_value_in_recursive', $replacements);
+
+  // Return our temporary values to the $form_state array.
+  $form_state['values'] = $form_values;
+
+  return $form_state;
+}
+
+/**
+ * Webform validation handler.
+ *
+ * @see authorizenetwebform_form_webform_client_form_alter().
+ */
+function authorizenetwebform_validate($form, &$form_state) {
+  $node = node_load($form_state['values']['details']['nid']);
+  $form_state = authorizenetwebform_handle("validate", $node, $form_state);
+}
+
+/**
+ * Webform submit handler.
+ *
+ * @see authorizenetwebform_form_webform_client_form_alter().
+ */
+function authorizenetwebform_submit($form, &$form_state) {
+  $node = node_load($form_state['values']['details']['nid']);
+  $form_state = authorizenetwebform_handle("submit", $node, $form_state);
+}
+
+/**
+ * Internal Helper function: Flattens a multidimensional array.
+ */
+function _authorizenetwebform_array_flatten($array, $preserve_keys = false) {
+  if (!$preserve_keys) {
+    // Ensure keys are numeric values to avoid overwritting in array_merge().
+    $array = array_values($array);
+  }
+
+  $flattened_array = array();
+  foreach ($array as $k => $v) {
+    if (is_array($v)) {
+      $flattened_array = array_merge($flattened_array, call_user_func(__FUNCTION__, $v, $preserve_keys));
+    }
+    elseif ($preserve_keys) {
+      $flattened_array[$k] = $v;
+    }
+    else {
+      $flattened_array[] = $v;
+    }
+  }
+  return $flattened_array;
+}
+
+/**
+ * Internal Helper function: Replaces the transaction ID in the original
+ *   (unflattened) array.
+ */
+function _authorizenetwebform_replace_value_in_recursive(&$item, $key, $replacements) {
+  if (array_key_exists($key, $replacements)) {
+    $item = $replacements[$key];
+  }
+}
+
+/**
+ * Internal Helper function: Flattens array of webform components into
+ *   component IDs.
+ */
+function _authorizenetwebform_flatten_array_by_cids($node) {
+  $cids = array();
+  foreach ($node->webform['components'] as $component) {
+    if ($component['type'] != 'fieldset') {
+      $cids[$component['form_key']] = $component['cid'];
+    }
+  }
+  return $cids;
+}

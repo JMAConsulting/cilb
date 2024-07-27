@@ -1,0 +1,17 @@
+{#
+/**
+ * @file
+ * Default theme implementation for a summary of a webform webform_authorizenet handler.
+ *
+ * Available variables:
+ * - settings: The current configuration for this remote post handler.
+ * - handler: The remote post handler.
+ *
+ * @ingroup themeable
+ */
+#}
+<b>{{ 'Payment Mode:'|t }}</b> {{ settings.payment_mode }}<br />
+<b>{{ 'Accept Hosted URL:'|t }}</b> {{ settings.accept_hosted_url }}<br />
+<b>{{ 'Transaction Type:'|t }}</b> {{ settings.transaction_type }}<br />
+<b>{{ 'Item Price:'|t }}</b> {{ settings.item_price }}<br />
+<b>{{ 'Number Of Items:'|t }}</b> {{ settings.number_of_items }}<br />

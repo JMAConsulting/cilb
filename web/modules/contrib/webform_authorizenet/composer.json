@@ -1,0 +1,19 @@
+{
+  "name": "drupal/webform_authorizenet",
+  "description": "Provides a handler and integration to make payments using Authorize.Net. Utilizes Accept Hosted, a mobile-optimized payment form hosted by Authorize.net.",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "minimum-stability": "dev",
+  "homepage": "http://drupal.org/project/webform_authorizenet",
+  "authors": [
+    {
+      "name": "Volodymyr Knyshuk (knyshuk.vova)",
+      "homepage": "https://www.drupal.org/u/knyshukvova",
+      "role": "Maintainer"
+    }
+  ],
+  "require": {
+    "drupal/core": "^9.4 || ^10",
+    "authorizenet/authorizenet": "^2"
+  }
+}

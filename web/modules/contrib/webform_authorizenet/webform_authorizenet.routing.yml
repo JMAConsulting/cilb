@@ -1,0 +1,23 @@
+webform_authorizenet.validation:
+  path: '/webform-authorizenet/validate/{sid}'
+  defaults:
+    _controller: '\Drupal\webform_authorizenet\Controller\ValidationController::validateId'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+webform_authorizenet.webhook:
+  path: '/webform-authorizenet/webhook'
+  defaults:
+    _controller: '\Drupal\webform_authorizenet\Controller\ValidationController::validateWebhook'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
+webform_authorizenet.hosted_payment_checkout_form:
+  path: '/webform-authorizenet/hosted-payment-checkout/{checkout_form_data}'
+  defaults:
+    _form: '\Drupal\webform_authorizenet\Form\HostedPaymentCheckoutForm'
+    _title: 'Checkout'
+  requirements:
+    _access: 'TRUE'

@@ -1,0 +1,14 @@
+name: CiviCRM Entity Views Test
+type: module
+description: 'Test module for CiviCRM Entity and Views.'
+package: CiviCRM
+core_version_requirement: ^10
+dependencies:
+  - drupal:views
+  - civicrm:civicrm
+  - civicrm_entity:civicrm_entity
+
+# Information added by Drupal.org packaging script on 2024-06-11
+version: '4.0.0-beta4'
+project: 'civicrm_entity'
+datestamp: 1718125055

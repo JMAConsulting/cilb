@@ -1,0 +1,50 @@
+{#
+/**
+ * @file
+ * Default theme implementation for an 'input' #type form element.
+ *
+ * Available variables:
+ * - attributes: A list of HTML attributes for the input element.
+ * - children: Optional additional rendered elements.
+ * - description.
+ * - description_display.
+ * - title.
+ * - title_display.
+ *
+ * @see template_preprocess_input()
+ *
+ * @ingroup themeable
+ */
+#}
+<div{{ title_attributes }}>
+{% if attributes['type'] == 'hidden' and attributes['title'] and element['#title_display'] != 'none' %}
+  <label{% if element['#title_display'] == 'invisible' %} hidden{% endif %}><b>{{ attributes['title'] }}</b></label>
+{% endif %}
+
+{% if description_display == 'before' and description.content %}
+  <div{{ description.attributes }}>
+    {{ description.content }}
+  </div>
+{% endif %}
+
+{# Static contact widget with no contact id loaded on the webform. #}
+{% if attributes['cid'] is empty %}
+  <ul class="token-input-list">
+    <li class="token-input-token">
+      {% if attributes['value'] is empty and attributes['type'] == 'hidden' and attributes['data-civicrm-name'] %}
+        <p>{{attributes['data-civicrm-name']}}</p>
+      {% endif %}
+      <input{{ attributes }} />{{ children }}
+    </li>
+  </ul>
+{% else %}
+  <input{{ attributes }} />{{ children }}
+{% endif %}
+
+{% if description_display == 'after' and description.content %}
+  <div{{ description.attributes }}>
+    {{ description.content }}
+  </div>
+{% endif %}
+
+</div>

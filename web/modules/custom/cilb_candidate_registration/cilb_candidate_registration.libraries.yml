@@ -1,0 +1,23 @@
+candidate_registration:
+  version: 1
+  js:
+    js/candidateReg.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupalSettings
+
+get_scope:
+  version: 1
+  js:
+    js/getScopeDefn.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupalSettings
+
+load_scope:
+  version: 1
+  js:
+    js/loadScopeDefn.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupalSettings

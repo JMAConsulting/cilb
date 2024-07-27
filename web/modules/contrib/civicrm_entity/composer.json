@@ -1,0 +1,15 @@
+{
+    "name": "drupal/civicrm_entity",
+    "type": "drupal-module",
+    "description": "Expose CiviCRM entities as Drupal entities.",
+    "homepage": "http://drupal.org/project/civicrm_entity",
+    "license": "GPL-2.0+",
+    "require": {
+        "drupal/core": "^10.1 || ^11",
+        "civicrm/civicrm-drupal-8": "*"
+    },
+    "require-dev": {
+        "drupal/fullcalendar_view": "^5.0"
+    },
+    "minimum-stability": "dev"
+}

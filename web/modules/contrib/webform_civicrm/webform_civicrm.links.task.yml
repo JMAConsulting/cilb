@@ -1,0 +1,5 @@
+entity.webform.settings_civicrm:
+  title: 'CiviCRM'
+  route_name: entity.webform.civicrm
+  base_route: entity.webform.canonical
+  weight: 50

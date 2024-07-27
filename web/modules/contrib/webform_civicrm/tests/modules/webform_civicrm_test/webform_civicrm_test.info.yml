@@ -1,0 +1,12 @@
+name: 'Webform CiviCRM test'
+type: module
+description: 'Support module for webform civicrm testing.'
+package: 'Webform CiviCRM Testing'
+core_version_requirement: ^9.4 || ^10
+dependencies:
+  - 'webform_civicrm:webform_civicrm'
+
+# Information added by Drupal.org packaging script on 2023-12-24
+version: '6.2.5'
+project: 'webform_civicrm'
+datestamp: 1703457326

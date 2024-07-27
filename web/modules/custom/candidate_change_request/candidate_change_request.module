@@ -1,0 +1,64 @@
+<?php
+
+use Drupal\webform\Utility\WebformFormHelper;
+use Drupal\webform\Entity\Webform;
+
+/**
+ * Implements hook_form_alter().
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function candidate_change_request_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  if ($form_id=="webform_submission_request_information_change_add_form") {
+    $elements = WebformFormHelper::flattenElements($form);
+    \Drupal::service('civicrm')->initialize();
+    // Getting the contact id of the logged in user
+    $id = CRM_Core_Session::singleton()->getLoggedInContactID();
+    // Retrieving relevant civicrm entities
+    $contact = \Civi\Api4\Contact::get(FALSE)
+      ->addSelect('*', 'Registrant_Info.SSN')
+      ->addWhere('id', '=', $id)
+      ->execute()->first();
+    $phone = \Civi\Api4\Phone::get(FALSE)
+      ->addWhere('contact_id', '=', $id)
+      ->addWhere('is_primary', '=', TRUE)
+      ->execute()->first();
+    $address = \Civi\Api4\Address::get(FALSE)
+      ->addWhere('contact_id', '=', $id)
+      ->addWhere('is_primary', '=', TRUE)
+      ->execute()->first();
+    if ($address['state_province_id']) {
+      $state = \Civi\Api4\StateProvince::get(FALSE)
+        ->addwhere('id', '=', $address['state_province_id'])
+        ->execute()->first()['name'];
+    }
+    else {
+      $state = '';
+    }
+    if (!empty($address['country_id'])) {
+      $country = \Civi\Api4\Country::get(FALSE)
+        ->addwhere('id', '=', $address['country_id'])
+        ->execute()->first()['name'];
+    }
+    else {
+      $country = '';
+    }
+    // Setting the default values for the form from the civicrm data if it exists
+    $elements['first_name']['#default_value'] = $contact['first_name'] ?? '';
+    $elements['middle_name']['#default_value'] = $contact['middle_name'] ?? '';
+    $elements['last_name']['#default_value'] = $contact['last_name'] ?? '';
+
+    $elements['social_security_number_ssn']['#default_value'] = $contact['Registrant_Info.SSN'] ?? '';
+    $elements['date_of_birth']['#default_value'] =  $contact['birth_date'] ?? '';
+
+    $elements['address']['#default_value']['address'] = $address['street_address'] ?? '';
+    $elements['address']['#default_value']['address_2'] = $address['supplemental_address_1'] ?? '';
+    $elements['address']['#default_value']['city'] = $address['city'] ?? '';
+    $elements['address']['#default_value']['state_province'] = $state;
+    $elements['address']['#default_value']['postal_code'] = $address['postal_code'] ?? '';
+    $elements['address']['#default_value']['country'] = $country;
+
+    $elements['phone_number']['#default_value'] = $phone['phone'] ?? '';
+  }
+}

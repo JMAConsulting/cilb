@@ -1,0 +1,41 @@
+<?php
+
+use Drupal\webform\Utility\WebformFormHelper;
+use Drupal\webform\Entity\Webform;
+use Drupal\Core\Datetime\DrupalDateTime;
+
+/**
+ * Implements hook_form_alter().
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function cilb_reschedule_exam_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  if ($form_id == "webform_submission_reschedule_exam_add_form") {
+
+    // Get webform form elements
+    $elements = WebformFormHelper::flattenElements($form);
+
+    $examId = \Drupal::request()->query->get('id') ?? 0;
+
+    if(!empty($examId) && is_numeric($examId)) {
+      \Drupal::service('civicrm')->initialize();
+
+      $originalExam = \Civi\Api4\Event::get(FALSE)
+        ->addSelect('address.*', 'title', 'start_date', 'address.state_province_id:abbr')
+        ->addJoin('Address AS address', 'LEFT', ['loc_block_id.address_id', '=', 'address.id'])
+        ->addWhere('id', '=', $examId)
+        ->execute()
+        ->first();
+
+      if(!empty($originalExam)) {
+        $elements['exam_name']['#default_value'] = $originalExam['title'];
+        $elements['location']['#default_value'] = $originalExam['address.street_address'] . ', ' . $originalExam['address.city'] . ', ' . $originalExam['address.state_province_id:abbr'];
+
+        $timestamp = strtotime($originalExam['start_date']);
+        $elements['scheduled_date']['#default_value'] = DrupalDateTime::createFromTimestamp($timestamp);
+        $elements['scheduled_date']['#date_time_format'] = 'Y-m-d H:i';
+      }
+    }
+  }
+}

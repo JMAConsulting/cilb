@@ -1,0 +1,419 @@
+<?php
+
+/**
+ * @file
+ * Webform CiviCRM module's install, uninstall and upgrade code.
+ */
+
+use Drupal\webform\Entity\Webform;
+use Drupal\Core\Form\FormState;
+
+/**
+ * Implements hook_requirements().
+ */
+/*
+function webform_civicrm_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $t = get_t();
+    $status = _webform_civicrm_status();
+    if (!$status['webform_civicrm']) {
+      $requirements['webform_civicrm'] = array(
+        'title' => 'Webform CiviCRM Integration',
+        'value' => $t('Version error'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('The versions of the Webform CiviCRM Integration, Webform, CiviCRM enabled are not compatible. ') .
+        l($t('See the Webform CiviCRM Integration project page for version compatibility'), 'https://drupal.org/project/webform_civicrm'),
+      );
+    }
+    else {
+      $requirements['webform_civicrm'] = array(
+        'title' => 'Webform CiviCRM Integration',
+        'severity' => REQUIREMENT_OK,
+        'value' => t('Required version of CiviCRM and Webform are enabled.'),
+      );
+    }
+  }
+
+  return $requirements;
+}
+*/
+
+/**
+ * Implements hook_schema().
+ */
+function webform_civicrm_schema() {
+  $schema = [];
+  $schema['webform_civicrm_forms'] = [
+    'description' => 'CiviCRM settings for individual Webform nodes.',
+    'fields' => [
+      'nid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Webform Node ID',
+      ],
+      'data' => [
+        'type' => 'text',
+        'serialize' => TRUE,
+        'description' => 'Array of entity data for this webform',
+      ],
+      'prefix_known' => [
+        'description' => 'Form prefix for known users.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ],
+      'prefix_unknown' => [
+        'description' => 'Form prefix for unknown users.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ],
+      'message' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Message to show to known users',
+      ],
+      'confirm_subscription' => [
+        'description' => 'Send confirmation for mailing list subscriptions.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'block_unknown_users' => [
+        'description' => 'Only allow known contacts to use form.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'create_new_relationship' => [
+        'description' => 'Create new relationship if duplicate record exists and is expired or inactive.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'create_fieldsets' => [
+        'description' => 'Add fieldsets around contacts.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'new_contact_source' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Source label for newly created contacts',
+      ],
+    ],
+    'primary key' => ['nid'],
+  ];
+  $schema['webform_civicrm_submissions'] = [
+    'description' => 'Link between form submissions and CiviCRM data.',
+    'fields' => [
+      'sid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Webform Submission ID',
+      ],
+      'contact_id' => [
+        'type' => 'varchar',
+        'length' => 2000,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'CiviCRM contact ids from this submission',
+      ],
+      'civicrm_data' => [
+        'type' => 'text',
+        'serialize' => TRUE,
+        'description' => 'Array of entity ids for this submission',
+      ],
+    ],
+    'primary key' => ['sid'],
+  ];
+  return $schema;
+}
+
+/**
+ * Update receipt setting as per the value set in the contribution page.
+ */
+function webform_civicrm_update_8001() {
+  \Drupal::service('civicrm')->initialize();
+  $utils = \Drupal::service('webform_civicrm.utils');
+  $webforms = Webform::loadMultiple();
+  foreach ($webforms as $webform) {
+    $handler = $webform->getHandlers('webform_civicrm');
+    $config = $handler->getConfiguration();
+    if (empty($config['webform_civicrm'])) {
+      continue;
+    }
+    $contribution = wf_crm_aval($config, "webform_civicrm:settings:data:contribution:1:contribution:1", []);
+    if (!empty($contribution['contribution_page_id'])) {
+      $returnParams = [
+        "financial_type_id", "currency", "bcc_receipt", "cc_receipt",
+        "receipt_text", "pay_later_receipt", "receipt_from_name", "receipt_from_email", "is_email_receipt"
+      ];
+      $contribution_page = current($utils->wf_crm_apivalues('ContributionPage', 'get', [
+        'return' => $returnParams,
+        'id' => $contribution['contribution_page_id'],
+      ]));
+      $settings = &$config['webform_civicrm']['settings'];
+      $settings['civicrm_1_contribution_1_contribution_enable_contribution'] = $settings['data']['contribution'][1]['contribution'][1]["enable_contribution"] = 1;
+      unset($settings['data']['contribution'][1]['contribution'][1]["contribution_page_id"]);
+      $settings['civicrm_1_contribution_1_contribution_financial_type_id'] = $settings['data']['contribution'][1]['contribution'][1]["financial_type_id"] = $contribution_page['financial_type_id'] ?? '';
+      $settings['contribution_1_settings_currency'] = $settings['data']['contribution'][1]['currency'] = $contribution_page['currency'] ?? '';
+      if (!empty($contribution_page['is_email_receipt'])) {
+        $settings['receipt_1_number_of_receipt'] = $settings['data']['receipt']['number_number_of_receipt'] = 1;
+        $receiptValues = ['cc_receipt', 'bcc_receipt', 'receipt_text', 'pay_later_receipt', 'receipt_from_name', 'receipt_from_email'];
+        foreach ($receiptValues as $val) {
+          $settings["receipt_1_number_of_receipt_{$val}"] = $settings['data']['receipt']["number_number_of_receipt_{$val}"] =  $contribution_page[$val] ?? '';
+        }
+      }
+      $handler->setConfiguration($config);
+      $webform->save();
+    }
+  }
+}
+
+/**
+ * Remove timepart field from
+ * all the webforms.
+ */
+function webform_civicrm_update_8002() {
+  \Drupal::service('civicrm')->initialize();
+  $webforms = Webform::loadMultiple();
+  foreach ($webforms as $webform) {
+    $handler = $webform->getHandlers('webform_civicrm');
+    $config = $handler->getConfiguration();
+    if (empty($config['webform_civicrm'])) {
+      continue;
+    }
+    $settings = &$config['webform_civicrm']['settings'];
+    foreach ($settings as $key => $val) {
+      if (substr($key, -9) == '_timepart') {
+        $dateKey = str_replace('_timepart', '', $key);
+        $dateElement = $webform->getElement($dateKey);
+        $timeElement = $webform->getElement($key);
+        if ($dateElement['#type'] == 'date') {
+          $dateElement['#type'] = 'datetime';
+          $dateElement['#date_time_step'] = '60';
+          $dateElement['#date_date_min'] = !empty($dateElement['#extra']['start_date']) ? $dateElement['#extra']['start_date'] : '-50 years';
+          $dateElement['#date_date_max'] = !empty($dateElement['#extra']['end_date']) ? $dateElement['#extra']['end_date'] : '+50 years';
+          unset($dateElement['#extra']);
+          if (!empty($timeElement['#extra']['hourformat']) && $timeElement['#extra']['hourformat'] == '24-hour') {
+            $dateElement['#date_time_element'] = 'timepicker';
+            $dateElement['#date_time_placeholder'] = 'hh:mm';
+            $dateElement['#date_time_format'] = 'H:i';
+          }
+          if (!empty($dateElement['#admin_title'])) {
+            $dateElement['#admin_title'] = str_replace(' - date', '', $dateElement['#admin_title']);
+          }
+          if (!empty($dateElement['#title'])) {
+            $dateElement['#title'] = str_replace(' - date', '', $dateElement['#title']);
+          }
+          unset($dateElement['#webform_plugin_id']);
+          unset($settings[$key]);
+          $webform->setElementProperties($dateKey, $dateElement);
+          $webform->deleteElement($key);
+        }
+      }
+    }
+    $handler->setConfiguration($config);
+    $webform->save();
+  }
+}
+
+/**
+ * Add Billing fields to the webforms
+ */
+function webform_civicrm_update_8003() {
+  \Drupal::service('civicrm')->initialize();
+  $utils = \Drupal::service('webform_civicrm.utils');
+  $fields = \Drupal::service('webform_civicrm.fields');
+  $fieldOptions = \Drupal::service('webform_civicrm.field_options');
+  $adminForm = \Drupal::service('webform_civicrm.admin_form');
+  $billingFields = ['first_name', 'middle_name', 'last_name', 'street_address', 'postal_code', 'city', 'country_id', 'state_province_id'];
+
+  $ppFormKey = 'civicrm_1_contribution_1_contribution_payment_processor_id';
+  $webforms = Webform::loadMultiple();
+  foreach ($webforms as $webform) {
+    $handler = $webform->getHandlers('webform_civicrm');
+    $config = $handler->getConfiguration();
+    $settings = &$config['webform_civicrm']['settings'] ?? [];
+    $data = $settings['data'] ?? [];
+    $element = $webform->getElement($ppFormKey);
+    $options = [];
+    if (!empty($element)) {
+      $options = $element['#options'] ?? [];
+      if (!empty($element['#civicrm_live_options']) && empty($options)) {
+        $options = $fieldOptions->get(['form_key' => $ppFormKey], 'create', $data);
+      }
+    }
+    if (empty($options) && is_numeric($data['contribution'][1]['contribution'][1]['payment_processor_id'])) {
+      $options[$data['contribution'][1]['contribution'][1]['payment_processor_id']] = '';
+    }
+    if (empty($options)) {
+      continue;
+    }
+    //If any of the payment processor allow billing fields, enable billing on the form.
+    $addBilling = FALSE;
+    foreach ($options as $ppID => $ppName) {
+      $processor = civicrm_api3('PaymentProcessor', 'get', [
+        'id' => $ppID,
+        'billing_mode' => ['IN' => [1, 3]],
+      ]);
+      if (!empty($processor['count'])) {
+        $addBilling = TRUE;
+        break;
+      }
+    }
+    if (!$addBilling || isset($settings['billing_1_number_of_billing'])) {
+      continue;
+    }
+    $enabled = $utils->wf_crm_enabled_fields($webform, NULL, TRUE);
+    $settings['billing_1_number_of_billing'] = 1;
+    $settings['data']['billing']['number_number_of_billing'] = 1;
+    //Fill required keys in settings.
+    foreach ($billingFields as $fld) {
+      $key = "civicrm_1_contribution_1_contribution_billing_address_{$fld}";
+      $settings[$key] = 'create_civicrm_webform_element';
+    }
+    //Insert components in the webform.
+    foreach ($billingFields as $fld) {
+      $field = $fields->get()["contribution_billing_address_{$fld}"] ?? '';
+      $field['form_key'] = "civicrm_1_contribution_1_contribution_billing_address_{$fld}";
+      $adminForm::insertComponent($field, $enabled, $settings, TRUE);
+    }
+    $stub_form = [];
+    $stub_form_state = new FormState();
+    $adminForm->initialize($stub_form, $stub_form_state, $webform);
+    $adminForm->addEnabledElements($enabled);
+
+    $handler->setConfiguration($config);
+    $webform->save();
+  }
+}
+
+/**
+ * Change text state fields to civicrm options.
+ */
+function webform_civicrm_update_8004() {
+  $stateFormKey = 'address_state_province_id';
+  $countyFormKey = 'address_county_id';
+  $webforms = Webform::loadMultiple();
+  foreach ($webforms as $webform) {
+    $handler = $webform->getHandlers('webform_civicrm');
+    $config = $handler->getConfiguration();
+    if (empty($config['webform_civicrm'])) {
+      continue;
+    }
+    $settings = &$config['webform_civicrm']['settings'] ?? [];
+    foreach ($settings as $key => $val) {
+      if (strpos($key, $stateFormKey) !== false || strpos($key, $countyFormKey) !== false) {
+        $element = $webform->getElement($key);
+        if (!empty($element['#type']) && $element['#type'] == 'textfield') {
+          $element = array_merge($element, [
+            '#type' => 'civicrm_options',
+            '#webform_plugin_id' => 'civicrm_options',
+            '#extra' => ['aslist' => 1],
+            '#civicrm_live_options' => 0,
+            '#empty_option' => '- None -',
+            '#options' => [],
+          ]);
+          $webform->setElementProperties($element['#form_key'], $element);
+        }
+      }
+    }
+    $webform->save();
+  }
+}
+
+/**
+ * Set Contact 1 as the assigned for Contributions in all webforms
+ * (It keeps default behavior <= 6.2.0)
+ */
+function webform_civicrm_update_8005() {
+  \Drupal::service('civicrm')->initialize();
+  $webforms = Webform::loadMultiple();
+  foreach ($webforms as $webform) {
+    $handler = $webform->getHandlers('webform_civicrm');
+    $config = $handler->getConfiguration();
+    if (empty($config['webform_civicrm'])) {
+      continue;
+    }
+    $settings = &$config['webform_civicrm']['settings'];
+    // If Contribution enabled, set Contact 1 assigned as default behavior <= 6.2.0
+    if ($settings['civicrm_1_contribution_1_contribution_enable_contribution'] == "1") {
+      $settings['civicrm_1_contribution_1_contribution_contact_id'] = 1;
+      $settings['data']['contribution'][1]['contribution'][1]['contact_id'] = 1;
+      $handler->setConfiguration($config);
+      $webform->save();
+    }
+  }
+}
+
+/**
+ * Fix contact subtype case in existing webforms.
+ */
+function webform_civicrm_update_8006() {
+  \Drupal::service('civicrm')->initialize();
+  $utils = \Drupal::service('webform_civicrm.utils');
+  $subTypes = $utils->wf_crm_apivalues('Contact', 'getoptions', [
+    'field' => "contact_sub_type",
+  ]);
+  if (empty($subTypes)) {
+    return;
+  }
+  // change keys to lowercase
+  $subTypes = array_change_key_case($subTypes, CASE_LOWER);
+
+  $webforms = Webform::loadMultiple();
+  foreach ($webforms as $webform) {
+    $handler = $webform->getHandlers('webform_civicrm');
+    $config = $handler->getConfiguration();
+    if (empty($config['webform_civicrm'])) {
+      continue;
+    }
+    $settings = &$config['webform_civicrm']['settings'];
+
+    $settings_updated = FALSE;
+    foreach ($settings as $key => &$value) {
+      if (preg_match('/contact_contact_sub_type$/', $key)) {
+        foreach ($value as $k => $v) {
+          if (strtolower($k) == $k && !empty($subTypes[$k])) {
+            $value[$subTypes[$k]] = $subTypes[$k];
+            unset($value[$k]);
+            $settings_updated = TRUE;
+          }
+        }
+      }
+    }
+    // Update data key in settings to have the correct case for subtype. 
+    $data = &$settings['data'];
+    foreach ($data['contact'] as $key => &$contact) {
+      if (!empty($contact['contact'][1]['contact_sub_type'])) {
+        foreach ($contact['contact'][1]['contact_sub_type'] as $k => $v) {
+          if (strtolower($k) == $k && !empty($subTypes[$k])) {
+            $contact['contact'][1]['contact_sub_type'][$subTypes[$k]] = $subTypes[$k];
+            unset($contact['contact'][1]['contact_sub_type'][$k]);
+            $settings_updated = TRUE;
+          }
+        }
+      }
+    }
+
+    if ($settings_updated) {
+      $handler->setConfiguration($config);
+      $webform->save();
+    }
+  }
+}

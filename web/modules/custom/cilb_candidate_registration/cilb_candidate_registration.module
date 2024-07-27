@@ -1,0 +1,19 @@
+<?php
+
+use Drupal\webform\Utility\WebformFormHelper;
+use Drupal\webform\Entity\Webform;
+
+/**
+ * Implements hook_form_alter().
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  if ($form_id == "webform_submission_register_english_add_form") {
+      // Attach library
+      $form['#attached']['library'][] = 'cilb_candidate_registration/candidate_registration';
+      $form['#attached']['library'][] = 'cilb_candidate_registration/get_scope';
+      $form['#attached']['library'][] = 'cilb_candidate_registration/load_scope';
+    }
+}

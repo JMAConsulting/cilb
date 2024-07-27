@@ -1,0 +1,32 @@
+civicrm_entity.settings:
+  type: config_entity
+  label: 'CiviCRM settings'
+  mapping:
+    filter_format:
+      type: string
+      label: 'Filter format'
+    enabled_entity_types:
+      type: sequence
+      label: 'Enabled entity types'
+      sequence:
+        type: string
+        label: 'Entity type'
+    disable_hooks:
+      type: boolean
+      label: 'Disable pre/post hooks'
+    enable_links_per_type:
+      type: sequence
+      label: 'Enable Drupal pages per type'
+      sequence:
+        type: mapping
+        label: 'Entity type'
+        mapping:
+          values:
+            type: sequence
+            label: 'Values'
+            sequence:
+              type: string
+              label: 'Value'
+    disable_links:
+      type: boolean
+      label: 'Disable Drupal pages'

@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * @file
+ * Contains webform_authorizenet.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function webform_authorizenet_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the webform_authorizenet module.
+    case 'help.page.webform_authorizenet':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Webform Authorize.Net') . '</p>';
+      $output .= '<p>' . t('Provides a handler and integration to make payments using Authorize.Net. Utilizes Accept Hosted, a mobile-optimized payment form hosted by Authorize.net.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function webform_authorizenet_theme() {
+  return [
+    'webform_handler_webform_authorizenet_summary' => [
+      'variables' => [
+        'settings' => NULL,
+        'handler' => NULL,
+      ],
+    ],
+  ];
+}
