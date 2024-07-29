@@ -14,7 +14,10 @@ jQuery(document).ready(function ($) {
         .text()
         .trim();
       localStorage.setItem("exam_choice", selectedExamName);
-      localStorage.setItem("exam_value", selectedValue);
+
+      $("#edit-civicrm-1-participant-1-participant-event-id").val(
+        selectedValue
+      );
 
       getEventDescription(selectedValue);
     });
