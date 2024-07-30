@@ -55,6 +55,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
     }
+    elseif($current_page == 'select_exam_parts') {
+      $this->validateExamFee($form_state);
+    }
   }
 
   /**
@@ -154,6 +157,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $error_message = $this->t('The SSNs do not match. Please check the numbers and try again.');
       $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
       $formState->setErrorByName('verify_ssn', $error_message);
+    }
+  }
+
+  /**
+  * Validate exam fee selection
+  */
+  private function validateExamFee(FormStateInterface $formState) {
+    $examFee = $formState->getValue('civicrm_1_participant_1_participant_fee_amount');
+
+    if ($examFee == 0) {
+        $formState->setErrorByName('exam_fee_markup', $this->t('Select one or more exam fees.'));
+        return;
     }
   }
 }
