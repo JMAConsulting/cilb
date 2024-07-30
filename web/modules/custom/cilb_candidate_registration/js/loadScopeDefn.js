@@ -20,7 +20,6 @@ jQuery(document).ready(function ($) {
     getPriceSet(examChoice);
   }
 
-  // Get priceset associated with event
   function getPriceSet(eventId) {
     CRM.api4("PriceSetEntity", "get", {
       select: ["price_field_value.*"],
@@ -37,11 +36,10 @@ jQuery(document).ready(function ($) {
       ],
     }).then(
       function (priceSetEntities) {
-        console.log(priceSetEntities);
         // Check if the priceSetEntities array contains data
         if (priceSetEntities.length > 0) {
           // Clear any existing checkboxes
-          $("#edit-exam-fee-front-end").empty();
+          $("#edit-exam-fee-markup").empty();
 
           // Iterate through the priceSetEntities array and create new checkboxes
           priceSetEntities.forEach(function (item, index) {
@@ -54,7 +52,7 @@ jQuery(document).ready(function ($) {
             // Create a new checkbox input and label
             var checkboxHtml = `
                 <div class="form-type-boolean js-form-item form-item js-form-type-checkbox form-item-exam-fee-front-end-${index} js-form-item-exam-fee-front-end-${index}">
-                    <input class="civicrm-enabled form-checkbox form-boolean form-boolean--type-checkbox" 
+                    <input class="civicrm-enabled form-checkbox form-boolean form-boolean--type-checkbox exam-fee-checkbox" 
                         data-civicrm-field-key="exam_fee_front_end" 
                         data-drupal-selector="edit-exam-fee-front-end-${index}" 
                         type="checkbox" 
@@ -66,8 +64,17 @@ jQuery(document).ready(function ($) {
                 `;
 
             // Append the new checkbox to the new container
-            $("#edit-exam-fee-front-end").append(checkboxHtml);
+            $("#edit-exam-fee-markup").append(checkboxHtml);
           });
+
+          // Add event listener to checkboxes (only once, after they've all been added)
+          $("#edit-exam-fee-markup").on(
+            "change",
+            ".exam-fee-checkbox",
+            function () {
+              updateFeeAmount();
+            }
+          );
         } else {
           console.log("No data found in the response");
         }
@@ -77,5 +84,14 @@ jQuery(document).ready(function ($) {
         console.log("Failed to fetch data: ", failure);
       }
     );
+  }
+
+  // Update the fee amount input field based on checked checkboxes
+  function updateFeeAmount() {
+    var total = 0;
+    $("#edit-exam-fee-markup .exam-fee-checkbox:checked").each(function () {
+      total += parseFloat($(this).val());
+    });
+    $("#edit-civicrm-1-participant-1-participant-fee-amount").val(total);
   }
 });
