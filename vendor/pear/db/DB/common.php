@@ -146,7 +146,7 @@ class DB_common extends PEAR
      */
     function __construct()
     {
-        $this->PEAR('DB_Error');
+        parent::__construct('DB_Error');
     }
 
     // }}}
@@ -1156,7 +1156,22 @@ class DB_common extends PEAR
      */
     function modifyQuery($query)
     {
-        return $query;
+        // CRM-20445 Add query dispatcher to allow query modification.
+        // This section of code may run hundreds or thousands of times in a given request.
+        // Consequently, it is micro-optimized to use single lookup in typical case.
+        if (!isset(Civi::$statics['db_common_dispatcher'])) {
+            if (class_exists('Civi\Core\Container') && \Civi\Core\Container::isContainerBooted()) {
+                Civi::$statics['db_common_dispatcher'] = Civi\Core\Container::singleton()->get('dispatcher');
+            }
+            else {
+                return $query;
+            }
+        }
+
+        $e = new \Civi\Core\Event\QueryEvent($query);
+        Civi::$statics['db_common_dispatcher']->dispatch('civi.db.query', $e);
+        // CRM-20445 ends.
+        return $e->query;
     }
 
     // }}}
@@ -1905,7 +1920,7 @@ class DB_common extends PEAR
      *
      * @see PEAR_Error
      */
-    function &raiseError($code = DB_ERROR, $mode = null, $options = null,
+    function raiseError($code = DB_ERROR, $mode = null, $options = null,
                          $userinfo = null, $nativecode = null, $dummy1 = null,
                          $dummy2 = null)
     {
@@ -2278,6 +2293,20 @@ class DB_common extends PEAR
     }
 
     // }}}
+    // {{{ lastInsertId()
+
+   /**
+    * Get the most recently inserted Id
+    *
+    * @throws RuntimeException
+    */
+    function lastInsertId()
+    {
+        throw new \RuntimeException("Not implemented: " . get_class($this) . '::lastInsertId');
+    }
+
+    // }}}
+
 }
 
 /*

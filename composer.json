@@ -23,10 +23,12 @@
         "drupal/core-composer-scaffold": "^10.3",
         "drupal/core-project-message": "^10.3",
         "drupal/core-recommended": "^10.3",
+        "drupal/entity_print": "^2.14",
         "drupal/webform": "^6.2",
         "drupal/webform_authorizenet": "^1.0",
         "drupal/webform_civicrm": "^6.2",
-        "drush/drush": "^12.5"
+        "drush/drush": "^12.5",
+        "mpdf/mpdf": "^8.2"
     },
     "conflict": {
         "drupal/drupal": "*"
@@ -49,7 +51,12 @@
         "sort-packages": true
     },
     "extra": {
-        "drupal-scaffold": {
+  	"patches": {
+            "drupal/entity_print": {
+                "Issue #3063998: mPDF Plugin": "https://www.drupal.org/files/issues/2022-12-01/3063998-18.patch"
+            }
+        },
+	"drupal-scaffold": {
             "locations": {
                 "web-root": "web/"
             }
@@ -104,6 +111,7 @@
                 "      composer remove drupal/core-project-message"
             ]
         },
-        "compile-whitelist": ["civicrm/civicrm-core", "civicrm/composer-compile-lib"]
+        "compile-whitelist": ["civicrm/civicrm-core", "civicrm/composer-compile-lib"],
+        "enable-patching": "true"
     }
 }

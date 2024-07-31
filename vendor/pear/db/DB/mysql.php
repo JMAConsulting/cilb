@@ -1048,6 +1048,14 @@ class DB_mysql extends DB_common
     }
 
     // }}}
+    // {{{ lastInsertId()
+
+    function lastInsertId()
+    {
+        return mysql_insert_id($this->connection);
+    }
+
+    // }}}
 
 }
 

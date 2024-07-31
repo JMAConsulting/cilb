@@ -645,8 +645,12 @@ class DB
                 . 'CREATE|DROP|'
                 . 'LOAD DATA|SELECT .* INTO .* FROM|COPY|'
                 . 'ALTER|GRANT|REVOKE|'
+                // CRM_Core_Transaction Tests fail without the following line.
+                . 'SAVEPOINT|ROLLBACK|'
                 . 'LOCK|UNLOCK';
-        if (preg_match('/^\s*"?(' . $manips . ')\s+/i', $query)) {
+        // First strip any leading comments
+        $queryString = (substr($query, 0, 2) === '/*') ? substr($query, strpos($query, '*/') + 2) : $query;
+        if (preg_match('/^\s*"?(' . $manips . ')\s+/i', $queryString)) {
             return true;
         }
         return false;
@@ -749,6 +753,16 @@ class DB
      */
     public static function parseDSN($dsn)
     {
+
+        if (defined('DB_DSN_MODE') && DB_DSN_MODE === 'auto') {
+            if (extension_loaded('mysqli')) {
+                $dsn = preg_replace('/^mysql:/', 'mysqli:', $dsn);
+            }
+            else {
+                $dsn = preg_replace('/^mysqli:/', 'mysql:', $dsn);
+            }
+        }
+
         $parsed = array(
             'phptype'  => false,
             'dbsyntax' => false,

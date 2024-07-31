@@ -1530,6 +1530,9 @@ class Mail_mime
             $this->{$type} .= $data;
         }
 
+        // wordwrap the txtbody to be 750 characters to comply with RFC 2821
+        // CRM-3133
+        $this->{$type} = wordwrap($this->{$type}, 750);
         return true;
     }
 

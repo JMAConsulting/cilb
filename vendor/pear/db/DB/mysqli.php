@@ -319,7 +319,8 @@ class DB_mysqli extends DB_common
                     $dsn['password'],
                     $dsn['database'],
                     $dsn['port'],
-                    $dsn['socket']))
+                    $dsn['socket'],
+                    MYSQLI_CLIENT_SSL))
             {
                 $this->connection = $init;
             }
@@ -1116,6 +1117,14 @@ class DB_mysqli extends DB_common
             default:
                 return null;
         }
+    }
+
+    // }}}
+    // {{{ lastInsertId()
+
+    function lastInsertId()
+    {
+        return mysqli_insert_id($this->connection);
     }
 
     // }}}
