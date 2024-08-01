@@ -2,6 +2,9 @@
 
 use Drupal\webform\Utility\WebformFormHelper;
 use Drupal\webform\Entity\Webform;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\block\Entity\Block;
 
 /**
  * Implements hook_form_alter().
@@ -11,9 +14,49 @@ use Drupal\webform\Entity\Webform;
  */
 function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   if ($form_id == "webform_submission_register_english_add_form") {
-      // Attach library
-      $form['#attached']['library'][] = 'cilb_candidate_registration/candidate_registration';
-      $form['#attached']['library'][] = 'cilb_candidate_registration/get_scope';
-      $form['#attached']['library'][] = 'cilb_candidate_registration/load_scope';
+    // Attach library
+    $form['#attached']['library'][] = 'cilb_candidate_registration/candidate_registration';
+    $form['#attached']['library'][] = 'cilb_candidate_registration/get_scope';
+    $form['#attached']['library'][] = 'cilb_candidate_registration/load_scope';
+
+
+    // Redirect to /register if notification block is disabled
+    $elements = WebformFormHelper::flattenElements($form);
+    $original_markup = $elements['user_identification_markup']['#markup'];
+
+    if(!is_block_active('olivero_candidatenotice'))
+    {
+      $updated_markup = preg_replace(
+        '/https:\/\/cilb\.jmaconsulting\.biz\/(es\/)?register-notification/',
+        'https://cilb.jmaconsulting.biz/register',
+        $original_markup
+      );
+      $elements['user_identification_markup']['#markup'] = $updated_markup;
     }
+  }
+}
+
+function cilb_candidate_registration_preprocess_page(&$variables) {
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if ($node instanceof \Drupal\node\NodeInterface && $node->id() == 4) {
+    $current_language = \Drupal::languageManager()->getCurrentLanguage()->getId();
+    $block_id = 'olivero_candidatenotice';
+
+    // Redirect to webform if notification block is disabled
+    if (!is_block_active($block_id)) {
+      if($current_language == 'es') {
+        $redirect_url = Url::fromUri('internal:/es/exam-registration');
+      } else {
+        $redirect_url = Url::fromUri('internal:/exam-registration');
+      }
+      $response = new RedirectResponse($redirect_url->toString());
+      $response->send();
+      exit();
+    }
+  }
+}
+
+function is_block_active($block_id) {
+  $block = Block::load($block_id);
+  return $block && $block->status();
 }
