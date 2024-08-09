@@ -1,7 +1,6 @@
 <?php
 use CRM_DeleteInactiveUsers_ExtensionUtil as E;
 use Drupal\user\Entity\User;
-use Drupal\Core\Database\Database;
 use Civi\Api4\Contact;
 
 /**
@@ -33,24 +32,17 @@ function civicrm_api3_job_delete_inactive_users($params) {
     $sevenDaysAgo = strtotime('-7 days');
 
     // Subtract 30 days for accounts that haven't had any registrations
-    $thirtyDaysAgo = strtotime('-30 days');
-
-    $connection = Database::getConnection();
-
-    // Ensure connection is valid
-    if (!($connection instanceof \Drupal\Core\Database\Connection)) {
-      throw new \Exception('Database connection is not an instance of Drupal\Core\Database\Connection.');
-    }
+    $thirtyDaysAgo = date('Y-m-d', strtotime('-30 days'));
 
     // Query to find candidates with unconfirmed emails older than 7 days
-    $query = $connection->select('user_email_verification', 'u');
-    $query->fields('u', ['uid']);
-    $query->join('users_field_data', 'ud', 'u.uid = ud.uid');
-    $query->join('user__roles', 'ur', 'u.uid = ur.entity_id');
+    $query = \Drupal::database()->select('user_email_verification', 'u');
+    $query->fields('u', ['uid']); 
+    $query->innerJoin('users_field_data', 'ud', 'u.uid = ud.uid');
+    $query->innerJoin('user__roles', 'ur', 'u.uid = ur.entity_id');
 
-    $query->condition('ud.created', $sevenDaysAgo, '<')
+    $query->condition('ud.created', $sevenDaysAgo, '<') // move before fields
           ->condition('u.verified', 0)
-          ->condition('ur.roles_target_id', 'administrator', '!=');
+          ->condition('ur.roles_target_id', 'candidate', '=');
 
     // Execute the query and fetch the results
     $result = $query->execute();
@@ -73,7 +65,7 @@ function civicrm_api3_job_delete_inactive_users($params) {
       ->addSelect('uf_match.uf_id', 'participant.event_id', 'display_name')
       ->addJoin('UFMatch AS uf_match', 'INNER', ['id', '=', 'uf_match.contact_id'])
       ->addJoin('Participant AS participant', 'EXCLUDE', ['participant.contact_id', '=', 'id'])
-      ->addWhere('created_date', '>', $thirtyDaysAgo)
+      ->addWhere('created_date', '<', $thirtyDaysAgo)
       ->addWhere('contact_sub_type', '=', 'Candidate')
       ->execute();
 
