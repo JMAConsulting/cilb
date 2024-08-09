@@ -30,25 +30,32 @@ function _civicrm_api3_job_delete_inactive_users_spec(&$spec) {}
 function civicrm_api3_job_delete_inactive_users($params) {
   try {
     // Get the current date and subtract 7 days for unconfirmed emails
-    $sevenDaysAgo = date('Y-m-d H:i:s', strtotime('-7 days'));
+    $sevenDaysAgo = strtotime('-7 days');
 
     // Subtract 30 days for accounts that haven't had any registrations
-    $thirtyDaysAgo = date('Y-m-d H:i:s', strtotime('-30 days'));
+    $thirtyDaysAgo = strtotime('-30 days');
 
     $connection = Database::getConnection();
 
-    // Query to find candidates with unconfirmed emails older than 7 days
-    $unconfirmedAccounts = $connection->select('user_email_verification', 'u')
-      ->fields('u', ['uid'])
-      ->join('users_field_data', 'ud', 'u.uid = ud.uid')
-      ->join('user__roles', 'ur', 'u.uid = ur.entity_id')
-      ->condition('ud.created', $sevenDaysAgo, '<')
-      ->condition('u.verified', 0)
-      ->condition('ur.roles_target_id', 'administrator', '!=')
-      ->execute()
-      ->fetchCol();
+    // Ensure connection is valid
+    if (!($connection instanceof \Drupal\Core\Database\Connection)) {
+      throw new \Exception('Database connection is not an instance of Drupal\Core\Database\Connection.');
+    }
 
-    
+    // Query to find candidates with unconfirmed emails older than 7 days
+    $query = $connection->select('user_email_verification', 'u');
+    $query->fields('u', ['uid']);
+    $query->join('users_field_data', 'ud', 'u.uid = ud.uid');
+    $query->join('user__roles', 'ur', 'u.uid = ur.entity_id');
+
+    $query->condition('ud.created', $sevenDaysAgo, '<')
+          ->condition('u.verified', 0)
+          ->condition('ur.roles_target_id', 'administrator', '!=');
+
+    // Execute the query and fetch the results
+    $result = $query->execute();
+    $unconfirmedAccounts = $result->fetchCol();
+
     // Get matching Civi IDs
     $unconfirmedContacts = Contact::get(TRUE)
       ->addSelect('id', 'uf_match.uf_id')
