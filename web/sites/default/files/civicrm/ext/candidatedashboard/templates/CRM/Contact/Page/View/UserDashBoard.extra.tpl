@@ -1,4 +1,4 @@
-<div class="crm-dashboard-personalinfo">
+<div class="personalinfo">
     <div class="header-dark">Personal Info</div>
     <div class="view-content">
         {if $personal_rows || $address_rows}
@@ -37,6 +37,12 @@
                             {/foreach}
                         </td>
                     </tr>
+                    <tr>
+                        <td colspan=2><a href="/form/request-information-change">{ts}I Need to Change My First, Last or Middle Name, Social Security Number, or Date of Birth{/ts}</a></td>
+                    </tr>
+                    <tr>
+                        <td colspan=2><a href="/form/change-contact-information">{ts}I Need to Change My Phone Number, Email, or Address{/ts}<a></td>
+                    </tr>
                 {/strip}
                 </table>
             </div>
@@ -44,18 +50,20 @@
             <div class="messages status no-popup">
             {icon icon="fa-info-circle"}{/icon}
             {ts}You have not set any personal information yet.{/ts}
+            <br>
+            <a href="/form/request-information-change">{ts}Click here to add your First, Last or Middle Name or Social Security Number, Date of Birth, Address or Phone Number(s){/ts}</a>
             </div>
         {/if}
     </div>
 </div>
-<div class="crm-dashboard-notes">
+<div class="notes">
     <div class="header-dark">Your Notes</div>
     <div class="view-content">
-        {if $notes.$row_count > 0}
+        {if $notes->rowCount > 0}
             {foreach from=$notes item=note}
                 <div class="crm-block crm-content-block crm-note-view-block">
                     <table class="crm-info-panel">
-                    <tr><td class="label">{ts}Subject{/ts}</td><td>{$note.subject}</td></tr>
+                    <tr><td class="label">{ts}Subject{/ts}</td><td>{if $note.subject}{$note.subject}{else}{ts}No subject{/ts}{/if}</td></tr>
                     <tr><td class="label">{ts}Date:{/ts}</td><td>{$note.note_date|crmDate}</td></tr>
                     <tr><td class="label">{ts}Modified Date:{/ts}</td><td>{$note.modified_date|crmDate}</td></tr>
                     <tr><td class="label">{ts}Note:{/ts}</td><td>{$note.note|nl2br}</td></tr>
@@ -73,12 +81,25 @@
 {literal}
     <script type="text/javascript">
         cj(document).ready(function(){
-            cj(".crm-dashboard-personalinfo").prependTo(".dashboard-elements tbody");
-            cj(".crm-dashboard-notes").insertAfter(cj(".crm-dashboard-personalinfo"))
+            cj(".dashboard-elements tbody").first().prepend("<tr class=\"crm-dashboard-notes\">").prepend("<tr class=\"crm-dashboard-personalinfo\">");
+            cj(".crm-dashboard-personalinfo").append(cj("<td>").append(cj(".personalinfo").html()));
+            cj(".crm-dashboard-notes").append(cj("<td>").append(cj(".notes").html()));
+            cj(".personalinfo").remove();
+            cj(".notes").remove();
             cj(".crm-dashboard-groups").remove();
             cj(".crm-dashboard-civimember").remove();
             cj(".crm-dashboard-permissionedOrgs").remove();
             cj(".crm-dashboard-pcp").remove();
+            {/literal}
+            {foreach from=$event_rows item=row}
+                cj(".crm-participant-event-id_{$row.event_id}").parent().append(
+                    cj("<td>")
+                    {if $row.event_start_date > $smarty.now|date_format:'%Y-%m-%d %H:%M:%S'}
+                        .append("<a href=\"/form/reschedule-exam?id={$row.event_id}\">Reschedule Exam</a>")
+                    {/if}
+                );
+            {/foreach}
+            {literal}
         });
     </script>
 {/literal}

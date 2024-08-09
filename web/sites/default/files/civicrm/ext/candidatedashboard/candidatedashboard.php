@@ -90,6 +90,56 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     $page->assign('address_rows', $addressFields);
 
     // Activities
+    $activities = \Civi\Api4\Activity::get(FALSE)
+      ->addSelect('*', 'source_contact_id', 'target_contact_id', 'assignee_contact_id', 'status_id:label')
+      ->addClause('OR', ['assignee_contact_id', '=', $contactId], ['target_contact_id', '=', $contactId])
+      ->execute();
+    $activityRows= [];
+    foreach($activities as $activity) {
+      if (isset($activity['activity_type_id'])) {
+        $activityType = \Civi\Api4\OptionValue::get(FALSE)
+          ->addWhere('option_group_id:name', '=', 'activity_type')
+          ->addWhere('value', '=', $activity['activity_type_id'])
+          ->execute()->first()['label'];
+      }
+      else {
+        $activityType = NULL;
+      }
+      if (isset($activity['source_contact_id'])) {
+        $sourceContactName = \Civi\Api4\Contact::get(FALSE)
+          ->addWhere('id', '=', $activity['source_contact_id'])
+          ->execute()->first()['display_name'];
+      }
+      else {
+        $sourceContactName = NULL;
+      }
+      if (isset($activity['target_contact_id'])) {
+        $targets = [];
+        foreach($activity['target_contact_id'] as $targetId) {
+          $targetName = \Civi\Api4\Contact::get(FALSE)
+            ->addWhere('id', '=', $targetId)
+            ->execute()->first()['display_name'];
+          $targets[$targetId] = $targetName;
+        }
+      }
+      else {
+        $targets = NULL;
+      }
+      if(isset($activity['status_id']))
+      $row = [
+        'activity_id' => $activity['id'],
+        'activity_type' => $activityType,
+        'contact_id' => $activity['source_contact_id'],
+        'activity_subject' => $activity['subject'],
+        'source_contact_id' => $activity['source_contact_id'],
+        'source_contact_name' => $sourceContactName,
+        'target_contact_name' => $targets,
+        'activity_date_time' => $activity['activity_date_time'],
+        'activity_status' => $activity['status_id:label']
+      ];
+      $activityRows[] = $row;
+    }
+    $page->assign('activity_rows', $activityRows);
     $elements = $page->get_template_vars('dashboardElements');
     $elements[] = [
       'class' => 'crm-dashboard-activities',
@@ -103,7 +153,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     $notes = \Civi\Api4\Note::get()
       ->addWhere('contact_id', '=', $contactId)
       ->execute();
-    $page->assign('notes', $notes);
+    $page->assign('notes', $notes); 
   }
 }
 
