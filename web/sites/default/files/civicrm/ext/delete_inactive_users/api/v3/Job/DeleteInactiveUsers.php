@@ -30,19 +30,21 @@ function _civicrm_api3_job_delete_inactive_users_spec(&$spec) {}
 function civicrm_api3_job_delete_inactive_users($params) {
   try {
     // Get the current date and subtract 7 days for unconfirmed emails
-    $sevenDaysAgo = strtotime('-7 days');
+    $sevenDaysAgo = date('Y-m-d H:i:s', strtotime('-7 days'));
 
     // Subtract 30 days for accounts that haven't had any registrations
-    $thirtyDaysAgo = strtotime('-30 days');
+    $thirtyDaysAgo = date('Y-m-d H:i:s', strtotime('-30 days'));
 
     $connection = Database::getConnection();
 
-    // Query to find users with unconfirmed emails older than 7 days
+    // Query to find candidates with unconfirmed emails older than 7 days
     $unconfirmedAccounts = $connection->select('user_email_verification', 'u')
       ->fields('u', ['uid'])
       ->join('users_field_data', 'ud', 'u.uid = ud.uid')
+      ->join('user__roles', 'ur', 'u.uid = ur.entity_id')
       ->condition('ud.created', $sevenDaysAgo, '<')
       ->condition('u.verified', 0)
+      ->condition('ur.roles_target_id', 'administrator', '!=')
       ->execute()
       ->fetchCol();
 
@@ -59,14 +61,13 @@ function civicrm_api3_job_delete_inactive_users($params) {
       $unconfirmedCiviIDs[] = $contact['id'];
     }
 
-    // Get contacts older than 30 days without any registrations
+    // Get candidates older than 30 days without any registrations
     $unregisteredContacts = Contact::get(TRUE)
       ->addSelect('uf_match.uf_id', 'participant.event_id', 'display_name')
       ->addJoin('UFMatch AS uf_match', 'INNER', ['id', '=', 'uf_match.contact_id'])
       ->addJoin('Participant AS participant', 'EXCLUDE', ['participant.contact_id', '=', 'id'])
       ->addWhere('created_date', '>', $thirtyDaysAgo)
-      ->addWhere('uf_match.uf_id', '>', 5) // Ignore JMA IDs
-      ->addWhere('id', '!=', 15) // Ignore Prolydian ID
+      ->addWhere('contact_sub_type', '=', 'Candidate')
       ->execute();
 
     $unregisteredAccounts = [];
