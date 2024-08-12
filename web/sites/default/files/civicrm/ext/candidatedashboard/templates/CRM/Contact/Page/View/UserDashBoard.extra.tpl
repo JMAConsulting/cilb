@@ -84,12 +84,6 @@
             cj(".dashboard-elements tbody").first().prepend("<tr class=\"crm-dashboard-notes\">").prepend("<tr class=\"crm-dashboard-personalinfo\">");
             cj(".crm-dashboard-personalinfo").append(cj("<td>").append(cj(".personalinfo").html()));
             cj(".crm-dashboard-notes").append(cj("<td>").append(cj(".notes").html()));
-            cj(".personalinfo").remove();
-            cj(".notes").remove();
-            cj(".crm-dashboard-groups").remove();
-            cj(".crm-dashboard-civimember").remove();
-            cj(".crm-dashboard-permissionedOrgs").remove();
-            cj(".crm-dashboard-pcp").remove();
             {/literal}
             {foreach from=$event_rows item=row}
                 cj(".crm-participant-event-id_{$row.event_id}").parent().append(
