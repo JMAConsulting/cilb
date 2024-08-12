@@ -98,8 +98,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         }
     }
 
-    //$user->setPassword($password);
-
     // Create a new Drupal user
     $user = User::create();
 
@@ -107,9 +105,21 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $user->setEmail($email);
     $user->setUsername($username);
     $user->addRole('candidate');
+
     $user->activate();
     $user->enforceIsNew();
     $user->save();
+
+    // Send the email verification email
+    \Drupal::service('plugin.manager.mail')->mail(
+      'user',
+      'register_no_approval_required',
+      $user->getEmail(),
+      $user->getPreferredLangcode(),
+      ['account' => $user],
+      NULL,
+      TRUE
+    );
 
     $this->civicrm->initialize();
 
