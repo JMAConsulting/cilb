@@ -47,7 +47,7 @@ function cilb_chargeback_links_civicrm_links(string $op, string $objectName, $ob
 
   $url = $participant['Participant_Webform.Url'];
 
-  if (!empty($webformSlug) && !empty($submissionNum)){
+  if (!empty($url)){
     $links[] = [
       'name' => E::ts('Generate Chargeback'),
       'title' => E::ts('Generate Chargeback'),
