@@ -7,7 +7,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Event subscriber to check extra permission for the List Manager application
- * @service civi.api4.listmanager
+ * @service civi.api4.clibpermissionchanges
  */
 class CILBPermissionChanges extends \Civi\Core\Service\AutoService implements EventSubscriberInterface {
 
@@ -32,14 +32,14 @@ class CILBPermissionChanges extends \Civi\Core\Service\AutoService implements Ev
     public function onApiAuthorize(\Civi\API\Event\AuthorizeEvent $event): void {
         $apiRequest = $event->getApiRequest();
         if ($apiRequest['version'] == 4) {
-            $entity = $apiRequest->getEntityName();
-            $action = strtolower($apiRequest->getActionName());
-            if ($action == 'get' && ($entity == 'Event' || $entity == 'PriceSetEntity' || $entity == 'PriceFieldValue')) {
-                if (\CRM_Core_Permission::check('access ajax api')) {
-                    $event->authorize();
-                    $event->stopPropagation();
-                }
-            } 
+          $entity = $apiRequest->getEntityName();
+          $action = strtolower($apiRequest->getActionName());
+          if ($action == 'get' && ($entity == 'Event' || $entity == 'PriceSetEntity' || $entity == 'PriceFieldValue')) {
+            if (\CRM_Core_Permission::check('access AJAX API')) {
+              $event->authorize();
+              $event->stopPropagation();
+            }
+          }
         }
     }
 }
