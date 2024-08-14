@@ -1,0 +1,7 @@
+rechedule_exam:
+  version: 1
+  js:
+    js/populateLocation.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupalSettings

@@ -18,6 +18,8 @@ function cilb_reschedule_exam_form_alter(&$form, \Drupal\Core\Form\FormStateInte
 
     $examId = \Drupal::request()->query->get('id') ?? 0;
 
+    $form['#attached']['library'][] = 'cilb_reschedule_exam/reschedule_exam';
+
     if(!empty($examId) && is_numeric($examId)) {
       \Drupal::service('civicrm')->initialize();
 
@@ -37,5 +39,70 @@ function cilb_reschedule_exam_form_alter(&$form, \Drupal\Core\Form\FormStateInte
         $elements['scheduled_date']['#date_time_format'] = 'Y-m-d H:i';
       }
     }
+
+    // Add a dropdown that will act as the filter.
+    $form['proposed_category'] = [
+      '#ajax' => [
+        'callback' => 'cilb_reschedule_exam_update_exam_dates',
+        'wrapper' => 'select-element-wrapper',
+      ],
+    ];
+
+    // Add the select entity element, which will be dynamically populated.
+    $form['my_select_entity'] = [
+      '#type' => 'select',
+      '#title' => t('My Select Element'),
+      '#prefix' => '<div id="select-element-wrapper">',
+      '#suffix' => '</div>',
+      '#options' => [],
+    ];
   }
+}
+
+/**
+ * AJAX callback to update the select entity element.
+ */
+function cilb_reschedule_exam_update_exam_dates(array &$form, FormStateInterface $form_state) {
+  // Get the selected filter value.
+  $filter_value = $form_state->getValue('proposed_category');
+
+  // Query the view or build the options based on the filter.
+  $options = _MYMODULE_get_filtered_options($filter_value);
+
+  // Set the options in the select entity element.
+  $form['my_select_entity']['#options'] = $options;
+
+  // Return the updated select entity element.
+  return $form['my_select_entity'];
+}
+
+/**
+ * Helper function to get filtered options.
+ */
+function _MYMODULE_get_filtered_options($filter_value) {
+  // Perform your logic here, possibly running the view programmatically.
+  $options = [];
+
+  $events = \Civi\Api4\Event::get(FALSE)
+    ->addWhere('event_type_id', '=', '')
+    ->execute();
+    
+  foreach ($events as $event) {
+    // do something
+  }
+
+  // Example static options based on the filter.
+  if ($filter_value == 'option_1') {
+    $options = [
+      '1' => 'Filtered Option 1',
+      '2' => 'Filtered Option 2',
+    ];
+  } elseif ($filter_value == 'option_2') {
+    $options = [
+      '3' => 'Filtered Option 3',
+      '4' => 'Filtered Option 4',
+    ];
+  }
+
+  return $options;
 }
