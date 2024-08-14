@@ -5,6 +5,8 @@ use Drupal\webform\Entity\Webform;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\block\Entity\Block;
+use Drupal\views\ViewExecutable;
+use Drupal\views\Plugin\views\query\QueryPluginBase;
 
 /**
  * Implements hook_form_alter().
@@ -24,8 +26,7 @@ function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormSt
     $elements = WebformFormHelper::flattenElements($form);
     $original_markup = $elements['user_identification_markup']['#markup'];
 
-    if(!is_block_active('olivero_candidatenotice'))
-    {
+    if(! _is_block_active('olivero_candidatenotice')) {
       $updated_markup = preg_replace(
         '/https:\/\/cilb\.jmaconsulting\.biz\/(es\/)?register-notification/',
         'https://cilb.jmaconsulting.biz/register',
@@ -43,7 +44,7 @@ function cilb_candidate_registration_preprocess_page(&$variables) {
     $block_id = 'olivero_candidatenotice';
 
     // Redirect to webform if notification block is disabled
-    if (!is_block_active($block_id)) {
+    if (! _is_block_active($block_id)) {
       if($current_language == 'es') {
         $redirect_url = Url::fromUri('internal:/es/exam-registration');
       } else {
@@ -56,7 +57,37 @@ function cilb_candidate_registration_preprocess_page(&$variables) {
   }
 }
 
-function is_block_active($block_id) {
+function _is_block_active($block_id) {
   $block = Block::load($block_id);
   return $block && $block->status();
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function cilb_candidate_registration_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
+  if ($view->id() == 'exam_type' && $view->current_display == 'entity_reference_1') {
+
+    $events = \Civi\Api4\Event::get(FALSE)
+      ->addSelect('event_type_id', 'event_type_id:label', 'option_value.id')
+      ->addJoin('OptionValue AS option_value', 'LEFT', ['event_type_id', '=', 'option_value.value'])
+      ->addWhere('is_active', '=', TRUE)
+      ->addWhere('start_date', '>', 'now')
+      ->addWhere('is_online_registration', '=', TRUE)
+      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
+      ->addWhere('option_value.option_group_id', '=', 15)
+      ->addGroupBy('event_type_id')
+      ->execute();
+
+    $valid_option_ids = [];
+    foreach ($events as $event) {
+      $valid_option_ids[] = $event['option_value.id'];
+    }
+
+    if (!empty($valid_option_ids)) {
+      $query->addWhere('AND', 'civicrm_option_value.id', $valid_option_ids, 'IN');
+    } else {
+      $query->addWhere('AND', 'civicrm_option_value.id', '0', '=');
+    }
+  }
 }
