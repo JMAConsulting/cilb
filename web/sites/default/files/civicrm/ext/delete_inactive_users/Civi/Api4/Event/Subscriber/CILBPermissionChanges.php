@@ -34,7 +34,7 @@ class CILBPermissionChanges extends \Civi\Core\Service\AutoService implements Ev
         if ($apiRequest['version'] == 4) {
           $entity = $apiRequest->getEntityName();
           $action = strtolower($apiRequest->getActionName());
-          if ($action == 'get' && ($entity == 'Event' || $entity == 'PriceSetEntity' || $entity == 'PriceFieldValue')) {
+          if ($action == 'get' && ($entity == 'Event' || $entity == 'PriceSetEntity' || $entity == 'PriceFieldValue' || $entity == 'PriceField')) {
             if (\CRM_Core_Permission::check('access AJAX API')) {
               $event->authorize();
               $event->stopPropagation();
