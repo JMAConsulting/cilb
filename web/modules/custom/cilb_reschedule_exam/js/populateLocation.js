@@ -42,9 +42,8 @@ jQuery(document).ready(function ($) {
           examDateField.find("option").each(function () {
             var optionValue = $(this).val();
 
-            // Skip the option with the empty value (the "Select Date" option)
             if (optionValue === "") {
-              return; // Skip this iteration
+              return;
             }
 
             // Check if the optionValue is in the list of validEventIds
@@ -73,8 +72,6 @@ jQuery(document).ready(function ($) {
         return;
       }
 
-      console.log("Selected Value:", selectedValue);
-
       // Get event location
       CRM.api4("Event", "get", {
         select: ["address.state_province_id:abbr", "address.*"],
@@ -91,7 +88,6 @@ jQuery(document).ready(function ($) {
         function (events) {
           if (events.length > 0) {
             var selectedEvent = events[0];
-            console.log("Selected Event:", selectedEvent);
             var fullAddress;
             // Check if address exists
             if (selectedEvent["address.street_address"]) {
