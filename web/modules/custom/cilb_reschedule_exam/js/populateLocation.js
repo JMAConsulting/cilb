@@ -10,10 +10,68 @@ jQuery(document).ready(function ($) {
     lang = "en_US";
   }
 
+  $('[data-drupal-selector="edit-proposed-category"]').on(
+    "change",
+    function () {
+      var examDateField = $('[data-drupal-selector="edit-proposed-exam-date"]');
+      examDateField.val("");
+
+      var selectedValue = $(this).val();
+
+      CRM.api4("Event", "get", {
+        select: ["id"],
+        join: [
+          [
+            "OptionValue AS option_value",
+            "LEFT",
+            ["event_type_id", "=", "option_value.value"],
+          ],
+        ],
+        where: [
+          ["option_value.option_group_id", "=", 15],
+          ["option_value.id", "=", selectedValue],
+        ],
+        limit: 25,
+      }).then(
+        function (events) {
+          var validEventIds = events.map(function (event) {
+            return event.id;
+          });
+
+          // Iterate over each option in the proposed-exam-date select list
+          examDateField.find("option").each(function () {
+            var optionValue = $(this).val();
+
+            // Skip the option with the empty value (the "Select Date" option)
+            if (optionValue === "") {
+              return; // Skip this iteration
+            }
+
+            // Check if the optionValue is in the list of validEventIds
+            if (validEventIds.includes(parseInt(optionValue))) {
+              $(this).show(); // Show valid options
+            } else {
+              $(this).hide(); // Hide invalid options
+            }
+          });
+          examDateField.trigger("change");
+        },
+        function (failure) {
+          console.log(failure);
+        }
+      );
+    }
+  );
+
   $('[data-drupal-selector="edit-proposed-exam-date"]').on(
     "change",
     function () {
       var selectedValue = $(this).val();
+
+      if (selectedValue == "") {
+        $("#edit-proposed-location").val("");
+        return;
+      }
 
       console.log("Selected Value:", selectedValue);
 
