@@ -1,4 +1,4 @@
-rechedule_exam:
+reschedule_exam:
   version: 1
   js:
     js/populateLocation.js: {}
