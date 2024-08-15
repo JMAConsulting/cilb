@@ -1,4 +1,14 @@
 jQuery(document).ready(function ($) {
+  // Check if form is in English or Spanish
+  var currentUrl = window.location.href;
+  var lang;
+
+  // Check if '/es/' is in the URL
+  if (currentUrl.indexOf("/es/") !== -1) {
+    lang = "es_MX";
+  } else {
+    lang = "en_US";
+  }
   $('[data-drupal-selector="edit-select-exam"]').on("change", function () {
     var examDateField = $(
       '[data-drupal-selector="edit-select-examination-date"]'
