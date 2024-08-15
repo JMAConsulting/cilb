@@ -13,6 +13,8 @@ use Drupal\Core\Datetime\DrupalDateTime;
 function cilb_reschedule_exam_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   if ($form_id == "webform_submission_reschedule_exam_add_form") {
 
+    CRM_Core_Resources::singleton()->addCoreResources();
+
     // Get webform form elements
     $elements = WebformFormHelper::flattenElements($form);
 

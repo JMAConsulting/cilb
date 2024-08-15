@@ -19,7 +19,7 @@ jQuery(document).ready(function ($) {
 
       // Get event location
       CRM.api4("Event", "get", {
-        select: ["address.*"],
+        select: ["address.state_province_id:abbr", "address.*"],
         join: [
           [
             "Address AS address",
@@ -34,21 +34,23 @@ jQuery(document).ready(function ($) {
           if (events.length > 0) {
             var selectedEvent = events[0];
             console.log("Selected Event:", selectedEvent);
-
+            var fullAddress;
             // Check if address exists
-            if (selectedEvent.address) {
-              var fullAddress =
-                selectedEvent.address.street_address +
+            if (selectedEvent["address.street_address"]) {
+              fullAddress =
+                selectedEvent["address.street_address"] +
                 ", " +
-                selectedEvent.address.city +
+                selectedEvent["address.city"] +
                 ", " +
                 selectedEvent["address.state_province_id:abbr"];
 
               // Set the full address in the input field
               $("#edit-proposed-location").val(fullAddress);
             } else {
-              console.log("Address not found for the selected event.");
+              fullAddress = "No address was set for this exam.";
             }
+            // Set the full address in the input field
+            $("#edit-proposed-location").val(fullAddress);
           } else {
             console.log("No events found with the selected ID.");
           }
