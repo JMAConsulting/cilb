@@ -2,6 +2,9 @@ jQuery(document).ready(function ($) {
   // Check if form is in English or Spanish
   var currentUrl = window.location.href;
   var lang;
+  var examDateField = $(
+    '[data-drupal-selector="edit-select-examination-date"]'
+  );
 
   // Check if '/es/' is in the URL
   if (currentUrl.indexOf("/es/") !== -1) {
@@ -9,10 +12,57 @@ jQuery(document).ready(function ($) {
   } else {
     lang = "en_US";
   }
-  $('[data-drupal-selector="edit-select-exam"]').on("change", function () {
-    var examDateField = $(
-      '[data-drupal-selector="edit-select-examination-date"]'
+
+  if (
+    examDateField &&
+    $("#edit-civicrm-1-participant-1-participant-event-id").val()
+  ) {
+    CRM.api4("Event", "get", {
+      select: ["id"],
+      join: [
+        [
+          "OptionValue AS option_value",
+          "LEFT",
+          ["event_type_id", "=", "option_value.value"],
+        ],
+      ],
+      where: [
+        ["option_value.option_group_id", "=", 15],
+        [
+          "option_value.id",
+          "=",
+          $('[data-drupal-selector="edit-select-exam"]').val(),
+        ],
+      ],
+    }).then(
+      function (events) {
+        var validEventIds = events.map(function (event) {
+          return event.id;
+        });
+
+        examDateField.find("option").each(function () {
+          var optionValue = $(this).val();
+
+          if (optionValue === "") {
+            return;
+          }
+
+          // Check if the optionValue is in the list of validEventIds
+          if (validEventIds.includes(parseInt(optionValue))) {
+            $(this).show(); // Show valid options
+          } else {
+            $(this).hide(); // Hide invalid options
+          }
+        });
+        examDateField.trigger("change");
+      },
+      function (failure) {
+        console.log(failure);
+      }
     );
+  }
+
+  $('[data-drupal-selector="edit-select-exam"]').on("change", function () {
     examDateField.val("");
 
     var selectedValue = $(this).val();
