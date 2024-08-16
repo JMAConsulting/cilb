@@ -165,7 +165,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
     $ssnMatch = $formState->getValue('verify_ssn');
 
-    if($ssn !== $ssnMatch) {
+    if($ssn !== $ssnMatch && !\Drupal::currentUser()->isAuthenticated()) {
       $error_message = $this->t('The SSNs do not match. Please check the numbers and try again.');
       $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
       $formState->setErrorByName('verify_ssn', $error_message);
