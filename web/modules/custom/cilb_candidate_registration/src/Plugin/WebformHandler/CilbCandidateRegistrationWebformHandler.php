@@ -54,6 +54,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($current_page == 'registrant_personal_info') {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
+      $this->validateUniqueUser($form_state);
     } elseif($current_page == 'select_exam_parts') {
       $this->validateExamFee($form_state);
     } elseif($current_page == 'user_identification') {
@@ -168,6 +169,31 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $error_message = $this->t('The SSNs do not match. Please check the numbers and try again.');
       $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
       $formState->setErrorByName('verify_ssn', $error_message);
+    }
+  }
+
+  /**
+  * Validate no user shares the same DOB and SSN.
+  */
+  private function validateUniqueUser(FormStateInterface $formState) {
+    $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
+    $dob = $formState->getValue('civicrm_1_contact_1_contact_birth_date');
+
+    // If anonymous user is trying to create an account
+    if (!\Drupal::currentUser()->isAuthenticated()) {
+      $this->civicrm->initialize();
+
+      $contacts = \Civi\Api4\Contact::get(FALSE)
+        ->addWhere('birth_date', '=', $dob)
+        ->addWhere('Registrant_Info.SSN', '=', $ssn)
+        ->addWhere('is_deleted', '=', FALSE)
+        ->execute();
+
+      if(count($contacts)) {
+        $error_message = $this->t('There is another user in the system with this same Social Security Number and Date of Birth combination.  Please contact XXXXX at XXXXX for assistance.');
+        $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
+        $formState->setErrorByName('civicrm_1_contact_1_contact_birth_date', $error_message);
+      }
     }
   }
 
