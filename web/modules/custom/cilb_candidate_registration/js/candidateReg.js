@@ -4,12 +4,13 @@ jQuery(document).ready(function ($) {
   var candidateRep = $("#edit-civicrm-1-contact-1-cg1-custom-7");
   var candidateRepField = $(".form-item-civicrm-1-contact-1-cg1-custom-7");
   var returnPrev = $("#return-prev");
-  var isCandidate = $("#edit-candidate-representative");
+  var isCandidate = $("input[name='candidate_representative']");
   var cancelReg = $("#cancel-reg");
+
+  candidateRepField.hide();
 
   // If registration is being completed on behalf of candidate
   if (behalfOf.length) {
-    candidateRepField.hide();
     behalfOf.on("click", function () {
       behalfOf.hide();
       cancelReg.hide();
@@ -44,7 +45,6 @@ jQuery(document).ready(function ($) {
     }
 
     if (isCandidate.val() == 1) {
-      console.log("Exisitng val");
       behalfOf.trigger("click");
     }
   }
