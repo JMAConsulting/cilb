@@ -54,9 +54,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($current_page == 'registrant_personal_info') {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
-    }
-    elseif($current_page == 'select_exam_parts') {
+    } elseif($current_page == 'select_exam_parts') {
       $this->validateExamFee($form_state);
+    } elseif($current_page == 'user_identification') {
+      $this->validateCandidateRep($form_state);
     }
   }
 
@@ -178,6 +179,19 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     if ($examFee == 0) {
         $formState->setErrorByName('exam_fee_markup', $this->t('Select one or more exam fees.'));
+        return;
+    }
+  }
+
+  /*
+  * Validate the Candidate Rep name field
+  */
+  private function validateCandidateRep(FormStateInterface $formState) {
+    $isRep = $formState->getValue('candidate_representative');
+    $repName = $formState->getValue('civicrm_1_contact_1_cg1_custom_7');
+
+    if ($isRep == 1 && $repName == '') {
+        $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_7', $this->t('Enter your full name to continue.'));
         return;
     }
   }
