@@ -7,10 +7,13 @@ jQuery(document).ready(function ($) {
   var isCandidate = $("input[name='candidate_representative']");
   var cancelReg = $("#cancel-reg");
 
-  candidateRepField.hide();
+  var isExistingContact = $(
+    "input[name='civicrm_1_contact_1_contact_existing']"
+  ).val();
 
   // If registration is being completed on behalf of candidate
   if (behalfOf.length) {
+    candidateRepField.hide();
     behalfOf.on("click", function () {
       behalfOf.hide();
       cancelReg.hide();
@@ -47,5 +50,20 @@ jQuery(document).ready(function ($) {
     if (isCandidate.val() == 1) {
       behalfOf.trigger("click");
     }
+  }
+
+  if (
+    $("#edit-civicrm-1-contact-1-contact-birth-date").length &&
+    isExistingContact
+  ) {
+    $("#edit-civicrm-1-contact-1-contact-birth-date").prop("readonly", true);
+
+    // Add the 'webform-readonly' class to the parent div
+    $(".js-form-item-civicrm-1-contact-1-contact-birth-date").addClass(
+      "webform-readonly"
+    );
+    $(".js-form-item-civicrm-1-contact-1-contact-birth-date").addClass(
+      "form-readonly"
+    );
   }
 });
