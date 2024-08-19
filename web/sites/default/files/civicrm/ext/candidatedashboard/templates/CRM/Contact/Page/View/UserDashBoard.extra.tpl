@@ -102,8 +102,8 @@
             });
             cj(".crm-source_contact_name").remove();
             cj(".crm-target_contact_name").remove();
-            cj(".crm-dashboard-activities .columnheader").children().eq(3).remove();
-            cj(".crm-dashboard-activities .columnheader").children().eq(-3).remove();
+            cj(".crm-dashboard-assignedActivities .columnheader").children().eq(3).remove();
+            cj(".crm-dashboard-assignedActivities .columnheader").children().eq(-3).remove();
             cj(".crm-dashboard-civicontribute tr").each(function(){
                 cj(this).children().eq(4).remove();
                 cj(this).children().eq(1).remove();
