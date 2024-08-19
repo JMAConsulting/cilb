@@ -59,6 +59,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateExamFee($form_state);
     } elseif($current_page == 'user_identification') {
       $this->validateCandidateRep($form_state);
+    } elseif($current_page == 'select_category'){
+      $this->validateParticipantStatus($form_state);
     }
   }
 
@@ -219,6 +221,48 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($isRep == 1 && $repName == '') {
         $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_7', $this->t('Enter your full name to continue.'));
         return;
+    }
+  }
+
+  /*
+  * Validation to make sure Candidate is not already registered for exam
+  */
+  private function validateParticipantStatus(FormStateInterface $formState) {
+    $eventID = $formState->getValue('civicrm_1_participant_1_participant_event_id');
+    $contactID = $formState->getValue('civicrm_1_contact_1_contact_existing');
+
+    // If the user is logged in
+    if($contactID) {
+      $participants = \Civi\Api4\Participant::get(FALSE)
+        ->addWhere('contact_id', '=', $contactID)
+        ->addWhere('event_id', '=', $eventID)
+        ->addWhere('status_id:label', '!=', 'Cancelled')
+        ->addWhere('status_id:label', '!=', 'Expired')
+        ->execute();
+
+      if(count($participants)) {
+        $formState->setErrorByName('select_examination_date', $this->t('You are already registered for this exam.'));
+      }
+
+    } 
+    
+    // If no contact is created for the registrant yet, check for duplicates by name and email
+    else {
+      $firstName = $formState->getValue('civicrm_1_contact_1_contact_first_name');
+      $lastName = $formState->getValue('civicrm_1_contact_1_contact_last_name');
+      $email = $formState->getValue('civicrm_1_contact_1_email_email');
+
+      $participants = \Civi\Api4\Participant::get(FALSE)
+        ->addJoin('Email AS email', 'LEFT', ['email.id', '=', 'contact_id.email_primary'])
+        ->addWhere('contact_id.first_name', '=', $firstName)
+        ->addWhere('contact_id.last_name', '=', $lastName)
+        ->addWhere('email.email', '=', $email)
+        ->addWhere('event_id', '=', 7)
+        ->execute();
+
+      if(count($participants)) {
+        $formState->setErrorByName('select_examination_date', $this->t('Another user with the same email and name has already registered for this exam.'));
+      }
     }
   }
 }
