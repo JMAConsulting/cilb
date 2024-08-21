@@ -28,7 +28,6 @@ jQuery(document).ready(function ($) {
       checkPermissions: false,
       limit: 1,
     }).then(function (events) {
-      console.log(events);
       $("#edit-scope-markup").html(events[0]["description"]);
       $(".fieldset__legend .fieldset__label").append(
         " - " + events[0]["title"]
@@ -138,13 +137,7 @@ jQuery(document).ready(function ($) {
                 }
 
                 $("#edit-exam-fee-markup").append(priceSetHtml);
-                if (
-                  $(
-                    "#edit-civicrm-1-participant-1-participant-fee-amount"
-                  ).val()
-                ) {
-                  checkFieldsBySelectedIds(htmlType);
-                }
+                initializeSelectedFields();
               } else {
                 console.log("No data found in the response");
               }
@@ -205,4 +198,38 @@ jQuery(document).ready(function ($) {
       updateFeeAmount(htmlType);
     }
   );
+
+  function initializeSelectedFields() {
+    if ($("#edit-selected-pricefieldvalues").length) {
+      var selectedIds = $("#edit-selected-pricefieldvalues").val().split(",");
+
+      // Check checkboxes based on the selected IDs
+      $("#edit-exam-fee-markup .exam-fee-checkbox").each(function () {
+        var dataClass = $(this).data("class");
+        if (selectedIds.includes(dataClass.toString())) {
+          $(this).prop("checked", true);
+        }
+      });
+
+      // Check radio buttons based on the selected IDs
+      $("#edit-exam-fee-markup .exam-fee-radio").each(function () {
+        var dataClass = $(this).data("class");
+        if (selectedIds.includes(dataClass.toString())) {
+          $(this).prop("checked", true);
+        }
+      });
+
+      // Select options in the dropdown based on the selected IDs
+      $("#edit-exam-fee-markup .exam-fee-select option").each(function () {
+        var dataClass = $(this).data("class");
+        if (dataClass && selectedIds.includes(dataClass.toString())) {
+          $(this).prop("selected", true);
+        }
+      });
+
+      $(
+        "#edit-exam-fee-markup .exam-fee-checkbox:checked, #edit-exam-fee-markup .exam-fee-radio:checked, #edit-exam-fee-markup .exam-fe-select"
+      ).trigger("change");
+    }
+  }  
 });
