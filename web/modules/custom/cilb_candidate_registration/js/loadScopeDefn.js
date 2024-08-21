@@ -15,7 +15,7 @@ jQuery(document).ready(function ($) {
     "#edit-civicrm-1-participant-1-participant-event-id"
   ).val();
 
-  if ($("#edit-exam-fee-markup")) {
+  if ($("#edit-exam-fee-markup").length) {
     $("#edit-exam-fee-markup").empty();
     getPriceSet(examChoice);
   }
