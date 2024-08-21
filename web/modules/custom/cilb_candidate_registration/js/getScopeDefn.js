@@ -151,7 +151,13 @@ jQuery(document).ready(function ($) {
               // Set the full address in the input field
               $("#edit-exam-location").val(fullAddress);
             } else {
-              fullAddress = "No address was set for this exam.";
+              if (lang == "en_US") {
+                fullAddress = "No address was set for this exam.";
+              } else {
+                fullAddress =
+                  "No se estableció ninguna dirección para este examen.";
+              }
+              
             }
             // Set the full address in the input field
             $("#edit-exam-location").val(fullAddress);
