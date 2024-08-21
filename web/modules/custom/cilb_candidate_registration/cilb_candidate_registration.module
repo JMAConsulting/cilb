@@ -67,9 +67,10 @@ function _is_block_active($block_id) {
  */
 function cilb_candidate_registration_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
   if ($view->id() == 'exam_type' && $view->current_display == 'entity_reference_1') {
-
+    
+    // Check to make sure exams types are not full
     $events = \Civi\Api4\Event::get(FALSE)
-      ->addSelect('event_type_id', 'event_type_id:label', 'option_value.id')
+      ->addSelect('option_value.id')
       ->addJoin('OptionValue AS option_value', 'LEFT', ['event_type_id', '=', 'option_value.value'])
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('start_date', '>', 'now')
@@ -88,6 +89,28 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
       $query->addWhere('AND', 'civicrm_option_value.id', $valid_option_ids, 'IN');
     } else {
       $query->addWhere('AND', 'civicrm_option_value.id', '0', '=');
+    }
+
+  } elseif ($view->id() == 'event_types' && $view->current_display == 'entity_reference_1') {
+    
+    // Check to make sure exams are not full
+    $events = \Civi\Api4\Event::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('is_active', '=', TRUE)
+      ->addWhere('start_date', '>', 'now')
+      ->addWhere('is_online_registration', '=', TRUE)
+      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
+      ->execute();
+
+    $valid_events = [];
+    foreach ($events as $event) {
+      $valid_events[] = $event['id'];
+    }
+
+    if (!empty($valid_events)) {
+      $query->addWhere('AND', 'civicrm_event.id', $valid_events, 'IN');
+    } else {
+      $query->addWhere('AND', 'civicrm_event.id', '0', '=');
     }
   }
 }
