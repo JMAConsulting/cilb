@@ -1,0 +1,54 @@
+{
+    "name": "stymiee/authnetjson",
+    "type": "library",
+    "description": "Library that abstracts Authorize.Net's JSON APIs. This includes the Advanced Integration Method (AIM), Automated Recurring Billing (ARB), Customer Information Manager (CIM), Transaction Reporting, Simple Integration Method (SIM), and Webhooks.",
+    "keywords": [
+        "PHP",
+        "authnetjson",
+        "Authorize.Net",
+        "JSON",
+        "json-api",
+        "webhook",
+        "capture-transaction",
+        "authorize-net",
+        "authorizenet",
+        "authnet",
+        "payment",
+        "payment-gateway"
+    ],
+    "homepage": "https://github.com/stymiee/authnetjson",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "John Conde",
+            "email": "stymiee@gmail.com",
+            "homepage": "https://stymiee.dev",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.0",
+        "curl/curl": "^2",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8",
+        "squizlabs/php_codesniffer": "3.*",
+        "phpmd/phpmd" : "@stable",
+        "nunomaduro/phpinsights": "@stable"
+    },
+    "autoload": {
+        "psr-4": {
+            "Authnetjson\\": [
+                "src/Authnetjson/"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpcs": "php vendor/squizlabs/php_codesniffer/bin/phpcs ./src --report-file=build/phpcs/report.txt --runtime-set ignore_warnings_on_exit 1 --runtime-set ignore_errors_on_exit 1",
+        "phpmd": "php vendor/phpmd/phpmd/src/bin/phpmd src/ html cleancode --reportfile build/phpmd/report.html --ignore-violations-on-exit",
+        "insights": ".\\vendor\\bin\\phpinsights.bat analyse src --format=console > build/insights/report.txt"
+    }
+}

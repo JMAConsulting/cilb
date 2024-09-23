@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<extension key="com.donordepot.authnetecheck" type="module">
+  <file>authnetecheck</file>
+  <name>Authorize.net</name>
+  <description>Authorize.net Payment Processor</description>
+  <urls>
+    <url desc="Main Extension Page">https://lab.civicrm.org/extensions/authnet</url>
+    <url desc="Release Notes">https://docs.civicrm.org/authnetecheck/en/latest/releasenotes/</url>
+    <url desc="Support">https://mjw.pt/support/authnet</url>
+    <url desc="Licensing">http://civicrm.org/licensing</url>
+  </urls>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>Matthew Wire</author>
+    <email>mjw@mjwconsult.co.uk</email>
+  </maintainer>
+  <releaseDate>2024-07-15</releaseDate>
+  <version>2.6</version>
+  <develStage>stable</develStage>
+  <compatibility>
+    <ver>5.74</ver>
+  </compatibility>
+  <requires>
+    <ext>mjwshared</ext>
+  </requires>
+  <civix>
+    <namespace>CRM/AuthNetEcheck</namespace>
+    <format>23.02.1</format>
+  </civix>
+  <comments>echeck.net originally developed by Donor Depot (donordepot.com). Rewritten by MJW Consulting in 2019.</comments>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+    <mixin>mgd-php@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.1</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <upgrader>CRM_AuthNetEcheck_Upgrader</upgrader>
+</extension>

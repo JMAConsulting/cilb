@@ -1,0 +1,23 @@
+site_name: Authorize.net Payment Processor (https://www.authorize.net/)
+repo_url: https://lab.civicrm.org/extensions/authnet
+theme:
+  name: material
+markdown_extensions:
+  - attr_list
+  - admonition
+  - def_list
+  - codehilite
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tilde
+  - pymdownx.betterem
+  - pymdownx.mark
+
+nav:
+- Overview: index.md
+- Setup: setup.md
+- FAQs: faqs.md
+- Migration from legacy Authorize.Net: migration.md
+- Release Notes: releasenotes.md
