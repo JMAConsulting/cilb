@@ -1,0 +1,4 @@
+user_email_verification.settings_form_tab:
+  route_name: user_email_verification.settings_form
+  title: 'Settings'
+  base_route: user_email_verification.settings_form

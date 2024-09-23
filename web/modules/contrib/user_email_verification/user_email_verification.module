@@ -1,0 +1,170 @@
+<?php
+
+/**
+ * @file
+ * User email verification hooks and alters.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ */
+function user_email_verification_user_insert(UserInterface $user) {
+  \Drupal::service('user_email_verification.service')->createVerification($user);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ */
+function user_email_verification_user_delete(UserInterface $user) {
+  \Drupal::service('user_email_verification.service')->deleteVerification($user);
+}
+
+/**
+ * Implements hook_cron().
+ */
+function user_email_verification_cron() {
+  \Drupal::service('user_email_verification.service')->cronHandler();
+}
+
+/**
+ * Implements hook_mail().
+ */
+function user_email_verification_mail($key, &$message, $params) {
+  \Drupal::service('user_email_verification.service')->initEmailMessage($key, $message, $params);
+}
+
+/**
+ * Implements hook_entity_extra_field_info().
+ */
+function user_email_verification_entity_extra_field_info() {
+  $extra = [];
+
+  $extra['user']['user']['display']['user_email_verification_verified'] = [
+    'label' => t('Email verified'),
+    'description' => t('Indicator is user email verified or no.'),
+    'weight' => 100,
+    'visible' => TRUE,
+  ];
+  $extra['user']['user']['display']['user_email_verification_verified_date'] = [
+    'label' => t('Email verification date'),
+    'description' => t('Date when user verified his Email.'),
+    'weight' => 100,
+    'visible' => TRUE,
+  ];
+
+  return $extra;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_view().
+ */
+function user_email_verification_user_view(array &$build, EntityInterface $user, EntityViewDisplayInterface $display, $view_mode) {
+
+  if ($user instanceof UserInterface) {
+    $verification = \Drupal::service('user_email_verification.service')->loadVerificationByUserId($user->id());
+    $verification = $verification && isset($verification['verified']) ? $verification['verified'] : 0;
+
+    if ($display->getComponent('user_email_verification_verified')) {
+      $build['user_email_verification_verified'] = [
+        '#type' => 'item',
+        '#title' => t('Email verified'),
+        '#markup' => '<span class="value">' . ($verification ? t('Yes') : t('No')) . '</span>',
+        '#wrapper_attributes' => ['class' => ['user-email-verification-is-verified']],
+        '#cache' => [
+          'contexts' => [
+            'user_email_verification_needed',
+          ],
+        ],
+      ];
+    }
+
+    if ($display->getComponent('user_email_verification_verified_date') && $verification) {
+      $build['user_email_verification_verified_date'] = [
+        '#type' => 'item',
+        '#title' => t('Email verification date'),
+        '#markup' => '<span class="value">' . \Drupal::service('date.formatter')->format($verification, 'long') . '</span>',
+        '#wrapper_attributes' => ['class' => ['user-email-verification-verified-date']],
+        '#cache' => [
+          'contexts' => [
+            'user_email_verification_needed',
+          ],
+        ],
+      ];
+    }
+  }
+
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ */
+function user_email_verification_user_presave(UserInterface $user) {
+
+  /** @var \Drupal\user_email_verification\UserEmailVerificationInterface $service */
+  $service = \Drupal::service('user_email_verification.service');
+
+  // Mark user Email verified when admin user activates blocked user account.
+  if (
+    $service->isUnblockAutoVerificationAllowed() &&
+    \Drupal::currentUser()->hasPermission('administer users') &&
+    isset($user->original) &&
+    $user->original->isBlocked() &&
+    $user->isActive()
+  ) {
+    $service->setEmailVerifiedByUserId($user->id());
+  }
+}
+
+/**
+ * Implements hook_help().
+ */
+function user_email_verification_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the user_email_verification module.
+    case 'help.page.user_email_verification':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<strong>' . t('Module allows:') . '</strong>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('to have Email verification') . '</li>';
+      $output .= '<li>' . t('to type password on registration') . '</li>';
+      $output .= '<li>' . t('to be logged in right after registration') . '</li>';
+      $output .= '</ul>';
+      $output .= '<p>' . t('If user do not verify the Email in a certain time interval account will be blocked.');
+      $output .= '<h3>' . t('Configuration:') . '</h3>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('Go to: Manage -> Configuration -> Account settings') . '</li>';
+      $output .= '<li>' . t('In <strong>Registration and cancellation</strong> section:');
+      $output .= '<ul>';
+      $output .= '<li>' . t('Set "Visitors" option for "Who can register accounts?"') . '</li>';
+      $output .= '<li>' . t('Uncheck "Require email verification when a visitor creates an account"') . '</li>';
+      $output .= '</ul></li>';
+      $output .= '<li>' . t('In <strong>Emails</strong> section:');
+      $output .= '<ul>';
+      $output .= '<li>' . t('Add [user:verify-email] to the "Welcome (no approval required)" mail to send to the user the Email verification link') . '</li>';
+      $output .= '</ul></li>';
+      $output .= '<li>' . t('In User Email verification section:');
+      $output .= '<ul>';
+      $output .= '<li>' . t('Set "Skip roles" - the roles which shouldn\'t verify the Email') . '</li>';
+      $output .= '<li>' . t('Set "Verification time interval" (in seconds) - the time for user to verify the Email, <strong>when this time is over - user account will be blocked</strong>') . '</li>';
+      $output .= '<li>' . t('Set "Send reminder" - how many times user will be notified (with Verification mail) during "Verification time interval"');
+      $output .= '<ul>';
+      $output .= '<li>' . t('Customize "Verification mail subject" and "Verification mail body" if "Send reminder" was set') . '</li>';
+      $output .= '</ul></li>';
+      $output .= '<li>' . t('Check "Enable extended verification period" if you\'d like to provide an extra time to the user to verify the Email and activate blocked account');
+      $output .= '<ul>';
+      $output .= '<li>' . t('Set "Extended verification time interval" (in seconds) - the time for user to verify Email and unblock account, <strong>when this time is over - user account will be removed or blocked, depends on "When cancelling a user account" setting</strong>') . '</li>';
+      $output .= '<li>' . t('Customize "Mail subject" and "Mail body"') . '</li>';
+      $output .= '</ul></li>';
+      $output .= '</ul></li>';
+      $output .= '<li>' . t('Click "Save configuration" button') . '</li>';
+      $output .= '</ul>';
+      return $output;
+
+    default:
+  }
+}
