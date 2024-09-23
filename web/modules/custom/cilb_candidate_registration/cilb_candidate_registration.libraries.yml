@@ -6,18 +6,18 @@ candidate_registration:
     - core/jquery
     - core/drupalSettings
 
-get_scope:
+exam_selection:
   version: 1
   js:
-    js/getScopeDefn.js: {}
+    js/examSelection.js: {}
   dependencies:
     - core/jquery
     - core/drupalSettings
 
-load_scope:
+selected_exam_info:
   version: 1
   js:
-    js/loadScopeDefn.js: {}
+    js/selectedExamInfo.js: {}
   dependencies:
     - core/jquery
     - core/drupalSettings

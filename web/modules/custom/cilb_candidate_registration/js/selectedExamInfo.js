@@ -11,14 +11,12 @@ jQuery(document).ready(function ($) {
     lang = "en_US";
   }
 
+  // TODO 1: show scope markup from description
+
   var examChoice = $(
-    "#edit-civicrm-1-participant-1-participant-event-id"
+    "#edit-select-exam-part"
   ).val();
 
-  if ($("#edit-exam-fee-markup").length) {
-    $("#edit-exam-fee-markup").empty();
-    getPriceSet(examChoice);
-  }
   if ($("#edit-scope-markup").length) {
     $("#edit-scope-markup").empty();
     CRM.api4("Event", "get", {
@@ -33,6 +31,16 @@ jQuery(document).ready(function ($) {
         " - " + events[0]["title"]
       );
     });
+  }
+
+  // TODO 2: check selection for any exam-specific prices
+  // display and total them
+  //
+  // should be a lot simpler than the below?
+
+  if ($("#edit-exam-fee-markup").length) {
+    $("#edit-exam-fee-markup").empty();
+    getPriceSet(examChoice);
   }
 
   function getPriceSet(eventId) {
@@ -77,27 +85,27 @@ jQuery(document).ready(function ($) {
                   if (htmlType == "Radio") {
                     radioButtonsHtml += `
                       <div class="form-type-boolean js-form-item form-item js-form-type-radio form-item-select-your-exam-category js-form-item-select-your-exam-category">
-                          <input data-civicrm-field-key="exam_fee_front_end" 
-                                data-drupal-selector="edit-select-your-exam-category-${index}" 
-                                type="radio" 
-                                id="edit-select-your-exam-category-${index}" 
-                                name="exam_fee_front_end" 
-                                value="${item.amount}" 
-                                class="form-radio form-boolean form-boolean--type-radio exam-fee-radio" 
-                                data-class="${priceFieldValueId}" 
+                          <input data-civicrm-field-key="exam_fee_front_end"
+                                data-drupal-selector="edit-select-your-exam-category-${index}"
+                                type="radio"
+                                id="edit-select-your-exam-category-${index}"
+                                name="exam_fee_front_end"
+                                value="${item.amount}"
+                                class="form-radio form-boolean form-boolean--type-radio exam-fee-radio"
+                                data-class="${priceFieldValueId}"
                                 required="required">
                           <label for="edit-select-your-exam-category-${index}" class="form-item__label option">${item.label} - $${item.amount}</label>
                       </div>`;
                   } else if (htmlType == "CheckBox") {
                     checkboxesHtml += `
                       <div class="form-type-boolean js-form-item form-item js-form-type-checkbox form-item-exam-fee-front-end-${index} js-form-item-exam-fee-front-end-${index}">
-                          <input class="civicrm-enabled form-checkbox form-boolean form-boolean--type-checkbox exam-fee-checkbox" 
-                                  data-civicrm-field-key="exam_fee_front_end" 
-                                  data-drupal-selector="edit-exam-fee-front-end-${index}" 
-                                  type="checkbox" 
-                                  id="edit-exam-fee-front-end-${index}" 
-                                  name="exam_fee_front_end[${index}]" 
-                                  value="${amount}" 
+                          <input class="civicrm-enabled form-checkbox form-boolean form-boolean--type-checkbox exam-fee-checkbox"
+                                  data-civicrm-field-key="exam_fee_front_end"
+                                  data-drupal-selector="edit-exam-fee-front-end-${index}"
+                                  type="checkbox"
+                                  id="edit-exam-fee-front-end-${index}"
+                                  name="exam_fee_front_end[${index}]"
+                                  value="${amount}"
                                   data-class="${priceFieldValueId}">
                           <label for="edit-exam-fee-front-end-${index}" class="form-item__label option">${label}</label>
                       </div>`;
@@ -126,10 +134,10 @@ jQuery(document).ready(function ($) {
                   priceSetHtml = `
                     <div class="form-type-select js-form-item form-item js-form-type-select form-item-exam-fee-front-end">
                         <label class="form-item__label">${priceSetLabel}</label>
-                        <select class="civicrm-enabled form-select exam-fee-select" 
-                                data-civicrm-field-key="exam_fee_front_end" 
-                                data-drupal-selector="edit-exam-fee-front-end" 
-                                id="edit-exam-fee-front-end" 
+                        <select class="civicrm-enabled form-select exam-fee-select"
+                                data-civicrm-field-key="exam_fee_front_end"
+                                data-drupal-selector="edit-exam-fee-front-end"
+                                id="edit-exam-fee-front-end"
                                 name="exam_fee_front_end">
                             ${optionsHtml}
                         </select>
@@ -231,5 +239,5 @@ jQuery(document).ready(function ($) {
         "#edit-exam-fee-markup .exam-fee-checkbox:checked, #edit-exam-fee-markup .exam-fee-radio:checked, #edit-exam-fee-markup .exam-fe-select"
       ).trigger("change");
     }
-  }  
+  }
 });
