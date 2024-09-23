@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/Mjwshared</base>
+  <class>PaymentprocessorWebhook</class>
+  <name>civicrm_paymentprocessor_webhook</name>
+  <comment>Track the processing of payment processor webhooks</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique PaymentprocessorWebhook ID</comment>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>payment_processor_id</name>
+    <title>Payment Processor</title>
+    <type>int unsigned</type>
+    <comment>Payment Processor for this webhook</comment>
+    <pseudoconstant>
+      <table>civicrm_payment_processor</table>
+      <keyColumn>id</keyColumn>
+      <labelColumn>name</labelColumn>
+    </pseudoconstant>
+    <html>
+      <type>Select</type>
+    </html>
+  </field>
+  <foreignKey>
+    <name>payment_processor_id</name>
+    <table>civicrm_payment_processor</table>
+    <key>id</key>
+    <onDelete>SET NULL</onDelete>
+  </foreignKey>
+
+  <field>
+    <name>event_id</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Webhook event ID</comment>
+  </field>
+  <index>
+    <name>index_event_id</name>
+    <fieldName>event_id</fieldName>
+  </index>
+
+  <field>
+    <name>trigger</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Webhook trigger event type</comment>
+  </field>
+
+  <field>
+    <name>created_date</name>
+    <title>Created Date</title>
+    <type>timestamp</type>
+    <default>CURRENT_TIMESTAMP</default>
+    <comment>When the webhook was first received by the IPN code</comment>
+  </field>
+  <index>
+    <name>index_created_date</name>
+    <fieldName>created_date</fieldName>
+  </index>
+
+  <field>
+    <name>processed_date</name>
+    <type>timestamp</type>
+    <required>false</required>
+    <default>NULL</default>
+    <comment>Has this webhook been processed yet?</comment>
+  </field>
+  <index>
+    <name>index_processed_date</name>
+    <fieldName>processed_date</fieldName>
+  </index>
+
+  <field>
+    <name>status</name>
+    <type>varchar</type>
+    <length>32</length>
+    <required>true</required>
+    <default>"new"</default>
+    <comment>Processing status</comment>
+  </field>
+  <index>
+    <name>index_status_processed_date</name>
+    <fieldName>status</fieldName>
+    <fieldName>processed_date</fieldName>
+  </index>
+
+  <field>
+    <name>identifier</name>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Optional key to group webhooks, as needed by some processors.</comment>
+  </field>
+  <index>
+    <name>index_identifier</name>
+    <fieldName>identifier</fieldName>
+  </index>
+
+  <field>
+    <name>message</name>
+    <type>varchar</type>
+    <length>1024</length>
+    <default>""</default>
+    <comment>Stores data sent that is needed for processing. JSON suggested.</comment>
+  </field>
+
+  <field>
+    <name>data</name>
+    <type>text</type>
+    <comment>Stores data sent that is needed for processing. JSON suggested.</comment>
+  </field>
+
+</table>

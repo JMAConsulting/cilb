@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<extension key="mjwshared" type="module">
+  <file>mjwshared</file>
+  <name>Payment Shared</name>
+  <description>Extension containing shared code used by payment processors and other extensions by MJW</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>Matthew Wire (MJW Consulting)</author>
+    <email>mjw@mjwconsult.co.uk</email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">https://lab.civicrm.org/extensions/mjwshared</url>
+    <url desc="Support">https://mjw.pt/support/mjwshared</url>
+    <url desc="Release Notes">https://lab.civicrm.org/extensions/mjwshared/-/blob/master/docs/releasenotes.md</url>
+    <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2024-07-17</releaseDate>
+  <version>1.3</version>
+  <develStage>stable</develStage>
+  <compatibility>
+    <ver>5.74</ver>
+  </compatibility>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <civix>
+    <namespace>CRM/Mjwshared</namespace>
+    <format>23.02.1</format>
+  </civix>
+  <mixins>
+    <mixin>ang-php@1.0.0</mixin>
+    <mixin>menu-xml@1.0.0</mixin>
+    <mixin>mgd-php@1.0.0</mixin>
+    <mixin>setting-php@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.1</mixin>
+    <mixin>entity-types-php@1.0.0</mixin>
+    <mixin>setting-admin@1.0.1</mixin>
+    <mixin>scan-classes@1.0.0</mixin>
+  </mixins>
+  <upgrader>CRM_Mjwshared_Upgrader</upgrader>
+</extension>

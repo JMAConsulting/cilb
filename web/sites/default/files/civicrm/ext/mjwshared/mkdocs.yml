@@ -1,0 +1,25 @@
+site_name: MJWShared (Extension containing shared code used by MJW extensions)
+repo_url: https://lab.civicrm.org/extensions/mjwshared
+theme:
+  name: material
+markdown_extensions:
+  - attr_list
+  - admonition
+  - def_list
+  - codehilite
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tilde
+  - pymdownx.betterem
+  - pymdownx.mark
+
+nav:
+- Overview: index.md
+- Release Notes: releasenotes.md
+- API: api.md
+- Hooks: hooks.md
+- How to implement a payment processor: paymentprocessor.md
+- Refund UI: refunds.md
+- Webhook Queue: webhookqueue.md

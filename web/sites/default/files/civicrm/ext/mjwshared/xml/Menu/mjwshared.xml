@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/mjwpayment/refund</path>
+    <page_callback>CRM_Mjwshared_Form_PaymentRefund</page_callback>
+    <title>PaymentRefund</title>
+    <access_arguments>edit contributions</access_arguments>
+  </item>
+</menu>
