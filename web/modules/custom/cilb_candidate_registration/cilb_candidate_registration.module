@@ -67,7 +67,7 @@ function _is_block_active($block_id) {
  */
 function cilb_candidate_registration_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
   if ($view->id() == 'exam_type' && $view->current_display == 'entity_reference_1') {
-    
+
     // Check to make sure exams types are not full
     $events = \Civi\Api4\Event::get(FALSE)
       ->addSelect('option_value.id')
@@ -78,6 +78,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
       ->addWhere('option_value.option_group_id', '=', 15)
       ->addGroupBy('event_type_id')
+      ->addGroupBy('option_value.id')
       ->execute();
 
     $valid_option_ids = [];
@@ -92,7 +93,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
     }
 
   } elseif ($view->id() == 'event_types' && $view->current_display == 'entity_reference_1') {
-    
+
     // Check to make sure exams are not full
     $events = \Civi\Api4\Event::get(FALSE)
       ->addSelect('id')
