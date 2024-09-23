@@ -1,0 +1,7 @@
+login_redirection:
+  anonymous: null
+  authenticated: /
+  content_editor: /
+  administrator: /
+  candidate: /civicrm/user
+exclude_urls: ''

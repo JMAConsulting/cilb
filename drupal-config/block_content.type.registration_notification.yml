@@ -1,0 +1,8 @@
+uuid: d8a755c0-50c5-46e9-a383-b6223577cb67
+langcode: en
+status: true
+dependencies: {  }
+id: registration_notification
+label: 'Registration Notification'
+revision: false
+description: 'Notification block to appear ahead of exam registration webform.'

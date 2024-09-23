@@ -1,0 +1,25 @@
+uuid: 7a51977e-d243-44f2-bfa7-33afaea94763
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm
+    - system
+  theme:
+    - olivero
+id: olivero_contactdashboard
+theme: olivero
+region: content
+weight: 0
+provider: null
+plugin: 'civicrm_block:3'
+settings:
+  id: 'civicrm_block:3'
+  label: 'Contact Dashboard'
+  label_display: visible
+  provider: civicrm
+visibility:
+  request_path:
+    id: request_path
+    negate: false
+    pages: /candidate-dashboard

@@ -1,0 +1,44 @@
+uuid: df24e736-56db-43dd-b7e8-10c47757849b
+langcode: en
+status: true
+dependencies:
+  config:
+    - filter.format.basic_html
+    - filter.format.webform_default
+  module:
+    - civicrm
+    - comment
+    - contact
+    - file
+    - filter
+    - search
+    - shortcut
+    - system
+_core:
+  default_config_hash: cFrlqjtkTfvY3RGccjJkPf1SGIfJ942IrxTLWAO4mgA
+id: authenticated
+label: 'Authenticated user'
+weight: 1
+is_admin: false
+permissions:
+  - 'access AJAX API'
+  - 'access CiviMail subscribe/unsubscribe pages'
+  - 'access all custom data'
+  - 'access comments'
+  - 'access content'
+  - 'access shortcuts'
+  - 'access site-wide contact form'
+  - 'access uploaded files'
+  - 'delete own files'
+  - 'make online contributions'
+  - 'post comments'
+  - 'profile create'
+  - 'profile edit'
+  - 'profile view'
+  - 'register for events'
+  - 'search content'
+  - 'skip comment approval'
+  - 'use text format basic_html'
+  - 'use text format webform_default'
+  - 'view event info'
+  - 'view event participants'
