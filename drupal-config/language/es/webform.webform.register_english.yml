@@ -1,0 +1,164 @@
+title: ' Matricúlese para un examen de construcción de Florida'
+description: '<p>Register for a Florida State Construction Examination (Spanish)</p>'
+elements: |
+  user_identification:
+    '#title': 'Identificación de usuario'
+    '#next_button_label': 'Yo soy el candidato'
+  user_identification_fieldset:
+    '#title': 'Identificación de usuario'
+  are_you_candidate:
+    '#markup': '<p>¿Es usted el candidato? El candidato es responsable de conocer todos los requisitos de la licencia, la política y los procedimientos para tomar el examen, las fechas y horas de los exámenes.</p>'
+  civicrm_1_contact_1_cg1_custom_7:
+    '#title': '<strong>Si está completando este registro en nombre de un candidato, ingrese su nombre completo. </strong>'
+  user_identification_markup:
+    '#markup': '<p><a class="button" id="on-behalf">Estoy completando el registro en nombre del candidato</a><br><a class="button" href="https://cilb.jmaconsulting.biz/es/register-notification" id="return-prev">Vuelva a la página anterior</a><br><a class="button button--secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancele esta matrícula y vuelva a la página inicial</a><br>&nbsp;</p>'
+  registration_info:
+    '#title': 'Pasos para obtener la licencia'
+  steps_for_licensure_1:
+    '#title': 'Pasos para obtener la licencia'
+  registration_info_1:
+    '#markup': '<p>Esta página en línea le guiará por los pasos para solicitar el examen para contratistas certificados de la Florida State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) y le proveerá con enlaces para obtener información acerca de todos los materiales para el examen.<br><br>Hay varios pasos para licenciarse como contratista certificado del Florida State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) para cualquiera de las 19 categorías de licencia:<br><br><strong>Paso 1</strong> – Para convertirse en un contratista certificado licenciado en el estado de Florida, un candidato debe:</p><ul><li>Aprobar todas las partes del examen calificador del Florida DBPR/BET</li><li>Tener por lo menos 18 años de edad.</li><li>Cumplir con los requisitos educacionales y de experiencia.</li><li>Tener un carácter moral</li><li>Pagar todos los honorarios correspondientes</li><li>Obtener un seguro contra accidentes del trabajo</li><li>Demostrar responsabilidad financiera</li></ul><p><strong>Paso 2</strong> – Revise las categorías de licencias del Florida State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) disponibles antes de matricularse para un examen. Tomar un examen en una categoría para la cual no cualifica no le hace elegible para recibir una licencia en esa categoría, aún si aprueba el examen.<br><br>Si tiene preguntas acerca de una licencia y/o sus calificaciones, puede referirse a la página en línea del <a href="http://www.myfloridalicense.com/DBPR/examination-information/" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website.</a> y/o comunicarse con el Centro de Ayuda al Consumidor del Department of Business and Professional Regulations al: Voz: (850) 487-1395 Correo electrónico: <a href="mailto:Call.Center@dbpr.state.fl.us">Call.Center@dbpr.state.fl.us</a></p>'
+  registration_info_pt2:
+    '#title': 'Pasos para obtener la licencia'
+    '#next_button_label': 'Estoy de acuerdo con y acepto los pasos anteriores para obtener la licencia y deseo continuar >'
+  steps_for_licensure_2:
+    '#title': 'Pasos para obtener la licencia'
+  registration_info_2:
+    '#markup': '<p><strong>Paso 3</strong> - Solicite su examen a través de Professional Testing en esta página en línea o vía <a style="color:rgb(0, 0, 107);padding:1px;" href="https://www.floridaexam.com/pdfs/cilb_application_sp.pdf" target="window">Documento de solicitud</a>. Por favor tenga en cuenta que los cargos por la solicitud del examen no son reembolsables ni transferibles. Si usted no comparece al examen para el cual se matriculó, renunciará a los cargos pagados por la solicitud de su examen.<br><br><strong>Paso 4</strong> – Obtenga materiales relacionados con el examen como el <a style="color:rgb(0, 0, 107);padding:1px;" href="http://www.myfloridalicense.com/dbpr/servop/testing/documents/constcib.pdf" target="window">Folleto de información al candidato</a>, <a style="color:rgb(0, 0, 107);padding:1px;" href="https://www.floridaexam.com/help_popup.aspx?ID=10014s" target="window">Listas de referencias</a>, <a style="color:rgb(0, 0, 107);padding:1px;" href="https://www.floridaexam.com/help_popup.aspx?ID=10013s" target="window">Información del contenido del examen</a>. Usted puede pedir que se le envíen por correo formularios y folletos informativos llamando al centro de contacto para el consumidor del Department of Business and Professional Regulation al 850-487-1395 durante las horas normales de operación.<br><br><strong>Paso 5</strong> –Aprobar todas las partes del examen en un lapso de cuatro años desde el primer intento. Su periodo de cuatro años para aprobar el examen comienza en la fecha del primer examen para el cual se matriculó. Si no comparece al examen, se le considerará ausente "No Show" y el resultado de su examen será reprobado "Fail".<br><br><strong>Paso 6</strong> – Obtenga y complete una solicitud para obtener su licencia del DBPR/BET. Asegúrese que cumple con todos los requisitos para la licencia. No se le otorgará una licencia si no cumple con todas las calificaciones, aunque apruebe el examen. Formularios e instrucciones para la solicitud de su licencia están disponibles en línea en: <a style="color:rgb(0, 0, 107);padding:1px;" href="http://myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">http://myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml</a>. Para preguntas relacionadas con una licencia, usted debe comunicarse con el centro de contacto para el consumidor del DBPR al 850-487-1395 o al correo electrónico: Call.Center@dbpr.state.fl.us</p>'
+  registrant_personal_info:
+    '#title': 'Información del candidato'
+  candidate_informtaion:
+    '#title': 'Información del candidato'
+  personal_info_markup:
+    '#markup': '<p><span id="lblInstructions">*Bajo el Acta Federal de Privacidad, divulgar los números de seguro social es un acto voluntario a menos que sea específicamente requerido por un estatuto federal. En este caso, los números de seguro social son obligatorios en virtud del Título 42 del Código de los Estados Unidos, Secciones 653 y 654: y Secciones 455.203(9), 409.2598, Estatutos de Florida. Los números de seguro social se usan para permitir la investigación eficiente de los solicitantes y licenciados por la agencia de manutención de niños Título IV-D para asegurar el cumplimiento con las obligaciones para la manutención de niños. El número de Seguro Social se tiene que registrar en toda aplicación para una licencia profesional u ocupacional y se utilizará para identificación de su licencia según el Acta de Responsabilidad Personal y Oportunidades de Trabajo de 1996 (Welfare Reform Act), 104 Pub.L.193, Sec. 317.</span><br><br><span id="lblInstructions">Por favor coloque su nombre legal como aparecería en un certificado o licencia. Evite usar todas las letras mayúsculas, use solo la primera letra de cada nombre en mayúscula. (i.e. John William Smith)</span></p>'
+  civicrm_1_contact_1_contact_first_name:
+    '#title': 'Primer Nombre'
+  civicrm_1_contact_1_contact_middle_name:
+    '#title': 'Segundo Nombre'
+  civicrm_1_contact_1_contact_last_name:
+    '#title': Apellido
+  civicrm_1_contact_1_contact_suffix_id:
+    '#title': Sufijo
+    '#empty_option': '- Seleccionar -'
+  civicrm_1_contact_1_contact_birth_date:
+    '#title': 'Fecha de nacimiento'
+  civicrm_1_contact_1_cg1_custom_5:
+    '#title': 'Número de Seguro Social (SSN)'
+  verify_ssn:
+    '#title': 'Verifíque el SSN'
+  request_ssn_change:
+    '#markup': '<p><a href="https://cilb.jmaconsulting.biz/form/request-information-change" target="_blank">Solicitar un cambio de número de seguro social (SSN)</a></p>'
+  registrant_contact_info:
+    '#title': 'Coloque Su Información Personal'
+  candidate_contact_information:
+    '#title': 'Coloque Su Información Personal'
+  mailing_address:
+    '#title': 'Dirección de envio'
+  civicrm_1_contact_1_address_street_address:
+    '#title': 'Dirección postal #1'
+  civicrm_1_contact_1_address_supplemental_address_1:
+    '#title': 'Dirección postal #2'
+  civicrm_1_contact_1_address_city:
+    '#title': Ciudad
+  civicrm_1_contact_1_address_state_province_id:
+    '#title': Estado
+    '#empty_option': '- Ninguno -'
+  civicrm_1_contact_1_address_postal_code:
+    '#title': 'Código postal'
+  phones:
+    '#title': Sección
+  civicrm_1_contact_1_email_email:
+    '#title': 'Dirección de correo electrónico'
+  civicrm_1_contact_1_phone_phone:
+    '#title': 'Teléfono diurno'
+  civicrm_1_contact_2_phone_phone:
+    '#title': 'Teléfono secundario'
+  additional_registrant_info:
+    '#title': 'Información adicional del registrante'
+  additional_registrant_information:
+    '#title': 'Información adicional del registrante'
+  exam_language_preference:
+    '#title': "Lenguaje de preferencia (Haga 'click' para el examen en español)"
+  civicrm_1_contact_1_cg1_custom_3:
+    '#title': 'INDIQUE AQUÍ SI DESEA TOMAR EL EXAMEN EN ESPAÑOL'
+    '#description': '(Marque la caja arriba si prefiere el examen en español)'
+    '#empty_option': '- Seleccionar -'
+    '#options':
+      1: Inglés
+      2: Español
+  civicrm_1_contact_1_cg1_custom_2:
+    '#title': 'Grado en Edificación'
+    '#description': "Los candidatos que hayan recibido un diploma de bachillerato de 4 años con la concentración en construcción de edificios de una universidad acreditada y que tengan un GPA de 3.0 o superior están exentos de tener que tomar la parte de conocimiento comercial del examen. Si califica para esta exención, por favor confirme marcando el encasillado a continuación:\r\n\r\nAfirmo que he obtenido un diploma de bachillerato de 4 años con la concentración en construcción de edificios de una universidad acreditada y obtuve un promedio de grado de 3.0 o superior y soy capaz de proporcionar verificación de mi institución. Sobre esta base solicito que me exima de la parte de conocimientos comerciales del examen."
+    '#options':
+      1: Sí
+  civicrm_1_contact_1_cg1_custom_4:
+    '#title': 'Acomodación ADA'
+    '#description': 'DE ACUERDO CON EL ACTA PARA AMERICANOS CON INCAPACIDADES, YO CUALIFICO PARA ACOMODACIONES ESPECIALES (Marcar esta caja no garantiza que una acomodación ADA será aprobada. Por favor comuníquese con el DBPR al (850) 487-9755 para recibir más instrucciones.)'
+    '#options':
+      1: ' Sí'
+  select_category:
+    '#title': 'Selecciona una categoría'
+  select_exam_category:
+    '#title': 'Seleccione la categoría del examen'
+  category_info:
+    '#markup': '<p>Las especialidades de Torre, Demolición y Especialista de Instalaciones Industriales requieren aprobar todas las partes del examen de contratista General: Administración de contrato, Administración de proyecto, Negocios y finanzas.<br><br>Si tiene dudas o preguntas luego de revisar en detalle la información de la licenciatura, deberá revisar la página en línea de <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a>y/o comunicarse con el centro al cliente de DBPR/BET al 850.487.1395</p>'
+  select_exam:
+    '#title': 'Seleccione su categoría de examen:'
+    '#empty_option': '- Seleccionar Categoría -'
+  select_examination_date:
+    '#title': 'Seleccione la fecha del examen:'
+    '#empty_option': '- Seleccionar Fecha -'
+  exam_location:
+    '#title': 'Ubicación del examen'
+  definition_scope_of_practice:
+    '#title': 'Alcance de la práctica'
+    '#prev_button_label': '< Cambiar la categoría de licencia'
+  definition_scope_of_practice_1:
+    '#title': ' Definición y alcance de la práctica'
+  select_exam_parts:
+    '#title': 'Tarifa del examen'
+    '#next_button_label': 'Yo entiendo los cargos a pagar por la matrícula del examen y deseo continuar >'
+  exam_fee:
+    '#title': 'Ingrese la información del examen'
+  markup_01:
+    '#markup': '<p>Por favor tenga en cuenta que todos los cargos por el examen no son reembolsables ni transferibles. Si usted no se presenta a tomar el examen para el cual se matriculó, perderá todos los cargos pagados.</p>'
+  authorize_credit_card_charge:
+    '#title': 'Autorizar cargo a tarjeta de crédito'
+  civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset:
+    '#title': 'Dirección de Envio'
+  civicrm_1_contribution_1_contribution_billing_address_first_name:
+    '#title': 'Nombre de facturación'
+  civicrm_1_contribution_1_contribution_billing_address_last_name:
+    '#title': 'Apellido de facturación'
+  civicrm_1_contribution_1_contribution_billing_address_street_address:
+    '#title': Dirección
+  civicrm_1_contribution_1_contribution_billing_address_postal_code:
+    '#title': 'Código postal'
+  civicrm_1_contribution_1_contribution_billing_address_city:
+    '#title': Ciudad
+  civicrm_1_contribution_1_contribution_billing_address_country_id:
+    '#title': País
+  civicrm_1_contribution_1_contribution_billing_address_state_province_id:
+    '#empty_option': '- Ninguno -'
+    '#title': Estado/Provincia
+  credit_card_auth:
+    '#title': 'Autorizo ​​a Professional Testing a procesar la tarifa de inscripción de $80 a la tarjeta de crédito mencionada anteriormente.'
+  online_exam_auth:
+    '#title': 'Reconozco que los exámenes por computadora de Negocios y Finanzas, Administración de Contratos y Gestión de Proyectos se administrarán a través de los Centros de pruebas de Pearson VUE. Soy responsable de programar las fechas de los exámenes CBT y pagar las tarifas relacionadas directamente a Pearson VUE al 888.204.6230.'
+  no_refund_auth:
+    '#title': 'Yo afirmo que estoy tomando este examen solo con el propósito de obtener una licencia y ejercer como un contratista de construcción en el estado de Florida. Entiendo que toda la información provista en esta matrícula en línea es correcta. Entiendo que si cualquier información provista luego se determina que es falsa, podría resultar en la posible pérdida de cualquier licencia otorgada como resultado de esta matrícula. Entiendo que los cargos por matrícula NO SON REEMBOLSABLES NI INTERCAMBIABLES.'
+  no_refunds_auth_:
+    '#title': 'Entiendo que los cargos por solicitud NO SON REEMBOLSABLES NI TRANSFERIBLES. Las empresas que paguen por el examen de un empleado NO PODRAN transferir la matrícula a otro empleado. Los candidatos que están matriculados para tomar un examen y no comparecen a alguna de las partes para las cuales están matriculados, recibirán un resultado de reprobado para esa parte del examen y perderá todos los cargos pagados.'
+  failing_to_appear:
+    '#title': 'Reconozco que no presentarme a la hora programada para cualquier parte del examen o no obtener una calificación aprobatoria en cualquier parte del examen requerirá otra inscripción y pago para volver a tomar esa parte del examen.'
+  contribution_pagebreak:
+    '#title': Pago
+  civicrm_1_contribution_1_contribution_payment_processor_id:
+    '#title': 'Método de Pago'
+    '#options':
+      3: 'Tarjeta de crédito'
+      0: 'Pagar con cheque'
+  actions:
+    '#submit__label': 'Regístrate >'
+settings:
+  confirmation_message: '<p>Se completó su registro para el Examen de Construcción del Estado de Florida.</p>'

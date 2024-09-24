@@ -1,0 +1,128 @@
+<?php
+
+/**
+ * @file
+ * The module installation functions.
+ */
+
+use Drupal\Core\Database\Database;
+use Drupal\user_email_verification\UserEmailVerificationInterface;
+
+/**
+ * Implements hook_install().
+ */
+function user_email_verification_install() {
+  // TODO: ReDo it with batch (if many users - timeout on install).
+  $database = \Drupal::database();
+
+  $uids = $database->select('users', 'u')
+    ->fields('u', ['uid'])
+    ->condition('uid', 0, '>')
+    ->execute()
+    ->fetchAllKeyed(0, 0);
+
+  if ($uids) {
+    $verified = \Drupal::time()->getRequestTime();
+    $query = $database->insert('user_email_verification')
+      ->fields(['uid', 'verified']);
+
+    foreach ($uids as $uid) {
+      $query->values([
+        'uid' => $uid,
+        'verified' => $verified,
+        'state' => UserEmailVerificationInterface::STATE_APPROVED,
+      ]);
+    }
+
+    $query->execute();
+  }
+}
+
+/**
+ * Implements hook_schema().
+ */
+function user_email_verification_schema() {
+
+  $schema['user_email_verification'] = [
+    'description' => 'The base table for email verification for specific user.',
+    'fields' => [
+      'uid' => [
+        'description' => 'The user id from users table.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'default' => 0,
+      ],
+      'verified' => [
+        'description' => 'Email verified timestamp & flag.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'default' => 0,
+      ],
+      'last_reminder' => [
+        'type' => 'int',
+        'description' => 'Last notification timestamp.',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'default' => 0,
+      ],
+      'reminders' => [
+        'type' => 'int',
+        'description' => 'Number of reminders sent.',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'default' => 0,
+      ],
+      'state' => [
+        'type' => 'int',
+        'description' => 'Verification state: 0 - in progress, 1 - approved, 2 - blocked, 3 - deleted, 4 - on hold.',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'indexes' => [
+      'inx_uid'      => ['uid'],
+      'inx_verified'  => ['verified'],
+      'inx_last_reminder'  => ['last_reminder'],
+    ],
+    'primary key' => ['uid'],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Adding `state` column to `user_email_verification` table.
+ */
+function user_email_verification_update_8001(&$sandbox) {
+
+  $schema = Database::getConnection()->schema();
+
+  $schema->addField(
+    'user_email_verification',
+    'state',
+    [
+      'type' => 'int',
+      'description' => 'Verification state: 0 - in progress, 1 - approved, 2 - blocked, 3 - deleted, 4 - on hold.',
+      'not null' => TRUE,
+      'unsigned' => TRUE,
+      'default' => 0,
+    ]
+  );
+
+}
+
+/**
+ * Set `state` column value for all approved users.
+ */
+function user_email_verification_update_8002(&$sandbox) {
+  \Drupal::database()
+    ->update('user_email_verification')
+    ->condition('verified', 0, '>')
+    ->fields([
+      'state' => UserEmailVerificationInterface::STATE_APPROVED,
+    ])
+    ->execute();
+}

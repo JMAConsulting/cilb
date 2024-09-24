@@ -21,13 +21,13 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         'def43f6c87e4f8dfd0c9e1b1bab14fe8' => __DIR__ . '/..' . '/symfony/polyfill-iconv/bootstrap.php',
-        '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
         '89efb1254ef2d1c5d80096acd12c4098' => __DIR__ . '/..' . '/twig/twig/src/Resources/core.php',
         'ffecb95d45175fd40f75be8a23b34f90' => __DIR__ . '/..' . '/twig/twig/src/Resources/debug.php',
         'c7baa00073ee9c61edf148c51917cfb4' => __DIR__ . '/..' . '/twig/twig/src/Resources/escaper.php',
         'f844ccf1d25df8663951193c3fc307c8' => __DIR__ . '/..' . '/twig/twig/src/Resources/string_loader.php',
-        '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
+        '23c18046f52bef3eea034657bafda50f' => __DIR__ . '/..' . '/symfony/polyfill-php81/bootstrap.php',
         '2f69d3914119f042cca9e44442d5ce95' => __DIR__ . '/../..' . '/web/core/includes/bootstrap.inc',
+        '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
         '5897ea0ac4cccf14d323035e65887801' => __DIR__ . '/..' . '/symfony/polyfill-php82/bootstrap.php',
@@ -37,7 +37,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         '801c31d8ed748cfa537fa45402288c95' => __DIR__ . '/..' . '/psy/psysh/src/functions.php',
         'db356362850385d08a5381de2638b5fd' => __DIR__ . '/..' . '/mpdf/mpdf/src/functions.php',
-        '307dd25e8d5ec044850b7d80335b8851' => __DIR__ . '/..' . '/composer/autoload_civicrm_asset.php',
+        'ff4794c3c97b61a2ea8adc696c42aba9' => __DIR__ . '/..' . '/composer/autoload_civicrm_asset.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -734,16 +734,16 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         array (
             'Net' => 
             array (
-                0 => __DIR__ . '/..' . '/pear/net_socket',
-                1 => __DIR__ . '/..' . '/pear/net_smtp',
+                0 => __DIR__ . '/..' . '/pear/net_smtp',
+                1 => __DIR__ . '/..' . '/pear/net_socket',
             ),
         ),
         'M' => 
         array (
             'Mail' => 
             array (
-                0 => __DIR__ . '/..' . '/pear/mail_mime',
-                1 => __DIR__ . '/..' . '/pear/mail',
+                0 => __DIR__ . '/..' . '/pear/mail',
+                1 => __DIR__ . '/..' . '/pear/mail_mime',
             ),
         ),
         'L' => 

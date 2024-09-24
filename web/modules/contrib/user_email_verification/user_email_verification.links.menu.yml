@@ -1,0 +1,6 @@
+user_email_verification.settings_form:
+  title: 'User Email Verification'
+  parent: user.admin_index
+  description: 'Configure user email verification logic.'
+  weight: 0
+  route_name: user_email_verification.settings_form

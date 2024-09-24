@@ -1,0 +1,13 @@
+uuid: 671df174-b86b-4222-8587-a0a233866358
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm
+id: candidate
+label: Candidate
+weight: 4
+is_admin: null
+permissions:
+  - 'access Contact Dashboard'
+  - 'view my contact'

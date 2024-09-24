@@ -1,0 +1,20 @@
+uuid: 7f618c52-22ac-43e2-ac9c-c30010f85c3c
+langcode: en
+status: true
+dependencies: {  }
+id: mpdf
+settings:
+  orientation: P
+  default_paper_size: LETTER
+  custom_paper_size: 0
+  custom_paper_width: '0'
+  custom_paper_height: '0'
+  margin_left: '15'
+  margin_right: '15'
+  margin_top: '16'
+  margin_bottom: '16'
+  margin_header: '9'
+  margin_footer: '9'
+  default_paper_orientation: P
+  username: ''
+  password: ''

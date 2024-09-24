@@ -55,11 +55,12 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
       $this->validateUniqueUser($form_state);
-    } elseif($current_page == 'select_exam_parts') {
+    } elseif($current_page == 'exam_fee_page') {
       $this->validateExamFee($form_state);
     } elseif($current_page == 'user_identification') {
       $this->validateCandidateRep($form_state);
-    } elseif($current_page == 'select_category'){
+    } elseif($current_page == 'select_exam_page'){
+      //TODO how to register for multiple events at once?
       $this->validateParticipantStatus($form_state);
     }
   }
@@ -157,7 +158,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // If candidate is not 16 years or older
     if ($age < 16) {
         $formState->setErrorByName('civicrm_1_contact_1_contact_birth_date', $this->t('In order to create an account with PTI Online Services and register for the DBPR/BET exam, you must be at least 16 years old.'));
-    }    
+    }
   }
 
   /**
@@ -206,7 +207,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $examFee = $formState->getValue('civicrm_1_participant_1_participant_fee_amount');
 
     if ($examFee == 0) {
-        $formState->setErrorByName('exam_fee_markup', $this->t('Select one or more exam fees.'));
+        $formState->setErrorByName('exam_fee_markup', $this->t('Exam fee is missing'));
         return;
     }
   }
@@ -228,24 +229,24 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   * Validation to make sure Candidate is not already registered for exam
   */
   private function validateParticipantStatus(FormStateInterface $formState) {
-    $eventID = $formState->getValue('civicrm_1_participant_1_participant_event_id');
+    $eventIDs = $formState->getValue('civicrm_1_participant_1_participant_event_id');
     $contactID = $formState->getValue('civicrm_1_contact_1_contact_existing');
 
     // If the user is logged in
     if($contactID) {
       $participants = \Civi\Api4\Participant::get(FALSE)
         ->addWhere('contact_id', '=', $contactID)
-        ->addWhere('event_id', '=', $eventID)
+        ->addWhere('event_id', 'IN', $eventIDs)
         ->addWhere('status_id:label', '!=', 'Cancelled')
         ->addWhere('status_id:label', '!=', 'Expired')
         ->execute();
 
       if(count($participants)) {
-        $formState->setErrorByName('select_examination_date', $this->t('You are already registered for this exam.'));
+        $formState->setErrorByName('civicrm_1_participant_1_participant_event_id', $this->t('You are already registered for this exam.'));
       }
 
-    } 
-    
+    }
+
     // If no contact is created for the registrant yet, check for duplicates by name and email
     else {
       $firstName = $formState->getValue('civicrm_1_contact_1_contact_first_name');
@@ -257,11 +258,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->addWhere('contact_id.first_name', '=', $firstName)
         ->addWhere('contact_id.last_name', '=', $lastName)
         ->addWhere('email.email', '=', $email)
-        ->addWhere('event_id', '=', 7)
+        ->addWhere('event_id', 'IN', $eventIDs)
         ->execute();
 
       if(count($participants)) {
-        $formState->setErrorByName('select_examination_date', $this->t('Another user with the same email and name has already registered for this exam.'));
+        $formState->setErrorByName('civicrm_1_participant_1_participant_event_id', $this->t('Another user with the same email and name has already registered for this exam.'));
       }
     }
   }

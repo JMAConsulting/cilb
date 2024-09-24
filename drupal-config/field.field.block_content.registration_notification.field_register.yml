@@ -1,0 +1,28 @@
+uuid: 3c5b759b-7bc1-40b4-8cd3-1b79ef21e84c
+langcode: en
+status: true
+dependencies:
+  config:
+    - block_content.type.registration_notification
+    - field.storage.block_content.field_register
+  module:
+    - link
+id: block_content.registration_notification.field_register
+field_name: field_register
+entity_type: block_content
+bundle: registration_notification
+label: Register
+description: ''
+required: false
+translatable: true
+default_value:
+  -
+    attributes: {  }
+    uri: 'internal:/exam-registration'
+    title: Continue
+    options: {  }
+default_value_callback: ''
+settings:
+  title: 1
+  link_type: 1
+field_type: link

@@ -1,0 +1,15 @@
+name: 'User Email Verification'
+type: module
+description: 'Verify the user Email. If the Email of the user is not verified the system will block the user.'
+package: User
+
+core_version_requirement: ^8 || ^9 || ^10
+configure: user_email_verification.settings_form
+
+dependencies:
+  - drupal:user
+
+# Information added by Drupal.org packaging script on 2023-07-06
+version: '8.x-1.2'
+project: 'user_email_verification'
+datestamp: 1688652611

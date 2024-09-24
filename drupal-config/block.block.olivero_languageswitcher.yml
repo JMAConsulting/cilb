@@ -1,0 +1,20 @@
+uuid: 47510b85-6c69-40b1-b446-baf3423166fe
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+  theme:
+    - olivero
+id: olivero_languageswitcher
+theme: olivero
+region: highlighted
+weight: -4
+provider: null
+plugin: 'language_block:language_interface'
+settings:
+  id: 'language_block:language_interface'
+  label: 'Language Switcher'
+  label_display: visible
+  provider: language
+visibility: {  }

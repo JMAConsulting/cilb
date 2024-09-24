@@ -1,0 +1,36 @@
+uuid: 75f34de9-18be-4634-a457-73e4720d7875
+langcode: en
+status: true
+dependencies:
+  config:
+    - filter.format.restricted_html
+  module:
+    - civicrm
+    - comment
+    - contact
+    - filter
+    - search
+    - system
+_core:
+  default_config_hash: 6WavjUYXIegP9AAg2zXGx54MWIVoomC3SZhNiqe-Dyk
+id: anonymous
+label: 'Anonymous user'
+weight: 0
+is_admin: false
+permissions:
+  - 'access AJAX API'
+  - 'access CiviMail subscribe/unsubscribe pages'
+  - 'access all custom data'
+  - 'access comments'
+  - 'access content'
+  - 'access site-wide contact form'
+  - 'access uploaded files'
+  - 'make online contributions'
+  - 'profile create'
+  - 'profile edit'
+  - 'profile view'
+  - 'register for events'
+  - 'search content'
+  - 'use text format restricted_html'
+  - 'view event info'
+  - 'view event participants'

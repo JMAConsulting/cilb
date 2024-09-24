@@ -1,0 +1,37 @@
+/* Add any CSS rules for Angular module "mjwshared" */
+#paymentprocessor-webhooks-table td.success { color: #080; }
+#paymentprocessor-webhooks-table td.error { color: #800; }
+#paymentprocessor-webhooks-table td.processing { color: #048; }
+#paymentprocessor-webhooks-table td.new { color: #08a; }
+
+#paymentprocessor-webhooks-table tbody>tr { position: relative; }
+#paymentprocessor-webhooks-table tbody>tr.selected { position: relative; background-color: white; }
+
+/* Hack for Greenwich theme which sets color white */
+#paymentprocessor-webhooks-table tbody>tr.selected td { color: inherit; background-color: inherit; }
+/*
+* the following fixes Greenwich but will break other themes...
+#paymentprocessor-webhooks-table tbody>tr.selected td a:link,
+#paymentprocessor-webhooks-table tbody>tr.selected td a:visited,
+#paymentprocessor-webhooks-table tbody>tr.selected td a:active { color: inherit; background-color: inherit; }
+*/
+
+#paymentprocessor-webhooks-table div.details { position: absolute; left: 0; right: 0; top: 100%; background: white; padding: 1.6rem; z-index: 1; box-shadow: 0 1rem 2rem rgba(0,0,0,0.4); }
+#paymentprocessor-webhooks-table div.details .message { padding: 1.6rem; background: #fafafa; white-space: pre-wrap; font-size: 0.875em;}
+#paymentprocessor-webhooks-table div.details .raw { padding: 1.6rem; background: #fafafa; white-space: pre-wrap;  font-size: 0.875em; color: #444; line-height: 1.3; overflow: auto; font-family: monospace, monospace; }
+
+#paymentprocessor-webhooks div.pager {
+  display: flex;
+  justify-content: space-between;
+}
+#paymentprocessor-webhooks div.pager-info {
+  flex: 0 1 auto;
+}
+#paymentprocessor-webhooks div.pager-buttons {
+  flex: 1 1 13em;
+  text-align: right;
+}
+#paymentprocessor-webhooks div.pager-buttons button + button {
+  margin-left: 2rem;
+  display: inline-block;
+}

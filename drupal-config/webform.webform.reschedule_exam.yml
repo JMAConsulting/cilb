@@ -1,0 +1,469 @@
+uuid: 718700e2-3858-43e1-976d-872af80a440a
+langcode: en
+status: open
+dependencies:
+  module:
+    - webform_civicrm
+    - webform_entity_print
+third_party_settings:
+  webform_entity_print:
+    template:
+      header: ''
+      footer: ''
+      css: ''
+    export_types:
+      pdf:
+        enabled: true
+        link_text: ''
+        link_attributes: {  }
+weight: 0
+open: null
+close: null
+uid: 6
+template: false
+archive: false
+id: reschedule_exam
+title: 'Reschedule an Exam'
+description: ''
+categories: {  }
+elements: |-
+  disclaimer:
+    '#type': webform_wizard_page
+    '#title': Disclaimer
+    '#open': true
+    rescheduling_policy_for_trade_knowledge_contract_administration:
+      '#type': fieldset
+      '#title': 'Rescheduling Policy for Trade Knowledge, Contract Administration, or Project Management'
+      markup:
+        '#type': webform_markup
+        '#markup': '<p class="p1">This process is for exam candidates who are already registered with Professional Testing but need to request a change to the site, date, or category.</p><p class="p1"><strong>All change requests will incur a $20 processing fee.</strong></p><p class="p1">Each registration has an expiration date of 365 days from the original transaction date. The application expiration date will display in the Payment box or your Registration Receipt. No changes are allowed past the application expiration date.</p><p class="p1">In order to request changes to the Business and Finance exam part, you must contact Pearson VUE at 888.204.6230.</p><p class="p1">NO CHANGES will be made within 30 DAYS of a scheduled exam unless:</p><ol class="ol1"><li class="li1">﻿﻿﻿The exam candidate has suffered an illness or injury that prevents him/her from attending the exam. The reason must be verified by a doctor''s signed explanation on office letterhead. The letter must be included with the registration change form.</li><li class="li1">﻿﻿﻿The funeral of an immediate family member (spouse, child, parent, and grandparent) coincides with the testing date. The death must be verified by a letter from an attending clergy member or a funeral home director. The relationship of the test candidate to the deceased must be explained in the letter. The letter must be included with the registration change form.</li><li class="li1">The test candidate must carry out a civic responsibility, such as jury or military duty. A copy of the court or military orders must be included with the registration change form. The name of the candidate and the dates) of the scheduled exam date must appear on the documentation.</li><li class="li1">Change forms and all supporting documentation for any of the above mentioned exceptions MUST be received by Professional Testing no later than 48 hours after the scheduled exam date.</li></ol>'
+  disclaimer2:
+    '#type': webform_wizard_page
+    '#title': Disclaimer
+    '#open': true
+    rescheduling_policy:
+      '#type': fieldset
+      '#title': 'Rescheduling Policy'
+      markup_01:
+        '#type': webform_markup
+        '#markup': '<p class="p1">All Application Fees are NON-REFUNDABLE AND NON-TRANSFERABLE. This policy applies to both test candidates and companies. Companies that pay for an employee''s exam MAY NOT transfer a registration to another employee.</p><p class="p1">ALL EXAM DATE AND LOCATION CHANGES ARE SUBJECT TO AVAILABILITY. If your requested date or location has filled to capacity, your change request may have to be processed for a later date, or to the exam event you provided as your second choice.</p><p class="p1">Change requests to existing applications must be submitted to Professional Testing at least 30 days before the current registration. Please note that all applications have an expiration date of 365 days from the original transaction date. NO CHANGES ARE ALLOWED BEYOND ONE YEAR OF THE ORIGINAL TRANSACTION DATE.</p><p class="p1">Requests received within 30 days of the scheduled examination will be DENIED unless they qualify under the exemptions listed in the previous screen. Work, travel, school, transportation and/or personal excuses are NOT valid exemptions to the 30 day rule.</p><p class="p1">Change requests are subject to a transaction fee of $20.00 payable by credit card, check, or money order to Professional Testing.</p>'
+  enter_requested_changes:
+    '#type': webform_wizard_page
+    '#title': 'Enter Requested Changes'
+    '#open': true
+    original_exam:
+      '#type': fieldset
+      '#title': 'Request a Change to My Registration'
+      markup_02:
+        '#type': webform_markup
+        '#markup': '<p>To request a change to your registration, please fill out the information below. Please indicate a first and second choice for the dates and locations.</p>'
+      civicrm_1_contact_1_contact_existing:
+        '#type': civicrm_contact
+        '#title': 'Candidate Name'
+        '#widget': hidden
+        '#none_prompt': '- None Found -'
+        '#show_hidden_contact': 1
+        '#results_display':
+          display_name: display_name
+        '#default': user
+        '#allow_url_autofill': false
+        '#contact_type': individual
+        '#form_key': civicrm_1_contact_1_contact_existing
+        '#parent': civicrm_1_contact_1_fieldset_fieldset
+        '#extra': {  }
+      exam_name:
+        '#type': textfield
+        '#title': 'License Category'
+        '#readonly': true
+      location:
+        '#type': textfield
+        '#title': 'Exam Site'
+        '#readonly': true
+      scheduled_date:
+        '#type': datetime
+        '#title': 'Scheduled Date'
+        '#disabled': true
+        '#date_time_format': 'g:i A'
+        '#date_time_step': '60'
+    horizontal_rule:
+      '#type': webform_horizontal_rule
+    markup_03:
+      '#type': webform_markup
+      '#markup': '<p><strong>Please select the License Category, Date, Location, and Exam Parts that you would like to take.</strong></p>'
+    proposed_category:
+      '#type': webform_entity_select
+      '#title': 'License Category'
+      '#empty_option': '- Select Category -'
+      '#required': true
+      '#target_type': civicrm_option_value
+      '#selection_handler': views
+      '#selection_settings':
+        view:
+          view_name: exam_type
+          display_name: entity_reference_1
+          arguments: {  }
+    markup_04:
+      '#type': webform_markup
+      '#markup': '*Note: If your preferred exam date and location does not appear in the lists, then the request cannot be processed. Please refer to the Rescheduling Policy.'
+    proposed_exam_date:
+      '#type': webform_entity_select
+      '#title': 'Proposed Date'
+      '#empty_option': '- Select Date -'
+      '#required': true
+      '#target_type': civicrm_event
+      '#selection_handler': views
+      '#selection_settings':
+        view:
+          view_name: event_types
+          display_name: entity_reference_1
+          arguments: {  }
+    proposed_location:
+      '#type': textfield
+      '#title': 'Exam Location'
+      '#readonly': true
+      '#required': true
+    reason_for_rescheduling_exam:
+      '#type': textarea
+      '#title': 'Reason for rescheduling exam:'
+      '#required': true
+css: ''
+javascript: ''
+settings:
+  ajax: false
+  ajax_scroll_top: ''
+  ajax_progress_type: ''
+  ajax_effect: ''
+  ajax_speed: null
+  page: true
+  page_submit_path: ''
+  page_confirm_path: ''
+  page_theme_name: ''
+  form_title: both
+  form_submit_once: false
+  form_open_message: ''
+  form_close_message: ''
+  form_exception_message: ''
+  form_previous_submissions: false
+  form_confidential: false
+  form_confidential_message: ''
+  form_disable_remote_addr: false
+  form_convert_anonymous: false
+  form_prepopulate: false
+  form_prepopulate_source_entity: false
+  form_prepopulate_source_entity_required: false
+  form_prepopulate_source_entity_type: ''
+  form_unsaved: false
+  form_disable_back: false
+  form_submit_back: false
+  form_disable_autocomplete: false
+  form_novalidate: false
+  form_disable_inline_errors: false
+  form_required: false
+  form_autofocus: false
+  form_details_toggle: false
+  form_reset: false
+  form_access_denied: default
+  form_access_denied_title: ''
+  form_access_denied_message: ''
+  form_access_denied_attributes: {  }
+  form_file_limit: ''
+  form_attributes: {  }
+  form_method: ''
+  form_action: ''
+  share: false
+  share_node: false
+  share_theme_name: ''
+  share_title: true
+  share_page_body_attributes: {  }
+  submission_label: ''
+  submission_exception_message: ''
+  submission_locked_message: ''
+  submission_log: false
+  submission_excluded_elements: {  }
+  submission_exclude_empty: false
+  submission_exclude_empty_checkbox: false
+  submission_views: {  }
+  submission_views_replace: {  }
+  submission_user_columns: {  }
+  submission_user_duplicate: false
+  submission_access_denied: default
+  submission_access_denied_title: ''
+  submission_access_denied_message: ''
+  submission_access_denied_attributes: {  }
+  previous_submission_message: ''
+  previous_submissions_message: ''
+  autofill: false
+  autofill_message: ''
+  autofill_excluded_elements: {  }
+  wizard_progress_bar: true
+  wizard_progress_pages: false
+  wizard_progress_percentage: false
+  wizard_progress_link: false
+  wizard_progress_states: false
+  wizard_start_label: ''
+  wizard_preview_link: false
+  wizard_confirmation: true
+  wizard_confirmation_label: ''
+  wizard_auto_forward: true
+  wizard_auto_forward_hide_next_button: false
+  wizard_keyboard: true
+  wizard_track: ''
+  wizard_prev_button_label: ''
+  wizard_next_button_label: ''
+  wizard_toggle: false
+  wizard_toggle_show_label: ''
+  wizard_toggle_hide_label: ''
+  wizard_page_type: container
+  wizard_page_title_tag: h2
+  preview: 0
+  preview_label: ''
+  preview_title: ''
+  preview_message: ''
+  preview_attributes: {  }
+  preview_excluded_elements: {  }
+  preview_exclude_empty: true
+  preview_exclude_empty_checkbox: false
+  draft: none
+  draft_multiple: false
+  draft_auto_save: false
+  draft_saved_message: ''
+  draft_loaded_message: ''
+  draft_pending_single_message: ''
+  draft_pending_multiple_message: ''
+  confirmation_type: page
+  confirmation_url: ''
+  confirmation_title: 'Request Submitted'
+  confirmation_message: '<p>Your request to reschedule your exam was submitted.</p>'
+  confirmation_attributes: {  }
+  confirmation_back: true
+  confirmation_back_label: ''
+  confirmation_back_attributes: {  }
+  confirmation_exclude_query: false
+  confirmation_exclude_token: false
+  confirmation_update: false
+  limit_total: null
+  limit_total_interval: null
+  limit_total_message: ''
+  limit_total_unique: false
+  limit_user: null
+  limit_user_interval: null
+  limit_user_message: ''
+  limit_user_unique: false
+  entity_limit_total: null
+  entity_limit_total_interval: null
+  entity_limit_user: null
+  entity_limit_user_interval: null
+  purge: none
+  purge_days: null
+  results_disabled: false
+  results_disabled_ignore: false
+  results_customize: false
+  token_view: false
+  token_update: false
+  token_delete: false
+  serial_disabled: false
+access:
+  create:
+    roles:
+      - administrator
+      - candidate
+    users: {  }
+    permissions: {  }
+  view_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  update_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  delete_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  purge_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  view_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  update_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  delete_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  administer:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  test:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  configuration:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+handlers:
+  webform_civicrm:
+    id: webform_civicrm
+    handler_id: webform_civicrm
+    label: CiviCRM
+    notes: ''
+    status: true
+    conditions: {  }
+    weight: -50
+    settings:
+      disable: 'Leave Fields and Save Settings'
+      nid: 1
+      number_of_contacts: '1'
+      1_contact_type: individual
+      1_webform_label: 'Contact 1'
+      civicrm_1_contact_1_contact_contact_sub_type:
+        Candidate: Candidate
+      civicrm_1_contact_1_contact_existing: create_civicrm_webform_element
+      civicrm_1_contact_1_contact_prefix_id: 0
+      civicrm_1_contact_1_contact_first_name: 0
+      civicrm_1_contact_1_contact_middle_name: 0
+      civicrm_1_contact_1_contact_last_name: 0
+      civicrm_1_contact_1_contact_suffix_id: 0
+      civicrm_1_contact_1_contact_nick_name: 0
+      civicrm_1_contact_1_contact_gender_id: 0
+      civicrm_1_contact_1_contact_job_title: 0
+      civicrm_1_contact_1_contact_birth_date: 0
+      civicrm_1_contact_1_contact_preferred_communication_method: 0
+      civicrm_1_contact_1_contact_privacy: 0
+      civicrm_1_contact_1_contact_preferred_language: 0
+      civicrm_1_contact_1_contact_communication_style_id: 0
+      civicrm_1_contact_1_contact_contact_id: 0
+      civicrm_1_contact_1_contact_user_id: 0
+      civicrm_1_contact_1_contact_external_identifier: 0
+      civicrm_1_contact_1_contact_source: 0
+      civicrm_1_contact_1_contact_cs: 0
+      civicrm_1_contact_1_contact_employer_id: 0
+      civicrm_1_contact_1_contact_is_deceased: 0
+      civicrm_1_contact_1_contact_deceased_date: 0
+      contact_1_settings_matching_rule: Unsupervised
+      contact_1_number_of_cg1: '0'
+      contact_1_number_of_other: '0'
+      contact_1_number_of_address: '0'
+      contact_1_number_of_phone: '0'
+      contact_1_number_of_email: '1'
+      civicrm_1_contact_1_email_email: create_civicrm_webform_element
+      civicrm_1_contact_1_email_location_type_id: '1'
+      civicrm_1_contact_1_email_is_primary: '1'
+      contact_1_number_of_website: '0'
+      contact_1_number_of_im: '0'
+      prefix_known: ''
+      prefix_unknown: ''
+      toggle_message: 0
+      message: ''
+      activity_number_of_activity: '1'
+      activity_1_settings_existing_activity_status:
+        '': ''
+      activity_1_settings_details:
+        view_link: view_link
+        entire_result: 0
+        edit_link: 0
+        view_link_secure: 0
+        update_existing: 0
+      civicrm_1_activity_1_activity_activity_type_id: '57'
+      civicrm_1_activity_1_activity_target_contact_id:
+        1: '1'
+      civicrm_1_activity_1_activity_source_contact_id: '0'
+      civicrm_1_activity_1_activity_subject: 0
+      civicrm_1_activity_1_activity_details: 0
+      civicrm_1_activity_1_activity_status_id: '0'
+      civicrm_1_activity_1_activity_priority_id: '0'
+      civicrm_1_activity_1_activity_assignee_contact_id:
+        '': ''
+      civicrm_1_activity_1_activity_location: 0
+      civicrm_1_activity_1_activity_activity_date_time: 0
+      civicrm_1_activity_1_activity_duration: 0
+      civicrm_1_activity_1_activity_tag:
+        '': ''
+      civicrm_1_activity_1_activityupload_file_1: 0
+      civicrm_1_activity_1_activityupload_file_2: 0
+      civicrm_1_activity_1_activityupload_file_3: 0
+      participant_reg_type: '0'
+      reg_options:
+        event_type:
+          any: any
+        show_past_events: now
+        show_future_events: '1'
+        show_public_events: all
+        title_display: title
+        show_full_events: 1
+        event_sort_field: start_date
+        show_remaining: '0'
+        validate: 1
+        block_form: 0
+        disable_unregister: 0
+        allow_url_load: 0
+        disable_primary_participant: 0
+      membership_1_number_of_membership: '0'
+      civicrm_1_contribution_1_contribution_enable_contribution: '0'
+      checksum_text: ''
+      create_fieldsets: 1
+      confirm_subscription: 1
+      block_unknown_users: 0
+      create_new_relationship: 0
+      disable_contact_paging: 0
+      new_contact_source: 'Reschedule an Exam'
+      data:
+        contact:
+          1:
+            contact:
+              1:
+                contact_type: individual
+                contact_sub_type:
+                  Candidate: Candidate
+                webform_label: 'Contact 1'
+            matching_rule: Unsupervised
+            number_of_cg1: '0'
+            number_of_other: '0'
+            number_of_address: '0'
+            number_of_phone: '0'
+            number_of_email: '1'
+            number_of_website: '0'
+            number_of_im: '0'
+            email:
+              1:
+                location_type_id: '1'
+                is_primary: '1'
+        activity:
+          number_of_activity: '1'
+          1:
+            existing_activity_status: {  }
+            details:
+              view_link: view_link
+            activity:
+              1:
+                activity_type_id: '57'
+                target_contact_id:
+                  1: '1'
+        membership:
+          1:
+            number_of_membership: '0'
+        participant_reg_type: '0'
+        reg_options:
+          event_type:
+            any: any
+          show_past_events: now
+          show_future_events: '1'
+          show_public_events: all
+          title_display: title
+          show_full_events: 1
+          event_sort_field: start_date
+          show_remaining: '0'
+          validate: 1
+          block_form: 0
+          disable_unregister: 0
+          allow_url_load: 0
+          disable_primary_participant: 0
+variants: {  }
