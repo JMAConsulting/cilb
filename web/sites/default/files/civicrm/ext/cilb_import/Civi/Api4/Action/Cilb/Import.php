@@ -409,12 +409,15 @@ class Import extends \Civi\Api4\Generic\AbstractAction {
         'email' => $pseudoEmail,
       ];
 
-//      TODO: use a drush script?
-//      $cmsUserId = \CRM_Core_BAO_CMSUser::create($params, 'email');
+      $cmsUserId = \CRM_Core_BAO_CMSUser::create($params, 'email');
 
-//      $user = \Drupal\user\Entity\User::load($cmsUserId);
-//      $user->block();
-//      $user->save();
+      $user = \Drupal\user\Entity\User::load($cmsUserId);
+      if (!$user) {
+        \Civi::log()->warning("No CMS user could be created for contact id {$contact['id']} email {$pseudoEmail}");
+        continue;
+      }
+      $user->block();
+      $user->save();
     }
   }
 
