@@ -10,22 +10,35 @@ jQuery(document).ready(function ($) {
     lang = "en_US";
   }
 
-  const $examCatField = $('[data-drupal-selector="edit-select-exam-category"]');
-  const $examPartField = $('[data-drupal-selector="edit-select-exam-parts"]');
+  const $examCatSelector = $('[data-drupal-selector="edit-select-exam-category"]');
+  const $examPartSelector = $('[data-drupal-selector="edit-select-exam-parts"]');
+  const $examCatIdField = $('[data-drupal-selector="edit-exam-category-id"]');
+  const $eventIdsField = $('[data-drupal-selector="edit-event-ids"]');
+  $examCatIdField.parent().hide();
+  $eventIdsField.parent().hide();
 
-  if (
-    $examPartField &&
-    $examCatField
-  ) {
+  if ($examCatSelector.length) {
+    // store exam cat id selection for reference on subsequent pages
+    $examCatSelector.on('change', function () {
+      $examCatIdField.val($examCatSelector.val());
+    });
+  }
 
-    $examCatField.on("change", function () {
-    $examPartField.val("");
 
-    const selectedCat = $(this).val();
+  if ($examPartSelector.length) {
+    // store event id selection for reference on subsequent pages
+    $examPartSelector.on('change', function () {
+      $eventIdsField.val($examPartSelector.val());
+    });
 
-    if (!selectedCat) {
-      return;
-    }
+    // hide all part options initially
+    $examPartSelector.find("option").each(function () {
+      $(this).hide();
+    });
+
+    $examPartSelector.val("");
+
+    const selectedCat = $examCatIdField.val();
 
     CRM.api4("Event", "get", {
       select: ["id", "Exam_Details.Exam_Part"],
@@ -40,33 +53,31 @@ jQuery(document).ready(function ($) {
         ["option_value.option_group_id:name", "=", "event_type"],
         ["option_value.id", "=", selectedCat],
       ],
-    }).then(
-      function (events) {
-        const eventParts = {};
+    }).then((events) => {
+      const eventParts = {};
 
-        events.forEach((event) => eventParts[event.id] = event['Exam_Details.Exam_Part']);
+      events.forEach((event) => eventParts[event.id] = event['Exam_Details.Exam_Part']);
 
-        $examPartField.find("option").each(function () {
-          var optionValue = $(this).val();
+      $examPartSelector.find("option").each(function () {
+        const optionValue = $(this).val();
 
-          if (optionValue === "") {
+        if (optionValue === "") {
             return;
-          }
+        }
 
-          // Check if the optionValue is in the keys of eventParts
-          if (parseInt(optionValue) in eventParts) {
-            // TODO load label for exam part
-            $(this).text()
-            $(this).show(); // Show valid options
-          } else {
-            $(this).hide(); // Hide invalid options
-          }
-        });
-      },
-      function (failure) {
-        console.log(failure);
+        // Check if the optionValue is in the keys of eventParts
+        if (parseInt(optionValue) in eventParts) {
+          // Show valid options
+          // TODO strip the category part from event name display
+          // $(this).text()
+          $(this).show();
+        } else {
+          // Hide invalid
+          $(this).hide();
+        }
       });
+    }, (failure) => {
+        console.log(failure);
     });
-    $examCatField.trigger("change");
   }
 });

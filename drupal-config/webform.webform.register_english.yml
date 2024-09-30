@@ -410,16 +410,24 @@ elements: |-
         '#parent': civicrm_1_contact_1_cg1_fieldset
         '#default_option': ''
         '#default_value': ''
-  select_exam_page:
+  exam_category_id:
+    '#type': webform_entity_select
+    '#title': 'Exam Category ID'
+    '#empty_option': '- Select Category -'
+    '#states_clear': false
+    '#target_type': civicrm_option_value
+    '#selection_handler': views
+    '#selection_settings':
+      view:
+        view_name: exam_type
+        display_name: entity_reference_1
+        arguments: {  }
+  select_category_page:
     '#type': webform_wizard_page
-    '#title': 'Select Examination'
-    '#open': true
-    select_exam:
+    '#title': 'Select Contractor Category'
+    select_category:
       '#type': fieldset
-      '#title': 'Select Examination'
-      category_info:
-        '#type': webform_markup
-        '#markup': '<p>Specialty Contractors must pass the same General category examination of three parts, Contract Administration, Project Management and Business and Finance<br><br>After reviewing the license category information, if you still have questions, you may refer to the <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a> and/or contact the Department of Business and Professional Regulation''s Customer Contact Center at 850.487.1395</p>'
+      '#title': 'Select Contractor Category'
       select_exam_category:
         '#type': webform_entity_select
         '#title': 'Select contractor category:'
@@ -432,15 +440,21 @@ elements: |-
             view_name: exam_type
             display_name: entity_reference_1
             arguments: {  }
+  select_exam_page:
+    '#type': webform_wizard_page
+    '#title': 'Select Examination'
+    '#open': true
+    select_exam:
+      '#type': fieldset
+      '#title': 'Select Examination'
+      category_info:
+        '#type': webform_markup
+        '#markup': '<p>Specialty Contractors must pass the same General category examination of three parts, Contract Administration, Project Management and Business and Finance<br><br>After reviewing the license category information, if you still have questions, you may refer to the <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a> and/or contact the Department of Business and Professional Regulation''s Customer Contact Center at 850.487.1395</p>'
       select_exam_parts:
         '#type': webform_entity_select
         '#title': 'Select examination part(s):'
         '#multiple': true
         '#required': true
-        '#states':
-          visible:
-            ':input[name="select_exam_category"]':
-              filled: true
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':
@@ -448,6 +462,18 @@ elements: |-
             view_name: exams
             display_name: entity_reference_1
             arguments: {  }
+  event_ids:
+    '#type': webform_entity_select
+    '#title': 'Event IDs'
+    '#multiple': true
+    '#states_clear': false
+    '#target_type': civicrm_event
+    '#selection_handler': views
+    '#selection_settings':
+      view:
+        view_name: exams
+        display_name: entity_reference_1
+        arguments: {  }
   definition_scope_of_practice:
     '#type': webform_wizard_page
     '#title': 'Scope of Practice'
@@ -459,6 +485,22 @@ elements: |-
       scope_markup:
         '#type': webform_markup
         '#markup': '<p>*</p>'
+  civicrm_1_contribution_1_contribution_total_amount:
+    '#type': civicrm_number
+    '#title': 'Total Payable Now'
+    '#readonly': true
+    '#required': true
+    '#states_clear': false
+    '#default_value': '0'
+    '#parent': contribution_pagebreak
+    '#data_type': Money
+    '#extra':
+      field_prefix: $
+      point: .
+      separator: ','
+      decimals: 2
+      min: 0
+    '#form_key': civicrm_1_contribution_1_contribution_total_amount
   exam_fee_page:
     '#type': webform_wizard_page
     '#title': 'Exam Fee'
@@ -467,46 +509,13 @@ elements: |-
     exam_fee:
       '#type': fieldset
       '#title': 'Exam Fee'
+      exam_fee_intro:
+        '#type': webform_markup
+        '#markup': '<p><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">Please be advised that all examination application fees are non-refundable and non-transferable. If you fail to appear for your scheduled examination, you will forfeit your fees.</span></p>'
       exam_fee_markup:
         '#type': webform_markup
         '#display_on': both
         '#markup': '<p>*</p>'
-      exam_fee_intro:
-        '#type': webform_markup
-        '#markup': '<p><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">Please be advised that all examination application fees are non-refundable and non-transferable. If you fail to appear for your scheduled examination, you will forfeit your fees.</span></p>'
-      civicrm_1_participant_1_participant_fee_amount:
-        '#type': civicrm_number
-        '#title': 'Registration Fee'
-        '#readonly': true
-        '#states_clear': false
-        '#default_value': '135'
-        '#data_type': Money
-        '#extra':
-          field_prefix: $
-          point: .
-          separator: ','
-          decimals: 2
-          min: 0
-        '#form_key': civicrm_1_participant_1_participant_fee_amount
-        '#parent': civicrm_1_contact_1_fieldset_fieldset
-      civicrm_1_contribution_1_contribution_total_amount:
-        '#type': civicrm_number
-        '#title': 'Examination Fee'
-        '#readonly': true
-        '#default_value': '0'
-        '#states':
-          invisible:
-            ':input[name="civicrm_1_contribution_1_contribution_total_amount"]':
-              value: '0'
-        '#parent': contribution_pagebreak
-        '#data_type': Money
-        '#extra':
-          field_prefix: $
-          point: .
-          separator: ','
-          decimals: 2
-          min: 0
-        '#form_key': civicrm_1_contribution_1_contribution_total_amount
   authorize_credit_card_charge:
     '#type': webform_wizard_page
     '#title': 'Authorize Credit Card Charge'
@@ -1129,34 +1138,6 @@ elements: |-
       '#form_key': civicrm_1_contribution_1_contribution_payment_processor_id
       '#parent': contribution_pagebreak
       '#default_option': '3'
-  civicrm_1_contact_1_cg1_custom_22:
-    '#nid': register_english
-    '#form_key': civicrm_1_contact_1_cg1_custom_22
-    '#parent': civicrm_1_contact_1_cg1_fieldset
-    '#extra': {  }
-    '#title': ''
-  civicrm_1_contact_1_cg1_custom_23:
-    '#nid': register_english
-    '#form_key': civicrm_1_contact_1_cg1_custom_23
-    '#parent': civicrm_1_contact_1_cg1_fieldset
-    '#extra': {  }
-    '#title': ''
-  civicrm_1_participant_1_participant_event_id:
-    '#type': civicrm_number
-    '#title': 'Event ID'
-    '#readonly': true
-    '#states':
-      visible:
-        ':input[name="select_exam_category"]':
-          filled: true
-    '#states_clear': false
-    '#extra':
-      multiple: 1
-      items: {  }
-      aslist: true
-    '#form_key': civicrm_1_participant_1_participant_event_id
-    '#options': {  }
-    '#parent': civicrm_1_contact_1_fieldset_fieldset
   actions:
     '#type': webform_actions
     '#title': 'Submit button(s)'
@@ -1384,14 +1365,14 @@ handlers:
       civicrm_1_contact_1_contact_deceased_date: 0
       contact_1_settings_matching_rule: Unsupervised
       contact_1_number_of_cg1: '1'
-      contact_1_settings_dynamic_custom_cg1: 1
+      contact_1_settings_dynamic_custom_cg1: 0
       civicrm_1_contact_1_cg1_custom_5: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_2: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_3: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_4: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_7: create_civicrm_webform_element
-      civicrm_1_contact_1_cg1_custom_22: create_civicrm_webform_element
-      civicrm_1_contact_1_cg1_custom_23: create_civicrm_webform_element
+      civicrm_1_contact_1_cg1_custom_22: 0
+      civicrm_1_contact_1_cg1_custom_23: 0
       contact_1_number_of_other: '0'
       contact_1_number_of_address: '1'
       civicrm_1_contact_1_address_street_address: create_civicrm_webform_element
@@ -1432,7 +1413,7 @@ handlers:
       toggle_message: 0
       message: ''
       activity_number_of_activity: '0'
-      participant_reg_type: separate
+      participant_reg_type: '0'
       reg_options:
         event_type:
           any: any
@@ -1448,15 +1429,6 @@ handlers:
         disable_unregister: 0
         allow_url_load: 0
         disable_primary_participant: 0
-      participant_1_number_of_participant: '1'
-      civicrm_1_participant_1_participant_event_id:
-        create_civicrm_webform_element: create_civicrm_webform_element
-      civicrm_1_participant_1_participant_role_id:
-        1: '1'
-      civicrm_1_participant_1_participant_status_id: '0'
-      civicrm_1_participant_1_participant_note: 0
-      civicrm_1_participant_1_participant_fee_amount: create_civicrm_webform_element
-      civicrm_1_participant_1_cg3_custom_6: 0
       membership_1_number_of_membership: '0'
       civicrm_1_contribution_1_contribution_enable_contribution: '1'
       civicrm_1_contribution_1_contribution_contact_id: '1'
@@ -1510,7 +1482,7 @@ handlers:
                 webform_label: 'Contact 1'
             matching_rule: Unsupervised
             number_of_cg1: '1'
-            dynamic_custom_cg1: 1
+            dynamic_custom_cg1: 0
             number_of_other: '0'
             number_of_address: '1'
             number_of_phone: '2'
@@ -1536,13 +1508,6 @@ handlers:
                 is_primary: '1'
         activity:
           number_of_activity: '0'
-        participant:
-          1:
-            number_of_participant: '1'
-            participant:
-              1:
-                role_id:
-                  1: '1'
         membership:
           1:
             number_of_membership: '0'
@@ -1569,7 +1534,7 @@ handlers:
           number_number_of_receipt_bcc_receipt: ''
           number_number_of_receipt_pay_later_receipt: 'Mail your check to [] within [].'
           number_number_of_receipt_receipt_text: ''
-        participant_reg_type: separate
+        participant_reg_type: '0'
         reg_options:
           event_type:
             any: any

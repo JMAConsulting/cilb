@@ -55,20 +55,31 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
       $this->validateUniqueUser($form_state);
-    } elseif($current_page == 'exam_fee_page') {
+    }
+    elseif ($current_page == 'exam_fee_page') {
       $this->validateExamFee($form_state);
-    } elseif($current_page == 'user_identification') {
+    }
+    elseif ($current_page == 'user_identification') {
       $this->validateCandidateRep($form_state);
-    } elseif($current_page == 'select_exam_page'){
+    }
+    elseif ($current_page == 'select_exam_page') {
       //TODO how to register for multiple events at once?
       $this->validateParticipantStatus($form_state);
     }
   }
 
   /**
-  * Submission hook to handle creation of new Drupal user.
+  * Submission hook to:
+  * - handle creation of new Drupal user
+  * - register contact for selected events
   */
   public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
+    $this->civicrm->initialize();
+    $this->registerDrupalUser($webform_submission, $update);
+    $this->registerEventParticipants($webform_submission, $update);
+  }
+
+  protected function registerDrupalUser(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     $webform_submission_data = $webform_submission->getData();
 
     $email = $webform_submission_data['civicrm_1_contact_1_email_email'];
@@ -126,7 +137,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       TRUE
     );
 
-    $this->civicrm->initialize();
 
     if(isset($webform_submission_data['civicrm_1_contact_1_contact_existing'])) {
       $results = \Civi\Api4\UFMatch::create(FALSE)
@@ -135,6 +145,30 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->addValue('contact_id', $webform_submission_data['civicrm_1_contact_1_contact_existing'])
         ->addValue('uf_name', $email)
         ->execute();
+    }
+  }
+
+  protected function registerEventPartipants(WebformSubmissionInterface $webform_submission, $update = TRUE) {
+    $webform_submission_data = $webform_submission->getData();
+    $contactId = $webform_submission_data['civicrm_1_contact_1_contact_existing'] ?? NULL;
+
+    if (!$contactID) {
+      return;
+    }
+
+    $eventIds = $webform_submission_data['select_exam_parts'];
+
+    foreach ($eventIDs as $eventId) {
+      try {
+        \Civi\Api4\Participant::create(FALSE)
+          ->addValue('contact_id', $contactID)
+          ->addValue('event_id', $eventId)
+          ->execute();
+      }
+      catch (\Exception $e) {
+        \Drupal::logger('candidate_reg')->debug('Unable to register contact ID ' . $contactID . ' for event ID ' . $eventId . ' because ' . $e->getMessage());
+        \Drupal::messenger()->addError(t('Sorry, we were unable to register you for event ID ' . $eventId));
+      }
     }
   }
 
