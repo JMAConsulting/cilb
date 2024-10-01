@@ -16,7 +16,7 @@ function _civicrm_api3_job_delete_inactive_users_spec(&$spec) {}
 /**
  * Job.DeleteInactiveUsers API
  * Implements a scheduled job to delete unconfirmed and inactive user accounts.
- * 
+ *
  * @param array $params
  *
  * @return array
@@ -36,12 +36,13 @@ function civicrm_api3_job_delete_inactive_users($params) {
 
     // Query to find candidates with unconfirmed emails older than 7 days
     $query = \Drupal::database()->select('user_email_verification', 'u');
-    $query->fields('u', ['uid']); 
+    $query->fields('u', ['uid']);
     $query->innerJoin('users_field_data', 'ud', 'u.uid = ud.uid');
     $query->innerJoin('user__roles', 'ur', 'u.uid = ur.entity_id');
 
     $query->condition('ud.created', $sevenDaysAgo, '<') // move before fields
           ->condition('u.verified', 0)
+          ->condition('ud.status', 1) // fetch for active users
           ->condition('ur.roles_target_id', 'candidate', '=');
 
     // Execute the query and fetch the results
@@ -71,7 +72,7 @@ function civicrm_api3_job_delete_inactive_users($params) {
 
     $unregisteredAccounts = [];
     $unregisteredCiviIDs = [];
-  
+
     foreach ($unregisteredContacts as $contact) {
       $unregisteredAccounts[] = $contact['uf_match.uf_id'];
       $unregisteredCiviIDs[] = $contact['id'];
@@ -101,4 +102,4 @@ function civicrm_api3_job_delete_inactive_users($params) {
   catch (Exception $e) {
     throw new API_Exception('Failed to delete inactive user accounts', ['exception' => $e->getMessage()]);
   }
-}  
+}
