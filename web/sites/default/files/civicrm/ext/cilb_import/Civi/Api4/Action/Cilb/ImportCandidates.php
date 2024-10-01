@@ -14,9 +14,9 @@ class ImportCandidates extends ImportBase {
 
   protected function import() {
     echo 'Importing contacts...';
-    $this->importContacts();
+    //$this->importContacts();
     echo 'Importing language preferences...';
-    $this->importLanguagePreferences();
+    //$this->importLanguagePreferences();
     echo 'Importing emails...';
     $this->importEmails();
     echo 'Importing addresses...';
@@ -79,6 +79,9 @@ class ImportCandidates extends ImportBase {
 
   public function importEmails() {
     foreach ($this->selectCandidates(['Email'], ['Email IS NOT NULL']) as $email) {
+      if (!$email['Email']) {
+        continue;
+      }
       \Civi\Api4\Email::create(FALSE)
         ->addValue('email', $email['Email'])
         ->addValue('contact_id.external_identifier', $email['FK_Account_ID'])
