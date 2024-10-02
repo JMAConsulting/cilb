@@ -75,11 +75,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   */
   public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     $this->civicrm->initialize();
-    $this->registerDrupalUser($webform_submission, $update);
-    $this->registerEventParticipants($webform_submission, $update);
+    $userCreate = $this->registerDrupalUser($webform_submission, $update);
+    if ($userCreate) {
+      $this->registerEventParticipants($webform_submission, $update);
+    }
   }
 
-  protected function registerDrupalUser(WebformSubmissionInterface $webform_submission, $update = TRUE) {
+  protected function registerDrupalUser(WebformSubmissionInterface $webform_submission, $update = TRUE): bool {
     $webform_submission_data = $webform_submission->getData();
 
     $email = $webform_submission_data['civicrm_1_contact_1_email_email'];
@@ -94,7 +96,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         // User with this email already exists, log a message and stop further processing
         \Drupal::logger('candidate_reg')->info('User with email ' . $email . ' already exists with UID: ' . $existing_user->id());
         \Drupal::messenger()->addError(t('A user with this email address already exists.'));
-        return;
+        return FALSE;
     }
 
     // Check if a user with the same username already exists but has a different email
@@ -146,23 +148,26 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->addValue('uf_name', $email)
         ->execute();
     }
+
+    return TRUE;
   }
 
-  protected function registerEventPartipants(WebformSubmissionInterface $webform_submission, $update = TRUE) {
+  protected function registerEventParticipants(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     $webform_submission_data = $webform_submission->getData();
     $contactId = $webform_submission_data['civicrm_1_contact_1_contact_existing'] ?? NULL;
 
-    if (!$contactID) {
-      return;
+    if (!$contactId) {
+      return FALSE;
     }
 
     $eventIds = $webform_submission_data['event_ids'];
 
-    foreach ($eventIDs as $eventId) {
+    foreach ($eventIds as $eventId) {
       try {
         \Civi\Api4\Participant::create(FALSE)
-          ->addValue('contact_id', $contactID)
+          ->addValue('contact_id', $contactId)
           ->addValue('event_id', $eventId)
+          ->addValue('register_date', 'now')
           ->execute();
       }
       catch (\Exception $e) {
