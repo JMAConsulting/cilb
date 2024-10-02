@@ -107,18 +107,18 @@ jQuery(document).ready(function ($) {
 
         examFeeHtml.push(`
           <tr>
-            <th>Item</th>
-            <th>Amount</th>
-            <th>Payable now?</th>
+            <th style="text-align: left;" class="event-fee-title" style>Item</th>
+            <th style="text-align: right;" class="event-fee-amount">Amount</th>
+            <th style="text-align: center;" class="event-fee-payable">Payable now?</th>
           </tr>
         `);
 
         lineItems.forEach((line) => {
           examFeeHtml.push(`
             <tr class="event-fee">
-              <td class="event-fee-title">${line.description}</td>
-              <td class="event-fee-amount">${line.amount}</td>
-              <td class="event-fee-payable">${line.payableNow ? '✔' : ''}</td>
+              <td style="text-align: left;" class="event-fee-title">${line.description}</td>
+              <td style="text-align: right;" class="event-fee-amount">${line.amount}</td>
+              <td style="text-align: center;" class="event-fee-payable">${line.payableNow ? '✔' : ''}</td>
             </tr>
           `);
 
@@ -128,16 +128,16 @@ jQuery(document).ready(function ($) {
 
         examFeeHtml.push(`
           <tr class="total-fee">
-            <td class="event-fee-title"><b>Total fee</b></td>
-            <td class="event-fee-amount">${totalAmount}</td>
+            <td style="text-align: left;" class="event-fee-title"><b>Total fees</b></td>
+            <td style="text-align: right;" class="event-fee-amount">${totalAmount}</td>
           </tr>
         `);
 
         if (totalAmount !== amountPayable) {
           examFeeHtml.push(`
             <tr class="total-payable-now">
-              <td class="event-fee-title"><em>Payable now</em></td>
-              <td class="event-fee-amount">${amountPayable}</td>
+              <td style="text-align: left;" class="event-fee-title"><b><em>Total payable now</em></b></td>
+              <td  style="text-align: right;" class="event-fee-amount">${amountPayable}</td>
             </tr>
           `);
         }
