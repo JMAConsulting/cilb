@@ -54,102 +54,96 @@ jQuery(document).ready(function ($) {
       where: [["id", "IN", selectedEventIds]],
       language: lang,
       checkPermissions: false,
-    }).then((events) => events.forEach((event) => {
-      const eventTitle = event.title;
-
-      // for each event we just fetch the first price set
-      // and the first price set value
-      CRM.api4("PriceSetEntity", "get", {
-        select: ["price_set_id"],
-        where: [
-          ["entity_table", "=", "civicrm_event"],
-          ["entity_id", "=", event.id],
-        ],
-        language: lang,
-      }).then((priceSets) => {
-        CRM.api4("PriceField", "get", {
+    }).then((events) => Promise.all(events.map((event) =>
+        // for each event we just fetch the first price set
+        // and the first price set value
+        CRM.api4("PriceSetEntity", "get", {
+          select: ["price_set_id"],
+          where: [
+            ["entity_table", "=", "civicrm_event"],
+            ["entity_id", "=", event.id],
+          ],
+          language: lang,
+        }).then((priceSets) => CRM.api4("PriceField", "get", {
           where: [["price_set_id", "=", priceSets[0]["price_set_id"]]],
           language: lang,
-        }).then((priceFields) => {
-          const priceFieldLabel = priceFields[0]["label"];
+        })).then((priceFields) => CRM.api4("PriceFieldValue", "get", {
+          where: [["price_field_id", "=", priceFields[0]["id"]]],
+          language: lang,
+        })).then((priceFieldValues) => {
+          if (priceFieldValues.length > 0) {
+            const priceFieldLabel = priceFields[0]["label"];
+            const priceFieldAmount = priceFieldValues[0]['amount'];
 
-          CRM.api4("PriceFieldValue", "get", {
-            where: [["price_field_id", "=", priceFields[0]["id"]]],
-            language: lang,
-          }).then((priceFieldValues) => {
-            if (priceFieldValues.length > 0) {
-              const priceFieldAmount = priceFieldValues[0]['amount'];
-
-              lineItems.push({
-                description: `${eventTitle} - ${priceFieldLabel}`,
-                amount: priceFieldAmount,
-                // TODO add paper exam amount to charged total
-                payableNow: (event['Exam_Details.Exam_Format'] === 'Paper'),
-              });
-            } else {
-              console.log('No price field found for event ID ' . event.id);
-            }
-          });
+            lineItems.push({
+              description: `${event.title} - ${priceFieldLabel}`,
+              amount: priceFieldAmount,
+              // TODO add paper exam amount to charged total
+              payableNow: (event['Exam_Details.Exam_Format'] === 'Paper'),
+            });
+          } else {
+            console.log('No price field found for event ID ' . event.id);
+          }
+          return TRUE;
+        })
+      )))
+      .then(() => {
+        // add fixed webform fee
+        lineItems.push({
+          amount: 135,
+          description: 'Registration fee',
+          payableNow: true
         });
+
+        let totalAmount = 0;
+        let amountPayable = 0;
+
+        let examFeeHtml = [];
+
+        examFeeHtml.push(`<table class="registration-fee-items" width="100%">`);
+
+        examFeeHtml.push(`
+          <tr>
+            <th>Item</th>
+            <th>Amount</th>
+            <th>Payable now?</th>
+          </tr>
+        `);
+
+        lineItems.forEach((line) => {
+          examFeeHtml.push(`
+            <tr class="event-fee">
+              <td class="event-fee-title">${line.description}</td>
+              <td class="event-fee-amount">${line.amount}</td>
+              <td class="event-fee-payable">${line.payableNow ? '✔' : ''}</td>
+            </tr>
+          `);
+
+          totalAmount += line.amount;
+          amountPayable += line.payableNow ? line.amount : 0;
+        });
+
+        examFeeHtml.push(`
+          <tr class="total-fee">
+            <td class="event-fee-title"><b>Total fee</b></td>
+            <td class="event-fee-amount">${totalAmount}</td>
+          </tr>
+        `);
+
+        if (totalAmount !== amountPayable) {
+          examFeeHtml.push(`
+            <tr class="total-payable-now">
+              <td class="event-fee-title"><em>Payable now</em></td>
+              <td class="event-fee-amount">${amountPayable}</td>
+            </tr>
+          `);
+        }
+
+        examFeeHtml.push(`</table>`);
+
+        $examFeeMarkup.append(examFeeHtml.join(''));
+
+        $contributionAmountField.val(amountPayable);
       });
-    }));
-
-    // add fixed webform fee
-
-    lineItems.push({
-      amount: 135,
-      description: 'Registration fee',
-      payableNow: true
-    });
-
-    let totalAmount = 0;
-    let amountPayable = 0;
-
-    let examFeeHtml = [];
-
-    examFeeHtml.push(`<table class="registration-fee-items" width="100%">`);
-
-    examFeeHtml.push(`
-      <tr>
-        <th>Item</th>
-        <th>Amount</th>
-        <th>Payable now?</th>
-      </tr>
-    `);
-
-    lineItems.forEach((line) => {
-      examFeeHtml.push(`
-        <tr class="event-fee">
-          <td class="event-fee-title">${line.description}</td>
-          <td class="event-fee-amount">${line.amount}</td>
-          <td class="event-fee-payable">${line.payableNow ? '✔' : ''}</td>
-        </tr>
-      `);
-
-      totalAmount += line.amount;
-      amountPayable += line.payableNow ? line.amount : 0;
-    });
-
-    examFeeHtml.push(`
-      <tr class="total-fee">
-        <td class="event-fee-title"><b>Total fee</b></td>
-        <td class="event-fee-amount">${totalAmount}</td>
-      </tr>
-    `);
-
-    if (totalAmount !== amountPayable) {
-      examFeeHtml.push(`
-        <tr class="total-payable-now">
-          <td class="event-fee-title"><em>Payable now</em></td>
-          <td class="event-fee-amount">${amountPayable}</td>
-        </tr>
-      `);
-    }
-
-    examFeeHtml.push(`</table>`);
-
-    $examFeeMarkup.append(examFeeHtml.join(''));
-
-    $contributionAmountField.val(amountPayable);
   }
 });
