@@ -49,7 +49,6 @@ jQuery(document).ready(function ($) {
 
     const lineItems = [];
 
-
     CRM.api4("Event", "get", {
       select: ["title", "Exam_Details.Exam_Format"],
       where: [["id", "IN", selectedEventIds]],
@@ -79,7 +78,7 @@ jQuery(document).ready(function ($) {
             language: lang,
           }).then((priceFieldValues) => {
             if (priceFieldValues.length > 0) {
-              const priceFieldAmount = priceFieldValues[0]
+              const priceFieldAmount = priceFieldValues[0]['amount'];
 
               lineItems.push({
                 description: `${eventTitle} - ${priceFieldLabel}`,
