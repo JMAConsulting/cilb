@@ -81,7 +81,7 @@ jQuery(document).ready(function ($) {
                 description: `${event.title} - ${priceFieldLabel}`,
                 amount: priceFieldAmount,
                 // TODO add paper exam amount to charged total
-                payableNow: (event['Exam_Details.Exam_Format'] === 'Paper'),
+                payableNow: (event['Exam_Details.Exam_Format'] === 'paper'),
               });
             } else {
               console.log('No price field found for event ID ' . event.id);
