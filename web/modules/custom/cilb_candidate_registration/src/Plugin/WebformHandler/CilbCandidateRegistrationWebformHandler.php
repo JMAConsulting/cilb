@@ -156,7 +156,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return;
     }
 
-    $eventIds = $webform_submission_data['select_exam_parts'];
+    $eventIds = $webform_submission_data['event_ids'];
 
     foreach ($eventIDs as $eventId) {
       try {
