@@ -238,7 +238,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   * Validate exam fee selection
   */
   private function validateExamFee(FormStateInterface $formState) {
-    $examFee = $formState->getValue('civicrm_1_participant_1_participant_fee_amount');
+    $examFee = $formState->getValue('civicrm_1_contribution_1_contribution_total_amount');
 
     if ($examFee == 0) {
         $formState->setErrorByName('exam_fee_markup', $this->t('Exam fee is missing'));
