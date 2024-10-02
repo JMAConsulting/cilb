@@ -67,24 +67,27 @@ jQuery(document).ready(function ($) {
         }).then((priceSets) => CRM.api4("PriceField", "get", {
           where: [["price_set_id", "=", priceSets[0]["price_set_id"]]],
           language: lang,
-        })).then((priceFields) => CRM.api4("PriceFieldValue", "get", {
-          where: [["price_field_id", "=", priceFields[0]["id"]]],
-          language: lang,
-        })).then((priceFieldValues) => {
-          if (priceFieldValues.length > 0) {
-            const priceFieldLabel = priceFields[0]["label"];
-            const priceFieldAmount = priceFieldValues[0]['amount'];
+        })).then((priceFields) => {
+          const priceFieldLabel = priceFields[0]['label'];
 
-            lineItems.push({
-              description: `${event.title} - ${priceFieldLabel}`,
-              amount: priceFieldAmount,
-              // TODO add paper exam amount to charged total
-              payableNow: (event['Exam_Details.Exam_Format'] === 'Paper'),
-            });
-          } else {
-            console.log('No price field found for event ID ' . event.id);
-          }
-          return TRUE;
+          return CRM.api4("PriceFieldValue", "get", {
+            where: [["price_field_id", "=", priceFields[0]["id"]]],
+            language: lang,
+          }).then((priceFieldValues) => {
+            if (priceFieldValues.length > 0) {
+              const priceFieldAmount = priceFieldValues[0]['amount'];
+
+              lineItems.push({
+                description: `${event.title} - ${priceFieldLabel}`,
+                amount: priceFieldAmount,
+                // TODO add paper exam amount to charged total
+                payableNow: (event['Exam_Details.Exam_Format'] === 'Paper'),
+              });
+            } else {
+              console.log('No price field found for event ID ' . event.id);
+            }
+            return Promise.resolve();
+          });
         })
       )))
       .then(() => {
