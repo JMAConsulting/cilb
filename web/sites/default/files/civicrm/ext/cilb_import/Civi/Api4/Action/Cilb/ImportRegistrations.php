@@ -6,11 +6,19 @@ namespace Civi\Api4\Action\Cilb;
  * run with cv api4 on the command line
  *
  * e.g.
- * cv api4 Cilb.import sourceDsn=[] \
+ * cv api4 Cilb.importRegistrations sourceDsn=[] \
  *  cutOffDate=2019-09-01 \
- *  recordLimit=100
+ *  transactionYear=2020
  */
 class ImportRegistrations extends ImportBase {
+
+  /**
+   * @var string
+   * @required
+   *
+   * 4 digit year to enable importing in segments
+   */
+  protected string $transactionYear;
 
   protected function import() {
     $this->importParts();
@@ -19,15 +27,16 @@ class ImportRegistrations extends ImportBase {
 
   protected function importParts() {
     foreach ($this->getRows("
-        SELECT PK_Exam_Registration_ID, FK_Account_ID, FK_Category_ID, Category_Name, Transaction_Date, Exam_Part_Name_Abbr, Pass
+        SELECT PK_Exam_Registration_ID, FK_Account_ID, pti_exam_registrations.FK_Category_ID, Category_Name, Transaction_Date, Exam_Part_Name_Abbr, Pass
         FROM pti_exam_registrations
         JOIN pti_code_categories
         ON `FK_Category_ID` = `PK_Category_ID`
         JOIN pti_exam_registration_parts
         ON `FK_Exam_Registration_ID` = `PK_Exam_Registration_ID`
-        JOIN pti_category_exam_parts
+        JOIN pti_code_exam_parts
         ON `FK_Exam_Part_ID` = `PK_Exam_Part_ID`
         WHERE Transaction_Date > '{$this->cutOffDate}'
+        AND YEAR(Transaction_Date) = '{$this->transactionYear}'
     ") as $registration) {
 
       $contactId = \Civi\Api4\Contact::get(FALSE)
@@ -40,7 +49,7 @@ class ImportRegistrations extends ImportBase {
       }
 
       $event = \Civi\Api4\Event::get(FALSE)
-        ->addSelect('id', 'Exam_Details.Exam_Part')
+        ->addSelect('id')
         ->addWhere('event_type_id:name', '=', $registration['Category_Name'])
         ->addWhere('Exam_Details.Exam_Part', '=', $registration['Exam_Part_Name_Abbr'])
         ->execute()
@@ -48,14 +57,23 @@ class ImportRegistrations extends ImportBase {
 
       if (!$event) {
         $debug = json_encode($registration);
-        Civi::log()->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
+        \Civi::log()->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
       }
+
+      /**
+       * Note source data has 0, 1, and NULL
+       */
+      $status = match ($registration['Pass']) {
+        '1' => 'Pass',
+        '0' => 'Fail',
+        default => 'Registered',
+      };
 
       \Civi\Api4\Participant::create(FALSE)
         ->addValue('event_id', $event['id'])
         ->addValue('contact_id', $contactId)
         ->addValue('register_date', $registration['Transaction_Date'])
-        ->addValue('status_id:label', $registration['Pass'] ? 'Pass' : 'Fail')
+        ->addValue('status_id:label', $status)
         ->execute();
     }
   }
@@ -67,6 +85,7 @@ class ImportRegistrations extends ImportBase {
         JOIN pti_code_categories
         ON `FK_Category_ID` = `PK_Category_ID`
         WHERE Transaction_Date > '{$this->cutOffDate}'
+        AND YEAR(Transaction_Date) = '{$this->transactionYear}'
         AND Confirm_BF_Exam IS NOT NULL
     ") as $registration) {
 
@@ -91,13 +110,22 @@ class ImportRegistrations extends ImportBase {
         Civi::log()->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
       }
 
-        \Civi\Api4\Participant::create(FALSE)
-          ->addValue('event_id', $event['id'])
-          ->addValue('contact_id', $contactId)
-          ->addValue('register_date', $registration['Transaction_Date'])
-          ->addValue('status_id:label', $registration['BF_Pass'] ? 'Pass' : 'Fail')
-          ->execute();
-      }
+      /**
+       * Note source data has 0, 1, and NULL
+       */
+      $status = match ($registration['BF_Pass']) {
+        '1' => 'Pass',
+        '0' => 'Fail',
+        default => 'Registered',
+      };
+
+      \Civi\Api4\Participant::create(FALSE)
+        ->addValue('event_id', $event['id'])
+        ->addValue('contact_id', $contactId)
+        ->addValue('register_date', $registration['Transaction_Date'])
+        ->addValue('status_id:label', $status)
+        ->execute();
     }
   }
+
 }
