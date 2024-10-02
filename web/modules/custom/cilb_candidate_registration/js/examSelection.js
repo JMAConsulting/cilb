@@ -54,59 +54,30 @@ jQuery(document).ready(function ($) {
         ["option_value.id", "=", selectedCat],
       ],
     }).then((events) => {
-      checkPreviousExams(events).then(function(eventParts) {
-        $examPartSelector.find("option").each(function () {
-          const optionValue = $(this).val();
+      const eventParts = {};
+
+      events.forEach((event) => eventParts[event.id] = event['Exam_Details.Exam_Part']);
+
+      $examPartSelector.find("option").each(function () {
+        const optionValue = $(this).val();
 
         if (optionValue === "") {
             return;
         }
 
-          // Check if the optionValue is in the keys of eventParts
-          if (parseInt(optionValue) in eventParts) {
-            // Show valid options
-            // TODO strip the category part from event name display
-            // $(this).text()
-            $(this).show();
-          } else {
-            // Hide invalid
-            $(this).hide();
-          }
-        });
+        // Check if the optionValue is in the keys of eventParts
+        if (parseInt(optionValue) in eventParts) {
+          // Show valid options
+          // TODO strip the category part from event name display
+          // $(this).text()
+          $(this).show();
+        } else {
+          // Hide invalid
+          $(this).hide();
+        }
       });
     }, (failure) => {
         console.log(failure);
     });
   }
-
-  function checkPreviousExams(events) {
-    let eventParts = {};
-    return eventPromise = new Promise(function(resolve, reject) {
-      events.forEach(function (event, index, array) {
-        CRM.api4("Participant", "get", {
-          join: [
-            [
-              "Event AS event",
-              "INNER",
-              ["event.id", "=", "event_id"],
-            ],
-          ],
-          where: [
-            ["event.Exam_Details.Exam_Part", "=", event['Exam_Details.Exam_Part']],
-            ["status_id:label", "=", "Pass"],
-            ["contact_id", "=", "user_contact_id"],
-          ],
-        }).then(function(exams) {
-          if (!exams.length) {
-            eventParts[event.id] = event['Exam_Details.Exam_Part'];
-            if (index === array.length -1) {
-              resolve(eventParts);
-            }
-          }
-        }, function(failure) {
-          console.log(failure);
-        });
-      });
-    });
-  };
 });

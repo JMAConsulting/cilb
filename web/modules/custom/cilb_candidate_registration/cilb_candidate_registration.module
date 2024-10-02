@@ -96,16 +96,30 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 
     // Check to make sure exams are not full
     $events = \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id')
+      ->addSelect('id')->addSelect('Exam_Details.Exam_Part')
       ->addWhere('is_active', '=', TRUE)
       //->addWhere('start_date', '>', 'now')
       ->addWhere('is_online_registration', '=', TRUE)
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
       ->execute();
 
+    $passedExamParts = [];
+    if (!empty(\CRM_Core_Session::getLoggedInContactID())) {
+      $passedEvents = \Civi\Api4\Participant::get(FALSE)
+        ->addSelect('exam.Exam_Details.Exam_Part')
+        ->addJoin('Event AS event', 'INNER', ['event.id', '=', 'event_id'])
+        ->addWhere('contact_id', '=', \CRM_Core_Session::getLoggedInContactID())
+        ->addWhere('status_id:name', '=', 'Pass')
+        ->execute();
+      foreach ($passedEvents as $passedEvent) {
+        $passedExamParts[] = $passedEvent['exam.Exam_Details.Exam_Part'];
+      }
+    }
     $valid_events = [];
     foreach ($events as $event) {
-      $valid_events[] = $event['id'];
+      if (!in_array($event['Exam_Details.Exam_Part'] ?? '', $passedExamParts)) {
+        $valid_events[] = $event['id'];
+      }
     }
 
     if (!empty($valid_events)) {
