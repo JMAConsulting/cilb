@@ -42,6 +42,7 @@ class ImportCandidateEntities extends ImportBase {
 
       \Civi\Api4\CustomValue::create('cilb_candidate_entity', FALSE)
         ->addValue('entity_id', $contact['id'])
+        ->addValue('Entity_ID_imported_', $candidateEntity['Entity_ID'])
         ->addValue('exam_category:name', $candidateEntity['Category_Name'] ?? NULL)
         ->addValue('class_code', $candidateEntity['Class_Code'] ?? NULL)
         ->execute();
