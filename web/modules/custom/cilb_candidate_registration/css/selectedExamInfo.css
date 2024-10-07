@@ -1,0 +1,17 @@
+
+.candidate-fee-table .candidate-fee-title {
+    text-align: left;
+}
+.candidate-fee-table .candidate-fee-amount {
+    text-align: right;
+}
+.candidate-fee-table .candidate-fee-payable {
+    text-align: center;
+}
+.candidate-fee-table .total-fee .candidate-fee-title {
+    font-weight: bold;
+}
+.candidate-fee-table .total-payable-now .candidate-fee-title {
+    font-weight: bold;
+    font-style: italic;
+}

@@ -18,6 +18,9 @@ selected_exam_info:
   version: 1
   js:
     js/selectedExamInfo.js: {}
+  css:
+    layout:
+      css/selectedExamInfo.css: {}
   dependencies:
     - core/jquery
     - core/drupalSettings

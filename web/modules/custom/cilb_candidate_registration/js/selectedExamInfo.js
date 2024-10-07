@@ -103,22 +103,22 @@ jQuery(document).ready(function ($) {
 
         let examFeeHtml = [];
 
-        examFeeHtml.push(`<table class="registration-fee-items" width="100%">`);
+        examFeeHtml.push(`<table class="candidate-fee-table" width="100%">`);
 
         examFeeHtml.push(`
           <tr>
-            <th style="text-align: left;" class="event-fee-title" style>Item</th>
-            <th style="text-align: right;" class="event-fee-amount">Amount</th>
-            <th style="text-align: center;" class="event-fee-payable">Payable now?</th>
+            <th class="candidate-fee-title">Item</th>
+            <th class="candidate-fee-amount">Amount</th>
+            <th class="candidate-fee-payable">Payable now?</th>
           </tr>
         `);
 
         lineItems.forEach((line) => {
           examFeeHtml.push(`
-            <tr class="event-fee">
-              <td style="text-align: left;" class="event-fee-title">${line.description}</td>
-              <td style="text-align: right;" class="event-fee-amount">${line.amount}</td>
-              <td style="text-align: center;" class="event-fee-payable">${line.payableNow ? '✔' : ''}</td>
+            <tr class="exam-fee">
+              <td class="candidate-fee-title">${line.description}</td>
+              <td class="candidate-fee-amount">${line.amount}</td>
+              <td class="candidate-fee-payable">${line.payableNow ? '✔' : ''}</td>
             </tr>
           `);
 
@@ -128,23 +128,23 @@ jQuery(document).ready(function ($) {
 
         examFeeHtml.push(`
           <tr class="total-fee">
-            <td style="text-align: left;" class="event-fee-title"><b>Total fees</b></td>
-            <td style="text-align: right;" class="event-fee-amount">${totalAmount}</td>
+            <td class="candidate-fee-title">Total fees</td>
+            <td class="candidate-fee-amount">${totalAmount}</td>
           </tr>
         `);
 
         if (totalAmount !== amountPayable) {
           examFeeHtml.push(`
             <tr class="total-payable-now">
-              <td style="text-align: left;" class="event-fee-title"><b><em>Total payable now</em></b></td>
-              <td  style="text-align: right;" class="event-fee-amount">${amountPayable}</td>
+              <td class="candidate-fee-title">Total payable now</td>
+              <td class="candidate-fee-amount">${amountPayable}</td>
             </tr>
           `);
         }
 
         examFeeHtml.push(`</table>`);
 
-        $examFeeMarkup.append(examFeeHtml.join(''));
+        $examFeeMarkup.html(examFeeHtml.join(''));
 
         $contributionAmountField.val(amountPayable);
       });
