@@ -38,6 +38,8 @@ elements: |-
     '#results_display':
       display_name: display_name
     '#states_clear': false
+    '#format_attributes':
+      style: 'display: none;'
     '#default': user
     '#allow_create': 1
     '#contact_type': individual
@@ -410,18 +412,6 @@ elements: |-
         '#parent': civicrm_1_contact_1_cg1_fieldset
         '#default_option': ''
         '#default_value': ''
-  exam_category_id:
-    '#type': webform_entity_select
-    '#title': 'Exam Category ID'
-    '#empty_option': '- Select Category -'
-    '#states_clear': false
-    '#target_type': civicrm_option_value
-    '#selection_handler': views
-    '#selection_settings':
-      view:
-        view_name: exam_type
-        display_name: entity_reference_1
-        arguments: {  }
   select_category_page:
     '#type': webform_wizard_page
     '#title': 'Select Contractor Category'
@@ -440,6 +430,20 @@ elements: |-
             view_name: exam_type
             display_name: entity_reference_1
             arguments: {  }
+  exam_category_id:
+    '#type': webform_entity_select
+    '#title': 'Exam Category ID'
+    '#empty_option': '- Select Category -'
+    '#states_clear': false
+    '#wrapper_attributes':
+      style: 'display: none;'
+    '#target_type': civicrm_option_value
+    '#selection_handler': views
+    '#selection_settings':
+      view:
+        view_name: exam_type
+        display_name: entity_reference_1
+        arguments: {  }
   select_exam_page:
     '#type': webform_wizard_page
     '#title': 'Select Examination'
@@ -467,6 +471,8 @@ elements: |-
     '#title': 'Event IDs'
     '#multiple': true
     '#states_clear': false
+    '#wrapper_attributes':
+      style: 'display: none;'
     '#target_type': civicrm_event
     '#selection_handler': views
     '#selection_settings':
@@ -485,22 +491,6 @@ elements: |-
       scope_markup:
         '#type': webform_markup
         '#markup': '<p>*</p>'
-  civicrm_1_contribution_1_contribution_total_amount:
-    '#type': civicrm_number
-    '#title': 'Total Payable Now'
-    '#readonly': true
-    '#required': true
-    '#states_clear': false
-    '#default_value': '0'
-    '#parent': contribution_pagebreak
-    '#data_type': Money
-    '#extra':
-      field_prefix: $
-      point: .
-      separator: ','
-      decimals: 2
-      min: 0
-    '#form_key': civicrm_1_contribution_1_contribution_total_amount
   exam_fee_page:
     '#type': webform_wizard_page
     '#title': 'Exam Fee'
@@ -516,6 +506,24 @@ elements: |-
         '#type': webform_markup
         '#display_on': both
         '#markup': '<p>*</p>'
+  civicrm_1_contribution_1_contribution_total_amount:
+    '#type': civicrm_number
+    '#title': 'Total Payable Now'
+    '#readonly': true
+    '#required': true
+    '#states_clear': false
+    '#default_value': '0'
+    '#wrapper_attributes':
+      style: 'display: none;'
+    '#parent': contribution_pagebreak
+    '#data_type': Money
+    '#extra':
+      field_prefix: $
+      point: .
+      separator: ','
+      decimals: 2
+      min: 0
+    '#form_key': civicrm_1_contribution_1_contribution_total_amount
   authorize_credit_card_charge:
     '#type': webform_wizard_page
     '#title': 'Authorize Credit Card Charge'
