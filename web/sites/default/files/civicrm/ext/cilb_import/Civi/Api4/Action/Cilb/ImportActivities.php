@@ -15,7 +15,15 @@ class ImportActivities extends ImportBase {
   /**
    * import activities from Activity Log table
    *
-   * NOTE: we fetch the activity type codes into memory, there's only 5
+   * NOTES:
+   * - we fetch the activity type codes into memory, there's only 5
+   * - we map FK_Candidate_ID to a target contact on the activity
+   * - we map Created_By to source_contact_id
+   * - in vast majority of cases FK_Account_ID matches created by, so we just ignore
+   * - in the few where it doesn't, we include as an additional target contact
+   * - we create additional blank contacts for Account IDs that haven't already been imported
+   *
+   *
    */
   protected function import() {
     $activityTypes = [];
@@ -37,34 +45,15 @@ class ImportActivities extends ImportBase {
     }
 
     // now fetch and create the activities themselves
-    foreach ($this->getRows("SELECT PK_Activity_Log_ID, FK_Account_ID, Created_Date, Description, FK_Activity_Log_Type_ID, Created_By FROM pti_activity_log WHERE Created_Date > '{$this->cutOffDate}'") as $activity) {
+    foreach ($this->getRows("SELECT PK_Activity_Log_ID, FK_Account_ID, FK_Candidate_ID, Created_By, Created_Date, Description, FK_Activity_Log_Type_ID FROM pti_activity_log WHERE Created_Date > '{$this->cutOffDate}'") as $activity) {
 
-      $targetContact = \Civi\Api4\Contact::get(FALSE)
-        ->addWhere('external_identifier', '=', $activity['FK_Account_ID'])
-        ->addSelect('id')
-        ->execute()
-        ->first();
+      $sourceContactId = self::getOrCreateContact($activity['Created_By']);
 
-      if (!$targetContact) {
-        // given we have only imported contacts updated in the last 5 years,
-        // this query might find some activities created in the last 5 years
-        // which link to even older contacts - so this might be fine
-        // TODO: check OR limit with a JOIN?
-        \Civi::log()->warning("Imported target contact not found for Activity {$activity['PK_Activity_Log_ID']}. Account ID was {$activity['FK_Account_ID']}");
-      }
+      $targetContactIds = [self::getOrCreateContact($activity['FK_Candidate_ID'])];
 
-      $sourceContact = \Civi\Api4\Contact::get(FALSE)
-        ->addWhere('external_identifier', '=', $activity['Created_By'])
-        ->addSelect('id')
-        ->execute()
-        ->first();
-
-      if (!$sourceContact) {
-        // given we have only imported contacts updated in the last 5 years,
-        // this query might find some activities created in the last 5 years
-        // which link to even older contacts - so this might be fine
-        \Civi::log()->warning("Imported source contact not found for Activity {$activity['PK_Activity_Log_ID']}. Account ID was {$activity['Created_By']}");
-        continue;
+      if ($activity['FK_Account_ID'] !== $activity['Created_By']) {
+        // this usually matches the source contact, but if it doesn't add an additional target contact
+        $targetContactIds[] = self::getOrCreateContact($activity['FK_Candidate_ID']);
       }
 
       $activityTypeName = $activityTypes[$activity['FK_Activity_Log_Type_ID']] ?? NULL;
@@ -74,16 +63,33 @@ class ImportActivities extends ImportBase {
         throw new \CRM_Core_Exception("Couldn't find imported activity type for code {$activity['FK_Activity_Log_Type_ID']} when importing activity {$activity['PK_Activity_Log_ID']}. Something's wrong :/");
       }
 
-      \Civi\Api4\Activity::create(FALSE)
-        ->addValue('target_contact_id', $targetContact['id'])
-        ->addValue('source_contact_id', $sourceContact['id'])
+      $activity = \Civi\Api4\Activity::create(FALSE)
+        ->addValue('source_contact_id', $sourceContactId)
+        ->addValue('target_contact_id', $targetContactIds)
         ->addValue('activity_date', $activity['Created_Date'])
         ->addValue('details', $activity['Description'])
         ->addValue('activity_type_id.name', $activityTypeName)
           // put the activity type in the subject as well cause otherwise it's empty
         ->addValue('subject', $activityTypeName)
-        ->execute();
+        ->execute()->first();
     }
+  }
+
+  protected static function getOrCreateContact($externalId) {
+    $contact =
+      \Civi\Api4\Contact::get(FALSE)
+        ->addWhere('external_identifier', '=', $externalId)
+        ->addSelect('id')
+        ->execute()
+        ->first()
+      ?:
+      \Civi\Api4\Contact::create(FALSE)
+        ->addValue('external_identifier', $externalId)
+        ->addValue('display_name', "[imported activity contact {$externalId}]")
+        ->execute()
+        ->first();
+
+    return $contact['id'];
   }
 
 }
