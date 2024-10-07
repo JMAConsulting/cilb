@@ -35,7 +35,8 @@ jQuery(document).ready(function ($) {
       checkPermissions: false,
       limit: 1,
     }).then((categories) => {
-      $scopeMarkup.html(categories[0]["description"]);
+      $scopeMarkup.html(categories[0]["description"] ? categories[0]["description"] : "[Exam category description missing]");
+
       $(".fieldset__legend .fieldset__label").append(
         " - " + categories[0]["label"]
       );
