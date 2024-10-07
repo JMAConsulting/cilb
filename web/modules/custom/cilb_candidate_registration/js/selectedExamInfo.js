@@ -26,6 +26,8 @@ jQuery(document).ready(function ($) {
   if ($scopeMarkup.length) {
     $scopeMarkup.empty();
 
+    $scopeMarkup.html('<div class="loader" />');
+
     CRM.api4("OptionValue", "get", {
       select: ["label", "description"],
       where: [["id", "=", selectedCatId]],
@@ -46,6 +48,8 @@ jQuery(document).ready(function ($) {
   if ($examFeeMarkup.length) {
 
     $examFeeMarkup.empty();
+
+    $examFeeMarkup.html('<div class="loader" />');
 
     const lineItems = [];
 
