@@ -63,14 +63,16 @@ class ImportActivities extends ImportBase {
         throw new \CRM_Core_Exception("Couldn't find imported activity type for code {$activity['FK_Activity_Log_Type_ID']} when importing activity {$activity['PK_Activity_Log_ID']}. Something's wrong :/");
       }
 
+      $subject = explode('.', $activity['Description'])[0] ?: $activityTypeName;
+
       $activity = \Civi\Api4\Activity::create(FALSE)
         ->addValue('source_contact_id', $sourceContactId)
         ->addValue('target_contact_id', $targetContactIds)
-        ->addValue('activity_date', $activity['Created_Date'])
+        ->addValue('activity_date_time', $activity['Created_Date'])
         ->addValue('details', $activity['Description'])
-        ->addValue('activity_type_id.name', $activityTypeName)
+        ->addValue('activity_type_id:name', $activityTypeName)
           // put the activity type in the subject as well cause otherwise it's empty
-        ->addValue('subject', $activityTypeName)
+        ->addValue('subject', $subject)
         ->execute()->first();
     }
   }
