@@ -106,13 +106,13 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
     $passedExamParts = [];
     if (!empty(\CRM_Core_Session::getLoggedInContactID())) {
       $passedEvents = \Civi\Api4\Participant::get(FALSE)
-        ->addSelect('exam.Exam_Details.Exam_Part')
+        ->addSelect('event_id.Exam_Details.Exam_Part')
         ->addJoin('Event AS event', 'INNER', ['event.id', '=', 'event_id'])
         ->addWhere('contact_id', '=', \CRM_Core_Session::getLoggedInContactID())
         ->addWhere('status_id:name', '=', 'Pass')
         ->execute();
       foreach ($passedEvents as $passedEvent) {
-        $passedExamParts[] = $passedEvent['exam.Exam_Details.Exam_Part'];
+        $passedExamParts[] = $passedEvent['event_id.Exam_Details.Exam_Part'];
       }
     }
     $valid_events = [];
