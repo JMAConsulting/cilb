@@ -52,18 +52,4 @@ jQuery(document).ready(function ($) {
     }
   }
 
-  if (
-    $("#edit-civicrm-1-contact-1-contact-birth-date").length &&
-    isExistingContact
-  ) {
-    $("#edit-civicrm-1-contact-1-contact-birth-date").prop("readonly", true);
-
-    // Add the 'webform-readonly' class to the parent div
-    $(".js-form-item-civicrm-1-contact-1-contact-birth-date").addClass(
-      "webform-readonly"
-    );
-    $(".js-form-item-civicrm-1-contact-1-contact-birth-date").addClass(
-      "form-readonly"
-    );
-  }
 });

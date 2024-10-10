@@ -180,6 +180,10 @@ elements: |-
           '#type': date
           '#title': 'Birth Date'
           '#required': true
+          '#states':
+            disabled:
+              ':input[name="civicrm_1_contact_1_contact_birth_date"]':
+                filled: true
           '#date_date_max': '0 days'
           '#extra':
             start_date: '-100 years'
@@ -199,7 +203,7 @@ elements: |-
           '#counter_maximum_message': ' '
           '#states':
             readonly:
-              ':input[name="civicrm_1_contact_1_contact_existing"]':
+              ':input[name="civicrm_1_contact_1_cg1_custom_5"]':
                 filled: true
           '#data_type': String
           '#nid': register_english
@@ -1289,7 +1293,6 @@ settings:
 access:
   create:
     roles:
-      - anonymous
       - authenticated
     users: {  }
     permissions: {  }
