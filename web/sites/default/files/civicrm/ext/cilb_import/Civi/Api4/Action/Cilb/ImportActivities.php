@@ -13,6 +13,14 @@ namespace Civi\Api4\Action\Cilb;
 class ImportActivities extends ImportBase {
 
   /**
+   * @var string
+   * @required
+   *
+   * 4 digit year to enable importing in segments
+   */
+  protected string $transactionYear;
+
+  /**
    * import activities from Activity Log table
    *
    * NOTES:
@@ -45,7 +53,18 @@ class ImportActivities extends ImportBase {
     }
 
     // now fetch and create the activities themselves
-    foreach ($this->getRows("SELECT PK_Activity_Log_ID, FK_Account_ID, FK_Candidate_ID, Created_By, Created_Date, Description, FK_Activity_Log_Type_ID FROM pti_activity_log WHERE Created_Date > '{$this->cutOffDate}'") as $activity) {
+    foreach ($this->getRows("SELECT
+         PK_Activity_Log_ID,
+         FK_Account_ID,
+         FK_Candidate_ID,
+         Created_By,
+         Created_Date,
+         Description,
+         FK_Activity_Log_Type_ID
+      FROM pti_activity_log
+      WHERE Created_Date > '{$this->cutOffDate}'
+      AND YEAR(Created_Date) = '{$this->transactionYear}'
+    ") as $activity) {
 
       $sourceContactId = self::getOrCreateContact($activity['Created_By']);
 
