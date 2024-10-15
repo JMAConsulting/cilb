@@ -462,6 +462,7 @@ elements: |-
         '#type': webform_entity_select
         '#title': 'Select examination part(s):'
         '#multiple': true
+        '#select2': true
         '#required': true
         '#target_type': civicrm_event
         '#selection_handler': views

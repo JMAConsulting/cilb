@@ -57,7 +57,7 @@ jQuery(document).ready(function ($) {
       const eventParts = {};
 
       events.forEach((event) => eventParts[event.id] = event['Exam_Details.Exam_Part']);
-
+      let examOptions = [];
       $examPartSelector.find("option").each(function () {
         const optionValue = $(this).val();
 
@@ -70,12 +70,17 @@ jQuery(document).ready(function ($) {
           // Show valid options
           // TODO strip the category part from event name display
           // $(this).text()
+          examOptions.push({
+            text: $(this).text(),
+            id: optionValue,
+          });
           $(this).show();
         } else {
           // Hide invalid
           $(this).hide();
         }
       });
+      $examPartSelector.empty().select2({data: examOptions, multiple: true, width: '100%'});
     }, (failure) => {
         console.log(failure);
     });
