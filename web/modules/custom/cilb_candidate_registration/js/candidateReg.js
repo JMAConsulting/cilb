@@ -53,8 +53,17 @@ jQuery(document).ready(function ($) {
   }
 
   if (
+    $("#edit-civicrm-1-contact-1-cg1-custom-5").length &&
+    isExistingContact && $("#edit-civicrm-1-contact-1-cg1-custom-5").val()
+  ) {
+      $("#edit-civicrm-1-contact-1-cg1-custom-5").prop("readonly", true);
+      $(".js-form-item-civicrm-1-contact-1-cg1-custom-5").addClass("webform-readonly");
+      $(".js-form-item-civicrm-1-contact-1-cg1-custom-5").addClass("form-readonly");
+    }
+
+  if (
     $("#edit-civicrm-1-contact-1-contact-birth-date").length &&
-    isExistingContact
+    isExistingContact && $("#edit-civicrm-1-contact-1-contact-birth-date").val()
   ) {
     $("#edit-civicrm-1-contact-1-contact-birth-date").prop("readonly", true);
 
