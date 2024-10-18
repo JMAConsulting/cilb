@@ -80,7 +80,13 @@ jQuery(document).ready(function ($) {
           $(this).hide();
         }
       });
-      $examPartSelector.empty().select2({data: examOptions, multiple: true, width: '100%'});
+
+      if (examOptions.length) {
+        $examPartSelector.empty().select2({data: examOptions, multiple: true, width: '100%'});
+      } else {
+	$examPartSelector.parent().empty()
+          .append($('<em>No more exam parts are available for this contractor type</em>'));
+      }
     }, (failure) => {
         console.log(failure);
     });
