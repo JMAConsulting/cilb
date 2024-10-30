@@ -259,9 +259,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->first();
 
       if ($matchingUser) {
-        // user account already exists for this contact
+        // user account already exists for this SSN
+        // => check if it's legit or blocked user
+        $user = User::load($matchingUser['uf_id']);
+
+        if ($user->isBlocked()) {
+          // user account exists but is blocked
+          $error_message = $this->t('A blocked user account already exists with this Social Security Number. Please contact us for assistance.');
+          return;
+        }
+
         // => direct to login
-        $error_message = $this->t('An existing account has already been registered with this Social Security Number. Please <a href="/user/login">login first to register</a>, or contact for assistance.');
+        $error_message = $this->t('A user account already exists with this Social Security Number. <a href="/user/login">Please login first in order to continue registration</a>, or contact for assistance.');
         $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
         return;
       }
