@@ -3046,6 +3046,9 @@
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
                     }
+                },
+                "patches_applied": {
+                    "Issue #3376165: Fatal error when 'rules' module is missing": "https://www.drupal.org/files/issues/2023-07-21/user_email_verification-rules_conditions-3376165-2.patch"
                 }
             },
             "installation-source": "dist",
@@ -3268,6 +3271,9 @@
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
                     }
+                },
+                "patches_applied": {
+                    "Fix option value custom field crash": "https://github.com/colemanw/webform_civicrm/pull/1016.patch"
                 }
             },
             "installation-source": "dist",
