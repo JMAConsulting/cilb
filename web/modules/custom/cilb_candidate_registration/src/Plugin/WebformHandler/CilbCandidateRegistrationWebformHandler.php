@@ -75,10 +75,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   */
   public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     $this->civicrm->initialize();
-    $userCreate = $this->registerDrupalUser($webform_submission, $update);
-    if ($userCreate) {
-      $this->registerEventParticipants($webform_submission, $update);
+
+    if (!\Drupal::currentUser()->isAuthenticated()) {
+      $userCreate = $this->registerDrupalUser($webform_submission, $update);
     }
+    $this->registerEventParticipants($webform_submission, $update);
   }
 
   protected function registerDrupalUser(WebformSubmissionInterface $webform_submission, $update = TRUE): bool {
@@ -91,12 +92,20 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $username = $baseUsername;
 
     // Check if a user with the given email already exists
+    //
+    // NOTE: this is unlikely, as we check anonymous users
+    // are using an unrecognised SSN. But it's possible a
+    // different person is trying to re-use a shared email
+    // ( johnandliz@thesmiths.com ? )
+    //
+    // In this case we throw an error to prevent any further
+    // processing
     $existing_user = user_load_by_mail($email);
     if ($existing_user) {
         // User with this email already exists, log a message and stop further processing
         \Drupal::logger('candidate_reg')->info('User with email ' . $email . ' already exists with UID: ' . $existing_user->id());
-        \Drupal::messenger()->addError(t('A user with this email address already exists.'));
-        return FALSE;
+        \Drupal::messenger()->addError($this->t('A user with this email address already exists.'));
+        throw new Drupal\webform\WebformException($this->t('A user with this email address already exists.'));
     }
 
     // Check if a user with the same username already exists but has a different email
@@ -172,7 +181,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
       catch (\Exception $e) {
         \Drupal::logger('candidate_reg')->debug('Unable to register contact ID ' . $contactID . ' for event ID ' . $eventId . ' because ' . $e->getMessage());
-        \Drupal::messenger()->addError(t('Sorry, we were unable to register you for event ID ' . $eventId));
+        \Drupal::messenger()->addError($this->t('Sorry, we were unable to register you for event ID ' . $eventId));
       }
     }
   }
@@ -218,24 +227,51 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   * Validate no user shares the same DOB and SSN.
   */
   private function validateUniqueUser(FormStateInterface $formState) {
-    $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
-    $dob = $formState->getValue('civicrm_1_contact_1_contact_birth_date');
-
-    // If anonymous user is trying to create an account
+    // If not logged in, check SSN against existing contacts
     if (!\Drupal::currentUser()->isAuthenticated()) {
+      $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
+
       $this->civicrm->initialize();
 
-      $contacts = \Civi\Api4\Contact::get(FALSE)
-        ->addWhere('birth_date', '=', $dob)
+      // note we use ->first - presuming that SSNs
+      // should be unique for untrashed contacts
+      $matchingContact = \Civi\Api4\Contact::get(FALSE)
+        ->addSelect('id')
         ->addWhere('Registrant_Info.SSN', '=', $ssn)
         ->addWhere('is_deleted', '=', FALSE)
-        ->execute();
+        ->execute()
+        ->first();
 
-      if(count($contacts)) {
-        $error_message = $this->t('There is another user in the system with this same Social Security Number and Date of Birth combination.  Please contact XXXXX at XXXXX for assistance.');
-        $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
-        $formState->setErrorByName('civicrm_1_contact_1_contact_birth_date', $error_message);
+      if (!$matchingContact) {
+        // no existing record matching this SSN.
+        // => the user can continue as anonymous
+        // and a new contact/user will be created in
+        // postSave
+        return;
       }
+
+      // if we have matching contacts, we need to check
+      // if they have a user record or not
+
+      $matchingUser = \Civi\Api4\UFMatch::get(FALSE)
+        ->addWhere('contact_id', '=', $matchingContact['id'])
+        ->execute()
+        ->first();
+
+      if ($matchingUser) {
+        // user account already exists for this contact
+        // => direct to login
+        $error_message = $this->t('An existing account has already been registered with this Social Security Number. Please <a href="/user/login">login first to register</a>, or contact for assistance.');
+        $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
+        return;
+      }
+
+      // there is a legacy contact record, without a Drupal account
+      // => direct to "activate" their account (create
+      //    new Drupal user for their contact)
+      $error_message = $this->t('An exam record for this Social Security Number already exists, but you must <a href="/user/re-activate">re-activate your account before continuing</a>.');
+      $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
+      return;
     }
   }
 
