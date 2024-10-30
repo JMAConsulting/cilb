@@ -255,11 +255,13 @@ class Fields implements FieldsInterface {
         'type' => 'select',
         'default_value' => $this->utils->wf_crm_get_civi_setting('lcMessages', 'en_US'),
       ];
-      $default_communication_style = \Civi\Api4\OptionValue::get(FALSE)
-        ->addWhere('option_group_id.name', '=', 'communication_style')
-        ->addWhere('is_default', '=', TRUE)
-        ->addSelect('value')
-        ->execute()->first()['value'] ?? NULL;
+      $default_communication_style = $this->utils->wf_civicrm_api4('OptionValue', 'get', [
+	    'where' => [
+          ['option_group_id.name', '=', 'communication_style'],
+          ['is_default', '=', TRUE],
+	    ],
+	    'select' => ['value'],
+      ])->first()['value'] ?? NULL;
       $fields['contact_communication_style_id'] = [
         'name' => t('Communication Style'),
         'type' => 'select',
