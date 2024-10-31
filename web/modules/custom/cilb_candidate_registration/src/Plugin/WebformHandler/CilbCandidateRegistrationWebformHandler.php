@@ -105,7 +105,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         // User with this email already exists, log a message and stop further processing
         \Drupal::logger('candidate_reg')->info('User with email ' . $email . ' already exists with UID: ' . $existing_user->id());
         \Drupal::messenger()->addError($this->t('A user with this email address already exists.'));
-        throw new Drupal\webform\WebformException($this->t('A user with this email address already exists.'));
+        return;
     }
 
     // Check if a user with the same username already exists but has a different email
