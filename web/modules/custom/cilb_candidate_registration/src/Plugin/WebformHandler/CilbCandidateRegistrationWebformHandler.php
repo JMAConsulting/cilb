@@ -285,7 +285,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       // there is a legacy contact record, without a Drupal account
       // => direct to "activate" their account (create
       //    new Drupal user for their contact)
-      $error_message = $this->t('A candidate record for this Social Security Number already exists. Please <a href="/user/re-activate">re-activate your account</a> before continuing.');
+      $error_message = $this->t('A candidate record for this Social Security Number already exists. Please <a href="/user/activate">re-activate your account</a> before continuing.');
       $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
       return;
     }
