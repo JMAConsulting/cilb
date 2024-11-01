@@ -181,7 +181,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
       catch (\Exception $e) {
         \Drupal::logger('candidate_reg')->debug('Unable to register contact ID ' . $contactID . ' for event ID ' . $eventId . ' because ' . $e->getMessage());
-        \Drupal::messenger()->addError($this->t('Sorry, we were unable to register you for event ID ' . $eventId));
+        \Drupal::messenger()->addError($this->t('Sorry, we were unable to register you for this exam. Please contact the administrator at %adminEmail', [
+          '%adminEmail' => \Drupal::config('system.site')->get('mail'),
+        ]));
       }
     }
   }
@@ -265,12 +267,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
         if ($user->isBlocked()) {
           // user account exists but is blocked
-          $error_message = $this->t('A blocked user account already exists with this Social Security Number. Please contact us for assistance.');
+          $error_message = $this->t('A user account already exists with this Social Security Number. Please contact %adminEmail for assistance.', [
+            '%adminEmail' => \Drupal::config('system.site')->get('mail'),
+          ]);
           return;
         }
 
         // => direct to login
-        $error_message = $this->t('A user account already exists with this Social Security Number. <a href="/user/login">Please login first in order to continue registration</a>, or contact for assistance.');
+        $error_message = $this->t('A user account already exists with this Social Security Number. Please <a href="/user/login">login</a> first in order to continue registration, or contact %adminEmail for assistance.', [
+          '%adminEmail' => \Drupal::config('system.site')->get('mail'),
+        ]);
         $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
         return;
       }
@@ -278,13 +284,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       // there is a legacy contact record, without a Drupal account
       // => direct to "activate" their account (create
       //    new Drupal user for their contact)
-      $error_message = $this->t('An exam record for this Social Security Number already exists, but you must <a href="/user/re-activate">re-activate your account before continuing</a>.');
+      $error_message = $this->t('A candidate record for this Social Security Number already exists. Please <a href="/user/re-activate">re-activate your account</a> before continuing.');
       $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
       return;
     }
   }
 
-  /**
+  /**Please <a href="/user/login">login</a> first in order to continue registration, or
   * Validate exam fee selection
   */
   private function validateExamFee(FormStateInterface $formState) {
