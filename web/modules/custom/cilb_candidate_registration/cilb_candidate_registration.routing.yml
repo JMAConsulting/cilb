@@ -1,0 +1,10 @@
+example.form:
+  path: '/user/activate'
+  defaults:
+    _title: 'Activate user account'
+    _form: '\Drupal\cilb_candidate_registration\Form\UserActivate'
+  requirements:
+    # matches /user/register page
+    # = only available for anonymous users, requires non-admin user registration setting is allowed at site level
+    _access_user_register: 'TRUE'
+
