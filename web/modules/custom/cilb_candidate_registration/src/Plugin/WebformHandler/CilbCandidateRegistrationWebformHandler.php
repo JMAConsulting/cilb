@@ -270,6 +270,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           $error_message = $this->t('A user account already exists with this Social Security Number. Please contact %adminEmail for assistance.', [
             '%adminEmail' => \Drupal::config('system.site')->get('mail'),
           ]);
+          $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
           return;
         }
 
