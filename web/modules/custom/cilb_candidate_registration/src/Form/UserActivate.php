@@ -129,8 +129,9 @@ class UserActivate extends FormBase implements ContainerInjectionInterface {
       $obfuscParts = array_map(fn ($part) => substr($part, 0, 3) . '*******', $emailParts);
       $obfuscEmail = implode('@', $obfuscParts);
 
-      $message = $this->t('Our records have a different email for the SSN you have entered (%email). Please try again or contact us.', [
+      $message = $this->t('Our records indicate a different email for the SSN you have entered (%email). Please try again or contact %adminEmail for assistance.', [
         '%email' => $obfuscEmail,
+        '%adminEmail' => \Drupal::config('system.site')->get('mail'),
       ]);
       $form_state->setErrorByName('email', $message);
       return;
@@ -161,7 +162,9 @@ class UserActivate extends FormBase implements ContainerInjectionInterface {
       $this->logger('candidate_reg')->warning('Existing contact record could not be found in UserActivate::submitForm for email %email - validation has failed somehow?', [
         '%email' => $email
       ]);
-      $this->messenger()->addError($this->t('Matching contact record could not be found.'));
+      $this->messenger()->addError($this->t('Matching contact record could not be found. If you need assistance, please contact %adminEmail.', [
+        '%adminEmail' => \Drupal::config('system.site')->get('mail'),
+      ]));
       return;
     }
 
