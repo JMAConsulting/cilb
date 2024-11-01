@@ -1,0 +1,124 @@
+<?php
+
+/**
+ * @file
+ * Contains mask.module.
+ */
+
+use Drupal\Core\Field\WidgetInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\mask\Helper\ElementHelper;
+use Drupal\mask\Mask;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function mask_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the mask module.
+    case 'help.page.mask':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('This module uses the jQuery Mask Plugin to enable adding masks to input fields. By masking the user input, the provided values are restricted to only the allowed formats. Examples of data that should be masked include phone numbers, ZIP codes and IP addresses.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function mask_element_info_alter(array &$info) {
+  // Adds the mask attribute to supported element types.
+  $helper = new ElementHelper();
+  $element_types = _mask_supported_element_types();
+  foreach ($element_types as $type) {
+    if (isset($info[$type])) {
+      $helper->elementInfoAlter($info[$type]);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_widget_third_party_settings_form().
+ */
+function mask_field_widget_third_party_settings_form(WidgetInterface $plugin, FieldDefinitionInterface $field_definition, $form_mode, $form, FormStateInterface $form_state) {
+  // Gets the third party settings form if a plugin exists for the widget type.
+  $settings_form = [];
+  $plugin_id = $plugin->getPluginId();
+  $plugin_manager = \Drupal::service('plugin.manager.mask_field_widget');
+  if ($plugin_manager->getDefinition($plugin_id, FALSE) !== NULL) {
+    $mask_plugin = $plugin_manager->createInstance($plugin_id);
+    $settings_form = $mask_plugin->fieldWidgetThirdPartySettingsForm($plugin, $field_definition, $form_mode, $form, $form_state);
+  }
+  return $settings_form;
+}
+
+/**
+ * Implements hook_field_widget_settings_summary_alter().
+ */
+function mask_field_widget_settings_summary_alter(&$summary, $context) {
+  // Adds Mask's settings summary if a plugin exists for the widget type.
+  $widget = $context['widget'];
+  $plugin_id = $widget->getPluginId();
+  $plugin_manager = \Drupal::service('plugin.manager.mask_field_widget');
+  if ($plugin_manager->getDefinition($plugin_id, FALSE) !== NULL) {
+    $mask_plugin = $plugin_manager->createInstance($plugin_id);
+    $mask_plugin->fieldWidgetSettingsSummaryAlter($summary, $context);
+  }
+}
+
+/**
+ * Implements hook_field_widget_single_element_form_alter().
+ */
+function mask_field_widget_single_element_form_alter(&$element, FormStateInterface $form_state, $context) {
+  // Alters the element if a plugin exists for the widget type.
+  $widget = $context['widget'];
+  $plugin_id = $widget->getPluginId();
+  $plugin_manager = \Drupal::service('plugin.manager.mask_field_widget');
+  if ($plugin_manager->getDefinition($plugin_id, FALSE) !== NULL) {
+    $mask_plugin = $plugin_manager->createInstance($plugin_id);
+    $mask_plugin->fieldWidgetFormAlter($element, $form_state, $context);
+  }
+}
+
+/**
+ * Implements hook_library_info_alter().
+ */
+function mask_library_info_alter(&$libraries, $extension) {
+  if ($extension == 'mask') {
+    // Adds the JavaScript to the mask_plugin library.
+    $config = \Drupal::config('mask.settings');
+    if ($config->get('use_cdn')) {
+      // Serves from CDN.
+      $libraries['mask_plugin']['js'][Mask::getCdnUrl()] = [
+        'type' => 'external',
+        'minified' => TRUE,
+      ];
+    }
+    else {
+      // Serves the jQuery Mask Plugin from local file.
+      $plugin_path = $config->get('plugin_path');
+
+      // Updates the library information.
+      $libraries['mask_plugin']['js'][$plugin_path] = [
+        'type' => 'file',
+        'minified' => TRUE,
+      ];
+    }
+  }
+}
+
+/**
+ * Returns a list of element types supported by Mask Field out-of-the-box.
+ *
+ * @return array
+ *   An array of supported element types IDs.
+ */
+function _mask_supported_element_types() {
+  return [
+    'textfield',
+    'tel',
+  ];
+}

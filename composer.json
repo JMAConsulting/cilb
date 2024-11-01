@@ -24,6 +24,7 @@
         "drupal/core-project-message": "^10.3",
         "drupal/core-recommended": "^10.3",
         "drupal/entity_print": "^2.14",
+        "drupal/mask": "^2.0@alpha",
         "drupal/redirect_after_login": "^3.0",
         "drupal/user_email_verification": "^1.2",
         "drupal/webform": "^6.2",

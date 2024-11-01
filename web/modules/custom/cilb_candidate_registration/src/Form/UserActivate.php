@@ -60,10 +60,7 @@ class UserActivate extends FormBase implements ContainerInjectionInterface {
       '#type' => 'textfield',
       '#title' => $this->t('Social Security Number'),
       '#mask' => [
-        '#value' => '999-99-9999',
-        'reverse' => FALSE,
-        'selectonfocus' => FALSE,
-        'clearifnotmatch' => FALSE,
+        'value' => '999-99-9999',
       ],
     ];
 

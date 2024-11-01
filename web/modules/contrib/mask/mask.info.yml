@@ -1,0 +1,11 @@
+name: Mask Field
+description: Provides Form API attributes and Field widgets settings to mask text fields.
+package: Field
+type: module
+core_version_requirement: ^9.2 || ^10
+configure: mask.settings
+
+# Information added by Drupal.org packaging script on 2023-08-11
+version: '2.0.0-alpha4'
+project: 'mask'
+datestamp: 1691765265
