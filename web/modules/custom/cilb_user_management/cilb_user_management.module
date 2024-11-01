@@ -1,0 +1,16 @@
+<?php
+
+
+/**
+ * Implements hook_form_alter().
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function cilb_user_management_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  if ($form_id === 'user_pass') {
+    // add SSN field first
+    $form['ssn'] = \Drupal\cilb_user_management\Form\Utils::getSsnField();
+    $form['ssn']['#weight'] = -10;
+  }
+}
