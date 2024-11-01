@@ -59,12 +59,8 @@ class UserActivate extends FormBase implements ContainerInjectionInterface {
     $form['ssn'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Social Security Number'),
-      '#mask' => [
-        '#value' => '999-99-9999',
-        'reverse' => FALSE,
-        'selectonfocus' => FALSE,
-        'clearifnotmatch' => FALSE,
-      ],
+      '#pattern' => '\d{3}\-\d{2}\-\d{4}',
+      '#description' => 'Please enter as 123-45-6789'
     ];
 
     $form['email'] = [
