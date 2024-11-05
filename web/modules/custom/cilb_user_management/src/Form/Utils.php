@@ -11,10 +11,21 @@ class Utils {
     return [
       '#type' => 'textfield',
       '#title' => t('Social Security Number'),
+      '#required' => TRUE,
+      // the following is taken from \Drupal\webform\Plugin\WebformElement\TextBase::prepare
+      // to match how webform sets input masks
+      //
+      // note: the prepare implementation also sets an extra validator, but I don't think we
+      // need it
       '#attributes' => [
-        'placeholder' => '###-##-####',
+        'data-inputmask-mask' => '999-99-9999',
+        'class' => ['js-webform-input-mask'],
       ],
+      '#pattern' => '^\d\d\d-\d\d-\d\d\d\d$',
+      '#attached' => [
+        'library' => ['webform/webform.element.inputmask'],
+      ],
+      // '#element_validate' => [[get_called_class(), 'validateSsnInputMask']],
     ];
   }
-
 }
