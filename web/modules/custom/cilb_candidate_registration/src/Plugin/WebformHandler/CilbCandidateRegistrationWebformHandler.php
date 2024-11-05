@@ -77,12 +77,12 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $this->civicrm->initialize();
 
     if (!\Drupal::currentUser()->isAuthenticated()) {
-      $userCreate = $this->registerDrupalUser($webform_submission, $update);
+      $this->registerDrupalUser($webform_submission, $update);
     }
     $this->registerEventParticipants($webform_submission, $update);
   }
 
-  protected function registerDrupalUser(WebformSubmissionInterface $webform_submission, $update = TRUE): bool {
+  protected function registerDrupalUser(WebformSubmissionInterface $webform_submission, $update = TRUE): void {
     $webform_submission_data = $webform_submission->getData();
 
     $email = $webform_submission_data['civicrm_1_contact_1_email_email'];
@@ -157,8 +157,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->addValue('uf_name', $email)
         ->execute();
     }
-
-    return TRUE;
   }
 
   protected function registerEventParticipants(WebformSubmissionInterface $webform_submission, $update = TRUE) {
