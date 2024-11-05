@@ -1,0 +1,62 @@
+<?php
+
+
+/**
+ * Implements hook_form_alter().
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function cilb_user_management_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  // alter the password reset form for non-logged in users
+  if ($form_id === 'user_pass' && !\Drupal::currentUser()->isAuthenticated()) {
+    // add SSN field
+    $form['ssn'] = \Drupal\cilb_user_management\Form\Utils::getSsnField();
+
+    // ensure ssn field appears before help text (which is confusingly keyed as 'mail')
+    $form['ssn']['#weight'] = 10;
+    $form['mail']['#weight'] = 20;
+
+    // update the label on email/username form to be email specifically
+    $form['name']['#title'] = t('Registered email address');
+
+    // add our custom validator
+    $form['#validate'][] = 'cilb_user_management_user_pass_form_validate';
+  }
+}
+
+function cilb_user_management_user_pass_form_validate($form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  $ssn = $form_state->getValue('ssn');
+
+  \Drupal::service('civicrm')->initialize();
+
+  $matchingContact = \Civi\Api4\Contact::get(FALSE)
+    ->addSelect('id')
+    ->addWhere('Registrant_Info.SSN', '=', $ssn)
+    ->execute()
+    ->first();
+
+  if (!$matchingContact) {
+    $form_state->setErrorByName('ssn', t('No contact record found for this SSN.'));
+    return;
+  }
+
+  $matchingUser = \Civi\Api4\UFMatch::get(FALSE)
+    ->addWhere('contact_id', '=', $matchingContact['id'])
+    ->execute()
+    ->first();
+
+  if (!$matchingUser) {
+    $form_state->setErrorByName('ssn', t('No user record found for this SSN. Please <a href="/user/activate">activate your account</a> to continue.'));
+    return;
+  }
+
+  $user = \Drupal\user\Entity\User::load($matchingUser['uf_id']);
+  $submittedEmail = $form_state->getValue('name');
+
+  if ($user->getEmail() !== $submittedEmail) {
+    $form_state->setErrorByName('name', t('This is not the email we have on record for the SSN provided.'));
+    return;
+  }
+
+}
