@@ -48,6 +48,25 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   /**
    * {@inheritdoc}
    */
+  public function alterForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
+    if ($webform_submission->getCurrentPage() == 'registrant_personal_info') {
+      $this->registeringOnBehalfMessage($form_state);
+    }
+  }
+
+  /*
+  * If user is registering on behalf of another candidate, we remind
+  * them to use the candidate details on this page
+  */
+  private function registeringOnBehalfMessage(FormStateInterface $formState) {
+    if ($formState->getValue('candidate_representative') == 1) {
+      \Drupal::messenger()->addWarning($this->t('Please ensure you enter the identifying information for <b>the candidate</b> on this page. You will need to be able to access their email to perform account verification.'));
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function validateForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
     $current_page = $webform_submission->getCurrentPage();
 
@@ -277,6 +296,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           '%adminEmail' => \Drupal::config('system.site')->get('mail'),
         ]);
         $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
+
+        // additional notification for proxy registrations
+        if ($formState->getValue('candidate_representative') == 1) {
+          \Drupal::messenger()->addWarning($this->t('Please note you will require access to the candidate\'s user account credentials to continue.'));
+        }
         return;
       }
 
@@ -285,6 +309,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       //    new Drupal user for their contact)
       $error_message = $this->t('A candidate record for this Social Security Number already exists. Please <a href="/user/activate">re-activate your account</a> before continuing.');
       $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
+
+      // additional notification for proxy registrations
+      if ($formState->getValue('candidate_representative') == 1) {
+        \Drupal::messenger()->addWarning($this->t('Please note you will require access to the candidate\'s email to complete the activation process.'));
+      }
       return;
     }
   }
