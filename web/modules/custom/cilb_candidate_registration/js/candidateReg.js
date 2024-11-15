@@ -75,4 +75,10 @@ jQuery(document).ready(function ($) {
       "form-readonly"
     );
   }
+
+  // replace final form submit button with a loading indicator on click
+  $('.webform-button--submit').on('click', function () {
+    $(this).hide();
+    $(this).parent().append($('<div class="loader" style="max-width: 2rem; max-height: 2rem; margin: 0.5rem;" />'));
+  });
 });
