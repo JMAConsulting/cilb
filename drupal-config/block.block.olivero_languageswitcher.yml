@@ -8,8 +8,8 @@ dependencies:
     - olivero
 id: olivero_languageswitcher
 theme: olivero
-region: highlighted
-weight: -4
+region: secondary_menu
+weight: -5
 provider: null
 plugin: 'language_block:language_interface'
 settings:

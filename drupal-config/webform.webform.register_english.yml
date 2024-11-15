@@ -108,7 +108,7 @@ elements: |-
     '#open': true
     candidate_informtaion:
       '#type': fieldset
-      '#title': 'Candidate Informtaion'
+      '#title': 'Candidate Information'
       personal_info_markup:
         '#type': webform_markup
         '#markup': '<p><span id="lblInstructions">* Under the Federal Privacy Act, disclosure of Social Security numbers is voluntary unless specifically required by Federal statute. In this instance, Social Security numbers are mandatory pursuant to Title 42 United States Code, Sections 653 and 654: and Sections 455.203(9), Florida Statues. Social Security numbers are used to allow efficient screening of applicants and licensees by Title IV‐D child support agency to assure compliance with child support obligations. Social Security numbers must also be recorded on all professional and occupational license applications and will be used for licensee identification pursuant to the Personal Responsibility and Work Opportunity Reconciliation Act of 1996 (Welfare Reform Act), 104 Pub. L. 193, Sec.317</span><br><br><span id="lblInstructions">Enter your legal name as it would appear on a certificate or license. Avoid using all capital letters, use mixed case. (i.e John William Smith)</span></p>'
@@ -465,6 +465,10 @@ elements: |-
         '#multiple': true
         '#select2': true
         '#required': true
+        '#states':
+          visible:
+            ':input[name="exam_category_id"]':
+              value: '900'
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':
@@ -472,6 +476,31 @@ elements: |-
             view_name: exams
             display_name: entity_reference_1
             arguments: {  }
+      exam_preference:
+        '#type': webform_entity_select
+        '#title': 'Exam preference:'
+        '#select2': true
+        '#required': true
+        '#states':
+          visible:
+            ':input[name="select_exam_category"]':
+              value: '900'
+            ':input[name="select_exam_parts[]"]':
+              filled: true
+        '#target_type': civicrm_event
+        '#selection_handler': views
+        '#selection_settings':
+          view:
+            view_name: exams
+            display_name: entity_reference_3
+            arguments: {  }
+      location_detail:
+        '#type': webform_markup
+        '#states':
+          visible:
+            ':input[name="select_exam_category"]':
+              value: '900'
+        '#markup': '<h5>Location:</h5><div id="location_detail">&nbsp;</div>'
   event_ids:
     '#type': webform_entity_select
     '#title': 'Event IDs'
@@ -1082,6 +1111,7 @@ settings:
 access:
   create:
     roles:
+      - anonymous
       - authenticated
     users: {  }
     permissions: {  }
