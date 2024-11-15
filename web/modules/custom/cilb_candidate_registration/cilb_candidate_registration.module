@@ -113,7 +113,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 
     // only check if someone is logged in
     if (!empty(\CRM_Core_Session::getLoggedInContactID())) {
-	
+
       $examPartCategorySpecificity = \Civi\Api4\OptionValue::get(FALSE)
         ->addWhere('option_group_id:name', '=', 'Exam_Part')
 	->addSelect('value', 'Exam_Part_Options.Category_Specific')
@@ -134,7 +134,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 	if ($examPartCategorySpecificity[$passedExamPart]) {
 	  $passedCategory = $passedExam['event_id.event_type_id'];
 	  // initialise array for new category if not seen before
-          $categorySpecificPasses[$passedCategory] ??= []; 
+          $categorySpecificPasses[$passedCategory] ??= [];
 	  $categorySpecificPasses[$passedCategory][] = $passedExamPart;
 	} else {
           $generalPasses[] = $passedExamPart;
@@ -145,13 +145,13 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
     foreach ($events as $event) {
       if (in_array($event['Exam_Details.Exam_Part'] ?? '', $generalPasses)) {
         // we've passed an exam for the same part, and its not category specific => skip
-	continue;
+        continue;
       }
       $passesThisCategory = $categorySpecificPasses[$event['event_type_id']] ?? [];
 
       if (in_array($event['Exam_Details.Exam_Part'] ?? '', $passesThisCategory)) {
-	// we've passed and exam for the same part and category => skip
-	continue;
+	    // we've passed and exam for the same part and category => skip
+	    continue;
       }
 
       // no matching previous pass => add to valid events
