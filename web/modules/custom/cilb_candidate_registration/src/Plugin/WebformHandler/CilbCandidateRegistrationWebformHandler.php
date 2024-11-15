@@ -55,7 +55,12 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         break;
 
       case 'authorize_credit_card_charge':
-        $this->prepopulateBillingAddress($form, $form_state);
+      case 'contribution_pagebreak':
+	// we do this first before loading the billing address field page,
+	// so the user can choose to use the preloaded or edit them
+	// then we do it *again* after to ensure country and state are populated
+	// because these seem to be corrupted by the chain selector otherwise
+        $this->populateBillingAddress($form, $form_state);
         break;
     }
   }
@@ -71,7 +76,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   }
 
   /*
-  * Prepopulate billing address fields
+  * Populate billing address fields
+  *
   * For new contacts, these come from the fields on earlier pages
   * For existing contacts, those pages are skipped, so we need to fetch
   * the data from the database
@@ -79,7 +85,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   * Note: we have to set the default_value keys in the form array for
   * it to be passed to the renderer
   */
-  private function prepopulateBillingAddress(array &$form, FormStateInterface $formState) {
+  private function populateBillingAddress(array &$form, FormStateInterface $formState) {
     $targetPrefix = 'civicrm_1_contribution_1_contribution_billing_address';
     // instead we have to set defaults in the form array
     $targetFieldset = &$form["elements"]["authorize_credit_card_charge"]["civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset"];
@@ -153,12 +159,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         if (!$values[$targetKey]) {
           $sourceKey = $sourcePrefix . '_' . $field;
 
-          // this would be so much easier BUT values set programmatically
-          // in the form state are *not* passed to the renderer, so the
-          // user cant see what's happening
-          // $formState->setValue($targetKey, $values[$sourceKey]);
+          $formState->setValue($targetKey, $values[$sourceKey]);
 
-          // set default value for the element in the form array
+	  // unfortunately values in the form state are *not* passed to the renderer, 
+	  // so the user cant see what's happening unless we set the default
+	  // in the form array as well
           $targetFieldset[$targetKey]['#default_value'] = $values[$sourceKey];
         }
       }
