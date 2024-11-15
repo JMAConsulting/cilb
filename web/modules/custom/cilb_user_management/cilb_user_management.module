@@ -27,12 +27,15 @@ function cilb_user_management_form_alter(&$form, \Drupal\Core\Form\FormStateInte
 
 function cilb_user_management_user_pass_form_validate($form, \Drupal\Core\Form\FormStateInterface $form_state) {
   $ssn = $form_state->getValue('ssn');
+  $submittedEmail = $form_state->getValue('name');
 
   \Drupal::service('civicrm')->initialize();
 
   $matchingContact = \Civi\Api4\Contact::get(FALSE)
     ->addSelect('id')
-    ->addWhere('Registrant_Info.SSN', '=', $ssn)
+    ->addWhere('email_primary.email', '=', $form_state->getValue('name'))
+    ->addWhere('Registrant_Info.SSN', '=', str_replace('-', '', $ssn))
+    ->addWhere('is_deleted', '=', FALSE)
     ->execute()
     ->first();
 
@@ -52,7 +55,6 @@ function cilb_user_management_user_pass_form_validate($form, \Drupal\Core\Form\F
   }
 
   $user = \Drupal\user\Entity\User::load($matchingUser['uf_id']);
-  $submittedEmail = $form_state->getValue('name');
 
   if ($user->getEmail() !== $submittedEmail) {
     $form_state->setErrorByName('name', t('This is not the email we have on record for the SSN provided.'));
