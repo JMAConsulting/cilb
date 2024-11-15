@@ -187,6 +187,13 @@ elements: |-
           '#contact_type': individual
           '#form_key': civicrm_1_contact_1_contact_birth_date
           '#parent': civicrm_1_contact_1_fieldset_fieldset
+        markup:
+          '#type': webform_markup
+          '#states':
+            invisible:
+              ':input[name="civicrm_1_contact_1_contact_existing"]':
+                empty: true
+          '#markup': '<p><a class="webform-dialog webform-dialog-normal" href="https://cilb.jmaconsulting.biz/form/request-information-change">Request a Date of Birth Change</a></p>'
       flexbox_01:
         '#type': webform_flexbox
         civicrm_1_contact_1_cg1_custom_5:
@@ -220,7 +227,7 @@ elements: |-
           invisible:
             ':input[name="civicrm_1_contact_1_contact_existing"]':
               empty: true
-        '#markup': '<p><a href="https://cilb.jmaconsulting.biz/form/request-information-change" target="_blank">Request a Social Security Number (SSN) Change</a></p>'
+        '#markup': '<p><a class="webform-dialog webform-dialog-normal" href="https://cilb.jmaconsulting.biz/form/request-information-change">Request a Social Security Number (SSN) Change</a></p>'
   registrant_contact_info:
     '#type': webform_wizard_page
     '#title': 'Candidate Contact Information'
