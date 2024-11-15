@@ -49,8 +49,14 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * {@inheritdoc}
    */
   public function alterForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
-    if ($webform_submission->getCurrentPage() == 'registrant_personal_info') {
-      $this->registeringOnBehalfMessage($form_state);
+    switch ($webform_submission->getCurrentPage()) {
+      case 'registrant_personal_info':
+        $this->registeringOnBehalfMessage($form_state);
+        break;
+
+      case 'authorize_credit_card_charge':
+        $this->prepopulateBillingAddress($form, $form_state);
+        break;
     }
   }
 
@@ -61,6 +67,101 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   private function registeringOnBehalfMessage(FormStateInterface $formState) {
     if ($formState->getValue('candidate_representative') == 1) {
       \Drupal::messenger()->addWarning($this->t('Please ensure you enter the identifying information for <b>the candidate</b> on this page. You will need to be able to access their email to perform account verification.'));
+    }
+  }
+
+  /*
+  * Prepopulate billing address fields
+  * For new contacts, these come from the fields on earlier pages
+  * For existing contacts, those pages are skipped, so we need to fetch
+  * the data from the database
+  *
+  * Note: we have to set the default_value keys in the form array for
+  * it to be passed to the renderer
+  */
+  private function prepopulateBillingAddress(array &$form, FormStateInterface $formState) {
+    $targetPrefix = 'civicrm_1_contribution_1_contribution_billing_address';
+    // instead we have to set defaults in the form array
+    $targetFieldset = &$form["elements"]["authorize_credit_card_charge"]["civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset"];
+    $sourceFields = [
+      // fill name fields from contact
+      'civicrm_1_contact_1_contact' => [
+        'first_name',
+        'last_name',
+      ],
+      // fill address fields from contact address
+      'civicrm_1_contact_1_address' => [
+        'street_address',
+        'postal_code',
+        'city',
+        'country_id',
+        'state_province_id',
+      ],
+    ];
+
+    $values = $formState->getValues();
+
+    $loggedInContact = \CRM_Core_Session::getLoggedInContactId();
+
+    if ($loggedInContact) {
+      // for existing contacts, the form data won't contain some of the fields we
+      // need, because these pages are skipped, so we need to fetch from the DB
+
+
+      // check permissions is FALSE - we trust that CRM_Core_Session that
+      // this is the current logged in contact, so they are allowed to
+      // access their own data
+      $apiData = \Civi\Api4\Contact::get(FALSE)
+        ->addWhere('id', '=', $loggedInContact)
+        ->addSelect(
+          'first_name',
+          'last_name',
+          'address_primary.street_address',
+          'address_primary.postal_code',
+          'address_primary.city',
+          'address_primary.country_id',
+          'address_primary.state_province_id',
+          // this isn't a field in the billing address section, but is required
+          // by the credit card payment processor, so we need to load it
+          // into the form state
+          'email_primary.email'
+        )
+        ->execute()->single();
+
+      // merge loaded data in to the formstate values only where blank
+      // (in case for some reason those field have *not* been skipped)
+
+      foreach ($sourceFields as $sourcePrefix => $fields) {
+        // address fields are prefixed in the api result
+        $apiPrefix = ($sourcePrefix === 'civicrm_1_contact_1_address') ? 'address_primary.' : '';
+        foreach ($fields as $field) {
+          $sourceKey = $sourcePrefix . '_' . $field;
+          if (!$values[$sourceKey]) {
+            $values[$sourcePrefix . '_' . $field] = $apiData[$apiPrefix . $field];
+          }
+        }
+      }
+
+      // also add the email field - this isn't shown to the user but is required for credit card checkout
+      $contactInfoFieldset = &$form['elements']['registrant_contact_info']['candidate_contact_information'];
+      $contactInfoFieldset['phones']['civicrm_1_contact_1_email_email']['#default_value'] = $apiData['email_primary.email'];
+    }
+
+    foreach ($sourceFields as $sourcePrefix => $fields) {
+      foreach ($fields as $field) {
+        $targetKey = $targetPrefix . '_' . $field;
+        if (!$values[$targetKey]) {
+          $sourceKey = $sourcePrefix . '_' . $field;
+
+          // this would be so much easier BUT values set programmatically
+          // in the form state are *not* passed to the renderer, so the
+          // user cant see what's happening
+          // $formState->setValue($targetKey, $values[$sourceKey]);
+
+          // set default value for the element in the form array
+          $targetFieldset[$targetKey]['#default_value'] = $values[$sourceKey];
+        }
+      }
     }
   }
 
