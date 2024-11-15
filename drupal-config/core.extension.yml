@@ -11,6 +11,7 @@ module:
   cilb_candidate_registration: 0
   cilb_chargeback_links: 0
   cilb_reschedule_exam: 0
+  cilb_user_management: 0
   civicrm: 0
   civicrmtheme: 0
   ckeditor5: 0
