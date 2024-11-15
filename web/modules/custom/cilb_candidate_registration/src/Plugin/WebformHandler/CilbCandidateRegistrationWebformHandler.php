@@ -164,7 +164,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 	  // unfortunately values in the form state are *not* passed to the renderer, 
 	  // so the user cant see what's happening unless we set the default
 	  // in the form array as well
-          $targetFieldset[$targetKey]['#default_value'] = $values[$sourceKey];
+	  if ($field === 'country_id' || $field === 'state_province_id') {
+            $targetFieldset[$targetKey]['#default_option'] = $values[$sourceKey];
+	  } else {
+            $targetFieldset[$targetKey]['#default_value'] = $values[$sourceKey];
+	  }
         }
       }
     }
