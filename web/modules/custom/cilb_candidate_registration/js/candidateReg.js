@@ -52,33 +52,24 @@ jQuery(document).ready(function ($) {
     }
   }
 
-  if (
-    $("#edit-civicrm-1-contact-1-cg1-custom-5").length &&
-    isExistingContact && $("#edit-civicrm-1-contact-1-cg1-custom-5").val()
-  ) {
-      $("#edit-civicrm-1-contact-1-cg1-custom-5").prop("readonly", true);
-      $(".js-form-item-civicrm-1-contact-1-cg1-custom-5").addClass("webform-readonly");
-      $(".js-form-item-civicrm-1-contact-1-cg1-custom-5").addClass("form-readonly");
+  const ssnField = $("#edit-civicrm-1-contact-1-cg1-custom-5");
+  const dobField = $("#edit-civicrm-1-contact-1-contact-birth-date");
+
+  [ssnField, dobField].forEach((field) => {
+    if (isExistingContact && field.length && field.val()) {
+      field.prop("readonly", true);
+      field.parent().addClass("form-readonly webform-readonly");
     }
-
-  if (
-    $("#edit-civicrm-1-contact-1-contact-birth-date").length &&
-    isExistingContact && $("#edit-civicrm-1-contact-1-contact-birth-date").val()
-  ) {
-    $("#edit-civicrm-1-contact-1-contact-birth-date").prop("readonly", true);
-
-    // Add the 'webform-readonly' class to the parent div
-    $(".js-form-item-civicrm-1-contact-1-contact-birth-date").addClass(
-      "webform-readonly"
-    );
-    $(".js-form-item-civicrm-1-contact-1-contact-birth-date").addClass(
-      "form-readonly"
-    );
-  }
+    else if (!isExistingContact) {
+      // "request info change" links dont apply if not logged in => remove
+      field.parent().find('[href$="/request-information-change"]').remove();
+    }
+  });
 
   // replace final form submit button with a loading indicator on click
   $('.webform-button--submit').on('click', function () {
     $(this).hide();
     $(this).parent().append($('<div class="loader" style="max-width: 2rem; max-height: 2rem; margin: 0.5rem;" />'));
   });
+
 });
