@@ -458,7 +458,7 @@ elements: |-
         '#states':
           visible:
             ':input[name="exam_category_id"]':
-              value: '900'
+              '!value': '900'
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':
@@ -470,6 +470,7 @@ elements: |-
         '#type': webform_entity_select
         '#title': 'Exam preference:'
         '#select2': true
+        '#multiple': true
         '#required': true
         '#states':
           visible:
@@ -573,6 +574,7 @@ elements: |-
         '#set': billing_1_number_of_billing
         '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
         '#form_key': civicrm_1_contribution_1_contribution_billing_address_first_name
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_last_name:
         '#type': textfield
         '#extra':
@@ -585,6 +587,7 @@ elements: |-
           readonly:
             ':input[name="billing_address_is_different"]':
               unchecked: true
+        '#required': true
       civicrm_1_contact_2_email_email:
         '#type': email
         '#title': 'Billing Email'
@@ -597,6 +600,7 @@ elements: |-
         '#extra':
           width: 20
         '#parent': civicrm_1_contact_1_fieldset_fieldset
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_street_address:
         '#type': textfield
         '#extra':
@@ -609,6 +613,7 @@ elements: |-
           readonly:
             ':input[name="billing_address_is_different"]':
               unchecked: true
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_postal_code:
         '#type': textfield
         '#extra':
@@ -621,6 +626,7 @@ elements: |-
           readonly:
             ':input[name="billing_address_is_different"]':
               unchecked: true
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_city:
         '#type': textfield
         '#extra':
@@ -633,6 +639,7 @@ elements: |-
           readonly:
             ':input[name="billing_address_is_different"]':
               unchecked: true
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_country_id:
         '#type': civicrm_options
         '#title': Country
@@ -901,6 +908,7 @@ elements: |-
         '#form_key': civicrm_1_contribution_1_contribution_billing_address_country_id
         '#default_option': ''
         '#civicrm_live_options': '1'
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_state_province_id:
         '#type': civicrm_options
         '#title': State/Province
@@ -921,6 +929,7 @@ elements: |-
         '#default_option': null
         '#default_value': null
         '#options': {  }
+        '#required': true
     credit_card_auth:
       '#type': checkbox
       '#title': 'I authorize Professional Testing to process the $80 registration fee to the above credit card.'
