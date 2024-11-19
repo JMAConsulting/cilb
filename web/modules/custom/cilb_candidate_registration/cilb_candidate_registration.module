@@ -96,7 +96,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 
     // Check to make sure exams are not full
     $events = \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id')
+      ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name')
       ->addWhere('is_active', '=', TRUE)
       //->addWhere('start_date', '>', 'now')
 //      ->addWhere('is_online_registration', '=', TRUE)
@@ -122,7 +122,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
         ->column('Exam_Part_Options.Category_Specific');
 
       $passedExams = \Civi\Api4\Participant::get(FALSE)
-        ->addSelect('event_id.Exam_Details.Exam_Part', 'event_id.event_type_id')
+        ->addSelect('event_id.Exam_Details.Exam_Part', 'event_id.event_type_id', 'event_id')
         ->addJoin('Event AS event', 'INNER', ['event.id', '=', 'event_id'])
         ->addWhere('contact_id', '=', \CRM_Core_Session::getLoggedInContactID())
         ->addWhere('status_id:name', '=', 'Pass')
@@ -135,7 +135,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 	  $passedCategory = $passedExam['event_id.event_type_id'];
 	  // initialise array for new category if not seen before
           $categorySpecificPasses[$passedCategory] ??= [];
-	  $categorySpecificPasses[$passedCategory][] = $passedExamPart;
+	  $categorySpecificPasses[$passedCategory][$passedExam['event_id']] = $passedExamPart;
 	} else {
           $generalPasses[] = $passedExamPart;
 	}
@@ -148,8 +148,9 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
         continue;
       }
       $passesThisCategory = $categorySpecificPasses[$event['event_type_id']] ?? [];
-
-      if (in_array($event['Exam_Details.Exam_Part'] ?? '', $passesThisCategory)) {
+      if (in_array($event['Exam_Details.Exam_Part'] ?? '', $passesThisCategory) &&
+	 ($event['event_type_id:name'] == 'Plumbing' && isset($passesThisCategory[$event['id']]))
+      ) {
 	    // we've passed and exam for the same part and category => skip
 	    continue;
       }

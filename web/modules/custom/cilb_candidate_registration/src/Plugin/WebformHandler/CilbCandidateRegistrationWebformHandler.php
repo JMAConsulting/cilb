@@ -65,6 +65,26 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
+  private function validateExamPreference(FormStateInterface $formState) {
+    $examPreferences = $formState->getValue('exam_preference');
+    if (isset($examPreferences) && count($examPreferences) > 1) {
+      $events = \Civi\Api4\Event::get(FALSE)
+        ->addSelect('Exam_Details.Exam_Part', 'Exam_Details.Exam_Part:label')
+        ->addWhere('id', 'IN', $examPreferences)
+        ->execute();
+      foreach ($events as $event) {
+        if (empty($selectedEvents[$event['Exam_Details.Exam_Part']])) {
+          $selectedEvents[$event['Exam_Details.Exam_Part']] = [$event['id']];
+        }
+        else {
+          $error_message = $this->t('You cannot select more then one ' . $event['Exam_Details.Exam_Part:label'] . ' event');
+          $formState->setErrorByName('exam_preference', $error_message);
+          break;
+        }
+      }
+    }
+  }
+
   /*
   * If user is registering on behalf of another candidate, we remind
   * them to use the candidate details on this page
@@ -150,7 +170,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
       // also add the email field - this isn't shown to the user but is required for credit card checkout
       $contactInfoFieldset = &$form['elements']['registrant_contact_info']['candidate_contact_information'];
-      $contactInfoFieldset['phones']['civicrm_1_contact_1_email_email']['#default_value'] = $apiData['email_primary.email'];
+      $contactInfoFieldset['phones']['civicrm_1_contact_1_email_email']['#default_value'] = $values['civicrm_1_contact_2_email_email'];
     }
 
     foreach ($sourceFields as $sourcePrefix => $fields) {
@@ -190,6 +210,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     elseif ($current_page == 'select_exam_page') {
       //TODO how to register for multiple events at once?
       $this->validateParticipantStatus($form_state);
+      $this->validateExamPreference($form_state);
     }
   }
 
