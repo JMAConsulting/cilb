@@ -12,6 +12,7 @@ jQuery(document).ready(function ($) {
 
   const $examCatSelector = $('[data-drupal-selector="edit-select-exam-category"]');
   const $examPartSelector = $('[data-drupal-selector="edit-select-exam-parts"]');
+  const $examPrefSelector = $('[data-drupal-selector="edit-exam-preference"]');
   const $examCatIdField = $('[data-drupal-selector="edit-exam-category-id"]');
   const $eventIdsField = $('[data-drupal-selector="edit-event-ids"]');
   $examCatIdField.parent().hide();
@@ -24,6 +25,12 @@ jQuery(document).ready(function ($) {
     });
   }
 
+  if ($examPrefSelector.length) {
+    // store event id selection for reference on subsequent pages
+    $examPrefSelector.on('change', function () {
+       $eventIdsField.val($examPrefSelector.val());
+    });
+  }
 
   if ($examPartSelector.length) {
     // store event id selection for reference on subsequent pages
