@@ -22,7 +22,7 @@ third_party_settings:
 weight: 0
 open: null
 close: null
-uid: 6
+uid: null
 template: false
 archive: false
 id: register_english
@@ -585,6 +585,18 @@ elements: |-
           readonly:
             ':input[name="billing_address_is_different"]':
               unchecked: true
+      civicrm_1_contact_2_email_email:
+        '#type': email
+        '#title': 'Billing Email'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#states_clear': false
+        '#form_key': civicrm_1_contact_2_email_email
+        '#extra':
+          width: 20
+        '#parent': civicrm_1_contact_1_fieldset_fieldset
       civicrm_1_contribution_1_contribution_billing_address_street_address:
         '#type': textfield
         '#extra':
@@ -1175,6 +1187,7 @@ handlers:
       civicrm_1_contact_1_contact_privacy: 0
       civicrm_1_contact_1_contact_preferred_language: 0
       civicrm_1_contact_1_contact_communication_style_id: 0
+      civicrm_1_contact_1_contact_image_url: 0
       civicrm_1_contact_1_contact_contact_id: 0
       civicrm_1_contact_1_contact_user_id: 0
       civicrm_1_contact_1_contact_external_identifier: 0
@@ -1221,10 +1234,12 @@ handlers:
       civicrm_1_contact_2_phone_phone_ext: 0
       civicrm_1_contact_2_phone_phone_type_id: '1'
       civicrm_1_contact_2_phone_location_type_id: '4'
-      contact_1_number_of_email: '1'
+      contact_1_number_of_email: '2'
       civicrm_1_contact_1_email_email: create_civicrm_webform_element
       civicrm_1_contact_1_email_location_type_id: '3'
       civicrm_1_contact_1_email_is_primary: '1'
+      civicrm_1_contact_2_email_email: create_civicrm_webform_element
+      civicrm_1_contact_2_email_location_type_id: '5'
       contact_1_number_of_website: '0'
       contact_1_number_of_im: '0'
       contact_1_number_of_cg7: '0'
@@ -1306,7 +1321,7 @@ handlers:
             number_of_other: '0'
             number_of_address: '1'
             number_of_phone: '2'
-            number_of_email: '1'
+            number_of_email: '2'
             number_of_website: '0'
             number_of_im: '0'
             number_of_cg7: '0'
@@ -1326,6 +1341,8 @@ handlers:
               1:
                 location_type_id: '3'
                 is_primary: '1'
+              2:
+                location_type_id: '5'
         activity:
           number_of_activity: '0'
         membership:
