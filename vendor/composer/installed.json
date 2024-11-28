@@ -110,17 +110,17 @@
         },
         {
             "name": "authorizenet/authorizenet",
-            "version": "2.0.3",
-            "version_normalized": "2.0.3.0",
+            "version": "2.0.4",
+            "version_normalized": "2.0.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/AuthorizeNet/sdk-php.git",
-                "reference": "e1acf55c9cb22bef1852b1e494502973ade11cce"
+                "reference": "8555cc245953dd0ac57f7ea424a5572eae4c7191"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/AuthorizeNet/sdk-php/zipball/e1acf55c9cb22bef1852b1e494502973ade11cce",
-                "reference": "e1acf55c9cb22bef1852b1e494502973ade11cce",
+                "url": "https://api.github.com/repos/AuthorizeNet/sdk-php/zipball/8555cc245953dd0ac57f7ea424a5572eae4c7191",
+                "reference": "8555cc245953dd0ac57f7ea424a5572eae4c7191",
                 "shasum": ""
             },
             "require": {
@@ -128,7 +128,7 @@
                 "ext-json": "*",
                 "php": ">=5.6"
             },
-            "time": "2024-05-29T17:33:13+00:00",
+            "time": "2024-09-18T06:23:52+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -150,7 +150,7 @@
             ],
             "support": {
                 "issues": "https://github.com/AuthorizeNet/sdk-php/issues",
-                "source": "https://github.com/AuthorizeNet/sdk-php/tree/2.0.3"
+                "source": "https://github.com/AuthorizeNet/sdk-php/tree/2.0.4"
             },
             "install-path": "../authorizenet/authorizenet"
         },
@@ -2891,22 +2891,22 @@
         },
         {
             "name": "drupal/entity_print",
-            "version": "2.14.0",
-            "version_normalized": "2.14.0.0",
+            "version": "2.15.0",
+            "version_normalized": "2.15.0.0",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/entity_print.git",
-                "reference": "8.x-2.14"
+                "reference": "8.x-2.15"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/entity_print-8.x-2.14.zip",
-                "reference": "8.x-2.14",
-                "shasum": "5ecc2c11ed839dd870ab5127e5e83cc4c3783801"
+                "url": "https://ftp.drupal.org/files/projects/entity_print-8.x-2.15.zip",
+                "reference": "8.x-2.15",
+                "shasum": "76ba73f443525ab5b233eae925f22f88c9663b8f"
             },
             "require": {
                 "dompdf/dompdf": ">=2.0.7",
-                "drupal/core": "^9.4 || ^10.0"
+                "drupal/core": "^9.4 || ^10.0 || ^11"
             },
             "suggest": {
                 "mikehaertl/phpwkhtmltopdf": "PhpWkhtmlToPdf provides the PHP library to use Wkhtmltopdf"
@@ -2914,8 +2914,8 @@
             "type": "drupal-module",
             "extra": {
                 "drupal": {
-                    "version": "8.x-2.14",
-                    "datestamp": "1713939908",
+                    "version": "8.x-2.15",
+                    "datestamp": "1722642740",
                     "security-coverage": {
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
@@ -2938,6 +2938,10 @@
                 {
                     "name": "benjy",
                     "homepage": "https://www.drupal.org/user/1852732"
+                },
+                {
+                    "name": "jsacksick",
+                    "homepage": "https://www.drupal.org/user/972218"
                 },
                 {
                     "name": "larowlan",
@@ -3152,21 +3156,21 @@
         },
         {
             "name": "drupal/webform",
-            "version": "6.2.5",
-            "version_normalized": "6.2.5.0",
+            "version": "6.2.8",
+            "version_normalized": "6.2.8.0",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/webform.git",
-                "reference": "6.2.5"
+                "reference": "6.2.8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/webform-6.2.5.zip",
-                "reference": "6.2.5",
-                "shasum": "84d43a7c35339e831dcb762002164ba1cbbc5d80"
+                "url": "https://ftp.drupal.org/files/projects/webform-6.2.8.zip",
+                "reference": "6.2.8",
+                "shasum": "5552f9a76b5a4e33beb3ea75664beb5d47c334cc"
             },
             "require": {
-                "drupal/core": "^10.1",
+                "drupal/core": "^10.2",
                 "php": ">=8.1"
             },
             "require-dev": {
@@ -3213,8 +3217,8 @@
             "type": "drupal-module",
             "extra": {
                 "drupal": {
-                    "version": "6.2.5",
-                    "datestamp": "1721065379",
+                    "version": "6.2.8",
+                    "datestamp": "1732627900",
                     "security-coverage": {
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
@@ -3243,7 +3247,7 @@
                     "role": "Contributor"
                 },
                 {
-                    "name": "Liam Morland",
+                    "name": "liam morland",
                     "homepage": "https://www.drupal.org/user/493050"
                 },
                 {
@@ -3321,18 +3325,18 @@
         },
         {
             "name": "drupal/webform_civicrm",
-            "version": "6.2.5",
-            "version_normalized": "6.2.5.0",
+            "version": "6.3.0",
+            "version_normalized": "6.3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/webform_civicrm.git",
-                "reference": "6.2.5"
+                "reference": "6.3.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/webform_civicrm-6.2.5.zip",
-                "reference": "6.2.5",
-                "shasum": "311c3da0da5b68f8e5076df941eebb0cba015c4b"
+                "url": "https://ftp.drupal.org/files/projects/webform_civicrm-6.3.0.zip",
+                "reference": "6.3.0",
+                "shasum": "4e012d0cf19127a77f503d5cdead7ff0b943bd42"
             },
             "require": {
                 "civicrm/civicrm-drupal-8": "*",
@@ -3342,16 +3346,14 @@
             "type": "drupal-module",
             "extra": {
                 "drupal": {
-                    "version": "6.2.5",
-                    "datestamp": "1703457323",
+                    "version": "6.3.0",
+                    "datestamp": "1732572213",
                     "security-coverage": {
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
                     }
                 },
-                "patches_applied": {
-                    "Fix option value custom field crash": "https://github.com/colemanw/webform_civicrm/pull/1016.patch"
-                }
+                "patches_applied": []
             },
             "installation-source": "dist",
             "notification-url": "https://packages.drupal.org/8/downloads",
@@ -3372,7 +3374,7 @@
                     "homepage": "https://www.drupal.org/user/2810707"
                 },
                 {
-                    "name": "KarinG",
+                    "name": "karing",
                     "homepage": "https://www.drupal.org/user/787114"
                 }
             ],
@@ -3383,7 +3385,6 @@
             ],
             "support": {
                 "source": "http://cgit.drupalcode.org/webform_civicrm",
-                "error": "Invalid dependency: \"civicrm\" is an unknown drupal 8 package name",
                 "issues": "https://www.drupal.org/project/issues/webform_civicrm"
             },
             "install-path": "../../web/modules/contrib/webform_civicrm"

@@ -31,6 +31,11 @@ class AdminForm implements AdminFormInterface {
   private $data;
 
   /**
+   * @var \Drupal\webform_civicrm\UtilsInterface
+   */
+  protected $utils;
+
+  /**
    * The shim allowing us to slowly port this code.
    *
    * @var \Drupal\webform\WebformInterface
@@ -40,6 +45,11 @@ class AdminForm implements AdminFormInterface {
    * @var array
    */
   public static $fieldset_entities = ['contact', 'billing_1_number_of_billing', 'activity', 'case', 'grant'];
+
+  /**
+   * @var bool
+   */
+  public $confirmPage;
 
   public function __construct(UtilsInterface $utils) {
     $this->utils = $utils;
@@ -233,7 +243,7 @@ class AdminForm implements AdminFormInterface {
       '#type' => 'select',
       '#title' => t('Number of Contacts'),
       '#default_value' => count($this->data['contact']),
-      '#options' => array_combine(range(1, 40), range(1, 40)),
+      '#options' => array_combine(range(1, 50), range(1, 50)),
     ];
     $this->form['change_form_settings'] = [
       '#type' => 'button',
@@ -1128,6 +1138,13 @@ class AdminForm implements AdminFormInterface {
         }
         if (isset($set['fields'])) {
           foreach ($set['fields'] as $fid => $field) {
+            // Display receive date only if processor = 'Pay Later' or '- User Select -'
+            if ($fid == 'contribution_receive_date') {
+              $pp = wf_crm_aval($this->data, "contribution:1:contribution:1:payment_processor_id", 'create_civicrm_webform_element', TRUE);
+              if (!empty($pp) && $pp !== 'create_civicrm_webform_element') {
+                continue;
+              }
+            }
             $fid = "civicrm_1_contribution_1_$fid";
             if (strpos($sid, 'cg') === 0) {
               $this->form['contribution']['sets']['custom'][$sid][$fid] = $this->addItem($fid, $field);
@@ -1140,6 +1157,7 @@ class AdminForm implements AdminFormInterface {
       }
     }
     $this->addAjaxItem("contribution:sets:contribution", "civicrm_1_contribution_1_contribution_financial_type_id", "..:custom");
+    $this->addAjaxItem("contribution:sets:contribution", "civicrm_1_contribution_1_contribution_payment_processor_id", "..:contribution");
 
     //Add Currency.
     $this->form['contribution']['sets']['contribution']['contribution_1_settings_currency'] = [
@@ -1963,9 +1981,9 @@ class AdminForm implements AdminFormInterface {
                 $created[] = $field['name'];
               }
               // @todo: Update Conditionals as per Drupal 9 standards.
-              // if (isset($field['civicrm_condition'])) {
-              //   $this->addConditionalRule($field, $enabled);
-              // }
+              if (isset($field['civicrm_condition'])) {
+                $this->addConditionalRule($field, $enabled);
+              }
             }
           }
         }
@@ -2176,7 +2194,7 @@ class AdminForm implements AdminFormInterface {
           if (isset($options[$value])) {
             $field['states'] = [
               'visible' => [
-                ":input[name='{$source_id}']" => ['value' => $value],
+                ':input[name="' . $source_key . '"]' => ['value' => $value],
               ],
             ];
             unset($field['civicrm_condition']);

@@ -21,7 +21,7 @@ use Drupal\webform_civicrm\WebformCivicrmBase;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\webform\Utility\WebformHtmlHelper;
 use Drupal\webform\Utility\WebformXss;
-
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivicrmPreProcessInterface {
 
@@ -30,6 +30,11 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
   private $info = [];
   private $all_fields;
   private $all_sets;
+
+  /**
+   * @var \Drupal\webform_civicrm\UtilsInterface
+   */
+  protected $utils;
 
   public function __construct(UtilsInterface $utils) {
     $this->utils = $utils;
@@ -162,8 +167,7 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
       }
       if ($this->settings['block_unknown_users']) {
         $this->form['submitted']['#access'] = $this->form['actions']['#access'] = FALSE;
-        $this->setMessage(t('Sorry, you do not have permission to access this form.'), 'warning');
-        return;
+        throw new AccessDeniedHttpException();
       }
     }
     if (!empty($this->data['participant_reg_type'])) {
@@ -436,7 +440,7 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
         else {
           $urlParam = "c{$c}event{$e}";
         }
-        foreach (explode(',', wf_crm_aval($_GET, $urlParam)) as $url_param_value) {
+        foreach (explode(',', wf_crm_aval($_GET, $urlParam, '')) as $url_param_value) {
           if (isset($eids[$url_param_value])) {
             $event_ids[] = $eids[$url_param_value];
           }
@@ -570,7 +574,7 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
               if (!is_array($val) && !isset($element['#options'][$val])) {
                 $val = NULL;
               }
-              if ((empty($val) || (is_array($val) && empty(array_filter($val)))) && !empty($this->form['#attributes']['data-form-defaults'])) {
+              if ((is_null($val) || (is_array($val) && empty(array_filter($val)))) && !empty($this->form['#attributes']['data-form-defaults'])) {
                 $formDefaults = Json::decode($this->form['#attributes']['data-form-defaults']);
                 $key = str_replace('_', '-', $element['#form_key']);
                 if (isset($formDefaults[$key])) {
@@ -660,10 +664,8 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
 
       if ($itemTaxRate !== NULL) {
         // Change the line item label to display the tax rate it contains
-        $taxSettings = $this->utils->wf_crm_get_civi_setting('contribution_invoice_settings');
-
-        if (($itemTaxRate !== 0) && ($taxSettings['tax_display_settings'] !== 'Do_not_show')) {
-          $item['label'] .= ' (' . t('includes @rate @tax', ['@rate' => (float) $itemTaxRate . '%', '@tax' => $taxSettings['tax_term']]) . ')';
+        if (($itemTaxRate !== 0) && (\Civi::settings()->get('tax_display_settings') !== 'Do_not_show')) {
+          $item['label'] .= ' (' . t('includes @rate @tax', ['@rate' => (float) $itemTaxRate . '%', '@tax' => \Civi::settings()->get('tax_term')]) . ')';
         }
 
         // Add calculation for financial type that contains tax

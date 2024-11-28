@@ -59,8 +59,7 @@ abstract class WebformCivicrmBase {
         return $this->_payment_processor;
 
       case 'tax_rate':
-        $taxSettings = $this->utils->wf_crm_get_civi_setting('contribution_invoice_settings');
-        if (is_array($taxSettings) && !empty($taxSettings['invoicing'])) {
+        if (\Civi::settings()->get('invoicing')) {
           $contribution_enabled = wf_crm_aval($this->data, 'contribution:1:contribution:1:enable_contribution');
           if ($contribution_enabled) {
             // tax integration
@@ -555,9 +554,13 @@ abstract class WebformCivicrmBase {
   protected function getExposedOptions($field_key, $exclude = []) {
     $field = $this->getComponent($field_key);
 
-    if ($field && $field['#type'] == 'hidden') {
+    if ($field && ($field['#type'] == 'hidden' || !empty($field['#civicrm_live_options']))) {
       // Fetch live options
-      $exposed = $this->utils->wf_crm_field_options($field, 'civicrm_live_options', $this->data);
+      $params = [
+        'extra' => wf_crm_aval($field, 'extra', []) + wf_crm_aval($field, '#extra', []),
+        'form_key' => $field['#form_key'],
+      ];
+      $exposed = $this->utils->wf_crm_field_options($params, 'civicrm_live_options', $this->data);
       foreach ($exclude as $i) {
         unset($exposed[$i]);
       }
@@ -776,13 +779,18 @@ abstract class WebformCivicrmBase {
    * Copies a drupal file into the Civi file system
    *
    * @param int $id: drupal file id
+   * @param string $filename drupal filename
    * @return int|null Civi file id
    */
-  public static function saveDrupalFileToCivi($id) {
+  public static function saveDrupalFileToCivi($id, $filename = NULL) {
     $file = File::load($id);
     if ($file) {
       $config = \CRM_Core_Config::singleton();
-      $path = \Drupal::service('file_system')->copy($file->getFileUri(), $config->customFileUploadDir);
+      $copyTo = $config->customFileUploadDir;
+      if(isset($filename)) {
+        $copyTo .= '/' . $filename;
+      }
+      $path = \Drupal::service('file_system')->copy($file->getFileUri(), $copyTo);
       if ($path) {
         $result = \Drupal::service('webform_civicrm.utils')->wf_civicrm_api('file', 'create', [
           'uri' => str_replace($config->customFileUploadDir, '', $path),
