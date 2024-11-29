@@ -63,6 +63,9 @@
 	    },
         "drupal/webform_civicrm": {
             "Fix option value custom field crash": "https://github.com/colemanw/webform_civicrm/pull/1016.patch"
+        },
+        "drupal/civicrm_entity": {
+            "Fix civicrm_event_en_MX crash": "patches/civicrm_entity_497.patch"
         }
     },
 	"drupal-scaffold": {
