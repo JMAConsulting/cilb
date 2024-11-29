@@ -11,7 +11,7 @@ elements: |
   civicrm_1_contact_1_cg1_custom_7:
     '#title': '<strong>Si está completando este registro en nombre de un candidato, ingrese su nombre completo. </strong>'
   user_identification_markup:
-    '#markup': '<p><a class="button" id="on-behalf">Estoy completando el registro en nombre del candidato</a><br><a class="button" href="https://cilb.jmaconsulting.biz/es/register-notification" id="return-prev">Vuelva a la página anterior</a><br><a class="button button--secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancele esta matrícula y vuelva a la página inicial</a><br>&nbsp;</p>'
+    '#markup': '<p><a class="button" id="behalf-of">Estoy completando el registro en nombre del candidato</a><br><a class="button" href="https://cilb.jmaconsulting.biz/es/register-notification" id="return-prev">Vuelva a la página anterior</a><br><a class="button button--secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancele esta matrícula y vuelva a la página inicial</a><br>&nbsp;</p>'
   registration_info:
     '#title': 'Pasos para obtener la licencia'
   steps_for_licensure_1:
