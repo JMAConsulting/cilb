@@ -6,6 +6,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\webform\WebformSubmissionInterface;
 use Drupal\webform\Plugin\WebformHandlerBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\user\Entity\User;
 
 /**
@@ -207,10 +208,24 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     elseif ($current_page == 'user_identification') {
       $this->validateCandidateRep($form_state);
     }
+    elseif ($current_page == 'payment_options') {
+      $this->redirectPayByCheck($form_state);
+    }
     elseif ($current_page == 'select_exam_page') {
       //TODO how to register for multiple events at once?
       $this->validateParticipantStatus($form_state);
       $this->validateExamPreference($form_state);
+    }
+  }
+
+
+  /**
+   * If user chooses pay by check, immediately redirect to the pay by mail page
+   */
+  private function redirectPayByCheck($formState) {
+    if ($formState->getValue('civicrm_1_contribution_1_contribution_payment_processor_id') == '0') {
+      $redirect = new RedirectResponse('/register-by-mail');
+      $redirect->send();
     }
   }
 

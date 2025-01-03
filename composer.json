@@ -59,8 +59,11 @@
             "Issue #3063998: mPDF Plugin": "https://www.drupal.org/files/issues/2022-12-01/3063998-18.patch"
         },
         "drupal/user_email_verification": {
-	    "Issue #3376165: Fatal error when 'rules' module is missing": "https://www.drupal.org/files/issues/2023-07-21/user_email_verification-rules_conditions-3376165-2.patch"
-	},
+	        "Issue #3376165: Fatal error when 'rules' module is missing": "https://www.drupal.org/files/issues/2023-07-21/user_email_verification-rules_conditions-3376165-2.patch"
+        },
+        "drupal/webform_civicrm": {
+            "Fix option value custom field crash": "https://github.com/colemanw/webform_civicrm/pull/1016.patch"
+        },
         "drupal/civicrm_entity": {
             "Fix civicrm_event_en_MX crash": "patches/civicrm_entity_497.patch"
         }
