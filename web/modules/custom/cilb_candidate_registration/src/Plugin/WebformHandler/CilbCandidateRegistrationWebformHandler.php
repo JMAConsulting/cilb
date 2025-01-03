@@ -116,6 +116,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         'first_name',
         'last_name',
       ],
+      'civicrm_1_contact_1_email' => [
+        'email'
+      ],
       // fill address fields from contact address
       'civicrm_1_contact_1_address' => [
         'street_address',
@@ -175,6 +178,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
 
     foreach ($sourceFields as $sourcePrefix => $fields) {
+      $targetPrefix = ($sourcePrefix == 'civicrm_1_contact_1_email') ? 'civicrm_1_contact_2_email' : $targetPrefix;
       foreach ($fields as $field) {
         $targetKey = $targetPrefix . '_' . $field;
         if (!$values[$targetKey]) {
@@ -223,8 +227,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * If user chooses pay by check, immediately redirect to the pay by mail page
    */
   private function redirectPayByCheck($formState) {
-    if ($formState->getValue('civicrm_1_contribution_1_contribution_payment_processor_id') == '0') {
-      $redirect = new RedirectResponse('/register-by-mail');
+    if ($formState->getValue('please_select_mode_of_payment') == 2) {
+      $redirect = new RedirectResponse('register-by-mail');
       $redirect->send();
     }
   }
