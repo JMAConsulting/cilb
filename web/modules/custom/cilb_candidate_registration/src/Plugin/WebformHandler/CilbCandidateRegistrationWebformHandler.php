@@ -160,7 +160,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
       // merge loaded data in to the formstate values only where blank
       // (in case for some reason those field have *not* been skipped)
-
       foreach ($sourceFields as $sourcePrefix => $fields) {
         // address fields are prefixed in the api result
         $apiPrefix = ($sourcePrefix === 'civicrm_1_contact_1_address') ? 'address_primary.' : '';
@@ -178,12 +177,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
 
     foreach ($sourceFields as $sourcePrefix => $fields) {
-      $targetPrefix = ($sourcePrefix == 'civicrm_1_contact_1_email') ? 'civicrm_1_contact_2_email' : $targetPrefix;
+      $targetPrefix = ($sourcePrefix == 'civicrm_1_contact_1_email') ? 'civicrm_1_contact_2_email' : 'civicrm_1_contribution_1_contribution_billing_address';
       foreach ($fields as $field) {
         $targetKey = $targetPrefix . '_' . $field;
         if (!$values[$targetKey]) {
           $sourceKey = $sourcePrefix . '_' . $field;
-
           $formState->setValue($targetKey, $values[$sourceKey]);
 
 	  // unfortunately values in the form state are *not* passed to the renderer, 
