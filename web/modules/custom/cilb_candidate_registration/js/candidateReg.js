@@ -7,6 +7,10 @@ jQuery(document).ready(function ($) {
   var isCandidate = $("input[name='candidate_representative']");
   var cancelReg = $("#cancel-reg");
 
+   // Check if form is in English or Spanish based on url
+  const currentUrl = window.location.href;
+  const lang = (currentUrl.indexOf("/es/") !== -1) ? 'es_MX' : 'en_US';
+
   var isExistingContact = $(
     "input[name='civicrm_1_contact_1_contact_existing']"
   ).val();
@@ -25,7 +29,8 @@ jQuery(document).ready(function ($) {
       var originalhref = returnPrev.attr("href");
       returnPrev.removeAttr("href");
 
-      next.val("Next >");
+      var originalNextLabel = next.val();
+      next.val((lang === 'es_MX') ? "Siguiente > " : "Next >");
 
       returnPrev.off("click").on("click", function (event) {
         event.preventDefault();
@@ -38,7 +43,7 @@ jQuery(document).ready(function ($) {
         candidateRepField.hide();
         candidateRep.val("");
         isCandidate.val(0);
-        next.val("I am the Candidate");
+        next.val(originalNextLabel);
       });
     });
 

@@ -748,9 +748,12 @@ final class SupportedEntities {
         if ($dbLocale) {
           $tables = \CRM_Core_I18n_Schema::schemaStructureTables();
           if (in_array($entity_type, $tables)) {
-            $locale_table_name = $entity_type . $dbLocale;
-            if (strlen($locale_table_name) <= 32) {
-              $civicrm_entity_info[$locale_table_name] = $entity_info;
+            $locales = \CRM_Core_I18n::getMultilingual();
+            foreach ($locales as $locale) {
+              $locale_table_name = $entity_type . '_' . $locale;
+              if (strlen($locale_table_name) <= 32) {
+                $civicrm_entity_info[$locale_table_name] = $entity_info;
+              }
             }
           }
         }

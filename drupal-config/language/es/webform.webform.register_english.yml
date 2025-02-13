@@ -11,7 +11,7 @@ elements: |
   civicrm_1_contact_1_cg1_custom_7:
     '#title': '<strong>Si está completando este registro en nombre de un candidato, ingrese su nombre completo. </strong>'
   user_identification_markup:
-    '#markup': '<p><a class="button" id="on-behalf">Estoy completando el registro en nombre del candidato</a><br><a class="button" href="https://cilb.jmaconsulting.biz/es/register-notification" id="return-prev">Vuelva a la página anterior</a><br><a class="button button--secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancele esta matrícula y vuelva a la página inicial</a><br>&nbsp;</p>'
+    '#markup': '<p><a class="button" id="behalf-of">Estoy completando el registro en nombre del candidato</a><br><a class="button" href="https://cilb.jmaconsulting.biz/es/register-notification" id="return-prev">Vuelva a la página anterior</a><br><a class="button button--secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancele esta matrícula y vuelva a la página inicial</a><br>&nbsp;</p>'
   registration_info:
     '#title': 'Pasos para obtener la licencia'
   steps_for_licensure_1:
@@ -46,8 +46,6 @@ elements: |
     '#title': 'Número de Seguro Social (SSN)'
   verify_ssn:
     '#title': 'Verifíque el SSN'
-  request_ssn_change:
-    '#markup': '<p><a href="https://cilb.jmaconsulting.biz/form/request-information-change" target="_blank">Solicitar un cambio de número de seguro social (SSN)</a></p>'
   registrant_contact_info:
     '#title': 'Coloque Su Información Personal'
   candidate_contact_information:
@@ -100,28 +98,19 @@ elements: |
     '#title': 'Selecciona una categoría'
   select_exam_category:
     '#title': 'Seleccione la categoría del examen'
-  category_info:
-    '#markup': '<p>Las especialidades de Torre, Demolición y Especialista de Instalaciones Industriales requieren aprobar todas las partes del examen de contratista General: Administración de contrato, Administración de proyecto, Negocios y finanzas.<br><br>Si tiene dudas o preguntas luego de revisar en detalle la información de la licenciatura, deberá revisar la página en línea de <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a>y/o comunicarse con el centro al cliente de DBPR/BET al 850.487.1395</p>'
   select_exam:
     '#title': 'Seleccione su categoría de examen:'
-    '#empty_option': '- Seleccionar Categoría -'
-  select_examination_date:
-    '#title': 'Seleccione la fecha del examen:'
-    '#empty_option': '- Seleccionar Fecha -'
-  exam_location:
-    '#title': 'Ubicación del examen'
+  category_info:
+    '#markup': '<p>Las especialidades de Torre, Demolición y Especialista de Instalaciones Industriales requieren aprobar todas las partes del examen de contratista General: Administración de contrato, Administración de proyecto, Negocios y finanzas.<br><br>Si tiene dudas o preguntas luego de revisar en detalle la información de la licenciatura, deberá revisar la página en línea de <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a>y/o comunicarse con el centro al cliente de DBPR/BET al 850.487.1395</p>'
+  select_exam_parts:
+    '#title': 'Tarifa del examen'
   definition_scope_of_practice:
     '#title': 'Alcance de la práctica'
     '#prev_button_label': '< Cambiar la categoría de licencia'
   definition_scope_of_practice_1:
     '#title': ' Definición y alcance de la práctica'
-  select_exam_parts:
-    '#title': 'Tarifa del examen'
-    '#next_button_label': 'Yo entiendo los cargos a pagar por la matrícula del examen y deseo continuar >'
   exam_fee:
     '#title': 'Ingrese la información del examen'
-  markup_01:
-    '#markup': '<p>Por favor tenga en cuenta que todos los cargos por el examen no son reembolsables ni transferibles. Si usted no se presenta a tomar el examen para el cual se matriculó, perderá todos los cargos pagados.</p>'
   authorize_credit_card_charge:
     '#title': 'Autorizar cargo a tarjeta de crédito'
   civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset:
@@ -139,8 +128,8 @@ elements: |
   civicrm_1_contribution_1_contribution_billing_address_country_id:
     '#title': País
   civicrm_1_contribution_1_contribution_billing_address_state_province_id:
-    '#empty_option': '- Ninguno -'
     '#title': Estado/Provincia
+    '#empty_option': '- Ninguno -'
   credit_card_auth:
     '#title': 'Autorizo ​​a Professional Testing a procesar la tarifa de inscripción de $80 a la tarjeta de crédito mencionada anteriormente.'
   online_exam_auth:

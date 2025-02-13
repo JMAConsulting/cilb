@@ -1,0 +1,29 @@
+From 8259ca9abdd5c171e746deffc3bffcea062bd236 Mon Sep 17 00:00:00 2001
+From: Herb <herb@3speedhub.com>
+Date: Tue, 13 Aug 2024 13:27:47 -0400
+Subject: [PATCH 1/3] Fix unknown entity type with multilingual
+
+---
+ src/SupportedEntities.php | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/SupportedEntities.php b/src/SupportedEntities.php
+index ad968515..a2924547 100644
+--- a/src/SupportedEntities.php
++++ b/src/SupportedEntities.php
+@@ -748,9 +748,12 @@ public static function getInfo() {
+         if ($dbLocale) {
+           $tables = \CRM_Core_I18n_Schema::schemaStructureTables();
+           if (in_array($entity_type, $tables)) {
+-            $locale_table_name = $entity_type . $dbLocale;
+-            if (strlen($locale_table_name) <= 32) {
+-              $civicrm_entity_info[$locale_table_name] = $entity_info;
++            $locales = \CRM_Core_I18n::getMultilingual();
++            foreach ($locales as $locale) {
++              $locale_table_name = $entity_type . '_' . $locale;
++              if (strlen($locale_table_name) <= 32) {
++                $civicrm_entity_info[$locale_table_name] = $entity_info;
++              }
+             }
+           }
+         }
