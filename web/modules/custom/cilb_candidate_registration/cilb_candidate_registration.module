@@ -104,13 +104,18 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
       ->execute();
 
-    // check for previously passed exams
+    // check for existing registrations that mean we cant reregister for an exam
     //
-    // NOTE: the logic is different depending on whether the Exam Part is "Category Specific":
-    //   category specific => only exclude if passed the same exam for the same part + same category
-    //   otherwise => exclude if passed any exam for the same part, regardless of category
-    $categorySpecificPasses = [];
-    $generalPasses = [];
+    // NOTES:
+    // - previous registrations where the result is FAIL or CANCELLED are excluded (need to be able to retake)
+    // - previous registrations where the admin has set Bypass are excluded (this is used for cases
+    //   where e.g. candidates need to retake after 3 years)
+    // - the logic is different depending on whether the Exam Part is "Category Specific":
+    //     category specific => only exclude registration is for the same part AND same category
+    //     otherwise => exclude if registration for any exam for the same part, regardless of category
+    //
+    $categorySpecificExclusions = [];
+    $generalExclusions = [];
 
     // only check if someone is logged in
     if (!empty(\CRM_Core_Session::getLoggedInContactID())) {
@@ -122,41 +127,48 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
         ->indexBy('value')
         ->column('Exam_Part_Options.Category_Specific');
 
-      $passedExams = \Civi\Api4\Participant::get(FALSE)
-        ->addSelect('event_id.Exam_Details.Exam_Part', 'event_id.event_type_id', 'event_id')
+      $previousRegistrations = \Civi\Api4\Participant::get(FALSE)
+        ->addSelect('event_id.Exam_Details.Exam_Part', 'event_id.event_type_id', 'event_id', 'status_id:name')
         ->addJoin('Event AS event', 'INNER', ['event.id', '=', 'event_id'])
         ->addWhere('contact_id', '=', \CRM_Core_Session::getLoggedInContactID())
-        ->addWhere('status_id:name', '=', 'Pass')
+        ->addWhere('status_id:name', 'NOT IN', ['Fail', 'Cancelled'])
+        ->addWhere('Candidate_Result.Bypass_Reregistration_Check', 'IS EMPTY')
         ->execute();
 
-      foreach ($passedExams as $passedExam) {
-        $passedExamPart = $passedExam['event_id.Exam_Details.Exam_Part'];
-        if ($examPartCategorySpecificity[$passedExamPart]) {
-          $passedCategory = $passedExam['event_id.event_type_id'];
-          // initialise array for new category if not seen before
-          $categorySpecificPasses[$passedCategory] ??= [];
-          $categorySpecificPasses[$passedCategory][$passedExam['event_id']] = $passedExamPart;
+      foreach ($previousRegistrations as $previousReg) {
+        // part = Trade Knowledge or Business & Finance or ...
+        $previousRegPart = $previousReg['event_id.Exam_Details.Exam_Part'];
+
+        if ($examPartCategorySpecificity[$previousRegPart]) {
+          // initialise sub array for this part if not seen before
+          $categorySpecificExclusions[$previousRegPart] ??= [];
+          // sub-array of types, e.g. Air A, Air B
+          $categorySpecificExclusions[$previousRegPart][] = $previousReg['event_id.event_type_id'];
         }
         else {
-          $generalPasses[] = $passedExamPart;
+          $generalExclusions[] = $previousRegPart;
         }
       }
     }
     $valid_events = [];
     foreach ($events as $event) {
-      if (in_array($event['Exam_Details.Exam_Part'] ?? '', $generalPasses)) {
-        // we've passed an exam for the same part, and its not category specific => skip
-        continue;
-      }
-      $passesThisCategory = $categorySpecificPasses[$event['event_type_id']] ?? [];
-      if (in_array($event['Exam_Details.Exam_Part'] ?? '', $passesThisCategory) &&
-      ($event['event_type_id:name'] == 'Plumbing' && isset($passesThisCategory[$event['id']]))
-      ) {
-        // we've passed and exam for the same part and category => skip
+      $eventPart = $event['Exam_Details.Exam_Part'] ?? '';
+
+      if (in_array($eventPart, $generalExclusions)) {
+        // existing reg for this part, and its not category specific => skip
         continue;
       }
 
-      // no matching previous pass => add to valid events
+      $eventCategory = $event['event_type_id'];
+
+      if (
+        in_array($eventCategory, $categorySpecificExclusions[$eventPart] ?? [])
+      ) {
+        // we have an existing reg for the same part and category => skip
+        continue;
+      }
+
+      // no matching previous => add to valid events
       $valid_events[] = $event['id'];
     }
 
