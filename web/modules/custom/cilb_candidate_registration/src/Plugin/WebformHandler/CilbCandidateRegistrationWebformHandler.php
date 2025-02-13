@@ -116,6 +116,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         'first_name',
         'last_name',
       ],
+      'civicrm_1_contact_1_email' => [
+        'email'
+      ],
       // fill address fields from contact address
       'civicrm_1_contact_1_address' => [
         'street_address',
@@ -157,7 +160,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
       // merge loaded data in to the formstate values only where blank
       // (in case for some reason those field have *not* been skipped)
-
       foreach ($sourceFields as $sourcePrefix => $fields) {
         // address fields are prefixed in the api result
         $apiPrefix = ($sourcePrefix === 'civicrm_1_contact_1_address') ? 'address_primary.' : '';
@@ -175,11 +177,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
 
     foreach ($sourceFields as $sourcePrefix => $fields) {
+      $targetPrefix = ($sourcePrefix == 'civicrm_1_contact_1_email') ? 'civicrm_1_contact_2_email' : 'civicrm_1_contribution_1_contribution_billing_address';
       foreach ($fields as $field) {
         $targetKey = $targetPrefix . '_' . $field;
         if (!$values[$targetKey]) {
           $sourceKey = $sourcePrefix . '_' . $field;
-
           $formState->setValue($targetKey, $values[$sourceKey]);
 
 	  // unfortunately values in the form state are *not* passed to the renderer, 
@@ -223,8 +225,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * If user chooses pay by check, immediately redirect to the pay by mail page
    */
   private function redirectPayByCheck($formState) {
-    if ($formState->getValue('civicrm_1_contribution_1_contribution_payment_processor_id') == '0') {
-      $redirect = new RedirectResponse('/register-by-mail');
+    if ($formState->getValue('please_select_mode_of_payment') == 2) {
+      $redirect = new RedirectResponse('register-by-mail');
       $redirect->send();
     }
   }

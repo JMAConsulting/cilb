@@ -30,22 +30,6 @@ title: 'Register for a Florida State Construction Examination'
 description: '<p>Register for a Florida State Construction Examination</p>'
 categories: {  }
 elements: |-
-  civicrm_1_contact_1_contact_existing:
-    '#type': civicrm_contact
-    '#title': 'Existing Contact'
-    '#widget': hidden
-    '#none_prompt': '+ Create new +'
-    '#results_display':
-      display_name: display_name
-    '#states_clear': false
-    '#format_attributes':
-      style: 'display: none;'
-    '#default': user
-    '#allow_create': 1
-    '#contact_type': individual
-    '#form_key': civicrm_1_contact_1_contact_existing
-    '#parent': civicrm_1_contact_1_fieldset_fieldset
-    '#extra': {  }
   user_identification:
     '#type': webform_wizard_page
     '#title': 'User Identification'
@@ -108,21 +92,13 @@ elements: |-
     payment_options_fs:
       '#type': fieldset
       '#title': 'Payment options'
-      civicrm_1_contribution_1_contribution_payment_processor_id:
-        '#type': civicrm_options
+      please_select_mode_of_payment:
+        '#type': radios
         '#title': 'Please select mode of payment'
-        '#description': '<p>Please note to pay by check you will have to register by mail.</p>'
-        '#description_display': after
-        '#civicrm_live_options': 0
         '#options':
-          3: 'Pay by card'
-          0: 'Pay by check'
+          1: 'Pay by card'
+          2: 'Pay by check'
         '#required': true
-        '#default_value': '3'
-        '#exposed_empty_option': 'Pay Later'
-        '#form_key': civicrm_1_contribution_1_contribution_payment_processor_id
-        '#parent': contribution_pagebreak
-        '#default_option': '3'
   registrant_personal_info:
     '#type': webform_wizard_page
     '#title': 'Candidate Information'
@@ -130,6 +106,22 @@ elements: |-
     candidate_informtaion:
       '#type': fieldset
       '#title': 'Candidate Information'
+      civicrm_1_contact_1_contact_existing:
+        '#type': civicrm_contact
+        '#title': 'Existing Contact'
+        '#widget': hidden
+        '#none_prompt': '+ Create new +'
+        '#results_display':
+          display_name: display_name
+        '#states_clear': false
+        '#format_attributes':
+          style: 'display: none;'
+        '#default': user
+        '#allow_create': 1
+        '#contact_type': individual
+        '#form_key': civicrm_1_contact_1_contact_existing
+        '#parent': civicrm_1_contact_1_fieldset_fieldset
+        '#extra': {  }
       personal_info_markup:
         '#type': webform_markup
         '#markup': '<p><span id="lblInstructions">* Under the Federal Privacy Act, disclosure of Social Security numbers is voluntary unless specifically required by Federal statute. In this instance, Social Security numbers are mandatory pursuant to Title 42 United States Code, Sections 653 and 654: and Sections 455.203(9), Florida Statues. Social Security numbers are used to allow efficient screening of applicants and licensees by Title IV‐D child support agency to assure compliance with child support obligations. Social Security numbers must also be recorded on all professional and occupational license applications and will be used for licensee identification pursuant to the Personal Responsibility and Work Opportunity Reconciliation Act of 1996 (Welfare Reform Act), 104 Pub. L. 193, Sec.317</span><br><br><span id="lblInstructions">Enter your legal name as it would appear on a certificate or license. Avoid using all capital letters, use mixed case. (i.e John William Smith)</span></p>'
@@ -1184,6 +1176,7 @@ handlers:
     conditions: {  }
     weight: -50
     settings:
+      disable: 'Leave Fields and Save Settings'
       nid: 1
       number_of_contacts: '1'
       1_contact_type: individual
@@ -1285,11 +1278,10 @@ handlers:
       civicrm_1_contribution_1_contribution_enable_contribution: '1'
       civicrm_1_contribution_1_contribution_contact_id: '1'
       civicrm_1_contribution_1_contribution_total_amount: create_civicrm_webform_element
-      civicrm_1_contribution_1_contribution_payment_processor_id: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_payment_processor_id: '3'
       civicrm_1_contribution_1_contribution_is_test: '1'
       civicrm_1_contribution_1_contribution_note: 0
       civicrm_1_contribution_1_contribution_source: 0
-      civicrm_1_contribution_1_contribution_receive_date: 0
       civicrm_1_contribution_1_contribution_financial_type_id: '4'
       contribution_1_settings_currency: USD
       civicrm_1_contribution_1_contribution_soft:
@@ -1372,7 +1364,7 @@ handlers:
               1:
                 enable_contribution: '1'
                 contact_id: '1'
-                payment_processor_id: ''
+                payment_processor_id: 3
                 is_test: '1'
                 financial_type_id: '4'
         billing:
