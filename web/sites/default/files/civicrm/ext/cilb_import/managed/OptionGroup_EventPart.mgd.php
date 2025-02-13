@@ -106,4 +106,55 @@ return [
         ],
       ],
     ],
+    // custom fields extending this option group - keep here so they are always created after
+    [
+      'name' => 'CustomGroup_Exam_Part_Options',
+      'entity' => 'CustomGroup',
+      'cleanup' => 'unused',
+      'update' => 'unmodified',
+      'params' => [
+        'version' => 4,
+        'values' => [
+          'name' => 'Exam_Part_Options',
+          'title' => E::ts('Exam Part Options'),
+          'extends' => 'OptionValue',
+          'extends_entity_column_value:name' => ['Exam_Part'],
+          'style' => 'Inline',
+          'help_pre' => '',
+          'help_post' => '',
+          'weight' => 8,
+          'collapse_adv_display' => TRUE,
+          'icon' => '',
+        ],
+        'match' => [
+          'name',
+          'extends',
+        ],
+      ],
+    ],
+    [
+      'name' => 'CustomGroup_Exam_Part_Options_CustomField_Category_Specific',
+      'entity' => 'CustomField',
+      'cleanup' => 'unused',
+      'update' => 'unmodified',
+      'params' => [
+        'version' => 4,
+        'values' => [
+          'custom_group_id.name' => 'Exam_Part_Options',
+          'name' => 'Category_Specific',
+          'label' => E::ts('Category Specific?'),
+          'data_type' => 'Boolean',
+          'html_type' => 'Radio',
+          'default_value' => '0',
+          'text_length' => 255,
+          'note_columns' => 60,
+          'note_rows' => 4,
+          'column_name' => 'category_specific_34',
+        ],
+        'match' => [
+          'name',
+          'extends',
+        ],
+      ],
+    ],
 ];
