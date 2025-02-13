@@ -452,6 +452,17 @@ elements: |-
         view_name: exam_type
         display_name: entity_reference_1
         arguments: {  }
+  definition_scope_of_practice:
+    '#type': webform_wizard_page
+    '#title': 'Scope of Practice'
+    '#open': true
+    '#prev_button_label': '< Change the License Category'
+    definition_scope_of_practice_1:
+      '#type': fieldset
+      '#title': 'Definition & Scope of Practice'
+      scope_markup:
+        '#type': webform_markup
+        '#markup': '<p>*</p>'
   select_exam_page:
     '#type': webform_wizard_page
     '#title': 'Select Examination'
@@ -519,17 +530,6 @@ elements: |-
         view_name: exams
         display_name: entity_reference_1
         arguments: {  }
-  definition_scope_of_practice:
-    '#type': webform_wizard_page
-    '#title': 'Scope of Practice'
-    '#open': true
-    '#prev_button_label': '< Change the License Category'
-    definition_scope_of_practice_1:
-      '#type': fieldset
-      '#title': 'Definition & Scope of Practice'
-      scope_markup:
-        '#type': webform_markup
-        '#markup': '<p>*</p>'
   exam_fee_page:
     '#type': webform_wizard_page
     '#title': 'Exam Fee'
