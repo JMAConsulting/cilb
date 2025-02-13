@@ -63,6 +63,12 @@ jQuery(document).ready(function ($) {
       ],
     };
 
+    // if candidate has Construction Bacc then only show
+    //  Business & Finance exams
+    if ($candidateBaccField && $candidateBaccField.is(':checked')) {
+      eventFetchParams.where.push(["Exam_Details.Exam_Part", "=", "BF"])
+    }
+
     CRM.api4("Event", "get", eventFetchParams)
     .then((eventsForCategory) => eventsForCategory.map((e) => e.id))
     .then((eventIdsForCategory) => {
