@@ -5,7 +5,7 @@ namespace Drupal\cilb_user_management\Form;
 class Utils {
 
   /**
-   * Used in UserActivate and password reset form
+   * Used in UserActivate form
    */
   public static function getSsnField(): array {
     return [
@@ -28,4 +28,18 @@ class Utils {
       // '#element_validate' => [[get_called_class(), 'validateSsnInputMask']],
     ];
   }
+
+  /**
+   * Used in password reset form
+   */
+  public static function getDobField(): array {
+    return [
+      '#type' => 'date',
+      '#title' => t('Date of Birth'),
+      '#required' => TRUE,
+      '#date_date_element' => 'date',
+      '#date_time_element' => 'none',
+    ];
+  }
+
 }
