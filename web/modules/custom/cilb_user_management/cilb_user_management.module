@@ -11,10 +11,10 @@ function cilb_user_management_form_alter(&$form, \Drupal\Core\Form\FormStateInte
   // alter the password reset form for non-logged in users
   if ($form_id === 'user_pass' && !\Drupal::currentUser()->isAuthenticated()) {
     // add SSN field
-    $form['ssn'] = \Drupal\cilb_user_management\Form\Utils::getSsnField();
+    $form['dob'] = \Drupal\cilb_user_management\Form\Utils::getDobField();
 
     // ensure ssn field appears before help text (which is confusingly keyed as 'mail')
-    $form['ssn']['#weight'] = 10;
+    $form['dob']['#weight'] = 10;
     $form['mail']['#weight'] = 20;
 
     // update the label on email/username form to be email specifically
@@ -26,21 +26,21 @@ function cilb_user_management_form_alter(&$form, \Drupal\Core\Form\FormStateInte
 }
 
 function cilb_user_management_user_pass_form_validate($form, \Drupal\Core\Form\FormStateInterface $form_state) {
-  $ssn = $form_state->getValue('ssn');
+  $dob = $form_state->getValue('dob');
   $submittedEmail = $form_state->getValue('name');
 
   \Drupal::service('civicrm')->initialize();
 
   $matchingContact = \Civi\Api4\Contact::get(FALSE)
     ->addSelect('id')
-    ->addWhere('email_primary.email', '=', $form_state->getValue('name'))
-    ->addWhere('Registrant_Info.SSN', '=', str_replace('-', '', $ssn))
+    ->addWhere('email_primary.email', '=', $submittedEmail)
+    ->addWhere('birth_date', '=', $dob)
     ->addWhere('is_deleted', '=', FALSE)
     ->execute()
     ->first();
 
   if (!$matchingContact) {
-    $form_state->setErrorByName('ssn', t('No contact record found for this SSN.'));
+    $form_state->setErrorByName('dob', t('No contact record found with these details.'));
     return;
   }
 
@@ -50,14 +50,14 @@ function cilb_user_management_user_pass_form_validate($form, \Drupal\Core\Form\F
     ->first();
 
   if (!$matchingUser) {
-    $form_state->setErrorByName('ssn', t('No user record found for this SSN. Please <a href="/user/activate">activate your account</a> to continue.'));
+    $form_state->setErrorByName('dob', t('No user account exists for these details. Please <a href="/user/activate">activate your account</a> to continue.'));
     return;
   }
 
   $user = \Drupal\user\Entity\User::load($matchingUser['uf_id']);
 
   if ($user->getEmail() !== $submittedEmail) {
-    $form_state->setErrorByName('name', t('This is not the email we have on record for the SSN provided.'));
+    $form_state->setErrorByName('name', t('This is not the email we have on record for your account.'));
     return;
   }
 
