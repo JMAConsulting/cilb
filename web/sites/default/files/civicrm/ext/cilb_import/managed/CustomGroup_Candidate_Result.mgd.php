@@ -1,0 +1,49 @@
+<?php
+use CRM_Cilb_Import_ExtensionUtil as E;
+return [
+  [
+    'name' => 'CustomGroup_Candidate_Result',
+    'entity' => 'CustomGroup',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'name' => 'Candidate_Result',
+        'title' => E::ts('Candidate Result'),
+        'extends' => 'Participant',
+        'style' => 'Inline',
+        'help_pre' => E::ts(''),
+        'help_post' => E::ts(''),
+        'weight' => 5,
+        'collapse_adv_display' => TRUE,
+        'icon' => '',
+      ],
+      'match' => ['name'],
+    ],
+  ],
+  [
+    'name' => 'CustomGroup_Candidate_Result_CustomField_Candidate_Score',
+    'entity' => 'CustomField',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'custom_group_id.name' => 'Candidate_Result',
+        'name' => 'Candidate_Score',
+        'label' => E::ts('Score'),
+        'data_type' => 'Float',
+        'html_type' => 'Text',
+        'text_length' => 255,
+        'note_columns' => 60,
+        'note_rows' => 4,
+        'column_name' => 'score_33',
+      ],
+      'match' => [
+        'name',
+        'custom_group_id',
+      ],
+    ],
+  ],
+];

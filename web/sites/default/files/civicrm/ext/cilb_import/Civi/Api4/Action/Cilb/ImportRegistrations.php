@@ -27,7 +27,15 @@ class ImportRegistrations extends ImportBase {
 
   protected function importParts() {
     foreach ($this->getRows("
-        SELECT PK_Exam_Registration_ID, FK_Account_ID, pti_exam_registrations.FK_Category_ID, Category_Name, Transaction_Date, Exam_Part_Name_Abbr, Pass
+        SELECT
+          PK_Exam_Registration_ID,
+          FK_Account_ID,
+          pti_exam_registrations.FK_Category_ID,
+          Category_Name,
+          Transaction_Date,
+          Exam_Part_Name_Abbr,
+          Pass,
+          Score
         FROM pti_exam_registrations
         JOIN pti_code_categories
         ON `FK_Category_ID` = `PK_Category_ID`
@@ -73,6 +81,7 @@ class ImportRegistrations extends ImportBase {
         ->addValue('event_id', $event['id'])
         ->addValue('contact_id', $contactId)
         ->addValue('register_date', $registration['Transaction_Date'])
+        ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
         ->addValue('status_id:label', $status)
         ->execute();
     }
@@ -80,7 +89,15 @@ class ImportRegistrations extends ImportBase {
 
   protected function importBusinessAndFinance() {
     foreach ($this->getRows("
-        SELECT PK_Exam_Registration_ID, FK_Account_ID, FK_Category_ID, Category_Name, Confirm_BF_Exam, BF_Pass, Transaction_Date
+        SELECT
+          PK_Exam_Registration_ID,
+          FK_Account_ID,
+          FK_Category_ID,
+          Category_Name,
+          Confirm_BF_Exam,
+          BF_Pass,
+          BF_Score,
+          Transaction_Date
         FROM pti_exam_registrations
         JOIN pti_code_categories
         ON `FK_Category_ID` = `PK_Category_ID`
@@ -123,6 +140,7 @@ class ImportRegistrations extends ImportBase {
         ->addValue('event_id', $event['id'])
         ->addValue('contact_id', $contactId)
         ->addValue('register_date', $registration['Transaction_Date'])
+        ->addValue('Candidate_Result.Candidate_Score', $registration['BF_Score'])
         ->addValue('status_id:label', $status)
         ->execute();
     }
