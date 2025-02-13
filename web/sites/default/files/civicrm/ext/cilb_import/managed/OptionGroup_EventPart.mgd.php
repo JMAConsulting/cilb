@@ -149,7 +149,6 @@ return [
           'text_length' => 255,
           'note_columns' => 60,
           'note_rows' => 4,
-          'column_name' => 'category_specific_34',
         ],
         'match' => [
           'name',
