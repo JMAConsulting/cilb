@@ -15,10 +15,23 @@ jQuery(document).ready(function ($) {
   const $examPrefSelector = $('[data-drupal-selector="edit-exam-preference"]');
   const $examCatIdField = $('[data-drupal-selector="edit-exam-category-id"]');
   const $eventIdsField = $('[data-drupal-selector="edit-event-ids"]');
-  const $candidateBaccField = $('[data-drupal-selector="edit-civicrm-1-contact-1-cg1-custom-2-1"]');
+  // we have to listen to change events on both radio buttons, thanks jquery...
+  const $candidateDegreeSelectors = $('.form-item-civicrm-1-contact-1-cg1-custom-2 input')
+  const $candidateDegreeSelectorYes = $('[data-drupal-selector="edit-civicrm-1-contact-1-cg1-custom-2-1"]');
+  const $candidateDegreeField = $('[data-drupal-selector="edit-candidate-has-degree"]');
 
   $examCatIdField.parent().hide();
   $eventIdsField.parent().hide();
+  $candidateDegreeField.parent().hide();
+
+  if ($candidateDegreeSelectorYes.length) {
+    // store candidate degree selection for reference on subsequent pages
+    // NOTE: selector will load candidate value from DB initially => ensure propagated
+    $candidateDegreeField.val($candidateDegreeSelectorYes.is(':checked') ? 1 : 0);
+    $candidateDegreeSelectors.on('change', function () {
+      $candidateDegreeField.val($candidateDegreeSelectorYes.is(':checked') ? 1 : 0);
+    });
+  }
 
   if ($examCatSelector.length) {
     // store exam cat id selection for reference on subsequent pages
@@ -64,8 +77,8 @@ jQuery(document).ready(function ($) {
     };
 
     // if candidate has Construction Bacc then only show
-    //  Business & Finance exams
-    if ($candidateBaccField && $candidateBaccField.is(':checked')) {
+    // Business & Finance exams
+    if (parseInt($candidateDegreeField.val())) {
       eventFetchParams.where.push(["Exam_Details.Exam_Part", "=", "BF"])
     }
 
