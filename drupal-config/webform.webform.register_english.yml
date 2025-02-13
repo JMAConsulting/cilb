@@ -412,6 +412,12 @@ elements: |-
         '#parent': civicrm_1_contact_1_cg1_fieldset
         '#default_option': ''
         '#default_value': ''
+  candidate_has_degree:
+    '#type': number
+    '#title': 'Candidate has degree'
+    '#readonly': true
+    '#wrapper_attributes':
+      style: 'display: none;'
   select_category_page:
     '#type': webform_wizard_page
     '#title': 'Select Contractor Category'
