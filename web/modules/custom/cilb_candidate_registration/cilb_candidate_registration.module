@@ -1,7 +1,6 @@
 <?php
 
 use Drupal\webform\Utility\WebformFormHelper;
-use Drupal\webform\Entity\Webform;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\block\Entity\Block;
@@ -21,12 +20,11 @@ function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormSt
     $form['#attached']['library'][] = 'cilb_candidate_registration/exam_selection';
     $form['#attached']['library'][] = 'cilb_candidate_registration/selected_exam_info';
 
-
     // Redirect to /register if notification block is disabled
     $elements = WebformFormHelper::flattenElements($form);
     $original_markup = $elements['user_identification_markup']['#markup'];
 
-    if(! _is_block_active('olivero_candidatenotice')) {
+    if (!_is_block_active('olivero_candidatenotice')) {
       $updated_markup = preg_replace(
         '/https:\/\/cilb\.jmaconsulting\.biz\/(es\/)?register-notification/',
         'https://cilb.jmaconsulting.biz/register',
@@ -44,10 +42,11 @@ function cilb_candidate_registration_preprocess_page(&$variables) {
     $block_id = 'olivero_candidatenotice';
 
     // Redirect to webform if notification block is disabled
-    if (! _is_block_active($block_id)) {
-      if($current_language == 'es') {
+    if (!_is_block_active($block_id)) {
+      if ($current_language == 'es') {
         $redirect_url = Url::fromUri('internal:/es/exam-registration');
-      } else {
+      }
+      else {
         $redirect_url = Url::fromUri('internal:/exam-registration');
       }
       $response = new RedirectResponse($redirect_url->toString());
@@ -74,7 +73,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
       ->addJoin('OptionValue AS option_value', 'LEFT', ['event_type_id', '=', 'option_value.value'])
       ->addWhere('is_active', '=', TRUE)
     //  ->addWhere('start_date', '>', 'now')
-   //   ->addWhere('is_online_registration', '=', TRUE)
+    //   ->addWhere('is_online_registration', '=', TRUE)
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
       ->addWhere('option_value.option_group_id', '=', 15)
       ->addGroupBy('event_type_id')
@@ -88,18 +87,20 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 
     if (!empty($valid_option_ids)) {
       $query->addWhere('AND', 'civicrm_option_value.id', $valid_option_ids, 'IN');
-    } else {
+    }
+    else {
       $query->addWhere('AND', 'civicrm_option_value.id', '0', '=');
     }
 
-  } elseif ($view->id() == 'exams' && ($view->current_display == 'entity_reference_1' || $view->current_display == 'entity_reference_3')) {
+  }
+  elseif ($view->id() == 'exams' && ($view->current_display == 'entity_reference_1' || $view->current_display == 'entity_reference_3')) {
 
     // Check to make sure exams are not full
     $events = \Civi\Api4\Event::get(FALSE)
       ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name')
       ->addWhere('is_active', '=', TRUE)
       //->addWhere('start_date', '>', 'now')
-//      ->addWhere('is_online_registration', '=', TRUE)
+    //      ->addWhere('is_online_registration', '=', TRUE)
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
       ->execute();
 
@@ -116,7 +117,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 
       $examPartCategorySpecificity = \Civi\Api4\OptionValue::get(FALSE)
         ->addWhere('option_group_id:name', '=', 'Exam_Part')
-	->addSelect('value', 'Exam_Part_Options.Category_Specific')
+        ->addSelect('value', 'Exam_Part_Options.Category_Specific')
         ->execute()
         ->indexBy('value')
         ->column('Exam_Part_Options.Category_Specific');
@@ -128,17 +129,17 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
         ->addWhere('status_id:name', '=', 'Pass')
         ->execute();
 
-
       foreach ($passedExams as $passedExam) {
-	$passedExamPart = $passedExam['event_id.Exam_Details.Exam_Part'];
-	if ($examPartCategorySpecificity[$passedExamPart]) {
-	  $passedCategory = $passedExam['event_id.event_type_id'];
-	  // initialise array for new category if not seen before
+        $passedExamPart = $passedExam['event_id.Exam_Details.Exam_Part'];
+        if ($examPartCategorySpecificity[$passedExamPart]) {
+          $passedCategory = $passedExam['event_id.event_type_id'];
+          // initialise array for new category if not seen before
           $categorySpecificPasses[$passedCategory] ??= [];
-	  $categorySpecificPasses[$passedCategory][$passedExam['event_id']] = $passedExamPart;
-	} else {
+          $categorySpecificPasses[$passedCategory][$passedExam['event_id']] = $passedExamPart;
+        }
+        else {
           $generalPasses[] = $passedExamPart;
-	}
+        }
       }
     }
     $valid_events = [];
@@ -149,10 +150,10 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
       }
       $passesThisCategory = $categorySpecificPasses[$event['event_type_id']] ?? [];
       if (in_array($event['Exam_Details.Exam_Part'] ?? '', $passesThisCategory) &&
-	 ($event['event_type_id:name'] == 'Plumbing' && isset($passesThisCategory[$event['id']]))
+      ($event['event_type_id:name'] == 'Plumbing' && isset($passesThisCategory[$event['id']]))
       ) {
-	    // we've passed and exam for the same part and category => skip
-	    continue;
+        // we've passed and exam for the same part and category => skip
+        continue;
       }
 
       // no matching previous pass => add to valid events
@@ -161,7 +162,8 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 
     if (!empty($valid_events)) {
       $query->addWhere('AND', 'civicrm_event.id', $valid_events, 'IN');
-    } else {
+    }
+    else {
       $query->addWhere('AND', 'civicrm_event.id', '0', '=');
     }
   }
