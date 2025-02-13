@@ -235,18 +235,10 @@ elements: |-
     '#type': webform_wizard_page
     '#title': 'Candidate Contact Information'
     '#open': true
-    '#states':
-      invisible:
-        ':input[name="civicrm_1_contact_1_contact_existing"]':
-          filled: true
     '#states_clear': false
     candidate_contact_information:
       '#type': fieldset
       '#title': 'Candidate Contact Information'
-      '#states':
-        invisible:
-          ':input[name="civicrm_1_contact_1_contact_existing"]':
-            filled: true
       '#states_clear': false
       mailing_address:
         '#type': fieldset
