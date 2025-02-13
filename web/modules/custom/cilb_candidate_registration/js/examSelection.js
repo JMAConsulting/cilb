@@ -15,6 +15,8 @@ jQuery(document).ready(function ($) {
   const $examPrefSelector = $('[data-drupal-selector="edit-exam-preference"]');
   const $examCatIdField = $('[data-drupal-selector="edit-exam-category-id"]');
   const $eventIdsField = $('[data-drupal-selector="edit-event-ids"]');
+  const $candidateBaccField = $('[data-drupal-selector="edit-civicrm-1-contact-1-cg1-custom-2-1"]');
+
   $examCatIdField.parent().hide();
   $eventIdsField.parent().hide();
 
@@ -38,16 +40,15 @@ jQuery(document).ready(function ($) {
       $eventIdsField.val($examPartSelector.val());
     });
 
-    // hide all part options initially
+    // hide all part options initially and clear starting selection
     $examPartSelector.find("option").each(function () {
       $(this).hide();
     });
-
     $examPartSelector.val("");
 
     const selectedCat = $examCatIdField.val();
 
-    CRM.api4("Event", "get", {
+    const eventFetchParams = {
       select: ["id", "Exam_Details.Exam_Part"],
       join: [
         [
@@ -60,38 +61,39 @@ jQuery(document).ready(function ($) {
         ["option_value.option_group_id:name", "=", "event_type"],
         ["option_value.id", "=", selectedCat],
       ],
-    }).then((events) => {
-      const eventParts = {};
+    };
 
-      events.forEach((event) => eventParts[event.id] = event['Exam_Details.Exam_Part']);
-      let examOptions = [];
+    CRM.api4("Event", "get", eventFetchParams)
+    .then((eventsForCategory) => eventsForCategory.map((e) => e.id))
+    .then((eventIdsForCategory) => {
+
+      // extract the options that match the selected part
+      // from the starting options
+      let finalOptions = [];
+
       $examPartSelector.find("option").each(function () {
-        const optionValue = $(this).val();
+        const eventId = parseInt($(this).val());
 
-        if (optionValue === "") {
-            return;
+        if (!eventId) {
+          return;
         }
 
         // Check if the optionValue is in the keys of eventParts
-        if (parseInt(optionValue) in eventParts) {
+        if (eventIdsForCategory.some((id) => id === eventId)) {
           // Show valid options
           // TODO strip the category part from event name display
           // $(this).text()
-          examOptions.push({
+          finalOptions.push({
             text: $(this).text(),
-            id: optionValue,
+            id: eventId,
           });
-          $(this).show();
-        } else {
-          // Hide invalid
-          $(this).hide();
         }
       });
 
-      if (examOptions.length) {
-        $examPartSelector.empty().select2({data: examOptions, multiple: true, width: '100%'});
+      if (finalOptions.length) {
+        $examPartSelector.empty().select2({data: finalOptions, multiple: true, width: '100%'});
       } else {
-	$examPartSelector.parent().empty()
+	      $examPartSelector.parent().empty()
           .append($('<em>No more exam parts are available for this contractor type</em>'));
       }
     }, (failure) => {
