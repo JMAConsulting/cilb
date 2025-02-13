@@ -46,4 +46,25 @@ return [
       ],
     ],
   ],
+  [
+    'name' => 'CustomGroup_Candidate_Result_CustomField_Bypass_Reregistration_Check',
+    'entity' => 'CustomField',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'custom_group_id.name' => 'Candidate_Result',
+        'name' => 'Bypass_Reregistration_Check',
+        'label' => E::ts('Bypass Reregistration Check'),
+        'description' => E::ts('Normally if a candidate has registered for or taken an exam part, they are prevented from registering again. Set this field to Yes to bypass this check and allow the candidate to re-register.'),
+        'data_type' => 'Boolean',
+        'html_type' => 'Radio',
+      ],
+      'match' => [
+        'name',
+        'custom_group_id',
+      ],
+    ],
+  ],
 ];
