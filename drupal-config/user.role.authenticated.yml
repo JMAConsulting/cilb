@@ -11,6 +11,7 @@ dependencies:
     - contact
     - file
     - filter
+    - media
     - search
     - shortcut
     - system
@@ -42,3 +43,4 @@ permissions:
   - 'use text format webform_default'
   - 'view event info'
   - 'view event participants'
+  - 'view media'
