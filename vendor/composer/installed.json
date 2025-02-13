@@ -2493,6 +2493,9 @@
                         "status": "not-covered",
                         "message": "Beta releases are not covered by Drupal security advisories."
                     }
+                },
+                "patches_applied": {
+                    "Fix civicrm_event_en_MX crash": "patches/civicrm_entity_497.patch"
                 }
             },
             "installation-source": "dist",
