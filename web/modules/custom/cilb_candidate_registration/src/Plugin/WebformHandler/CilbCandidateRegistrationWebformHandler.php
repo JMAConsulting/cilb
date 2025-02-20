@@ -339,13 +339,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     $contributionId = $webformCivicrmPostProcess->getContributionId();
 
-//    $contributionId = \Civi\Api4\Contribution::get(FALSE)
-//      ->addWhere('contact_id', '=', $contactId)
-//      ->addOrderBy('id', 'DESC')
-//      ->setLimit(1)
-//      ->execute()
-//      ->first()['id'] ?? 35;
-
     // fetch price sets
     $eventPriceSetIds = \Civi\Api4\PriceSetEntity::get(FALSE)
       ->addSelect('price_set_id', 'entity_id')
@@ -404,6 +397,23 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ]));
       }
     }
+
+    $lineItemAmounts = (array) \Civi\Api4\LineItem::get(FALSE)
+      ->addSelect('line_total')
+      ->addWhere('contribution_id', '=', $contributionId)
+      ->execute()
+      ->column('line_total');
+
+
+
+    $newContributionTotal = array_sum($lineItemAmounts);
+
+    // trying to update through the api triggers new payment
+    // records - we just want the contribution total updated
+    // TODO: check what this does financial transaction data
+    \CRM_Core_DAO::executeQuery(<<<SQL
+      UPDATE `civicrm_contribution` SET `total_amount` = {$newContributionTotal} WHERE `id` = $contributionId
+    SQL);
   }
 
   /**
