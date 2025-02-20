@@ -414,6 +414,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     \CRM_Core_DAO::executeQuery(<<<SQL
       UPDATE `civicrm_contribution` SET `total_amount` = {$newContributionTotal} WHERE `id` = $contributionId
     SQL);
+
+    // now the registrations have been made, we're ready to send the receipt
+    // we use the "invoice" task as its closest to our needs
+    $params = [];
+    \CRM_Contribute_Form_Task_Invoice::printPDF([$contributionId], $params, [$contactId]);
   }
 
   /**
