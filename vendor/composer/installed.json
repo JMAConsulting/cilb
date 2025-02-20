@@ -3416,7 +3416,8 @@
                     }
                 },
                 "patches_applied": {
-                    "Expose contribution ID for further post processing": "patches/webform_civicrm_expose_contribution_id.patch"
+                    "Expose contribution ID for further post processing": "patches/webform_civicrm_expose_contribution_id.patch",
+                    "Delay contribution receipt send": "patches/webform_civicrm_delay_send_receipt.patch"
                 }
             },
             "installation-source": "dist",

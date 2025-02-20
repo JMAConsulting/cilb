@@ -1,0 +1,26 @@
+commit d6f88ef5d7ff29200d7100bf959db351fd2b0c42
+Author: ben <ben@jmaconsulting.biz>
+Date:   Thu Feb 20 17:23:34 2025 +0000
+
+    patch postSave to allow delayed sending of receipt
+
+diff --git a/src/WebformCivicrmPostProcess.php b/src/WebformCivicrmPostProcess.php
+index b36eb848..ca3993a8 100644
+--- a/src/WebformCivicrmPostProcess.php
++++ b/src/WebformCivicrmPostProcess.php
+@@ -331,6 +331,15 @@ public function postSave(WebformSubmissionInterface $webform_submission) {
+ //      webform_submission_send_mail($this->node, $this->submission);
+       $this->submitIPNPayment();
+     }
++
++    // patched out for CILB
++    // $this->checkAndSendReceipt();
++  }
++
++  /**
++   * check if receipt is ready to be sent and send
++   */
++  public function checkAndSendReceipt() {
+     $isEmailReceipt = wf_crm_aval($this->data, "receipt:number_number_of_receipt", FALSE);
+     // Send receipt
+     if (empty($this->submission->isDraft())

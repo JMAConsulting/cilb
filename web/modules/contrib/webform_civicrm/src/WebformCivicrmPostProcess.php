@@ -331,6 +331,15 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
 //      webform_submission_send_mail($this->node, $this->submission);
       $this->submitIPNPayment();
     }
+
+    // patched out for CILB
+    // $this->checkAndSendReceipt();
+  }
+
+  /**
+   * check if receipt is ready to be sent and send
+   */
+  public function checkAndSendReceipt() {
     $isEmailReceipt = wf_crm_aval($this->data, "receipt:number_number_of_receipt", FALSE);
     // Send receipt
     if (empty($this->submission->isDraft())
