@@ -1,0 +1,17 @@
+--- a/src/WebformCivicrmPostProcess.php	2025-02-20 17:13:05.089054919 +0000
++++ b/src/WebformCivicrmPostProcess.php	2025-02-20 17:11:56.972173652 +0000
+@@ -2940,4 +2940,14 @@
+     return strpos($key, 'cg') === 0 && ($this->all_sets[$key]['max_instances'] ?? 1) > 1;
+   }
+
++  /**
++   * Allows getting the contribution ID for further post processing
++   */
++  public function getContributionId(): ?int {
++    if (empty($this->ent['contribution'][1])) {
++      return NULL;
++    }
++    return $this->ent['contribution'][1]['id'] ?? NULL;
++  }
++
+ }
