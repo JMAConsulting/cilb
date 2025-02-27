@@ -1,6 +1,5 @@
 <?php
 use CRM_CilbReports_ExtensionUtil as E;
-
 return [
   [
     'name' => 'SavedSearch_Exam_Registrations_by_Application_Transaction_Date',
@@ -30,9 +29,8 @@ return [
             'Participant_Event_event_id_01_Event_LocBlock_loc_block_id_01_LocBlock_Address_address_id_01.street_address',
             'Participant_Event_event_id_01.start_date',
             'event_id.title',
-            'source',
             'Participant_Event_event_id_01.event_type_id:label',
-            'Participant_Contact_contact_id_01.Registrant_Info.Candidate_Representative_Name',
+            'Participant_Webform.Candidate_Representative_Name',
           ],
           'orderBy' => [],
           'where' => [],
@@ -143,7 +141,7 @@ return [
         'saved_search_id.name' => 'Exam_Registrations_by_Application_Transaction_Date',
         'type' => 'table',
         'settings' => [
-          'description' => E::ts(NULL),
+          'description' => E::ts(''),
           'sort' => [
             [
               'GROUP_FIRST_Participant_LineItem_entity_id_01_LineItem_Contribution_contribution_id_01_receive_date',
@@ -279,18 +277,11 @@ return [
             ],
             [
               'type' => 'field',
-              'key' => 'source',
+              'key' => 'Participant_Webform.Candidate_Representative_Name',
               'dataType' => 'String',
-              'label' => E::ts('Created By'),
+              'label' => E::ts('Created by'),
               'sortable' => TRUE,
-            ],
-            [
-              'type' => 'field',
-              'key' => 'Participant_Contact_contact_id_01.Registrant_Info.Candidate_Representative_Name',
-              'dataType' => 'String',
-              'label' => E::ts('Created By'),
-              'sortable' => TRUE,
-              'rewrite' => '{if "[Participant_Contact_contact_id_01.Registrant_Info.Candidate_Representative_Name]"}[Participant_Contact_contact_id_01.Registrant_Info.Candidate_Representative_Name]{else}[contact_id.sort_name]{/if}',
+              'rewrite' => '{if "[Participant_Webform.Candidate_Representative_Name]"}[Participant_Webform.Candidate_Representative_Name]{else}[contact_id.sort_name]{/if}',
             ],
           ],
           'actions' => TRUE,
