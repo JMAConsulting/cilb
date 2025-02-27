@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<extension key="cilb_reports" type="module">
+  <file>cilb_reports</file>
+  <name>CILB Reports</name>
+  <description>Extension with search kits for CILB reports</description>
+  <license>AGPL-3.0</license>
+  <authors>
+    <author>
+      <name>JMA</name>
+      <email>support@jmaconsulting.biz</email>
+      <role>Maintainer</role>
+    </author>
+  </authors>
+  <urls>
+    <url desc="Licensing">https://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2025-02-27</releaseDate>
+  <version>1.0.0</version>
+  <develStage>beta</develStage>
+  <compatibility>
+    <ver>5.75</ver>
+  </compatibility>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <civix>
+    <namespace>CRM/CilbReports</namespace>
+    <format>25.01.1</format>
+    <angularModule>crmCilbReports</angularModule>
+  </civix>
+  <mixins>
+    <mixin>mgd-php@1.0.0</mixin>
+    <mixin>setting-php@1.0.0</mixin>
+    <mixin>smarty@1.0.3</mixin>
+  </mixins>
+</extension>
