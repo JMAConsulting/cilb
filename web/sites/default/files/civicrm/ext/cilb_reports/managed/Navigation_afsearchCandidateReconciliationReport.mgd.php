@@ -1,5 +1,6 @@
 <?php
 use CRM_CilbReports_ExtensionUtil as E;
+
 return [
   [
     'name' => 'Navigation_afsearchCandidateReconciliationReport',

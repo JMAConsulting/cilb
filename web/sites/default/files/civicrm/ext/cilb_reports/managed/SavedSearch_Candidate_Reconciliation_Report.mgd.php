@@ -1,5 +1,6 @@
 <?php
 use CRM_CilbReports_ExtensionUtil as E;
+
 return [
   [
     'name' => 'SavedSearch_Candidate_Reconciliation_Report',
@@ -33,9 +34,6 @@ return [
           'groupBy' => [
             'id',
             'Participant_Event_event_id_01.id',
-            'Participant_Event_event_id_01_Event_LocBlock_loc_block_id_01_LocBlock_Address_address_id_01.id',
-            'Participant_Event_event_id_01_Event_LocBlock_loc_block_id_01.id',
-            'Participant_Contact_contact_id_01.id',
           ],
           'join' => [
             [
