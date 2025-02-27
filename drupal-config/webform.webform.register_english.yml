@@ -47,7 +47,7 @@ elements: |-
         '#title': 'Candidate Representative'
         '#default_value': '0'
         '#states_clear': 0
-      civicrm_1_contact_1_cg1_custom_7:
+      candidate_representative_name:
         '#type': textfield
         '#title': '<strong>If you are completing this registration on behalf of a candidate, please enter your own full name. </strong>'
         '#counter_type': character
@@ -55,7 +55,6 @@ elements: |-
         '#counter_maximum_message': ' '
         '#data_type': String
         '#nid': register_english
-        '#form_key': civicrm_1_contact_1_cg1_custom_7
         '#extra':
           width: 20
           description: ''
@@ -1211,7 +1210,6 @@ handlers:
       civicrm_1_contact_1_cg1_custom_2: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_3: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_4: create_civicrm_webform_element
-      civicrm_1_contact_1_cg1_custom_7: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_22: 0
       civicrm_1_contact_1_cg1_custom_23: 0
       contact_1_number_of_other: '0'

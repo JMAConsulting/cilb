@@ -365,6 +365,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           ->addValue('contact_id', $contactId)
           ->addValue('event_id', $eventId)
           ->addValue('register_date', 'now')
+          ->addValue('Participant_Webform.Candidate_Representative_Name', $webform_submission_data['candidate_representative_name'] ?? NULL)
           ->execute()
           ->first()['id'];
 
@@ -551,10 +552,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   */
   private function validateCandidateRep(FormStateInterface $formState) {
     $isRep = $formState->getValue('candidate_representative');
-    $repName = $formState->getValue('civicrm_1_contact_1_cg1_custom_7');
+    $repName = $formState->getValue('candidate_representative_name');
 
     if ($isRep == 1 && $repName == '') {
-        $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_7', $this->t('Enter your full name to continue.'));
+        $formState->setErrorByName('candidate_representative_name', $this->t('Enter your full name to continue.'));
         return;
     }
   }

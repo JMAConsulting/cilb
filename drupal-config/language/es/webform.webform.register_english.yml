@@ -8,7 +8,7 @@ elements: |
     '#title': 'Identificación de usuario'
   are_you_candidate:
     '#markup': '<p>¿Es usted el candidato? El candidato es responsable de conocer todos los requisitos de la licencia, la política y los procedimientos para tomar el examen, las fechas y horas de los exámenes.</p>'
-  civicrm_1_contact_1_cg1_custom_7:
+  candidate_representative_name:
     '#title': '<strong>Si está completando este registro en nombre de un candidato, ingrese su nombre completo. </strong>'
   user_identification_markup:
     '#markup': '<p><a class="button" id="behalf-of">Estoy completando el registro en nombre del candidato</a><br><a class="button" href="https://cilb.jmaconsulting.biz/es/register-notification" id="return-prev">Vuelva a la página anterior</a><br><a class="button button--secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancele esta matrícula y vuelva a la página inicial</a><br>&nbsp;</p>'
