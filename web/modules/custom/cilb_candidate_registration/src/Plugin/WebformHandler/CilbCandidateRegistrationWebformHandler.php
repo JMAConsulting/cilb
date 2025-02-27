@@ -66,26 +66,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
-  private function validateExamPreference(FormStateInterface $formState) {
-    $examPreferences = $formState->getValue('exam_preference');
-    if (isset($examPreferences) && count($examPreferences) > 1) {
-      $events = \Civi\Api4\Event::get(FALSE)
-        ->addSelect('Exam_Details.Exam_Part', 'Exam_Details.Exam_Part:label')
-        ->addWhere('id', 'IN', $examPreferences)
-        ->execute();
-      foreach ($events as $event) {
-        if (empty($selectedEvents[$event['Exam_Details.Exam_Part']])) {
-          $selectedEvents[$event['Exam_Details.Exam_Part']] = [$event['id']];
-        }
-        else {
-          $error_message = $this->t('You cannot select more then one ' . $event['Exam_Details.Exam_Part:label'] . ' event');
-          $formState->setErrorByName('exam_preference', $error_message);
-          break;
-        }
-      }
-    }
-  }
-
   /*
   * If user is registering on behalf of another candidate, we remind
   * them to use the candidate details on this page
@@ -193,43 +173,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function validateForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
-    $current_page = $webform_submission->getCurrentPage();
-
-    if ($current_page == 'registrant_personal_info') {
-      $this->validateAgeReq($form_state);
-      $this->validateSSNMatch($form_state);
-      $this->validateUniqueUser($form_state);
-    }
-    elseif ($current_page == 'exam_fee_page') {
-      $this->validateExamFee($form_state);
-    }
-    elseif ($current_page == 'user_identification') {
-      $this->validateCandidateRep($form_state);
-    }
-    elseif ($current_page == 'payment_options') {
-      $this->redirectPayByCheck($form_state);
-    }
-    elseif ($current_page == 'select_exam_page') {
-      //TODO how to register for multiple events at once?
-      $this->validateParticipantStatus($form_state);
-      $this->validateExamPreference($form_state);
-    }
-  }
-
-
-  /**
-   * If user chooses pay by check, immediately redirect to the pay by mail page
-   */
-  private function redirectPayByCheck($formState) {
-    if ($formState->getValue('please_select_mode_of_payment') == 2) {
-      $redirect = new RedirectResponse('register-by-mail');
-      $redirect->send();
-    }
-  }
 
   /**
   * Submission hook to:
@@ -336,43 +279,57 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // need to know the webform contribution ID
     //$contributionId = $webform_submission_data['civcrm_1_contribution_1_id'] ?? 33;
     $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
-
     $contributionId = $webformCivicrmPostProcess->getContributionId();
 
-    // fetch price sets
-    $eventPriceSetIds = \Civi\Api4\PriceSetEntity::get(FALSE)
-      ->addSelect('price_set_id', 'entity_id')
-      ->addWhere('entity_table', '=', 'civicrm_event')
-      ->addWhere('entity_id', 'IN', $eventIds)
+    // webform_civicrm will have created a single line item for the contribution
+    // with the Total Amount Payable. we will need to update this
+    //
+    // NOTE: throw an error if more than one line item. that shouldn't happen,
+    // and if it does the following logic might be totally wrong
+    $defaultLineItem = (array) \Civi\Api4\LineItem::get(FALSE)
+      ->addSelect('id', 'line_total')
+      ->addWhere('contribution_id', '=', $contributionId)
       ->execute()
-      ->indexBy('entity_id')
-      ->column('price_set_id');
+      ->single();
 
-    $priceOptions = \Civi\Api4\PriceFieldValue::get(FALSE)
-      ->addWhere('price_field_id.price_set_id', 'IN', $eventPriceSetIds)
-      ->addSelect(
-        // price field value fields
-        'id', 'amount', 'financial_type_id', 'label',
-        // price field fields
-        'price_field_id', 'price_field_id.price_set_id'
-      )
+    $paidAmount = $defaultLineItem['line_total'];
+
+    $seatFees = $this->getEventSeatFees($eventIds);
+    $eventFeesPaid = array_sum(array_map(fn ($fee) => $fee['amount_payable_now'], $seatFees));
+
+    $formFeeAmount = $paidAmount - $eventFeesPaid;
+
+    $formFeePriceFieldValueId = \Civi\Api4\PriceFieldValue::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('price_field_id.price_set_id.name', '=', 'Registration_Form_Fee')
       ->execute()
-      ->indexBy('price_field_id.price_set_id');
+      ->first()['id'] ?? 1;
+
+    \CRM_Core_DAO::executeQuery(<<<SQL
+      UPDATE `civicrm_line_item`
+      SET
+        `unit_price` = {$formFeeAmount},
+        `line_total` = {$formFeeAmount},
+        `label` = 'Registration Form Fee',
+        `price_field_value_id` = {$formFeePriceFieldValueId}
+      WHERE `id` = {$defaultLineItem['id']}
+    SQL);
 
     foreach ($eventIds as $eventId) {
       try {
+        $priceOption = $seatFees[$eventId];
+
         $participantId = \Civi\Api4\Participant::create(FALSE)
           ->addValue('contact_id', $contactId)
           ->addValue('event_id', $eventId)
           ->addValue('register_date', 'now')
           ->addValue('Participant_Webform.Candidate_Representative_Name', $webform_submission_data['candidate_representative_name'] ?? NULL)
+          ->addValue('participant_fee_amount', $priceOption['amount'])
+          ->addValue('participant_fee_level', $priceOption['label'])
           ->execute()
           ->first()['id'];
 
         // create additional line items in the contribution for the event registration fees
-        // NOTE: each line item is offset by a "pay later" item
-        $priceSetId = $eventPriceSetIds[$eventId];
-        $priceOption = $priceOptions[$priceSetId];
 
         $params = [
           'entity_id' => $participantId,
@@ -399,13 +356,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
     }
 
+    // update the contribution record to account for the
+    // new line item total
     $lineItemAmounts = (array) \Civi\Api4\LineItem::get(FALSE)
       ->addSelect('line_total')
       ->addWhere('contribution_id', '=', $contributionId)
       ->execute()
       ->column('line_total');
-
-
 
     $newContributionTotal = array_sum($lineItemAmounts);
 
@@ -420,6 +377,62 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // we use the "invoice" task as its closest to our needs
     $params = [];
     \CRM_Contribute_Form_Task_Invoice::printPDF([$contributionId], $params, [$contactId]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
+    $current_page = $webform_submission->getCurrentPage();
+
+    if ($current_page == 'registrant_personal_info') {
+      $this->validateAgeReq($form_state);
+      $this->validateSSNMatch($form_state);
+      $this->validateUniqueUser($form_state);
+    }
+    elseif ($current_page == 'exam_fee_page') {
+      $this->validateContributionAmount($form_state);
+    }
+    elseif ($current_page == 'user_identification') {
+      $this->validateCandidateRep($form_state);
+    }
+    elseif ($current_page == 'payment_options') {
+      $this->redirectPayByCheck($form_state);
+    }
+    elseif ($current_page == 'select_exam_page') {
+      $this->validateParticipantStatus($form_state);
+      $this->validateExamPreference($form_state);
+    }
+  }
+
+  private function validateExamPreference(FormStateInterface $formState) {
+    $examPreferences = $formState->getValue('exam_preference');
+    if (isset($examPreferences) && count($examPreferences) > 1) {
+      $events = \Civi\Api4\Event::get(FALSE)
+        ->addSelect('Exam_Details.Exam_Part', 'Exam_Details.Exam_Part:label')
+        ->addWhere('id', 'IN', $examPreferences)
+        ->execute();
+      foreach ($events as $event) {
+        if (empty($selectedEvents[$event['Exam_Details.Exam_Part']])) {
+          $selectedEvents[$event['Exam_Details.Exam_Part']] = [$event['id']];
+        }
+        else {
+          $error_message = $this->t('You cannot select more then one ' . $event['Exam_Details.Exam_Part:label'] . ' event');
+          $formState->setErrorByName('exam_preference', $error_message);
+          break;
+        }
+      }
+    }
+  }
+
+  /**
+   * If user chooses pay by check, immediately redirect to the pay by mail page
+   */
+  private function redirectPayByCheck($formState) {
+    if ($formState->getValue('please_select_mode_of_payment') == 2) {
+      $redirect = new RedirectResponse('register-by-mail');
+      $redirect->send();
+    }
   }
 
   /**
@@ -535,14 +548,24 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
-  /**Please <a href="/user/login">login</a> first in order to continue registration, or
-  * Validate exam fee selection
+  /*
+  * Validate the total contribution amount
+  *
+  * This checks the client side calculation matches the server side one. But it might be
+  * better to just use the server side calc
   */
-  private function validateExamFee(FormStateInterface $formState) {
-    $examFee = $formState->getValue('civicrm_1_contribution_1_contribution_total_amount');
+  private function validateContributionAmount(FormStateInterface $formState) {
+    $examFee = (int) $formState->getValue('civicrm_1_contribution_1_contribution_total_amount');
 
-    if ($examFee == 0) {
-        $formState->setErrorByName('exam_fee_markup', $this->t('Exam fee is missing'));
+    if (!$examFee) {
+        $formState->setErrorByName('exam_fee_markup', $this->t('Payable amount is missing'));
+        return;
+    }
+
+    $eventIds = $formState->getValue('event_ids');
+
+    if ($examFee !== $this->getPayableNowAmount($eventIds)) {
+        $formState->setErrorByName('exam_fee_markup', $this->t('Payable amount is incorrect'));
         return;
     }
   }
@@ -600,5 +623,85 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $formState->setErrorByName('civicrm_1_participant_1_participant_event_id', $this->t('Another user with the same email and name has already registered for this exam.'));
       }
     }
+  }
+
+  /**
+   * For a set of event IDs, get their price option data
+   *
+   * NOTE: this assumes that each event has 1 configured price set
+   * with 1 price field with 1 price option.
+   *
+   * If there are multiple this will make an arbitrary choice (by lowest ID?)
+   *
+   */
+  private function getEventSeatFees(array $eventIds): array {
+    // fetch price sets
+    $priceSetsByEventId = \Civi\Api4\PriceSetEntity::get(FALSE)
+      ->addSelect('price_set_id', 'entity_id')
+      ->addWhere('entity_table', '=', 'civicrm_event')
+      ->addWhere('entity_id', 'IN', $eventIds)
+      ->execute()
+      ->indexBy('entity_id')
+      ->column('price_set_id');
+
+    $priceOptionsByPriceSetId = \Civi\Api4\PriceFieldValue::get(FALSE)
+      ->addWhere('price_field_id.price_set_id', 'IN', $priceSetsByEventId)
+      ->addSelect(
+        // price field value fields
+        'id', 'amount', 'financial_type_id', 'label',
+        // price field fields
+        'price_field_id', 'price_field_id.price_set_id'
+      )
+      ->execute()
+      ->indexBy('price_field_id.price_set_id');
+
+    $priceOptionsByEventId = [];
+
+    foreach ($eventIds as $eventId) {
+      $priceSetId = $priceSetsByEventId[$eventId];
+      $priceOption = $priceOptionsByPriceSetId[$priceSetId];
+      $priceOptionsByEventId[$eventId] = $priceOption;
+    }
+
+    // TODO: this seems slightly arbitrary business logic
+    $eventsPayableNow = (array) \Civi\Api4\Event::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('id', 'IN', $eventIds)
+      ->addWhere('Exam_Details.Exam_Format', '=', 'paper')
+      ->execute()
+      ->column('id');
+
+    foreach ($priceOptionsByEventId as $eventId => $priceOption) {
+      $payableNow = in_array($eventId, $eventsPayableNow);
+      $priceOptionsByEventId[$eventId]['is_payable_now'] = $payableNow;
+      $priceOptionsByEventId[$eventId]['amount_payable_now'] = $payableNow ? $priceOption['amount'] : 0;
+    }
+
+    return $priceOptionsByEventId;
+  }
+
+
+  /**
+   * Get the total amount payable now
+   *
+   * NOTE: this is currently calculated client side on the webform.
+   *
+   * we have a validation step to ensure the submitted amount matches, but it would probably
+   * be better to pass the server side calc to the form explicitly
+   *
+   * (we would need to pass the line item details for display also. i suppose we could form alter a #markup element)
+   */
+  private function getPayableNowAmount($eventIds): int {
+    $eventFees = $this->getEventSeatFees($eventIds);
+    $eventAmountsPayableNow = array_map(fn ($fee) => $fee['amount_payable_now'], $eventFees);
+    $eventTotal = array_sum($eventAmountsPayableNow);
+
+    $formFee = \Civi\Api4\PriceFieldValue::get(FALSE)
+      ->addSelect('amount')
+      ->addWhere('price_field_id.price_set_id.name', '=', 'Registration_Form_Fee')
+      ->execute()
+      ->first()['amount'] ?? 135;
+
+    return $eventTotal + $formFee;
   }
 }
