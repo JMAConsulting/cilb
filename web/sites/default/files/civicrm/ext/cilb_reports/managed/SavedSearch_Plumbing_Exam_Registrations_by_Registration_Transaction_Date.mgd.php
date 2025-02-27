@@ -223,7 +223,7 @@ return [
               'type' => 'field',
               'key' => 'GROUP_FIRST_Participant_LineItem_entity_id_01_id',
               'dataType' => 'Money',
-              'label' => E::ts('DPBR Amt'),
+              'label' => E::ts('DPBR Payment ID/Name'),
               'sortable' => TRUE,
             ],
             [
