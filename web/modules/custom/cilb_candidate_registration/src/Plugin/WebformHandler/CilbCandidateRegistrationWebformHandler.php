@@ -66,26 +66,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
-  private function validateExamPreference(FormStateInterface $formState) {
-    $examPreferences = $formState->getValue('exam_preference');
-    if (isset($examPreferences) && count($examPreferences) > 1) {
-      $events = \Civi\Api4\Event::get(FALSE)
-        ->addSelect('Exam_Details.Exam_Part', 'Exam_Details.Exam_Part:label')
-        ->addWhere('id', 'IN', $examPreferences)
-        ->execute();
-      foreach ($events as $event) {
-        if (empty($selectedEvents[$event['Exam_Details.Exam_Part']])) {
-          $selectedEvents[$event['Exam_Details.Exam_Part']] = [$event['id']];
-        }
-        else {
-          $error_message = $this->t('You cannot select more then one ' . $event['Exam_Details.Exam_Part:label'] . ' event');
-          $formState->setErrorByName('exam_preference', $error_message);
-          break;
-        }
-      }
-    }
-  }
-
   /*
   * If user is registering on behalf of another candidate, we remind
   * them to use the candidate details on this page
@@ -193,43 +173,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function validateForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
-    $current_page = $webform_submission->getCurrentPage();
-
-    if ($current_page == 'registrant_personal_info') {
-      $this->validateAgeReq($form_state);
-      $this->validateSSNMatch($form_state);
-      $this->validateUniqueUser($form_state);
-    }
-    elseif ($current_page == 'exam_fee_page') {
-      $this->validateExamFee($form_state);
-    }
-    elseif ($current_page == 'user_identification') {
-      $this->validateCandidateRep($form_state);
-    }
-    elseif ($current_page == 'payment_options') {
-      $this->redirectPayByCheck($form_state);
-    }
-    elseif ($current_page == 'select_exam_page') {
-      //TODO how to register for multiple events at once?
-      $this->validateParticipantStatus($form_state);
-      $this->validateExamPreference($form_state);
-    }
-  }
-
-
-  /**
-   * If user chooses pay by check, immediately redirect to the pay by mail page
-   */
-  private function redirectPayByCheck($formState) {
-    if ($formState->getValue('please_select_mode_of_payment') == 2) {
-      $redirect = new RedirectResponse('register-by-mail');
-      $redirect->send();
-    }
-  }
 
   /**
   * Submission hook to:
@@ -420,6 +363,62 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // we use the "invoice" task as its closest to our needs
     $params = [];
     \CRM_Contribute_Form_Task_Invoice::printPDF([$contributionId], $params, [$contactId]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
+    $current_page = $webform_submission->getCurrentPage();
+
+    if ($current_page == 'registrant_personal_info') {
+      $this->validateAgeReq($form_state);
+      $this->validateSSNMatch($form_state);
+      $this->validateUniqueUser($form_state);
+    }
+    elseif ($current_page == 'exam_fee_page') {
+      $this->validateContributionAmount($form_state);
+    }
+    elseif ($current_page == 'user_identification') {
+      $this->validateCandidateRep($form_state);
+    }
+    elseif ($current_page == 'payment_options') {
+      $this->redirectPayByCheck($form_state);
+    }
+    elseif ($current_page == 'select_exam_page') {
+      $this->validateParticipantStatus($form_state);
+      $this->validateExamPreference($form_state);
+    }
+  }
+
+  private function validateExamPreference(FormStateInterface $formState) {
+    $examPreferences = $formState->getValue('exam_preference');
+    if (isset($examPreferences) && count($examPreferences) > 1) {
+      $events = \Civi\Api4\Event::get(FALSE)
+        ->addSelect('Exam_Details.Exam_Part', 'Exam_Details.Exam_Part:label')
+        ->addWhere('id', 'IN', $examPreferences)
+        ->execute();
+      foreach ($events as $event) {
+        if (empty($selectedEvents[$event['Exam_Details.Exam_Part']])) {
+          $selectedEvents[$event['Exam_Details.Exam_Part']] = [$event['id']];
+        }
+        else {
+          $error_message = $this->t('You cannot select more then one ' . $event['Exam_Details.Exam_Part:label'] . ' event');
+          $formState->setErrorByName('exam_preference', $error_message);
+          break;
+        }
+      }
+    }
+  }
+
+  /**
+   * If user chooses pay by check, immediately redirect to the pay by mail page
+   */
+  private function redirectPayByCheck($formState) {
+    if ($formState->getValue('please_select_mode_of_payment') == 2) {
+      $redirect = new RedirectResponse('register-by-mail');
+      $redirect->send();
+    }
   }
 
   /**
