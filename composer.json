@@ -63,7 +63,8 @@
 	        "Issue #3376165: Fatal error when 'rules' module is missing": "https://www.drupal.org/files/issues/2023-07-21/user_email_verification-rules_conditions-3376165-2.patch"
         },
         "drupal/webform_civicrm": {
-            "Fix option value custom field crash": "https://github.com/colemanw/webform_civicrm/pull/1016.patch"
+            "Expose contribution ID for further post processing": "patches/webform_civicrm_expose_contribution_id.patch",
+            "Delay contribution receipt send": "patches/webform_civicrm_delay_send_receipt.patch"
         },
         "drupal/civicrm_entity": {
             "Fix civicrm_event_en_MX crash": "patches/civicrm_entity_497.patch"

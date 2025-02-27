@@ -184,7 +184,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           $sourceKey = $sourcePrefix . '_' . $field;
           $formState->setValue($targetKey, $values[$sourceKey]);
 
-	  // unfortunately values in the form state are *not* passed to the renderer, 
+	  // unfortunately values in the form state are *not* passed to the renderer,
 	  // so the user cant see what's happening unless we set the default
 	  // in the form array as well
           $targetFieldset[$targetKey]['#default_value'] = $values[$sourceKey];
@@ -332,13 +332,63 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     $eventIds = $webform_submission_data['event_ids'];
 
+    // when registering events, we add event payments to the webform contribution
+    // need to know the webform contribution ID
+    //$contributionId = $webform_submission_data['civcrm_1_contribution_1_id'] ?? 33;
+    $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
+
+    $contributionId = $webformCivicrmPostProcess->getContributionId();
+
+    // fetch price sets
+    $eventPriceSetIds = \Civi\Api4\PriceSetEntity::get(FALSE)
+      ->addSelect('price_set_id', 'entity_id')
+      ->addWhere('entity_table', '=', 'civicrm_event')
+      ->addWhere('entity_id', 'IN', $eventIds)
+      ->execute()
+      ->indexBy('entity_id')
+      ->column('price_set_id');
+
+    $priceOptions = \Civi\Api4\PriceFieldValue::get(FALSE)
+      ->addWhere('price_field_id.price_set_id', 'IN', $eventPriceSetIds)
+      ->addSelect(
+        // price field value fields
+        'id', 'amount', 'financial_type_id', 'label',
+        // price field fields
+        'price_field_id', 'price_field_id.price_set_id'
+      )
+      ->execute()
+      ->indexBy('price_field_id.price_set_id');
+
     foreach ($eventIds as $eventId) {
       try {
-        \Civi\Api4\Participant::create(FALSE)
+        $participantId = \Civi\Api4\Participant::create(FALSE)
           ->addValue('contact_id', $contactId)
           ->addValue('event_id', $eventId)
           ->addValue('register_date', 'now')
-          ->execute();
+          ->execute()
+          ->first()['id'];
+
+        // create additional line items in the contribution for the event registration fees
+        // NOTE: each line item is offset by a "pay later" item
+        $priceSetId = $eventPriceSetIds[$eventId];
+        $priceOption = $priceOptions[$priceSetId];
+
+        $params = [
+          'entity_id' => $participantId,
+          'entity_table' => 'civicrm_participant',
+          'contribution_id' => $contributionId,
+          'price_field_id' => $priceOption['price_field_id'],
+          'price_field_value_id' => $priceOption['id'],
+          'label' => 'CILB Candidate Registration - ' . $priceOption['label'],
+          //'field_title' => $fieldTitle,
+          //'description' => $options[$oid]['description'] ?? NULL,
+          'qty' => 1,
+          'unit_price' => $priceOption['amount'],
+          'line_total' => $priceOption['amount'],
+          'participant_count' => 1,
+          'financial_type_id' => $priceOption['financial_type_id'],
+        ];
+        \CRM_Price_BAO_LineItem::create($params);
       }
       catch (\Exception $e) {
         \Drupal::logger('candidate_reg')->debug('Unable to register contact ID ' . $contactID . ' for event ID ' . $eventId . ' because ' . $e->getMessage());
@@ -347,6 +397,28 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ]));
       }
     }
+
+    $lineItemAmounts = (array) \Civi\Api4\LineItem::get(FALSE)
+      ->addSelect('line_total')
+      ->addWhere('contribution_id', '=', $contributionId)
+      ->execute()
+      ->column('line_total');
+
+
+
+    $newContributionTotal = array_sum($lineItemAmounts);
+
+    // trying to update through the api triggers new payment
+    // records - we just want the contribution total updated
+    // TODO: check what this does financial transaction data
+    \CRM_Core_DAO::executeQuery(<<<SQL
+      UPDATE `civicrm_contribution` SET `total_amount` = {$newContributionTotal} WHERE `id` = $contributionId
+    SQL);
+
+    // now the registrations have been made, we're ready to send the receipt
+    // we use the "invoice" task as its closest to our needs
+    $params = [];
+    \CRM_Contribute_Form_Task_Invoice::printPDF([$contributionId], $params, [$contactId]);
   }
 
   /**

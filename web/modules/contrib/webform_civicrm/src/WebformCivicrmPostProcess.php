@@ -331,6 +331,15 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
 //      webform_submission_send_mail($this->node, $this->submission);
       $this->submitIPNPayment();
     }
+
+    // patched out for CILB
+    // $this->checkAndSendReceipt();
+  }
+
+  /**
+   * check if receipt is ready to be sent and send
+   */
+  public function checkAndSendReceipt() {
     $isEmailReceipt = wf_crm_aval($this->data, "receipt:number_number_of_receipt", FALSE);
     // Send receipt
     if (empty($this->submission->isDraft())
@@ -2938,6 +2947,16 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
    */
   private function isMultiRecordCustomSet($key) {
     return strpos($key, 'cg') === 0 && ($this->all_sets[$key]['max_instances'] ?? 1) > 1;
+  }
+
+  /**
+   * Allows getting the contribution ID for further post processing
+   */
+  public function getContributionId(): ?int {
+    if (empty($this->ent['contribution'][1])) {
+      return NULL;
+    }
+    return $this->ent['contribution'][1]['id'] ?? NULL;
   }
 
 }
