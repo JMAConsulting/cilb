@@ -1,8 +1,8 @@
 jQuery(document).ready(function ($) {
   var next = $('#edit-actions input[type="submit"]');
   var behalfOf = $("#behalf-of");
-  var candidateRep = $("#edit-civicrm-1-contact-1-cg1-custom-7");
-  var candidateRepField = $(".form-item-civicrm-1-contact-1-cg1-custom-7");
+  var candidateRep = $("#edit-candidate-representative-name");
+  var candidateRepField = $(".form-item-candidate-representative-name");
   var returnPrev = $("#return-prev");
   var isCandidate = $("input[name='candidate_representative']");
   var cancelReg = $("#cancel-reg");
