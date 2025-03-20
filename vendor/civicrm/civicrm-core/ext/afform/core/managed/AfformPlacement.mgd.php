@@ -87,7 +87,7 @@ return [
     ],
   ],
   [
-    'name' => 'AfformPlacement:msg_token',
+    'name' => 'AfformPlacement:contact_summary_actions',
     'entity' => 'OptionValue',
     'cleanup' => 'always',
     'update' => 'always',
@@ -95,8 +95,30 @@ return [
       'version' => 4,
       'values' => [
         'option_group_id.name' => 'afform_placement',
-        'name' => 'msg_token',
-        'value' => 'msg_token',
+        'name' => 'contact_summary_actions',
+        'value' => 'contact_summary_actions',
+        'label' => E::ts('Contact Summary Actions'),
+        'is_reserved' => TRUE,
+        'is_active' => TRUE,
+        'icon' => 'fa-bars',
+        // Indicates that a server_route is required for this placement
+        'filter' => 1,
+        'description' => E::ts('Add to the contact summary actions menu.'),
+      ],
+      'match' => ['option_group_id', 'name'],
+    ],
+  ],
+  [
+    'name' => 'AfformPlacement:msg_token_single',
+    'entity' => 'OptionValue',
+    'cleanup' => 'always',
+    'update' => 'always',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'option_group_id.name' => 'afform_placement',
+        'name' => 'msg_token_single',
+        'value' => 'msg_token_single',
         'label' => E::ts('Message Tokens'),
         'is_reserved' => TRUE,
         'is_active' => TRUE,

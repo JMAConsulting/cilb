@@ -114,7 +114,7 @@ class CRM_Admin_Form_Options extends CRM_Admin_Form {
 
     $session->pushUserContext(CRM_Utils_System::url($url, $params));
     $this->assign('id', $this->_id);
-    $this->setDeleteMessage(ts('WARNING: Deleting this option will result in the loss of all %1 related records which use the option.', [1 => $this->_gLabel]) . ts('This may mean the loss of a substantial amount of data, and the action cannot be undone.') . ts('Do you want to continue?'));
+    $this->setDeleteMessage();
     if ($this->_id && CRM_Core_OptionGroup::isDomainOptionGroup($this->_gName)) {
       $domainID = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', $this->_id, 'domain_id', 'id');
       if (CRM_Core_Config::domainID() != $domainID) {
@@ -131,6 +131,13 @@ class CRM_Admin_Form_Options extends CRM_Admin_Form {
         'option_group_id' => $this->_gid,
       ]));
     }
+  }
+
+  /**
+   * Get the form-specific delete message.
+   */
+  public function setDeleteMessage(): void {
+    $this->deleteMessage = ts('WARNING: Deleting this option will result in the loss of all %1 related records which use the option.', [1 => $this->_gLabel]) . ' ' . ts('This may mean the loss of a substantial amount of data, and the action cannot be undone.') . ' ' . ts('Do you want to continue?');
   }
 
   /**
@@ -336,7 +343,6 @@ class CRM_Admin_Form_Options extends CRM_Admin_Form {
       'email_greeting',
       'postal_greeting',
       'addressee',
-      'from_email_address',
       'case_status',
       'encounter_medium',
       'case_type',
@@ -383,6 +389,20 @@ class CRM_Admin_Form_Options extends CRM_Admin_Form {
     //need to assign subtype to the template
     $this->assign('customDataSubType', $this->_gid);
     $this->assign('entityID', $this->_id);
+
+    if (($this->_action & CRM_Core_Action::ADD) || ($this->_action & CRM_Core_Action::UPDATE)) {
+      $this->addButtons([
+        [
+          'type' => 'upload',
+          'name' => ts('Save'),
+          'isDefault' => TRUE,
+        ],
+        [
+          'type' => 'cancel',
+          'name' => ts('Cancel'),
+        ],
+      ]);
+    }
   }
 
   /**
@@ -416,18 +436,6 @@ class CRM_Admin_Form_Options extends CRM_Admin_Form {
         $errors['label'] = ts('This Label already exists in the database for the selected contact type.');
       }
 
-    }
-
-    if ($optionGroupName === 'from_email_address') {
-      $formEmail = CRM_Utils_Mail::pluckEmailFromHeader($fields['label']);
-      if (!CRM_Utils_Rule::email($formEmail)) {
-        $errors['label'] = ts('Please enter a valid email address.');
-      }
-
-      $formName = explode('"', $fields['label']);
-      if (empty($formName[1]) || count($formName) != 3) {
-        $errors['label'] = ts('Please follow the proper format for From Email Address');
-      }
     }
 
     $dataType = self::getOptionGroupDataType($optionGroupName);
@@ -507,10 +515,6 @@ class CRM_Admin_Form_Options extends CRM_Admin_Form {
         $params['filter'] = $params['contact_type_id'];
       }
 
-      //make sure we only have a single space, CRM-6977 and dev/mail/15
-      if ($this->_gName == 'from_email_address') {
-        $params['label'] = $this->sanitizeFromEmailAddress($params['label']);
-      }
       // set value of filter if not present in params
       if ($this->_id && !array_key_exists('filter', $params)) {
         if ($this->_gName == 'participant_role') {
@@ -539,11 +543,6 @@ class CRM_Admin_Form_Options extends CRM_Admin_Form {
     }
   }
 
-  public function sanitizeFromEmailAddress($email) {
-    preg_match("/^\"(.*)\" *<([^@>]*@[^@>]*)>$/", $email, $parts);
-    return "\"{$parts[1]}\" <$parts[2]>";
-  }
-
   /**
    * Is the option group one of our greetings.
    *
@@ -558,9 +557,6 @@ class CRM_Admin_Form_Options extends CRM_Admin_Form {
    * @return array
    */
   protected function getFieldsToExcludeFromPurification(): array {
-    if ($this->_gName === 'from_email_address') {
-      return ['label'];
-    }
     return [];
   }
 

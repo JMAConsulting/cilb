@@ -119,7 +119,7 @@ class CRM_Member_Form_MembershipBlock extends CRM_Contribute_Form_ContributionPa
       $paymentProcessorIds = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_ContributionPage',
         $this->_id, 'payment_processor'
       );
-      $paymentProcessorId = explode(CRM_Core_DAO::VALUE_SEPARATOR, $paymentProcessorIds);
+      $paymentProcessorId = explode(CRM_Core_DAO::VALUE_SEPARATOR, $paymentProcessorIds ?? '');
       $isRecur = TRUE;
       foreach ($paymentProcessorId as $id) {
         if (!array_key_exists($id, $paymentProcessor)) {
@@ -387,7 +387,7 @@ class CRM_Member_Form_MembershipBlock extends CRM_Contribute_Form_ContributionPa
         if (empty($editedResults['id'])) {
           $fieldParams['name'] = 'membership_amount';
           if (empty($params['mem_price_field_id'])) {
-            CRM_Utils_Weight::updateOtherWeights('CRM_Price_DAO_PriceField', 0, 1, ['price_set_id' => $priceSetID]);
+            CRM_Utils_Weight::updateOtherWeights('CRM_Price_DAO_PriceField', NULL, 1, ['price_set_id' => $priceSetID]);
           }
           $fieldParams['weight'] = 1;
         }

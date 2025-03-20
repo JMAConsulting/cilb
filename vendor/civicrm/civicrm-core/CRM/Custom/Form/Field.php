@@ -219,7 +219,7 @@ class CRM_Custom_Form_Field extends CRM_Core_Form {
     $this->addField('html_type', ['class' => 'twenty', 'options' => $htmlOptions], TRUE);
 
     if (CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $this->_gid, 'is_multiple')) {
-      $this->add('checkbox', 'in_selector', ts('Display in Table?'));
+      $this->add('advcheckbox', 'in_selector', ts('Display in Table?'));
     }
 
     $optionGroupParams = [
@@ -229,7 +229,7 @@ class CRM_Custom_Form_Field extends CRM_Core_Form {
       'return' => ['title'],
     ];
 
-    $this->add('checkbox', 'serialize', ts('Multi-Select'));
+    $this->add('advcheckbox', 'serialize', ts('Multi-Select'));
 
     $this->addAutocomplete('fk_entity', ts('Entity'), [
       'class' => 'twenty',
@@ -878,6 +878,10 @@ AND    option_group_id = %2";
     // are different label, help text and default value than for other type fields
     if ($params['data_type'] == "Memo") {
       $params['text_length'] = $params['note_length'];
+    }
+    // Urls can be up to 2047 characters according to https://www.sitemaps.org/protocol.html#locdef
+    if ($params['data_type'] == 'Link') {
+      $params['text_length'] = 2047;
     }
 
     // need the FKEY - custom group id

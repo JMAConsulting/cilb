@@ -883,8 +883,7 @@ SELECT  pledge.contact_id              as contact_id,
       $template = CRM_Core_Smarty::singleton();
 
       // set receipt from
-      $receiptFrom = CRM_Core_BAO_Domain::getNameAndEmail(FALSE, TRUE);
-      $receiptFrom = reset($receiptFrom);
+      $receiptFrom = CRM_Core_BAO_Domain::getFromEmail();
 
       foreach ($pledgeDetails as $paymentId => $details) {
         if (array_key_exists($details['contact_id'], $contactDetails)) {
@@ -1181,23 +1180,13 @@ SELECT  pledge.contact_id              as contact_id,
   }
 
   /**
-   * Override buildOptions to hack out some statuses.
-   *
-   * @param string $fieldName
-   * @param string $context
-   * @param array $props
-   *
-   * @return array|bool
-   * @todo instead of using & hacking the shared optionGroup
-   *   contribution_status use a separate one.
-   *
+   * Pseudoconstant condition_provider for status_id field.
+   * @see \Civi\Schema\EntityMetadataBase::getConditionFromProvider
    */
-  public static function buildOptions($fieldName, $context = NULL, $props = []) {
-    $result = parent::buildOptions($fieldName, $context, $props);
-    if ($fieldName == 'status_id') {
-      $result = array_diff($result, ['Failed']);
+  public static function alterStatus(string $fieldName, CRM_Utils_SQL_Select $conditions, $params) {
+    if ($fieldName == 'status_id' && !$params['include_disabled']) {
+      $conditions->where('name NOT IN (@status)', ['status' => ['Failed']]);
     }
-    return $result;
   }
 
 }

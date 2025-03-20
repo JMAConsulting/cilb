@@ -565,7 +565,16 @@ class CRM_Import_Forms extends CRM_Core_Form {
    * @throws \CRM_Core_Exception
    */
   protected function getColumnHeaders(): array {
-    return $this->getDataSourceObject()->getColumnHeaders();
+    $headers = $this->getDataSourceObject()->getColumnHeaders();
+    $mappedFields = $this->getUserJob()['metadata']['import_mappings'] ?? [];
+    if (!empty($mappedFields) && count($mappedFields) > count($headers)) {
+      // The user has mapped one or more non-database fields, add those in.
+      $userMappedFields = array_diff_key($mappedFields, $headers);
+      foreach ($userMappedFields as $field) {
+        $headers[] = '';
+      }
+    }
+    return $headers;
   }
 
   /**
@@ -597,7 +606,21 @@ class CRM_Import_Forms extends CRM_Core_Form {
    */
   protected function getDataRows($statuses = [], int $limit = 0): array {
     $statuses = (array) $statuses;
-    return $this->getDataSourceObject()->setLimit($limit)->setStatuses($statuses)->getRows();
+    $rows = $this->getDataSourceObject()->setLimit($limit)->setStatuses($statuses)->getRows();
+    $headers = $this->getColumnHeaders();
+    $mappings = $this->getUserJob()['metadata']['import_mappings'] ?? [];
+    foreach ($rows as &$row) {
+      foreach ($headers as $index => $header) {
+        if (!$header) {
+          // Our rows are sequential lists of the values in the database table but the database
+          // table has some non-mapping related rows (`_status`, `_statusMessage` etc)
+          // and our mappings have some virtual rows, which do not have headers
+          // so, we populate our virtual values here.
+          $row[$index] = $mappings[$index]['default_value'] ?? '';
+        }
+      }
+    }
+    return $rows;
   }
 
   /**
@@ -736,10 +759,6 @@ class CRM_Import_Forms extends CRM_Core_Form {
   protected function getAvailableFields(): array {
     $return = [];
     foreach ($this->getFields() as $name => $field) {
-      if ($name === 'id' && $this->isSkipDuplicates()) {
-        // Duplicates are being skipped so id matching is not available.
-        continue;
-      }
       if (($field['entity'] ?? '') === 'Contact' && $this->isFilterContactFields() && empty($field['match_rule'])) {
         // Filter out metadata that is intended for create & update - this is not available in the quick-form
         // but is now loaded in the Parser for the LexIM variant.
@@ -949,6 +968,7 @@ class CRM_Import_Forms extends CRM_Core_Form {
       'entityMetadata' => $this->getFieldOptions(),
       'dedupeRules' => $parser->getAllDedupeRules(),
       'userJob' => $this->getUserJob(),
+      'columnHeaders' => $this->getColumnHeaders(),
     ]);
   }
 

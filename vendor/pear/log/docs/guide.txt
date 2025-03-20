@@ -278,7 +278,7 @@ system's IO routines, which may buffer the output.
 It's possible to force these handlers to flush their output, however, by
 calling their ``flush()`` method::
 
-    $conf = array('buffering' => true);
+    $conf = ['buffering' => true];
     $logger = Log::singleton('console', '', 'test', $conf);
 
     for ($i = 0; $i < 10; $i++) {
@@ -321,12 +321,15 @@ Configuration
 | ``lineFormat``    | String    | ``%1$s %2$s   | `Log line format`_        |
 |                   |           | [%3$s] %4$s`` | specification.            |
 +-------------------+-----------+---------------+---------------------------+
-| ``timeFormat``    | String    | ``%b %d       | Time stamp format         |
-|                   |           | %H:%M:%S``    | (for strftime_).          |
+| ``timeFormat``    | String    | ``M d H:i:s`` | Time stamp format         |
+|                   |           |               | (for date_).              |
++-------------------+-----------+---------------+---------------------------+
+| ``timeFormatter`` | Callable  | null          | Time formatter example    |
+|                   |           |               | fn() => date('H:i:s')     |
 +-------------------+-----------+---------------+---------------------------+
 
 .. _STDOUT: http://www.php.net/wrappers.php
-.. _strftime: http://www.php.net/strftime
+.. _date: http://www.php.net/date
 
 Example
 ~~~~~~~
@@ -352,8 +355,11 @@ Configuration
 | ``lineFormat``    | String    | ``<b>%3$s</b>:| `Log line format`_        |
 |                   |           | %4$s``        | specification.            |
 +-------------------+-----------+---------------+---------------------------+
-| ``timeFormat``    | String    | ``%b %d       | Time stamp format         |
-|                   |           | %H:%M:%S``    | (for strftime_).          |
+| ``timeFormat``    | String    | ``M d H:i:s`` | Time stamp format         |
+|                   |           |               | (for date_).              |
++-------------------+-----------+---------------+---------------------------+
+| ``timeFormatter`` | Callable  | null          | Time formatter example    |
+|                   |           |               | fn() => date('H:i:s')     |
 +-------------------+-----------+---------------+---------------------------+
 | ``error_prepend`` | String    | PHP INI value | This string will be       |
 |                   |           |               | prepended to the line     |
@@ -374,13 +380,14 @@ Configuration
 +-------------------+-----------+---------------+---------------------------+
 
 .. _error handling values: http://www.php.net/errorfunc
+.. _date: http://www.php.net/date
 
 Example
 ~~~~~~~
 ::
 
-    $conf = array('error_prepend' => '<font color="#ff0000"><tt>',
-                  'error_append'  => '</tt></font>');
+    $conf = ['error_prepend' => '<font color="#ff0000"><tt>',
+                  'error_append'  => '</tt></font>'];
     $logger = Log::singleton('display', '', '', $conf, PEAR_LOG_DEBUG);
     for ($i = 0; $i < 10; $i++) {
         $logger->log("Log entry $i");
@@ -410,8 +417,11 @@ Configuration
 | ``lineFormat``    | String    | ``%2$s: %4$s``| `Log line format`_        |
 |                   |           |               | specification.            |
 +-------------------+-----------+---------------+---------------------------+
-| ``timeFormat``    | String    | ``%b %d       | Time stamp format         |
-|                   |           | %H:%M:%S``    | (for strftime_).          |
+| ``timeFormat``    | String    | ``M d H:i:s`` | Time stamp format         |
+|                   |           |               | (for date_).              |
++-------------------+-----------+---------------+---------------------------+
+| ``timeFormatter`` | Callable  | null          | Time formatter example    |
+|                   |           |               | fn() => date('H:i:s')     |
 +-------------------+-----------+---------------+---------------------------+
 
 Error_Log Types
@@ -496,12 +506,15 @@ Configuration
 | ``lineFormat``    | String    | ``%1$s %2$s   | `Log line format`_        |
 |                   |           | [%3$s] %4$s`` | specification.            |
 +-------------------+-----------+---------------+---------------------------+
-| ``timeFormat``    | String    | ``%b %d       | Time stamp format         |
-|                   |           | %H:%M:%S``    | (for strftime_).          |
+| ``timeFormat``    | String    | ``M d H:i:s`` | Time stamp format         |
+|                   |           |               | (for date_).              |
++-------------------+-----------+---------------+---------------------------+
+| ``timeFormatter`` | Callable  | null          | Time formatter example    |
+|                   |           |               | fn() => date('H:i:s')     |
 +-------------------+-----------+---------------+---------------------------+
 
 .. _flock: http://www.php.net/flock
-.. _strftime: http://www.php.net/strftime
+.. _date: http://www.php.net/date
 
 The file handler will only attempt to set the ``mode`` value if it was
 responsible for creating the file.
@@ -510,7 +523,7 @@ Example
 ~~~~~~~
 ::
 
-    $conf = array('mode' => 0600, 'timeFormat' => '%X %x');
+    $conf = ['mode' => 0600, 'timeFormat' => '%X %x'];
     $logger = Log::singleton('file', 'out.log', 'ident', $conf);
     for ($i = 0; $i < 10; $i++) {
         $logger->log("Log entry $i");
@@ -533,12 +546,15 @@ Configuration
 | ``lineFormat``    | String    | ``%2$s [%3$s] | `Log line format`_        |
 |                   |           | %4$s``        | specification.            |
 +-------------------+-----------+---------------+---------------------------+
-| ``timeFormat``    | String    | ``%b %d       | Time stamp format         |
-|                   |           | %H:%M:%S``    | (for strftime_).          |
+| ``timeFormat``    | String    | ``M d H:i:s`` | Time stamp format         |
+|                   |           |               | (for date_).              |
++-------------------+-----------+---------------+---------------------------+
+| ``timeFormatter`` | Callable  | null          | Time formatter example    |
+|                   |           |               | fn() => date('H:i:s')     |
 +-------------------+-----------+---------------+---------------------------+
 
 .. _Firebug: http://www.getfirebug.com/
-.. _strftime: http://www.php.net/strftime
+.. _date: http://www.php.net/date
 
 Example
 ~~~~~~~
@@ -579,8 +595,11 @@ Configuration
 | ``lineFormat``    | String    | ``%1$s %2$s   | `Log line format`_        |
 |                   |           | [%3$s] %4$s`` | specification.            |
 +-------------------+-----------+---------------+---------------------------+
-| ``timeFormat``    | String    | ``%b %d       | Time stamp format         |
-|                   |           | %H:%M:%S``    | (for strftime_).          |
+| ``timeFormat``    | String    | ``M d H:i:s`` | Time stamp format         |
+|                   |           |               | (for date_).              |
++-------------------+-----------+---------------+---------------------------+
+| ``timeFormatter`` | Callable  | null          | Time formatter example    |
+|                   |           |               | fn() => date('H:i:s')     |
 +-------------------+-----------+---------------+---------------------------+
 | ``mailBackend``   | String    | `` `(empty)`  | Name of the Mail package  |
 |                   |           |               | backend to use.           |
@@ -592,12 +611,13 @@ Configuration
 
 .. _PEAR Mail: http://pear.php.net/package/Mail
 .. _mail(): http://www.php.net/mail
+.. _date: http://www.php.net/date
 
 Example
 ~~~~~~~
 ::
 
-    $conf = array('subject' => 'Important Log Events');
+    $conf = ['subject' => 'Important Log Events'];
     $logger = Log::singleton('mail', 'webmaster@example.com', 'ident', $conf);
     for ($i = 0; $i < 10; $i++) {
         $logger->log("Log entry $i");
@@ -740,7 +760,7 @@ Examples
 ~~~~~~~~
 Using a `Data Source Name`_ to create a new database connection::
 
-    $conf = array('dsn' => 'pgsql://jon@localhost+unix/logs');
+    $conf = ['dsn' => 'pgsql://jon@localhost+unix/logs'];
     $logger = Log::singleton('sql', 'log_table', 'ident', $conf);
     for ($i = 0; $i < 10; $i++) {
         $logger->log("Log entry $i");
@@ -815,7 +835,7 @@ Examples
 ~~~~~~~~
 Using a configuration to create a new database connection::
 
-    $conf = array('filename' => 'log.db', 'mode' => 0666, 'persistent' => true);
+    $conf = ['filename' => 'log.db', 'mode' => 0666, 'persistent' => true];
     $logger = Log::factory('sqlite', 'log_table', 'ident', $conf);
     $logger->log('logging an event', PEAR_LOG_WARNING);
 
@@ -857,8 +877,11 @@ Configuration
 | ``lineFormat``    | String    | ``%4$s``      | `Log line format`_        |
 |                   |           |               | specification.            |
 +-------------------+-----------+---------------+---------------------------+
-| ``timeFormat``    | String    | ``%b %d       | Time stamp format         |
-|                   |           | %H:%M:%S``    | (for strftime_).          |
+| ``timeFormat``    | String    | ``M d H:i:s`` | Time stamp format         |
+|                   |           |               | (for date_).              |
++-------------------+-----------+---------------+---------------------------+
+| ``timeFormatter`` | Callable  | null          | Time formatter example    |
+|                   |           |               | fn() => date('H:i:s')     |
 +-------------------+-----------+---------------+---------------------------+
 
 Facilities
@@ -935,7 +958,7 @@ Example
 ~~~~~~~
 ::
 
-    $conf = array('title' => 'Sample Log Output');
+    $conf = ['title' => 'Sample Log Output'];
     $logger = Log::singleton('win', 'LogWindow', 'ident', $conf);
     for ($i = 0; $i < 10; $i++) {
         $logger->log("Log entry $i");
@@ -1173,17 +1196,17 @@ are discussed in detail in the `Configuring a Handler`_ section.
 
 ::
 
-    Log_custom($name, $ident = '', $conf = array(), $level = PEAR_LOG_DEBUG)
+    Log_custom($name, $ident = '', $conf = [], $level = PEAR_LOG_DEBUG)
 
 The constructor is responsible for configuring the handler based on these
 values.  Handler-specific parameters are passed as part of the ``$conf``
 array.  At a minimum, the handler's constructor must set the following values
 defined by the ``Log`` base class::
 
-        $this->_id = md5(microtime().rand());
-        $this->_name = $name;
-        $this->_ident = $ident;
-        $this->_mask = Log::UPTO($level);
+        $this->id = md5(microtime().rand());
+        $this->name = $name;
+        $this->ident = $ident;
+        $this->mask = Log::MAX($level);
 
 The `Handler Methods`_ section below details the various standard methods that
 can be implemented by a log handler.  The `Utility Methods`_ section describes
@@ -1224,7 +1247,7 @@ is closed.  Handler methods can inspect this value to determine whether or not
 the handler is currently open and ready for output.
 
 If the ``open()`` method fails to ready the handler for output, it should
-return ``false`` and set ``$this->_opened`` to ``false``.
+return ``false`` and set ``$this-_opened`` to ``false``.
 
 bool close()
 ~~~~~~~~~~~~
@@ -1233,7 +1256,7 @@ the analog of the ``open()`` method.  It should be safe to call ``close()``
 even when the handler is not open for output.
 
 If the ``close()`` method fails to close the handler, it should return
-``false``.  Otherwise, it should return ``true``.  The ``$this->_opened``
+``false``.  Otherwise, it should return ``true``.  The ``$this->opened``
 flag should also be updated appropriately.
 
 bool flush()
@@ -1251,17 +1274,17 @@ the user wishes to log an event.  The implementation of this method is very
 handler-specific.  It should return ``true`` or ``false``, depending on
 whether or not the message was successfully logged by the handler.
 
-The ``log()`` implementation should be sure to call `_announce()`__ whenever
+The ``log()`` implementation should be sure to call `announce()`__ whenever
 an event is successfully logged.
 
-.. __: `void _announce($event)`_
+.. __: `void announce($event)`_
 
 Utility Methods
 ---------------
 These utility methods are provided by the ``Log`` base class and provide
 common, useful functionality to handler implementations.
 
-string _extractMessage($message)
+string extractMessage($message)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This method returns the string representation of the provided message data.
 
@@ -1275,27 +1298,27 @@ If the message data is already a string, it will be returned unchanged.
 .. _PEAR_Error: http://pear.php.net/manual/en/core.pear.pear-error.php
 .. _getMessage(): http://pear.php.net/manual/en/core.pear.pear-error.getmessage.php
 
-string _format($format, $timestamp, $priority, $message)
+string format($format, $timestamp, $priority, $message)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This method produces a formatted log line based on a format string and a set
 of `tokens`_ representing the current log record and state.
 
 .. _tokens: `Log Line Format`_
 
-bool _isMasked($priority)
+bool isMasked($priority)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 This method checks if the given priority is included in the handler's current
 level mask.  This is useful for determining whether or not a log event should
 be written to the handler's log.
 
-void _announce($event)
+void announce($event)
 ~~~~~~~~~~~~~~~~~~~~~~
 This method informs any registered `log observers`_ that a new event has been
 logged.  ``$event`` is an array containing two named elements::
 
-    array('priority' => $priority, 'message' => $message)
+    ['priority' => $priority, 'message' => $message]
 
-``_announce()`` should be called from a handler's `log()`_ method whenever an
+``announce()`` should be called from a handler's `log()`_ method whenever an
 event is successfully logged.  Otherwise, registered observers will never
 become aware of the event.
 

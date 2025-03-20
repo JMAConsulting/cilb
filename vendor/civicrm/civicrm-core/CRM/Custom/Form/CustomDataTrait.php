@@ -86,6 +86,21 @@ trait CRM_Custom_Form_CustomDataTrait {
 
     $formValues = [];
     foreach ($fields as $field) {
+      // Filter for fields in "Inline" style custom groups only, as others are not added to forms via Ajax. Not removing
+      // them here would register them in the QuickForm but not have POST values for them, which might result in data
+      // loss (most notably radio fields, for which no POST value will be interpreted as a reset).
+      // See https://lab.civicrm.org/dev/core/-/issues/5613
+      if (!isset(Civi::$statics[__CLASS__]['customGroups'][$field['custom_group']])) {
+        Civi::$statics[__CLASS__]['customGroups'][$field['custom_group']] = \Civi\Api4\CustomGroup::get(FALSE)
+          ->addSelect('style')
+          ->addWhere('name', '=', $field['custom_group'])
+          ->execute()
+          ->single();
+      }
+      if ('Inline' !== Civi::$statics[__CLASS__]['customGroups'][$field['custom_group']]['style']) {
+        continue;
+      }
+
       // Here we add the custom fields to the form
       // based on whether they have been 'POSTed'
       foreach ($this->getInstancesOfField($field['custom_field_id']) as $elementName) {
@@ -126,7 +141,7 @@ trait CRM_Custom_Form_CustomDataTrait {
       // We can handle those here - although is that enough to handle blanking on
       // multiple field radios?
       $field = CRM_Core_BAO_CustomField::getField($id);
-      if ($field['html_type'] === 'Radio') {
+      if ($field['html_type'] === 'Radio' || $field['html_type'] === 'Select') {
         $group = CRM_Core_BAO_CustomGroup::getGroup(['id' => $field['custom_group_id']]);
         if (!$group['is_multiple']) {
           $instances[] = 'custom_' . $id;
@@ -163,6 +178,41 @@ trait CRM_Custom_Form_CustomDataTrait {
     // CustomDataByType form in it's setDefaultValues() function - otherwise it cannot reload the
     // values that were just entered if validation fails.
     return is_string($this->getSubmitValue($elementName)) ? CRM_Utils_String::purifyHTML($this->getSubmitValue($elementName)) : $this->getSubmitValue($elementName);
+  }
+
+  /**
+   * Get the submitted custom fields.
+   *
+   * This is returned apiv3 style.
+   * @see getSubmittedCustomFieldsForApi4()
+   *
+   * @return array
+   */
+  protected function getSubmittedCustomFields(): array {
+    $fields = [];
+    foreach ($this->getSubmittedValues() as $label => $field) {
+      if (CRM_Core_BAO_CustomField::getKeyID($label)) {
+        $fields[$label] = $field;
+      }
+    }
+    return $fields;
+  }
+
+  /**
+   * Get the submitted custom fields in Api4 format.
+   *
+   * @return array
+   */
+  protected function getSubmittedCustomFieldsForApi4(): array {
+    $fields = [];
+    foreach ($this->getSubmittedValues() as $label => $field) {
+      if (preg_match('/^custom_(\d+)_?(-?\d+)?$/', $label)) {
+        if ($new = CRM_Core_BAO_CustomField::getLongNameFromShortName($label)) {
+          $fields[$new] = $field;
+        }
+      }
+    }
+    return $fields;
   }
 
 }

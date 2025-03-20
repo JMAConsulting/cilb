@@ -14,8 +14,8 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
-        '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
+        '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         'b6b991a57620e2fb6b2f66f03fe9ddc2' => __DIR__ . '/..' . '/symfony/string/Resources/functions.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
@@ -27,8 +27,8 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'f844ccf1d25df8663951193c3fc307c8' => __DIR__ . '/..' . '/twig/twig/src/Resources/string_loader.php',
         '2f69d3914119f042cca9e44442d5ce95' => __DIR__ . '/../..' . '/web/core/includes/bootstrap.inc',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
-        'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '9e4824c5afbdc1482b6025ce3d4dfde8' => __DIR__ . '/..' . '/league/csv/src/functions_include.php',
+        'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '5897ea0ac4cccf14d323035e65887801' => __DIR__ . '/..' . '/symfony/polyfill-php82/bootstrap.php',
         'bad842bce63596a608e2623519fb382c' => __DIR__ . '/..' . '/xkerman/restricted-unserialize/src/function.php',
         '23c7c9fb739a56c448f3bc838e8b186d' => __DIR__ . '/..' . '/civicrm/civicrm-core/functions.php',
@@ -70,6 +70,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'W' => 
         array (
             'When\\' => 5,
+            'WebSocket\\' => 10,
         ),
         'T' => 
         array (
@@ -108,6 +109,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
             'Symfony\\Component\\EventDispatcher\\' => 34,
             'Symfony\\Component\\ErrorHandler\\' => 31,
             'Symfony\\Component\\DependencyInjection\\' => 38,
+            'Symfony\\Component\\CssSelector\\' => 30,
             'Symfony\\Component\\Console\\' => 26,
             'Symfony\\Component\\Config\\' => 25,
             'Symfony\\Bridge\\PsrHttpMessage\\' => 30,
@@ -132,9 +134,12 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
             'Pontedilana\\PhpWeasyPrint\\' => 26,
+            'Phrity\\Util\\' => 12,
+            'Phrity\\Net\\' => 11,
             'PhpParser\\' => 10,
             'PhpOffice\\PhpWord\\' => 18,
             'PhpOffice\\PhpSpreadsheet\\' => 25,
+            'PhpOffice\\Math\\' => 15,
             'Peast\\' => 6,
             'Padaliyajay\\PHPAutoprefixer\\' => 28,
         ),
@@ -155,7 +160,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
             'League\\Csv\\' => 11,
             'League\\Container\\' => 17,
             'LastCall\\DownloadsPlugin\\' => 25,
-            'Laminas\\Escaper\\' => 16,
+            'Laravel\\SerializableClosure\\' => 28,
         ),
         'K' => 
         array (
@@ -193,6 +198,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
             'Doctrine\\Common\\Annotations\\' => 28,
             'Dflydev\\DotAccessData\\' => 22,
             'DeepCopy\\' => 9,
+            'DMore\\ChromeDriver\\' => 19,
         ),
         'C' => 
         array (
@@ -204,9 +210,9 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
             'Consolidation\\Config\\' => 21,
             'Consolidation\\AnnotatedCommand\\' => 31,
             'Composer\\Semver\\' => 16,
+            'Composer\\Pcre\\' => 14,
             'Composer\\Installers\\' => 20,
             'Complex\\' => 8,
-            'Civi\\Cxn\\Rpc\\' => 13,
             'Civi\\CompilePlugin\\' => 19,
             'Civi\\AssetPlugin\\' => 17,
             'Civi\\' => 5,
@@ -216,6 +222,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         array (
             'Brick\\Money\\' => 12,
             'Brick\\Math\\' => 11,
+            'Behat\\Mink\\' => 11,
         ),
         'A' => 
         array (
@@ -263,6 +270,10 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'When\\' => 
         array (
             0 => __DIR__ . '/..' . '/tplaner/when/src',
+        ),
+        'WebSocket\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phrity/websocket/lib',
         ),
         'Twig\\' => 
         array (
@@ -392,6 +403,10 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         array (
             0 => __DIR__ . '/..' . '/symfony/dependency-injection',
         ),
+        'Symfony\\Component\\CssSelector\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/css-selector',
+        ),
         'Symfony\\Component\\Console\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/console',
@@ -406,7 +421,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         ),
         'Svg\\' => 
         array (
-            0 => __DIR__ . '/..' . '/phenx/php-svg-lib/src/Svg',
+            0 => __DIR__ . '/..' . '/dompdf/php-svg-lib/src/Svg',
         ),
         'Soundasleep\\' => 
         array (
@@ -465,6 +480,15 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         array (
             0 => __DIR__ . '/..' . '/pontedilana/php-weasyprint/src',
         ),
+        'Phrity\\Util\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phrity/util-errorhandler/src',
+        ),
+        'Phrity\\Net\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phrity/net-stream/src',
+            1 => __DIR__ . '/..' . '/phrity/net-uri/src',
+        ),
         'PhpParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
@@ -476,6 +500,10 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'PhpOffice\\PhpSpreadsheet\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoffice/phpspreadsheet/src/PhpSpreadsheet',
+        ),
+        'PhpOffice\\Math\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpoffice/math/src/Math',
         ),
         'Peast\\' => 
         array (
@@ -534,9 +562,9 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         array (
             0 => __DIR__ . '/..' . '/civicrm/composer-downloads-plugin/src',
         ),
-        'Laminas\\Escaper\\' => 
+        'Laravel\\SerializableClosure\\' => 
         array (
-            0 => __DIR__ . '/..' . '/laminas/laminas-escaper/src',
+            0 => __DIR__ . '/..' . '/laravel/serializable-closure/src',
         ),
         'Knp\\Snappy\\' => 
         array (
@@ -564,7 +592,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         ),
         'FontLib\\' => 
         array (
-            0 => __DIR__ . '/..' . '/phenx/php-font-lib/src/FontLib',
+            0 => __DIR__ . '/..' . '/dompdf/php-font-lib/src/FontLib',
         ),
         'Firebase\\JWT\\' => 
         array (
@@ -608,7 +636,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         ),
         'Doctrine\\Deprecations\\' => 
         array (
-            0 => __DIR__ . '/..' . '/doctrine/deprecations/lib/Doctrine/Deprecations',
+            0 => __DIR__ . '/..' . '/doctrine/deprecations/src',
         ),
         'Doctrine\\Common\\Lexer\\' => 
         array (
@@ -625,6 +653,10 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'DeepCopy\\' => 
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
+        ),
+        'DMore\\ChromeDriver\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dmore/chrome-mink-driver/src',
         ),
         'Consolidation\\SiteProcess\\' => 
         array (
@@ -658,6 +690,10 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         array (
             0 => __DIR__ . '/..' . '/composer/semver/src',
         ),
+        'Composer\\Pcre\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/composer/pcre/src',
+        ),
         'Composer\\Installers\\' => 
         array (
             0 => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers',
@@ -665,10 +701,6 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'Complex\\' => 
         array (
             0 => __DIR__ . '/..' . '/markbaker/complex/classes/src',
-        ),
-        'Civi\\Cxn\\Rpc\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/civicrm/civicrm-cxn-rpc/src',
         ),
         'Civi\\CompilePlugin\\' => 
         array (
@@ -695,6 +727,10 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'Brick\\Math\\' => 
         array (
             0 => __DIR__ . '/..' . '/brick/math/src',
+        ),
+        'Behat\\Mink\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/behat/mink/src',
         ),
         'Asm89\\Stack\\' => 
         array (

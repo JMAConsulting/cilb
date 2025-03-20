@@ -244,20 +244,16 @@
      <weight>100</weight>
   </item>
   <item>
+     <path>civicrm/admin/menu/item</path>
+     <page_callback>CRM_Admin_Form_Navigation</page_callback>
+  </item>
+  <item>
      <path>civicrm/admin/options/wordreplacements</path>
      <title>Word Replacements</title>
      <desc>Word Replacements.</desc>
      <page_callback>CRM_Admin_Form_WordReplacements</page_callback>
      <adminGroup>Customize Data and Screens</adminGroup>
      <weight>105</weight>
-  </item>
-  <item>
-     <path>civicrm/admin/options/custom_search</path>
-     <title>Manage Custom Searches</title>
-     <desc>Developers and accidental techies with a bit of PHP and SQL knowledge can create new search forms to handle specific search and reporting needs which aren't covered by the built-in Advanced Search and Search Builder features.</desc>
-     <page_callback>CRM_Admin_Page_Options</page_callback>
-     <adminGroup>Customize Data and Screens</adminGroup>
-     <weight>110</weight>
   </item>
   <item>
      <path>civicrm/admin/domain</path>
@@ -269,10 +265,17 @@
      <weight>10</weight>
   </item>
   <item>
+     <!--
+        Ideally, civicrm/admin/options/site_email_address would register directly in
+        "Administration Console" (e.g. setting <adminGroup> and <weight>). This legacy redirect would be hidden.
+        But for quick-fix, this entry does double-duty: providing the "Administration Console"
+        stub along with the legacy redirect.
+     -->
      <path>civicrm/admin/options/from_email_address</path>
-     <title>From Email Addresses</title>
-     <desc>List of Email Addresses which can be used when sending emails to contacts.</desc>
-     <page_callback>CRM_Admin_Page_Options</page_callback>
+     <title>Site Email Addresses</title>
+     <desc>List of email addresses which can be used when sending emails to contacts.</desc>
+     <page_callback>CRM_Core_Page_Redirect</page_callback>
+     <page_arguments>url=civicrm/admin/options/site_email_address</page_arguments>
      <adminGroup>Communications</adminGroup>
      <weight>20</weight>
   </item>
@@ -298,7 +301,6 @@
      <title>Schedule Reminders</title>
      <desc>Schedule Reminders.</desc>
      <page_callback>CRM_Admin_Page_ScheduleReminders</page_callback>
-     <access_callback>1</access_callback>
      <access_arguments>administer CiviCRM data</access_arguments>
      <adminGroup>Communications</adminGroup>
      <weight>40</weight>
@@ -307,7 +309,6 @@
      <path>civicrm/admin/scheduleReminders/edit</path>
      <title>Schedule Reminders</title>
      <page_callback>CRM_Admin_Form_ScheduleReminders</page_callback>
-     <access_callback>1</access_callback>
      <access_arguments>administer CiviCRM data;edit all events</access_arguments>
   </item>
   <item>
@@ -688,7 +689,7 @@
      <title>Price Sets</title>
      <page_callback>CRM_Price_Page_Set</page_callback>
      <desc>Price sets allow you to offer multiple options with associated fees (e.g. pre-conference workshops, additional meals, etc.). Configure Price Sets for events which need more than a single set of fee levels.</desc>
-     <access_arguments>access CiviCRM,access CiviEvent</access_arguments>
+     <access_arguments>access CiviContribute;access CiviEvent</access_arguments>
      <adminGroup>Customize</adminGroup>
      <weight>380</weight>
   </item>
@@ -697,14 +698,14 @@
      <title>New Price Set</title>
      <page_callback>CRM_Price_Page_Set</page_callback>
      <desc>Price sets allow you to offer multiple options with associated fees (e.g. pre-conference workshops, additional meals, etc.). Configure Price Sets for events which need more than a single set of fee levels.</desc>
-     <access_arguments>access CiviCRM,access CiviEvent</access_arguments>
+     <access_arguments>access CiviCRM</access_arguments>
      <path_arguments>action=add</path_arguments>
   </item>
   <item>
      <path>civicrm/admin/price/edit</path>
      <title>Price Sets</title>
      <page_callback>CRM_Price_Page_Set</page_callback>
-     <access_arguments>access CiviCRM,access CiviEvent</access_arguments>
+     <access_arguments>access CiviCRM</access_arguments>
   </item>
   <item>
      <path>civicrm/admin/price/field</path>

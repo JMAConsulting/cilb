@@ -41,11 +41,7 @@ function civicrm_api3_mailing_create($params) {
     && $params['scheduled_date'] !== 'null'
     // This might have been passed in as empty to prevent us validating, is set skip.
     && !isset($params['_evil_bao_validator_'])) {
-
-    // FlexMailer is a refactoring of CiviMail which provides new hooks/APIs/docs. If the sysadmin has opted to enable it, then use that instead of CiviMail.
-    $function = \CRM_Utils_Constant::value('CIVICRM_FLEXMAILER_HACK_SENDABLE', 'CRM_Mailing_BAO_Mailing::checkSendable');
-    $validationFunction = Civi\Core\Resolver::singleton()->get($function);
-    $errors = call_user_func($validationFunction, $params);
+    $errors = \Civi\FlexMailer\Validator::createAndRun($params);
     if (!empty($errors)) {
       $fields = implode(',', array_keys($errors));
       throw new CRM_Core_Exception("Mailing cannot be sent. There are missing or invalid fields ($fields).", 'cannot-send', $errors);
@@ -117,13 +113,9 @@ function _civicrm_api3_mailing_gettokens_spec(&$params) {
  *   Array of parameters determined by getfields.
  */
 function _civicrm_api3_mailing_create_spec(&$params) {
-  $defaultAddress = CRM_Core_BAO_Domain::getNameAndEmail(TRUE, TRUE);
-  foreach ($defaultAddress as $value) {
-    if (preg_match('/"(.*)" <(.*)>/', $value, $match)) {
-      $params['from_email']['api.default'] = $match[2];
-      $params['from_name']['api.default'] = $match[1];
-    }
-  }
+  $defaultAddress = CRM_Core_BAO_Domain::getNameAndEmail(TRUE);
+  $params['from_email']['api.default'] = $defaultAddress[1];
+  $params['from_name']['api.default'] = $defaultAddress[0];
 }
 
 /**
@@ -160,6 +152,9 @@ function civicrm_api3_mailing_clone($params) {
     'is_archived',
     'hash',
     'mailing_type',
+    'start_date',
+    'end_date',
+    'status',
   ];
 
   $get = civicrm_api3('Mailing', 'getsingle', ['id' => $params['id']]);

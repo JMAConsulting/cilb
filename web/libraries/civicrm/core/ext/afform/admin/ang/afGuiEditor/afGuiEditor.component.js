@@ -18,7 +18,7 @@
       mode: '@'
     },
     controllerAs: 'editor',
-    controller: function($scope, crmApi4, afGui, $parse, $timeout) {
+    controller: function($scope, crmApi4, afGui, $parse, $timeout, $location, $route, $rootScope) {
       var ts = $scope.ts = CRM.ts('org.civicrm.afform_admin');
 
       this.afform = null;
@@ -30,7 +30,7 @@
         undoHistory = [],
         undoPosition = 0,
         undoAction = null,
-        lastSaved,
+        lastSaved = {},
         sortableOptions = {};
 
       // ngModelOptions to debounce input
@@ -238,6 +238,14 @@
         }));
 
         function addToCanvas() {
+          // Set default mode of behaviors
+          if (afGui.meta.behaviors[meta.entity]) {
+            afGui.meta.behaviors[meta.entity].forEach(behavior => {
+              if (behavior.default_mode) {
+                $scope.entities[type + num][behavior.key] = behavior.default_mode;
+              }
+            });
+          }
           // Add this af-entity tag after the last existing one
           var pos = 1 + _.findLastIndex(editor.layout['#children'], {'#tag': 'af-entity'});
           editor.layout['#children'].splice(pos, 0, $scope.entities[type + num]);
@@ -330,8 +338,9 @@
         return filter ? _.filter($scope.entities, filter) : _.toArray($scope.entities);
       };
 
+      // Does afform placement include the contact summary?
       this.isContactSummary = function() {
-        return editor.afform.placement.includes('contact_summary_block') || editor.afform.placement.includes('contact_summary_tab');
+        return editor.afform.placement.some((item) => item.startsWith('contact_summary_'));
       };
 
       this.onChangePlacement = function() {
@@ -347,6 +356,17 @@
             }
           });
         }
+      };
+
+      this.placementRequiresServerRoute = function() {
+        let requiresServerRoute = false;
+        editor.afform.placement.forEach(function(placement) {
+          const item = editor.meta.afform_placement.find(item => item.id === placement);
+          if (item && item.filter) {
+            requiresServerRoute = item.text;
+          }
+        });
+        return requiresServerRoute;
       };
 
       // Gets complete field defn, merging values from the field with default values
@@ -641,6 +661,8 @@
             if (!editor.afform.name) {
               undoAction = 'save';
               editor.afform.name = data[0].name;
+              // Update path to editing url
+              changePathQuietly('/edit/' + data[0].name);
             }
             // Update undo history - mark current snapshot as "saved"
             _.each(undoHistory, function(snapshot, index) {
@@ -700,6 +722,18 @@
           }
         });
       };
+
+      // Change the URL path without triggering a route change
+      function changePathQuietly(newPath) {
+        const lastRoute = $route.current;
+        // Intercept location change and restore current route
+        const un = $rootScope.$on('$locationChangeSuccess', function() {
+          $route.current = lastRoute;
+          un();
+        });
+        return $location.path(newPath);
+      }
+
     }
   });
 

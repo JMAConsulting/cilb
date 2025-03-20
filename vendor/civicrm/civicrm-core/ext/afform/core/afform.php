@@ -25,17 +25,6 @@ function _afform_fields_filter($params) {
 }
 
 /**
- * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
- */
-function afform_civicrm_container($container) {
-  $container->addResource(new \Symfony\Component\Config\Resource\FileResource(__FILE__));
-  $container->setDefinition('afform_scanner', new \Symfony\Component\DependencyInjection\Definition(
-    'CRM_Afform_AfformScanner',
-    []
-  ))->setPublic(TRUE);
-}
-
-/**
  * Implements hook_civicrm_config().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
@@ -49,15 +38,16 @@ function afform_civicrm_config(&$config) {
   Civi::$statics[__FUNCTION__] = 1;
 
   $dispatcher = Civi::dispatcher();
-  $dispatcher->addListener('civi.afform.validate', ['\Civi\Api4\Action\Afform\Submit', 'validateRequiredFields'], 50);
+  $dispatcher->addListener('civi.afform.validate', ['\Civi\Api4\Action\Afform\Submit', 'validateFieldInput'], 50);
   $dispatcher->addListener('civi.afform.validate', ['\Civi\Api4\Action\Afform\Submit', 'validateEntityRefFields'], 45);
   $dispatcher->addListener('civi.afform.submit', ['\Civi\Api4\Action\Afform\Submit', 'processGenericEntity'], 0);
   $dispatcher->addListener('civi.afform.submit', ['\Civi\Api4\Action\Afform\Submit', 'preprocessContact'], 10);
+  $dispatcher->addListener('civi.afform.submit', ['\Civi\Api4\Action\Afform\Submit', 'preprocessParentFormValues'], 100);
   $dispatcher->addListener('civi.afform.submit', ['\Civi\Api4\Action\Afform\Submit', 'processRelationships'], 1);
   $dispatcher->addListener('hook_civicrm_angularModules', '_afform_hook_civicrm_angularModules', -1000);
   $dispatcher->addListener('hook_civicrm_alterAngular', ['\Civi\Afform\AfformMetadataInjector', 'preprocess']);
   $dispatcher->addListener('hook_civicrm_check', ['\Civi\Afform\StatusChecks', 'hook_civicrm_check']);
-  $dispatcher->addListener('civi.afform.get', ['\Civi\Api4\Action\Afform\Get', 'getCustomGroupBlocks']);
+  $dispatcher->addListener('civi.afform.get', ['\Civi\Api4\Action\CustomGroup\GetAfforms', 'getCustomGroupAfforms']);
 }
 
 /**
@@ -180,6 +170,18 @@ function afform_civicrm_tabset($tabsetName, &$tabs, $context) {
     if (!$summaryContactType || !$contactTypes || array_intersect($summaryContactType, $contactTypes)) {
       // Convention is to name the afform like "afformTabMyInfo" which gets the tab name "my_info"
       $tabId = CRM_Utils_String::convertStringToSnakeCase(preg_replace('#^(afformtab|afsearchtab|afform|afsearch)#i', '', $afform['name']));
+      if (strpos($tabId, 'custom_') === 0) {
+        // custom group tab forms use name, but need to replace tabs using ID
+        // remove 'afsearchTabCustom_' from the form name to get the group name
+        $groupName = substr($afform['name'], 18);
+        $groupId = \Civi\Api4\CustomGroup::get(FALSE)
+          ->addSelect('id')
+          ->addWhere('name', '=', $groupName)
+          ->execute()->first()['id'] ?? NULL;
+        if ($groupId) {
+          $tabId = 'custom_' . $groupId;
+        }
+      }
       // If a tab with that id already exists, allow the afform to replace it.
       $existingTab = array_search($tabId, $existingTabs);
       if ($existingTab !== FALSE) {
@@ -192,14 +194,56 @@ function afform_civicrm_tabset($tabsetName, &$tabs, $context) {
         'icon' => 'crm-i ' . ($afform['icon'] ?: 'fa-list-alt'),
         'is_active' => TRUE,
         'contact_type' => _afform_get_contact_types($summaryContactType) ?: NULL,
-        'template' => 'afform/contactSummary/AfformTab.tpl',
+        'template' => 'afform/InlineAfform.tpl',
         'module' => $afform['module_name'],
         'directive' => $afform['directive_name'],
       ];
-      // If this is the real contact summary page (and not a callback from ContactLayoutEditor), load module.
+      // If this is the real contact summary page (and not a callback from ContactLayoutEditor), load module
+      // and assign contact id to required smarty variable
       if (empty($context['caller'])) {
+        CRM_Core_Smarty::singleton()->assign('afformOptions', [
+          'contact_id' => $context['contact_id'],
+        ]);
         Civi::service('angularjs.loader')->addModules($afform['module_name']);
       }
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_summaryActions().
+ *
+ * Adds afforms to the contact summary actions menu.
+ */
+function afform_civicrm_summaryActions(&$actions, $contactID) {
+  if (!$contactID) {
+    return;
+  }
+  $contact = civicrm_api4('Contact', 'get', [
+    'checkPermissions' => FALSE,
+    'select' => ['contact_type', 'contact_sub_type'],
+    'where' => [['id', '=', $contactID]],
+  ])->first();
+  if (!$contact) {
+    return;
+  }
+  $contactTypes = array_merge([$contact['contact_type']], $contact['contact_sub_type'] ?? []);
+  $afforms = Civi\Api4\Afform::get()
+    ->addSelect('name', 'title', 'icon', 'server_route', 'summary_contact_type', 'summary_weight')
+    ->addWhere('placement', 'CONTAINS', 'contact_summary_actions')
+    ->addWhere('server_route', 'IS NOT EMPTY')
+    ->addOrderBy('title')
+    ->execute();
+  foreach ($afforms as $afform) {
+    $summaryContactType = $afform['summary_contact_type'] ?? [];
+    if (!$summaryContactType || !$contactTypes || array_intersect($summaryContactType, $contactTypes)) {
+      $actions['otherActions'][$afform['name']] = [
+        'title' => $afform['title'],
+        'weight' => $afform['summary_weight'] ?? 0,
+        'icon' => 'crm-i ' . ($afform['icon'] ?: 'fa-list-alt'),
+        'class' => 'crm-popup',
+        'href' => CRM_Utils_System::url($afform['server_route'], '', FALSE, "?contact_id=$contactID"),
+      ];
     }
   }
 }
@@ -223,6 +267,9 @@ function afform_civicrm_pageRun(&$page) {
   $contact = NULL;
   $side = 'left';
   $weight = ['left' => 1, 'right' => 1];
+  $afformOptions = [
+    'contact_id' => $cid,
+  ];
   foreach ($afforms as $afform) {
     // If Afform specifies a contact type, lookup the contact and compare
     if (!empty($afform['summary_contact_type'])) {
@@ -238,9 +285,9 @@ function afform_civicrm_pageRun(&$page) {
     }
     $block = [
       'module' => $afform['module_name'],
-      'directive' => _afform_angular_module_name($afform['name'], 'dash'),
+      'directive' => $afform['directive_name'],
     ];
-    $content = CRM_Core_Smarty::singleton()->fetchWith('afform/contactSummary/AfformBlock.tpl', ['contactId' => $cid, 'block' => $block]);
+    $content = CRM_Core_Smarty::singleton()->fetchWith('afform/InlineAfform.tpl', ['afformOptions' => $afformOptions, 'block' => $block]);
     CRM_Core_Region::instance("contact-basic-info-$side")->add([
       'markup' => '<div class="crm-summary-block">' . $content . '</div>',
       'name' => 'afform:' . $afform['name'],
@@ -277,7 +324,7 @@ function afform_civicrm_contactSummaryBlocks(&$blocks) {
     $blocks["afform_{$afform['type']}"]['blocks'][$afform['name']] = [
       'title' => $afform['title'],
       'contact_type' => $contactType ?: NULL,
-      'tpl_file' => 'afform/contactSummary/AfformBlock.tpl',
+      'tpl_file' => 'afform/InlineAfform.tpl',
       'module' => $afform['module_name'],
       'directive' => $afform['directive_name'],
       'sample' => [
@@ -390,7 +437,7 @@ function afform_civicrm_buildAsset($asset, $params, &$mimeType, &$content) {
   $moduleName = _afform_angular_module_name($params['name'], 'camel');
   $formMetaData = (array) civicrm_api4('Afform', 'get', [
     'checkPermissions' => FALSE,
-    'select' => ['redirect', 'name', 'title'],
+    'select' => ['redirect', 'name', 'title', 'autosave_draft'],
     'where' => [['name', '=', $params['name']]],
   ], 0);
   $smarty = CRM_Core_Smarty::singleton();
@@ -421,7 +468,7 @@ function afform_civicrm_alterMenu(&$items) {
   foreach ($afforms as $name => $meta) {
     if (!empty($meta['server_route'])) {
       $items[$meta['server_route']] = [
-        'title' => $meta['title'],
+        'title' => $meta['title'] ?? NULL,
         'page_callback' => 'CRM_Afform_Page_AfformBase',
         'page_arguments' => 'afform=' . urlencode($name),
         'access_arguments' => [["@afform:$name"], 'and'],
@@ -457,18 +504,26 @@ function afform_civicrm_permission(&$permissions) {
  * @see CRM_Utils_Hook::permission_check()
  */
 function afform_civicrm_permission_check($permission, &$granted, $contactId) {
-  if (!str_starts_with($permission, '@afform:') || strlen($permission) < 9) {
-    // Micro-optimization - this function may get hit a lot.
-    return;
+  // This function may get hit a lot. Try to keep the conditionals efficient.
+  if (str_starts_with($permission, '@afform:') && strlen($permission) >= 9) {
+    [, $name] = explode(':', $permission, 2);
+    // Delegate permission check to APIv4
+    $check = \Civi\Api4\Afform::checkAccess()
+      ->addValue('name', $name)
+      ->setAction('get')
+      ->execute()
+      ->first();
+    $granted = $check['access'];
   }
-  [, $name] = explode(':', $permission, 2);
-  // Delegate permission check to APIv4
-  $check = \Civi\Api4\Afform::checkAccess()
-    ->addValue('name', $name)
-    ->setAction('get')
-    ->execute()
-    ->first();
-  $granted = $check['access'];
+  elseif ($permission === '@afformPageToken') {
+    $session = CRM_Core_Session::singleton();
+    $data = $session->get('authx');
+    $granted =
+      // Check authx token
+      isset($data['jwt']['scope'], $data['flow']) && $data['jwt']['scope'] === 'afform' && $data['flow'] === 'afformpage'
+      // Allow admins to edit forms without requiring a token
+      || CRM_Core_Permission::check('administer afform');
+  }
 }
 
 /**
@@ -477,6 +532,14 @@ function afform_civicrm_permission_check($permission, &$granted, $contactId) {
  * @see CRM_Utils_Hook::permissionList()
  */
 function afform_civicrm_permissionList(&$permissions) {
+  $permissions['@afformPageToken'] = [
+    'group' => 'const',
+    'title' => E::ts('Generic: Anyone with secret link'),
+    'description' => E::ts('If you link to the form with a secure token, then no other permission is needed.'),
+    'parent' => 'administer afform',
+  ];
+  $permissions['administer afform']['implies'] ??= [];
+  $permissions['administer afform']['implies'][] = '@afformPageToken';
   $scanner = Civi::service('afform_scanner');
   foreach ($scanner->getMetas() as $name => $meta) {
     $permissions['@afform:' . $name] = [
@@ -563,6 +626,16 @@ function afform_civicrm_pre($op, $entity, $id, &$params) {
     \Civi\Api4\Afform::revert(FALSE)
       ->addWhere('search_displays', 'CONTAINS', $search['name'])
       ->execute();
+  }
+}
+
+/**
+ * Implements hook_civicrm_post().
+ */
+function afform_civicrm_post($op, $entityName, $id, $object, $params) {
+  // When editing custom fields, refresh the autogenerated afforms
+  if ($entityName === 'CustomGroup' || $entityName === 'CustomField') {
+    _afform_clear();
   }
 }
 
@@ -665,9 +738,40 @@ function afform_shortcode_content($content, $atts, $args, $context) {
  */
 function afform_civicrm_searchKitTasks(array &$tasks, bool $checkPermissions, ?int $userID) {
   $tasks['AfformSubmission']['process'] = [
-    'module' => 'afSearchTasks',
     'title' => E::ts('Process Submissions'),
     'icon' => 'fa-check-square-o',
-    'uiDialog' => ['templateUrl' => '~/afSearchTasks/afformSubmissionProcessTask.html'],
+    // The Afform.process API doesn't support batches so use get+chaining
+    'apiBatch' => [
+      'action' => 'get',
+      'params' => [
+        'select' => ['id', 'afform_name'],
+        'where' => [['status_id:name', '=', 'Pending']],
+        'chain' => [
+          ['Afform', 'process', ['submissionId' => '$id', 'name' => '$afform_name']],
+        ],
+      ],
+      'conditions' => [
+        ['check user permission', '=', ['administer afform']],
+      ],
+      'confirmMsg' => E::ts('Confirm processing %1 %2.'),
+      'runMsg' => E::ts('Processing %1 %2...'),
+      'successMsg' => E::ts('Successfully processed %1 %2.'),
+      'errorMsg' => E::ts('An error occurred while attempting to process %1 %2.'),
+    ],
+  ];
+  $tasks['AfformSubmission']['reject'] = [
+    'title' => E::ts('Reject Submissions'),
+    'icon' => 'fa-rectangle-xmark',
+    'apiBatch' => [
+      'action' => 'update',
+      'params' => [
+        'where' => [['status_id:name', '=', 'Pending']],
+        'values' => ['status_id:name' => 'Rejected'],
+      ],
+      'confirmMsg' => E::ts('Reject %1 %2.'),
+      'runMsg' => E::ts('Updating %1 %2...'),
+      'successMsg' => E::ts('%1 %2 have been rejected.'),
+      'errorMsg' => E::ts('An error occurred while attempting to process %1 %2.'),
+    ],
   ];
 }

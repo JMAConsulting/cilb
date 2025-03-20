@@ -362,23 +362,6 @@ function civicrm_api3_case_get($params, $sql = NULL) {
 }
 
 /**
- * Deprecated API.
- *
- * Use activity API instead.
- *
- * @param array $params
- *
- * @throws CRM_Core_Exception
- * @return array
- */
-function civicrm_api3_case_activity_create($params) {
-  require_once "api/v3/Activity.php";
-  return civicrm_api3_activity_create($params) + [
-    'deprecated' => CRM_Utils_Array::value('activity_create', _civicrm_api3_case_deprecation()),
-  ];
-}
-
-/**
  * Add a timeline to a case.
  *
  * @param array $params
@@ -469,17 +452,6 @@ function _civicrm_api3_case_merge_spec(&$params) {
     'type' => CRM_Utils_Type::T_INT,
     'api.required' => 1,
   ];
-}
-
-/**
- * Declare deprecated api functions.
- *
- * @deprecated api notice
- * @return array
- *   Array of deprecated actions
- */
-function _civicrm_api3_case_deprecation() {
-  return ['activity_create' => 'Case api "activity_create" action is deprecated. Use the activity api instead.'];
 }
 
 /**
@@ -776,4 +748,16 @@ function civicrm_api3_case_getList($params) {
 function _civicrm_api3_case_getlist_spec(&$params, $apiRequest) {
   require_once 'api/v3/Generic/Getlist.php';
   _civicrm_api3_generic_getlist_spec($params, $apiRequest);
+}
+
+function civicrm_api3_case_getoptions($params) {
+  $apiRequest = [
+    'entity' => 'Case',
+    'params' => $params,
+  ];
+  // This field is not part of this object but the api supports it
+  if ($params['field'] === 'medium_id') {
+    $apiRequest['entity'] = 'Activity';
+  }
+  return civicrm_api3_generic_getOptions($apiRequest);
 }
