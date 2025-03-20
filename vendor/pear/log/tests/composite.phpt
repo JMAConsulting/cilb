@@ -9,14 +9,19 @@ require_once 'Log.php';
 
 function printOpenStates($children) {
     foreach ($children as $child) {
-        $state = ($child->_opened) ? 'OPEN' : 'CLOSED';
-        echo "$child->_ident : $state\n";
+        $reflection = new ReflectionObject($child);
+        $openedProperty = $reflection->getProperty('opened');
+        $openedProperty->setAccessible(true);
+        $opened = $openedProperty->getValue($child);
+        $ident = $child->getIdent();
+        $state = ($opened) ? 'OPEN' : 'CLOSED';
+        echo "$ident : $state\n";
     }
 }
 
 function printIdents($children) {
     foreach ($children as $child) {
-        echo "$child->_ident\n";
+        echo $child->getIdent() . "\n";
     }
 }
 
@@ -28,12 +33,12 @@ function testPriority($composite, $priority) {
 }
 
 /* Create three handlers with different priority masks. */
-$conf = array('lineFormat' => '%2$s [%3$s] %4$s');
-$children = array(
+$conf = ['lineFormat' => '%2$s [%3$s] %4$s'];
+$children = [
     Log::factory('console', '', 'CONSOLE1', $conf),
     Log::factory('console', '', 'CONSOLE2', $conf),
     Log::factory('console', '', 'CONSOLE3', $conf)
-);
+];
 
 $children[0]->setMask(Log::MASK(PEAR_LOG_DEBUG));
 $children[1]->setMask(Log::MASK(PEAR_LOG_INFO));

@@ -121,15 +121,6 @@ abstract class CRM_Import_Parser implements UserJobInterface {
   }
 
   /**
-   * An array of Custom field mappings for api formatting
-   *
-   * e.g ['custom_7' => 'IndividualData.Marriage_date']
-   *
-   * @var array
-   */
-  protected $customFieldNameMap = [];
-
-  /**
    * Get User Job.
    *
    * API call to retrieve the userJob row.
@@ -458,59 +449,6 @@ abstract class CRM_Import_Parser implements UserJobInterface {
   }
 
   /**
-   * Do this work on the form layer.
-   *
-   * @deprecated in 5.54 will be removed around 5.80
-   *
-   * @return array
-   */
-  public function getHeaderPatterns(): array {
-    CRM_Core_Error::deprecatedFunctionWarning('CRM_Import_Forms::getHeaderPatterns');
-    $values = [];
-    foreach ($this->importableFieldsMetadata as $name => $field) {
-      if (isset($field['headerPattern'])) {
-        $values[$name] = $field['headerPattern'] ?: '//';
-      }
-    }
-    return $values;
-  }
-
-  /**
-   * Remove single-quote enclosures from a value array (row).
-   *
-   * @param array $values
-   * @param string $enclosure
-   *
-   * @deprecated
-   *
-   * @return void
-   */
-  public static function encloseScrub(&$values, $enclosure = "'") {
-    CRM_Core_Error::deprecatedFunctionWarning('no replacement');
-    if (empty($values)) {
-      return;
-    }
-
-    foreach ($values as $k => $v) {
-      $values[$k] = preg_replace("/^$enclosure(.*)$enclosure$/", '$1', $v);
-    }
-  }
-
-  /**
-   * Setter function.
-   *
-   * @deprecated
-   *
-   * @param int $max
-   *
-   * @return void
-   */
-  public function setMaxLinesToProcess($max) {
-    CRM_Core_Error::deprecatedFunctionWarning('no replacement');
-    $this->_maxLinesToProcess = $max;
-  }
-
-  /**
    * Validate that we have the required fields to create the contact or find it to update.
    *
    * Note that the users duplicate selection affects this as follows
@@ -684,44 +622,6 @@ abstract class CRM_Import_Parser implements UserJobInterface {
       $tagAdditions[$tagID] = ['added' => $outcome[1], 'notAdded' => $outcome[2]];
     }
     return $tagAdditions;
-  }
-
-  /**
-   * Determines the file extension based on error code.
-   *
-   * @deprecated
-   *
-   * @var int $type error code constant
-   * @return string
-   */
-  public static function errorFileName($type) {
-    CRM_Core_Error::deprecatedFunctionWarning('no replacement');
-    $fileName = NULL;
-    if (empty($type)) {
-      return $fileName;
-    }
-
-    $config = CRM_Core_Config::singleton();
-    $fileName = $config->uploadDir . "sqlImport";
-    switch ($type) {
-      case self::ERROR:
-        $fileName .= '.errors';
-        break;
-
-      case self::DUPLICATE:
-        $fileName .= '.duplicates';
-        break;
-
-      case self::NO_MATCH:
-        $fileName .= '.mismatch';
-        break;
-
-      case self::UNPARSED_ADDRESS_WARNING:
-        $fileName .= '.unparsedAddress';
-        break;
-    }
-
-    return $fileName;
   }
 
   /**
@@ -1018,7 +918,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
     if (isset($values['individual_prefix'])) {
       CRM_Core_Error::deprecatedWarning('code should be unreachable, slated for removal');
       if (!empty($params['prefix_id'])) {
-        $prefixes = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'prefix_id');
+        $prefixes = CRM_Contact_DAO_Contact::buildOptions('prefix_id');
         $params['prefix'] = $prefixes[$params['prefix_id']];
       }
       else {
@@ -1030,7 +930,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
     if (isset($values['individual_suffix'])) {
       CRM_Core_Error::deprecatedWarning('code should be unreachable, slated for removal');
       if (!empty($params['suffix_id'])) {
-        $suffixes = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'suffix_id');
+        $suffixes = CRM_Contact_DAO_Contact::buildOptions('suffix_id');
         $params['suffix'] = $suffixes[$params['suffix_id']];
       }
       else {
@@ -1042,7 +942,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
     if (isset($values['gender'])) {
       CRM_Core_Error::deprecatedWarning('code should be unreachable, slated for removal');
       if (!empty($params['gender_id'])) {
-        $genders = CRM_Core_PseudoConstant::get('CRM_Contact_DAO_Contact', 'gender_id');
+        $genders = CRM_Contact_DAO_Contact::buildOptions('gender_id');
         $params['gender'] = $genders[$params['gender_id']];
       }
       else {
@@ -1251,45 +1151,6 @@ abstract class CRM_Import_Parser implements UserJobInterface {
   }
 
   /**
-   * Parse a field which could be represented by a label or name value rather than the DB value.
-   *
-   * We will try to match name first or (per https://lab.civicrm.org/dev/core/issues/1285 if we have an id.
-   *
-   * but if not available then see if we have a label that can be converted to a name.
-   *
-   * @deprecated
-   *
-   * @param string|int|null $submittedValue
-   * @param array $fieldSpec
-   *   Metadata for the field
-   *
-   * @return mixed
-   */
-  protected function parsePseudoConstantField($submittedValue, $fieldSpec) {
-    CRM_Core_Error::deprecatedFunctionWarning('no replacement');
-    // dev/core#1289 Somehow we have wound up here but the BAO has not been specified in the fieldspec so we need to check this but future us problem, for now lets just return the submittedValue
-    if (!isset($fieldSpec['bao'])) {
-      return $submittedValue;
-    }
-    /** @var \CRM_Core_DAO $bao */
-    $bao = $fieldSpec['bao'];
-    // For historical reasons use validate as context - ie disabled name matches ARE permitted.
-    $nameOptions = $bao::buildOptions($fieldSpec['name'], 'validate');
-    if (isset($nameOptions[$submittedValue])) {
-      return $submittedValue;
-    }
-    if (in_array($submittedValue, $nameOptions)) {
-      return array_search($submittedValue, $nameOptions, TRUE);
-    }
-
-    $labelOptions = array_flip($bao::buildOptions($fieldSpec['name'], 'match'));
-    if (isset($labelOptions[$submittedValue])) {
-      return array_search($labelOptions[$submittedValue], $nameOptions, TRUE);
-    }
-    return '';
-  }
-
-  /**
    * This is code extracted from 4 places where this exact snippet was being duplicated.
    *
    * FIXME: Extracting this was a first step, but there's also
@@ -1387,7 +1248,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
    * @param string $entity
    *
    * @return array
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    */
   protected function getDedupeRulesForEntity(string $entity): array {
     return (array) ($this->getUserJob()['metadata']['entity_configuration'][$entity]['dedupe_rule'] ?? []);
@@ -1399,7 +1260,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
    * @param string $entity
    *
    * @return string|null
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    */
   protected function getContactTypeForEntity(string $entity): ?string {
     return $this->getUserJob()['metadata']['entity_configuration'][$entity]['contact_type'] ?? NULL;
@@ -1580,7 +1441,30 @@ abstract class CRM_Import_Parser implements UserJobInterface {
       }
 
       $comparisonValue = $this->getComparisonValue($importedValue);
-      return $options[$comparisonValue] ?? 'invalid_import_value';
+      $resolvedValue = $options[$comparisonValue] ?? 'invalid_import_value';
+      if (in_array($fieldName, ['state_province_id', 'county_id'], TRUE) && $resolvedValue === 'invalid_import_value') {
+        if ($fieldName === 'state_province_id') {
+          $stateID = CRM_Core_DAO::singleValueQuery('SELECT id FROM civicrm_state_province WHERE name = %1', [1 => [$comparisonValue, 'String']]);
+          if (!$stateID) {
+            $stateID = CRM_Core_DAO::singleValueQuery('SELECT id FROM civicrm_state_province WHERE abbreviation = %1', [1 => [$comparisonValue, 'String']]);
+          }
+          if ($stateID) {
+            $this->importableFieldsMetadata['state_province_id']['options'][$comparisonValue] = $stateID;
+            return $stateID;
+          }
+        }
+        if ($fieldName === 'county_id') {
+          $countyID = CRM_Core_DAO::singleValueQuery('SELECT id FROM civicrm_county WHERE name = %1', [1 => [$comparisonValue, 'String']]);
+          if (!$countyID) {
+            $countyID = CRM_Core_DAO::singleValueQuery('SELECT id FROM civicrm_county WHERE abbreviation = %1', [1 => [$comparisonValue, 'String']]);
+          }
+          if ($countyID) {
+            $this->importableFieldsMetadata['county_id']['options'][$comparisonValue] = $countyID;
+            return $countyID;
+          }
+        }
+      }
+      return $resolvedValue;
     }
     // @todo - make this generic - for fields where getOptions doesn't fetch
     // getOptions does not retrieve these fields with high potential results
@@ -1742,6 +1626,10 @@ abstract class CRM_Import_Parser implements UserJobInterface {
         $fields[$value] = $contactFields[$value] ?? NULL;
         $title = $fields[$value]['title'] . ' (match to contact)';
         $fields[$value]['title'] = $title;
+        $fields[$value]['entity'] = 'Contact';
+        if ($customFieldId) {
+          $fields[$value]['apiv4_name'] = CRM_Core_BAO_CustomField::getLongNameFromShortName($value);
+        }
       }
     }
     return $fields;
@@ -2004,7 +1892,8 @@ abstract class CRM_Import_Parser implements UserJobInterface {
         continue;
       }
       if ($mappedField['name']) {
-        $params[$this->getFieldMetadata($mappedField['name'])['name']] = $this->getTransformedFieldValue($mappedField['name'], $values[$i]);
+        $fieldSpec = $this->getFieldMetadata($mappedField['name']);
+        $params[$fieldSpec['name']] = $this->getTransformedFieldValue($mappedField['name'], $values[$i]);
       }
     }
     return $params;
@@ -2207,7 +2096,7 @@ abstract class CRM_Import_Parser implements UserJobInterface {
       }
       foreach ($params as $key => $value) {
         if (strpos($key, 'custom_') === 0) {
-          $params[$this->getApi4Name($key)] = $value;
+          $params[CRM_Core_BAO_CustomField::getLongNameFromShortName($key)] = $value;
           unset($params[$key]);
         }
       }
@@ -2241,25 +2130,6 @@ abstract class CRM_Import_Parser implements UserJobInterface {
         2 => $id,
       ]));
     }
-  }
-
-  /**
-   * Get the Api4 name of a custom field.
-   *
-   * @param string $key
-   *
-   * @return string
-   *
-   * @throws \CRM_Core_Exception
-   */
-  protected function getApi4Name(string $key): string {
-    if (!isset($this->customFieldNameMap[$key])) {
-      $this->customFieldNameMap[$key] = Contact::getFields(FALSE)
-        ->addWhere('custom_field_id', '=', str_replace('custom_', '', $key))
-        ->addSelect('name')
-        ->execute()->first()['name'];
-    }
-    return $this->customFieldNameMap[$key];
   }
 
   /**
@@ -2329,15 +2199,17 @@ abstract class CRM_Import_Parser implements UserJobInterface {
   protected function getAllContactFields(string $prefix = 'Contact.'): array {
     $allContactFields = (array) Contact::getFields()
       ->addWhere('readonly', '=', FALSE)
-      ->addWhere('type', 'IN', ['Field', 'Custom'])
+      ->addWhere('usage', 'CONTAINS', 'import')
       ->addWhere('fk_entity', 'IS EMPTY')
+      ->setAction('save')
       ->addOrderBy('title')
       ->execute()->indexBy('name');
 
     $contactTypeFields['Individual'] = (array) Contact::getFields()
       ->addWhere('readonly', '=', FALSE)
-      ->addWhere('type', 'IN', ['Field', 'Custom'])
+      ->addWhere('usage', 'CONTAINS', 'import')
       ->addWhere('fk_entity', 'IS EMPTY')
+      ->setAction('save')
       ->setSelect(['name'])
       ->addValue('contact_type', 'Individual')
       ->addOrderBy('title')
@@ -2345,8 +2217,9 @@ abstract class CRM_Import_Parser implements UserJobInterface {
 
     $contactTypeFields['Organization'] = (array) Contact::getFields()
       ->addWhere('readonly', '=', FALSE)
-      ->addWhere('type', 'IN', ['Field', 'Custom'])
+      ->addWhere('usage', 'CONTAINS', 'import')
       ->addWhere('fk_entity', 'IS EMPTY')
+      ->setAction('save')
       ->setSelect(['name'])
       ->addValue('contact_type', 'Organization')
       ->addOrderBy('title')
@@ -2354,8 +2227,9 @@ abstract class CRM_Import_Parser implements UserJobInterface {
 
     $contactTypeFields['Household'] = (array) Contact::getFields()
       ->addWhere('readonly', '=', FALSE)
-      ->addWhere('type', 'IN', ['Field', 'Custom'])
+      ->addWhere('usage', 'CONTAINS', 'import')
       ->addWhere('fk_entity', 'IS EMPTY')
+      ->setAction('save')
       ->setSelect(['name'])
       ->addOrderBy('title')
       ->execute()->indexBy('name');
@@ -2369,15 +2243,13 @@ abstract class CRM_Import_Parser implements UserJobInterface {
         }
       }
       $fieldName = $prefix . $fieldName;
-      if (!empty($field['custom_field_id'])) {
-        $this->customFieldNameMap['custom_' . $field['custom_field_id']] = $fieldName;
-      }
       $prefixedFields[$fieldName] = $field;
     }
 
     $addressFields = (array) Address::getFields()
       ->addWhere('readonly', '=', FALSE)
-      ->addWhere('type', 'IN', ['Field', 'Custom'])
+      ->addWhere('usage', 'CONTAINS', 'import')
+      ->setAction('save')
       ->addOrderBy('title')
       // Exclude these fields to keep it simpler for now - we just map to primary
       ->addWhere('name', 'NOT IN', ['id', 'location_type_id', 'master_id'])
@@ -2392,7 +2264,8 @@ abstract class CRM_Import_Parser implements UserJobInterface {
 
     $phoneFields = (array) Phone::getFields()
       ->addWhere('readonly', '=', FALSE)
-      ->addWhere('type', 'IN', ['Field', 'Custom'])
+      ->addWhere('usage', 'CONTAINS', 'import')
+      ->setAction('save')
       // Exclude these fields to keep it simpler for now - we just map to primary
       ->addWhere('name', 'NOT IN', ['id', 'location_type_id', 'phone_type_id'])
       ->addOrderBy('title')
@@ -2406,7 +2279,8 @@ abstract class CRM_Import_Parser implements UserJobInterface {
 
     $emailFields = (array) Email::getFields()
       ->addWhere('readonly', '=', FALSE)
-      ->addWhere('type', 'IN', ['Field', 'Custom'])
+      ->addWhere('usage', 'CONTAINS', 'import')
+      ->setAction('save')
       // Exclude these fields to keep it simpler for now - we just map to primary
       ->addWhere('name', 'NOT IN', ['id', 'location_type_id'])
       ->addOrderBy('title')

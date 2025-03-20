@@ -28,11 +28,6 @@ class FormattingUtil {
   ];
 
   /**
-   * @var string[]
-   */
-  public static $pseudoConstantSuffixes = ['name', 'abbr', 'label', 'color', 'description', 'icon', 'grouping', 'url'];
-
-  /**
    * Massage values into the format the BAO expects for a write operation
    *
    * @param array $params
@@ -89,7 +84,7 @@ class FormattingUtil {
    */
   public static function formatInputValue(&$value, ?string $fieldPath, array $fieldSpec, array $params = [], &$operator = NULL, $index = NULL) {
     // Evaluate pseudoconstant suffix
-    $suffix = str_replace(':', '', strstr(($fieldPath ?? ''), ':'));
+    $suffix = self::getSuffix($fieldPath);
     $fk = $fieldSpec['name'] == 'id' ? $fieldSpec['entity'] : $fieldSpec['fk_entity'] ?? NULL;
 
     // Handle special 'current_domain' option. See SpecFormatter::getOptions
@@ -126,16 +121,26 @@ class FormattingUtil {
     }
 
     // Special handling for 'current_user' and user lookups
-    if ($fk === 'Contact' && isset($value) && !is_numeric($value)) {
-      $value = \_civicrm_api3_resolve_contactID($value);
-      if ('unknown-user' === $value) {
-        throw new \CRM_Core_Exception("\"{$fieldSpec['name']}\" \"{$value}\" cannot be resolved to a contact ID", 2002, ['error_field' => $fieldSpec['name'], "type" => "integer"]);
-      }
+    $exactMatch = [NULL, '=', '!=', '<>', 'IN', 'NOT IN'];
+    if (is_string($fk) && CoreUtil::isContact($fk) && in_array($operator, $exactMatch, TRUE)) {
+      $value = self::resolveContactID($fieldSpec['name'], $value);
     }
 
     switch ($fieldSpec['data_type'] ?? NULL) {
       case 'Timestamp':
-        $value = self::formatDateValue('YmdHis', $value, $operator, $index);
+        $format = 'YmdHis';
+        // Using `=` with a Y-m-d timestamp means we really want `BETWEEN` midnight and 11:59:59pm.
+        if ($operator && is_string($value) && !array_key_exists($value, \CRM_Core_OptionGroup::values('relative_date_filters'))) {
+          $isYmd = (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value));
+          if ($isYmd && in_array($operator, ['=', '!=', '<>'])) {
+            $operator = $operator === '=' ? 'BETWEEN' : 'NOT BETWEEN';
+            $dateFrom = self::formatDateValue($format, "$value 00:00:00");
+            $dateTo = self::formatDateValue($format, "$value 23:59:59");
+            $value = [self::formatDateValue($format, $dateFrom), self::formatDateValue($format, $dateTo)];
+            break;
+          }
+        }
+        $value = self::formatDateValue($format, $value, $operator, $index);
         break;
 
       case 'Date':
@@ -251,7 +256,7 @@ class FormattingUtil {
         $dataType = NULL;
       }
       // Evaluate pseudoconstant suffixes
-      $suffix = strrpos(($fieldName ?? ''), ':');
+      $suffix = self::getSuffix($fieldName);
       $fieldOptions = NULL;
       if (isset($value) && $suffix) {
         $fieldOptions = self::getPseudoconstantList($field, $fieldName, $rawValues, $action);
@@ -280,6 +285,29 @@ class FormattingUtil {
   }
 
   /**
+   * Get options associated with an entity field
+   *
+   * @return void
+   * @throws \CRM_Core_Exception
+   */
+  public static function getFieldOptions(array $field, array $values = [], bool $includeDisabled = FALSE, bool $checkPermissions = FALSE, ?int $userId = NULL): ?array {
+    $fieldName = $field['name'];
+    $entityName = $field['entity'];
+    $customGroupName = CoreUtil::getCustomGroupName($entityName);
+    if ($customGroupName) {
+      $entityName = \CRM_Core_BAO_CustomGroup::getEntityForGroup($customGroupName);
+      $fieldName = $customGroupName . '.' . $fieldName;
+    }
+    // TODO: Teach Civi::entity to return contact-type pseudo-entities
+    elseif (CoreUtil::isContact($entityName)) {
+      $entityName = 'Contact';
+    }
+
+    $entity = \Civi::entity($entityName);
+    return $entity->getOptions($fieldName, $values, $includeDisabled, $checkPermissions, $userId);
+  }
+
+  /**
    * Retrieves pseudoconstant option list for a field.
    *
    * @param array $field
@@ -292,26 +320,25 @@ class FormattingUtil {
    * @throws \CRM_Core_Exception
    */
   public static function getPseudoconstantList(array $field, string $fieldAlias, $values = [], $action = 'get') {
-    [$fieldPath, $valueType] = explode(':', $fieldAlias);
-    $context = self::$pseudoConstantContexts[$valueType] ?? NULL;
+    $valueType = FormattingUtil::getSuffix($fieldAlias);
     // For create actions, only unique identifiers can be used.
     // For get actions any valid suffix is ok.
-    if (($action === 'create' && !$context) || !in_array($valueType, self::$pseudoConstantSuffixes, TRUE)) {
+    if (!$valueType || ($action === 'create' && !isset(self::$pseudoConstantContexts[$valueType]))) {
       throw new \CRM_Core_Exception('Illegal expression');
     }
-    $baoName = $context ? CoreUtil::getBAOFromApiName($field['entity']) : NULL;
-    // Use BAO::buildOptions if possible
-    if ($baoName) {
-      $fieldName = empty($field['custom_field_id']) ? $field['name'] : 'custom_' . $field['custom_field_id'];
-      $entityValues = self::filterByPath($values, $fieldPath, $field['name']);
-      $entityValues['check_permissions'] = FALSE;
-      $options = $baoName::buildOptions($fieldName, $context, $entityValues);
+    $fieldPath = FormattingUtil::removeSuffix($fieldAlias);
+
+    $entityValues = self::filterByPath($values, $fieldPath, $field['name']);
+    try {
+      $options = self::getFieldOptions($field, $entityValues, TRUE);
     }
-    // Fallback for option lists that exist in the api but not the BAO
-    if (!isset($options) || $options === FALSE) {
-      $options = civicrm_api4($field['entity'], 'getFields', ['checkPermissions' => FALSE, 'action' => $action, 'loadOptions' => ['id', $valueType], 'where' => [['name', '=', $field['name']]]])[0]['options'] ?? NULL;
-      $options = $options ? array_column($options, $valueType, 'id') : $options;
+    catch (\CRM_Core_Exception $e) {
+      // Entity not in Civi (api-only) will use fallback below
     }
+    // Fallback for option lists that only exist in the api but not in core
+    $options ??= civicrm_api4($field['entity'], 'getFields', ['checkPermissions' => FALSE, 'action' => $action, 'loadOptions' => ['id', $valueType], 'where' => [['name', '=', $field['name']]]])[0]['options'] ?? NULL;
+
+    $options = $options ? array_column($options, $valueType, 'id') : $options;
     if (is_array($options)) {
       return $options;
     }
@@ -438,7 +465,7 @@ class FormattingUtil {
           \Civi::$statics[__CLASS__][__FUNCTION__][$contactType][] = $field['name'];
           // Include suffixed variants like prefix_id:label
           if (!empty($field['pseudoconstant'])) {
-            foreach (self::$pseudoConstantSuffixes as $suffix) {
+            foreach (array_keys(\CRM_Core_SelectValues::optionAttributes()) as $suffix) {
               \Civi::$statics[__CLASS__][__FUNCTION__][$contactType][] = $field['name'] . ':' . $suffix;
             }
           }
@@ -484,6 +511,66 @@ class FormattingUtil {
   public static function filterByPath(array $values, string $fieldPath, string $fieldName): array {
     $prefix = substr($fieldPath, 0, strrpos($fieldPath, $fieldName));
     return \CRM_Utils_Array::filterByPrefix($values, $prefix);
+  }
+
+  /**
+   * A contact ID field passed in to the API may contain values such as "user_contact_id"
+   *   which need to be resolved to the actual contact ID.
+   * This function resolves those strings to the actual contact ID or throws an exception on "unknown user"
+   *
+   * @param string $fieldName
+   * @param string|int|null $fieldValue
+   *
+   * @return int|null
+   * @throws \CRM_Core_Exception
+   */
+  public static function resolveContactID(string $fieldName, $fieldValue): ?int {
+    // Special handling for 'current_user' and user lookups
+    if (isset($fieldValue) && !is_numeric($fieldValue)) {
+      // FIXME decouple from v3 API
+      require_once 'api/v3/utils.php';
+      $fieldValue = \_civicrm_api3_resolve_contactID($fieldValue);
+      if ('unknown-user' === $fieldValue) {
+        throw new \CRM_Core_Exception("\"{$fieldName}\" \"{$fieldValue}\" cannot be resolved to a contact ID", 2002, ['error_field' => $fieldName, 'type' => 'integer']);
+      }
+    }
+    return $fieldValue;
+  }
+
+  /**
+   * Returns the suffix from a given field name if it exists and matches known suffixes.
+   *
+   * @param string|null $fieldName
+   *   The name of the field, potentially containing a suffix in the format ":suffix".
+   * @return string|null
+   *   The extracted suffix if found and recognized; otherwise, NULL.
+   */
+  public static function getSuffix(?string $fieldName): ?string {
+    if (!$fieldName || !str_contains($fieldName, ':')) {
+      return NULL;
+    }
+
+    $allSuffixes = array_keys(\CRM_Core_SelectValues::optionAttributes());
+    foreach ($allSuffixes as $suffix) {
+      if (str_ends_with($fieldName, ":$suffix")) {
+        return $suffix;
+      }
+    }
+    return NULL;
+  }
+
+  /**
+   * Removes the suffix from a given field name, if a suffix is detected.
+   *
+   * @param string $fieldName The name of the field to process.
+   * @return string The field name without its suffix, or the original field name if no suffix exists.
+   */
+  public static function removeSuffix(string $fieldName): string {
+    $suffix = self::getSuffix($fieldName);
+    if ($suffix) {
+      return substr($fieldName, 0, -1 - strlen($suffix));
+    }
+    return $fieldName;
   }
 
 }

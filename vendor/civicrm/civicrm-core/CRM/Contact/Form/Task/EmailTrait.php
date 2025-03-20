@@ -324,6 +324,13 @@ trait CRM_Contact_Form_Task_EmailTrait {
     return $defaults;
   }
 
+  protected function getFieldsToExcludeFromPurification(): array {
+    return [
+      // Because value contains <angle brackets>
+      'from_email_address',
+    ];
+  }
+
   /**
    * Process the form after the input has been submitted and validated.
    *
@@ -931,8 +938,13 @@ trait CRM_Contact_Form_Task_EmailTrait {
       'attachments' => $attachments,
     ];
 
-    if (!CRM_Utils_Mail::send($mailParams)) {
-      return FALSE;
+    try {
+      if (!CRM_Utils_Mail::send($mailParams)) {
+        return FALSE;
+      }
+    }
+    catch (\Exception $e) {
+      CRM_Core_Error::statusBounce($e->getMessage());
     }
 
     // add activity target record for every mail that is send

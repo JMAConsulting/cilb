@@ -210,6 +210,13 @@ abstract class SqlExpression {
   }
 
   /**
+   * Get value serialization method if any.
+   */
+  public function getSerialize(): ?int {
+    return NULL;
+  }
+
+  /**
    * @return string
    */
   abstract public static function getTitle(): string;
@@ -231,8 +238,8 @@ abstract class SqlExpression {
    */
   protected function captureKeyword($keywords, &$arg) {
     foreach (array_filter($keywords, 'strlen') as $key) {
-      // Match keyword followed by a space or eol
-      if (strpos($arg, $key . ' ') === 0 || rtrim($arg) === $key) {
+      // Match keyword followed by a space or comma or eol
+      if (str_starts_with($arg, $key . ' ') || str_starts_with($arg, $key . ',') || rtrim($arg) === $key) {
         $arg = ltrim(substr($arg, strlen($key)));
         return $key;
       }

@@ -218,8 +218,6 @@ class CRM_Core_Page {
     $pageTemplateFile = $this->getHookedTemplateFileName();
     self::$_template->assign('tplFile', $pageTemplateFile);
 
-    self::$_template->addExpectedTabHeaderKeys();
-
     // invoke the pagRun hook, CRM-3906
     CRM_Utils_Hook::pageRun($this);
 
@@ -571,6 +569,10 @@ class CRM_Core_Page {
       // Duplicates don't actually matter....
       $this->addExpectedSmartyVariable($elementName);
     }
+  }
+
+  public function invalidKey() {
+    throw new CRM_Core_Exception(ts("Sorry, your session has expired. Please reload the page or go back and try again."), 419, ts("Could not find a valid session key."));
   }
 
 }

@@ -201,8 +201,11 @@ class CRM_Core_Form_Task_PDFLetterCommon {
    *
    * @return bool
    *   TRUE if no errors, else array of errors.
+   *
+   * @deprecated since 5.80 will be removed around 6.12
    */
   public static function formRule($fields, $files, $self) {
+    CRM_Core_Error::deprecatedFunctionWarning('no supported alternative for non-core code');
     $errors = [];
     $deprecatedTokens = [
       '{case.status_id}' => '{case.status_id:label}',
@@ -327,6 +330,7 @@ class CRM_Core_Form_Task_PDFLetterCommon {
    * @param string $message
    */
   public static function formatMessage(&$message) {
+    CRM_Core_Error::deprecatedFunctionWarning('no alternative');
     $newLineOperators = [
       'p' => [
         'oper' => '<p>',

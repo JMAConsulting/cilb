@@ -8,7 +8,7 @@ output_buffering=on
 
 require_once 'Log.php';
 
-$conf = array('title' => 'Test Output');
+$conf = ['title' => 'Test Output'];
 $logger = Log::singleton('win', 'test', 'ident', $conf);
 
 for ($i = 0; $i < 3; $i++) {
@@ -16,7 +16,7 @@ for ($i = 0; $i < 3; $i++) {
 }
 
 --EXPECTF--
-<script language="JavaScript">
+<script>
 test = window.open('', 'test', 'toolbar=no,scrollbars,width=600,height=400');
 test.document.writeln('<html>');
 test.document.writeln('<head>');

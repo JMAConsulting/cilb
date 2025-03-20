@@ -113,7 +113,7 @@ class Civi {
    *
    * @param string $name
    *   The name of a persistent/registered queue (stored in `civicrm_queue`)
-   * @param array{type: string, is_autorun: bool, reset: bool, is_persistent: bool} $params
+   * @param array{type: string, is_autorun: bool, reset: bool, is_persistent: bool, runner: string, error: string, retry_limit: int, retry_interval: int} $params
    *   Specification for a queue.
    *   This is not required for accessing an existing queue.
    *   Specify this if you wish to auto-create the queue or to include advanced options (eg `reset`).
@@ -310,6 +310,17 @@ class Civi {
    * @return \Civi\Schema\EntityProvider
    */
   public static function entity(string $entityName): \Civi\Schema\EntityProvider {
+    return new \Civi\Schema\EntityProvider($entityName);
+  }
+
+  /**
+   * Get the canonical entityProvider for a given entity table.
+   *
+   * @param string $tableName
+   * @return \Civi\Schema\EntityProvider
+   */
+  public static function table(string $tableName): \Civi\Schema\EntityProvider {
+    $entityName = \Civi\Schema\EntityRepository::getTableIndex()[$tableName];
     return new \Civi\Schema\EntityProvider($entityName);
   }
 

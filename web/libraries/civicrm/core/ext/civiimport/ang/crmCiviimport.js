@@ -33,7 +33,8 @@
           $scope.data.dedupeRules = CRM.vars.crmImportUi.dedupeRules;
           // Used for select contact type select-options.
           $scope.data.contactTypes = CRM.vars.crmImportUi.contactTypes;
-
+          // The headers from the data-source + any previously added user-defined rows.
+          $scope.data.columnHeaders = CRM.vars.crmImportUi.columnHeaders;
           $scope.data.entities = {};
           // Available entities is entityMetadata mapped to a form-friendly format
           $scope.entitySelection = [];
@@ -72,7 +73,7 @@
           function buildImportMappings() {
             $scope.data.importMappings = [];
             var importMappings = $scope.userJob.metadata.import_mappings;
-            _.each($scope.userJob.metadata.DataSource.column_headers, function (header, index) {
+            _.each($scope.data.columnHeaders, function (header, index) {
               var fieldName = $scope.data.defaults['mapper[' + index + ']'][0];
               if (Boolean(fieldName)) {
                 fieldName = fieldName.replace('__', '.');
@@ -239,6 +240,26 @@
           }
           if (fieldName === 'newFieldMapping' && $scope.mappingSaving.newFieldMapping === 0) {
             $scope.mappingSaving.updateFieldMapping = 0;
+          }
+        });
+
+        /**
+         * Add another row to the mapping.
+         *
+         * This row will use a default value and be the same for all rows imported.
+         *
+         * @type {$scope.addRow}
+         */
+        $scope.addRow = (function () {
+          $scope.data.importMappings.push({'header' : '', 'selectedField' : undefined});
+          $scope.userJob.metadata.DataSource.column_headers.push('');
+        });
+
+        $scope.alterRow = (function (index, row) {
+          if (row.header === '' && row.selectedField === '') {
+            // Deleting a mapped row.
+            $scope.data.importMappings.splice(index, 1);
+            $scope.userJob.metadata.DataSource.column_headers.splice(index, 1);
           }
         });
 
