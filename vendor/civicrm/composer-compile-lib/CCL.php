@@ -1,5 +1,5 @@
 <?php
-// AUTO-GENERATED VIA /var/www/html/vendor/civicrm/composer-compile-lib/src/StubsTpl.php
+// AUTO-GENERATED VIA /home/seamus/cilb/vendor/civicrm/composer-compile-lib/src/StubsTpl.php
 // If this file somehow becomes invalid (eg when patching CCL), you may safely delete and re-run install.
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
@@ -101,6 +101,10 @@ class CCL {
   /**
    * Change the owner of an array of files or directories.
    *
+   * This method always throws on Windows, as the underlying PHP function is not supported.
+   *
+   * @see https://www.php.net/chown
+   *
    * @param string|int $user      A user name or number
    * @param bool       $recursive Whether change the owner recursively or not
    *
@@ -114,6 +118,10 @@ class CCL {
 
   /**
    * Change the group of an array of files or directories.
+   *
+   * This method always throws on Windows, as the underlying PHP function is not supported.
+   *
+   * @see https://www.php.net/chgrp
    *
    * @param string|int $group     A group name or number
    * @param bool       $recursive Whether change the group recursively or not
