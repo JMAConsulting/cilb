@@ -1,0 +1,12 @@
+skip_roles: {  }
+no_creation_auto_verify: false
+no_unblock_auto_verify: false
+validate_interval: 604800
+num_reminders: 0
+mail_subject: '[site:name]: Email verification'
+mail_body: 'Verify your Email by following the link: [user:verify-email]'
+extended_enable: false
+extended_validate_interval: 1209600
+extended_mail_subject: '[site:name]: Account blocked, please verify Email address'
+extended_mail_body: 'Your account is blocked. Your Email may still be verified by following the link: [user:verify-email-extended]'
+extended_end_delete_account: true

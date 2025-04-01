@@ -1,0 +1,13 @@
+name: 'Skinr UI'
+description: 'Administrative interface to skinr. Without this module, you cannot edit your skins.'
+package: Skinr
+core_version_requirement: ^9.4 || ^10
+configure: admin/structure/skinr
+dependencies:
+  - skinr
+type: module
+
+# Information added by Drupal.org packaging script on 2024-12-06
+version: '8.x-2.0-alpha2'
+project: 'skinr'
+datestamp: 1733484134

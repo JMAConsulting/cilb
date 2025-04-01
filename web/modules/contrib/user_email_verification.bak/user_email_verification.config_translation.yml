@@ -1,0 +1,5 @@
+user_email_verification.settings_form:
+  title: 'User Email Verification'
+  base_route_name: user_email_verification.settings_form
+  names:
+    - user_email_verification.settings

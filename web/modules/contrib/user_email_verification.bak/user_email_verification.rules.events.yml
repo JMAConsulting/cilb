@@ -1,0 +1,31 @@
+user_email_verification_rules_email_verified:
+  label: 'Email was verified (standard period)'
+  category: 'User email verification'
+  context_definitions:
+    account:
+      type: 'entity:user'
+      label: 'User account who verified email'
+
+user_email_verification_rules_email_verified_extended:
+  label: 'Email was verified (extended period)'
+  category: 'User email verification'
+  context_definitions:
+    account:
+      type: 'entity:user'
+      label: 'User account who verified email'
+
+user_email_verification_rules_reminder_mail_sent:
+  label: 'Reminder mail: Verify your email was sent'
+  category: 'User email verification'
+  context_definitions:
+    account:
+      type: 'entity:user'
+      label: 'User account who verified email'
+
+user_email_verification_rules_extended_reminder_mail_sent:
+  label: 'Reminder mail: Verify your email (extended period available) was sent'
+  category: 'User email verification'
+  context_definitions:
+    account:
+      type: 'entity:user'
+      label: 'User account who verified email'

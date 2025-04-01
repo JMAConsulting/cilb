@@ -1,0 +1,13 @@
+name: 'Skinr Default Testing'
+description: 'A test module used for testing skin configuration defined in code for Skinr.'
+package: Testing
+core: 8.x
+hidden: true
+dependencies:
+  - skinr_test
+type: module
+
+# Information added by Drupal.org packaging script on 2024-12-06
+version: '8.x-2.0-alpha2'
+project: 'skinr'
+datestamp: 1733484134

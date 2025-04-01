@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_skinr_api(). (bogus)
+ */
+function skinr_test_incompatible_skinr_api() {
+}
+
+/**
+ * Implements hook_skinr_api_VERSION(). (incompatible)
+ */
+function skinr_test_incompatible_skinr_api_1() {
+}
+
+/**
+ * Implements hook_skinr_skin_info().
+ *
+ * This hook implementation purposively does not live in $module.skinr.inc, so
+ * tests can verify that this implementation is not invoked, even though it is
+ * loaded.
+ */
+function skinr_test_incompatible_skinr_skin_info() {
+  $skins['skinr_test_incompatible'] = [
+    'title' => 'Incompatible',
+  ];
+  return $skins;
+}
+
+/**
+ * Implements hook_skinr_config_info().
+ */
+function skinr_test_incompatible_skinr_config_info() {
+  return ['skinr_test_incompatible' => t('Incompatible')];
+}
