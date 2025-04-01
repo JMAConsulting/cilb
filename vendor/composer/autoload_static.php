@@ -36,7 +36,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         '801c31d8ed748cfa537fa45402288c95' => __DIR__ . '/..' . '/psy/psysh/src/functions.php',
         'db356362850385d08a5381de2638b5fd' => __DIR__ . '/..' . '/mpdf/mpdf/src/functions.php',
-        'ff4794c3c97b61a2ea8adc696c42aba9' => __DIR__ . '/..' . '/composer/autoload_civicrm_asset.php',
+        'c4e646e04ac263455b2dc00e72cd7859' => __DIR__ . '/..' . '/composer/autoload_civicrm_asset.php',
     );
 
     public static $prefixLengthsPsr4 = array (
