@@ -375,7 +375,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     // now the registrations have been made, we're ready to send the receipt
     // we use the "invoice" task as its closest to our needs
-    $params = [];
+    $params = [
+      'output' => 'email_invoice',
+      'from_email_address' => '"CILB" <info@jmaconsulting.biz>',
+    ];
     \CRM_Contribute_Form_Task_Invoice::printPDF([$contributionId], $params, [$contactId]);
   }
 
