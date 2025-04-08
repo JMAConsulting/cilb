@@ -9,6 +9,10 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 2.6.1 (2025-02-26)
+
+*  [!30](https://lab.civicrm.org/extensions/authnet/-/merge_requests/27) Fix processQueuedWebhookEvent fatal error for recurring payments.
+
 ## 2.6 (2024-07-15)
 
 * [!27](https://lab.civicrm.org/extensions/authnet/-/merge_requests/27) Implement support for Refunds.

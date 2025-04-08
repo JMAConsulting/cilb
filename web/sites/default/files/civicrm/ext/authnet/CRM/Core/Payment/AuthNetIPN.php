@@ -226,7 +226,8 @@ class CRM_Core_Payment_AuthNetIPN {
       }
       elseif ($this->getSubscriptionID()) {
         // We only need the contribution_recur_id
-        $this->getRecurringContributionIDFromSubscriptionID($this->getSubscriptionID());
+        $contribution_id = $this->getRecurringContributionIDFromSubscriptionID($this->getSubscriptionID());
+        $return->ok = (bool) $contribution_id;
       }
       else {
         $return->ok = FALSE;
