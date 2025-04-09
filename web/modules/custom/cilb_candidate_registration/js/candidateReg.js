@@ -6,6 +6,11 @@ jQuery(document).ready(function ($) {
   var returnPrev = $("#return-prev");
   var isCandidate = $("input[name='candidate_representative']");
   var cancelReg = $("#cancel-reg");
+  
+  // Move button to before on behalf of field.
+  $('button[value="I am the Candidate"]').insertBefore('#behalf-of');
+  $('button[value="Yo soy el candidato"]').insertBefore('#behalf-of');
+  $('<br><br>').insertBefore('#behalf-of');
 
    // Check if form is in English or Spanish based on url
   const currentUrl = window.location.href;

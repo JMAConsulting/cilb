@@ -5,6 +5,18 @@ body {
   background: #292929;
 }
 
+body, p, a, li, h1, h2, h3, h4, h5, h6, h1 a, h2 a, h3 a {
+	font-family: "Lucida Grande", lucida, verdana, arial, "Trebuchet MS", helvetica, sans-serif !important;
+}
+
+span.fieldset-legend {
+	font-weight: bold;
+}
+
+.navbar-brand img {
+	vertical-align: middle !important;
+}
+
 #page,
 #main-wrapper,
 .region-primary-menu .menu-item a.is-active,
@@ -115,7 +127,7 @@ a:active,
 .region-header .site-branding a,
 .region-secondary-menu .menu-item a,
 .region-secondary-menu .menu-item a.is-active {
-  color: #fffeff;
+  //color: #fffeff;
 }
 
 
