@@ -515,7 +515,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         // => check if it's legit or blocked user
         $user = User::load($matchingUser['uf_id']);
 
-        if ($user->isBlocked()) {
+        if (!$user || $user->isBlocked()) {
           // user account exists but is blocked
           $error_message = $this->t('A user account already exists with this Social Security Number. Please contact %adminEmail for assistance.', [
             '%adminEmail' => \Drupal::config('system.site')->get('mail'),
