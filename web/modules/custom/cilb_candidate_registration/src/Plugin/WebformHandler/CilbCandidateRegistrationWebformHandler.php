@@ -275,6 +275,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     $eventIds = $webform_submission_data['event_ids'];
 
+    // fetch event details for line items
+    // (and to validate the events exist)
+    $events = \Civi\Api4\Event::get(FALSE)
+      ->addWhere('id', 'IN', $eventIds)
+      ->addSelect('id', 'title')
+      ->execute()
+      ->indexBy('id')
+      ->column('title');
+
+    // remove any ids that weren't found
+    $eventIds = array_keys($events);
+
     // when registering events, we add event payments to the webform contribution
     // need to know the webform contribution ID
     //$contributionId = $webform_submission_data['civcrm_1_contribution_1_id'] ?? 33;
@@ -315,7 +327,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       WHERE `id` = {$defaultLineItem['id']}
     SQL);
 
-    foreach ($eventIds as $eventId) {
+    foreach ($events as $eventId => $eventTitle) {
       try {
         $priceOption = $seatFees[$eventId];
 
@@ -337,7 +349,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           'contribution_id' => $contributionId,
           'price_field_id' => $priceOption['price_field_id'],
           'price_field_value_id' => $priceOption['id'],
-          'label' => 'CILB Candidate Registration - ' . $priceOption['label'],
+          'label' => "{$eventTitle} - CILB Candidate Registration - {$priceOption['label']}",
           //'field_title' => $fieldTitle,
           //'description' => $options[$oid]['description'] ?? NULL,
           'qty' => 1,
