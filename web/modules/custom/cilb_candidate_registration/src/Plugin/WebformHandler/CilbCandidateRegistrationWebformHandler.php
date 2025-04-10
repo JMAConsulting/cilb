@@ -521,6 +521,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
             '%adminEmail' => \Drupal::config('system.site')->get('mail'),
           ]);
           $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
+          // given we are directing the user to the admin, leave a log message to help the admin diagnose
+          $logMessage = "New user registration error: a site visitor tried to register with SSN {$ssn}, but this matched existing CiviCRM Contact {$matchingContact['id']}, which is linked to Drupal User ID {$matchingUser['uf_id']}, but the Drupal User is missing or blocked. The visitor was directed to contact the site admin.";
+          \Drupal::logger('candidate_reg')->notice($logMessage);
           return;
         }
 
