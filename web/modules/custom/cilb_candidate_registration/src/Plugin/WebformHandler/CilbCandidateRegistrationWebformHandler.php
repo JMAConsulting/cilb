@@ -590,14 +590,14 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   * Validation to make sure Candidate is not already registered for exam
   */
   private function validateParticipantStatus(FormStateInterface $formState) {
-    $eventIDs = $formState->getValue('civicrm_1_participant_1_participant_event_id');
+    $eventIds = $formState->getValue('civicrm_1_participant_1_participant_event_id');
     $contactID = $formState->getValue('civicrm_1_contact_1_contact_existing');
 
     // If the user is logged in
     if($contactID) {
       $participants = \Civi\Api4\Participant::get(FALSE)
         ->addWhere('contact_id', '=', $contactID)
-        ->addWhere('event_id', 'IN', $eventIDs)
+        ->addWhere('event_id', 'IN', $eventIds)
         ->addWhere('status_id:label', '!=', 'Cancelled')
         ->addWhere('status_id:label', '!=', 'Expired')
         ->execute();
@@ -619,7 +619,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->addWhere('contact_id.first_name', '=', $firstName)
         ->addWhere('contact_id.last_name', '=', $lastName)
         ->addWhere('email.email', '=', $email)
-        ->addWhere('event_id', 'IN', $eventIDs)
+        ->addWhere('event_id', 'IN', $eventIds)
         ->execute();
 
       if(count($participants)) {
