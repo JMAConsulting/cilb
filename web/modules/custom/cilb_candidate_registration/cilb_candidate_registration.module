@@ -97,7 +97,7 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
 
     // Check to make sure exams are not full
     $events = \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name')
+      ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'start_date')
       ->addWhere('is_active', '=', TRUE)
       //->addWhere('start_date', '>', 'now')
     //      ->addWhere('is_online_registration', '=', TRUE)
@@ -166,6 +166,11 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
       ) {
         // we have an existing reg for the same part and category => skip
         continue;
+      }
+
+      if ($eventPart == 'TK' && $event['event_type_id:name'] == "Plumbing" && (date('Ymd', strtotime($event['start_date'])) < date('Ymd')) && $view->current_display == 'entity_reference_3') {
+        // Only show future TK Plumbing exams
+	continue;
       }
 
       // no matching previous => add to valid events
