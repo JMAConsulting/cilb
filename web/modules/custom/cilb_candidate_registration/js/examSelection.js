@@ -78,9 +78,9 @@ jQuery(document).ready(function ($) {
 
     // if candidate has Construction Bacc then dont show Trade
     // Knowledge exams
-    if (parseInt($candidateDegreeField.val())) {
+    /*if (parseInt($candidateDegreeField.val())) {
       eventFetchParams.where.push(["Exam_Details.Exam_Part", "!=", "TK"])
-    }
+    }*/
 
     CRM.api4("Event", "get", eventFetchParams)
     .then((eventsForCategory) => eventsForCategory.map((e) => e.id))
