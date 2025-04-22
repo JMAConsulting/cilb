@@ -155,3 +155,7 @@ a:active,
 .btn-check:active+.btn:focus, .btn-check:checked+.btn:focus, .btn.active:focus, .btn.show:focus, .btn:active:focus, .btn:focus {
 	box-shadow: none !important;
 }
+
+#block-bootstrap-barrio-subtheme-candidatenotice {
+	padding-bottom: 2rem;
+}

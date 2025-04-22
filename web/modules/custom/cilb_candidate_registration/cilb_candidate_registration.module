@@ -24,7 +24,7 @@ function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormSt
     $elements = WebformFormHelper::flattenElements($form);
     $original_markup = $elements['user_identification_markup']['#markup'];
 
-    if (!_is_block_active('olivero_candidatenotice')) {
+    if (!_is_block_active('bootstrap_barrio_subtheme_candidatenotice')) {
       $updated_markup = preg_replace(
         '/https:\/\/cilb\.jmaconsulting\.biz\/(es\/)?register-notification/',
         'https://cilb.jmaconsulting.biz/register',
@@ -37,9 +37,9 @@ function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormSt
 
 function cilb_candidate_registration_preprocess_page(&$variables) {
   $node = \Drupal::routeMatch()->getParameter('node');
-  if ($node instanceof \Drupal\node\NodeInterface && $node->id() == 4) {
+  if ($node instanceof \Drupal\node\NodeInterface && $node->id() == 6) {
     $current_language = \Drupal::languageManager()->getCurrentLanguage()->getId();
-    $block_id = 'olivero_candidatenotice';
+    $block_id = 'bootstrap_barrio_subtheme_candidatenotice';
 
     // Redirect to webform if notification block is disabled
     if (!_is_block_active($block_id)) {
