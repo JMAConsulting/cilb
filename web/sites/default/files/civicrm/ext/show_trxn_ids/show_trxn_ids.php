@@ -42,34 +42,63 @@ function show_trxn_ids_civicrm_enable(): void
 function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, &$selector): void
 {
   \Civi::log()->debug($objectName);
-  if ($objectName != 'contribution') return;
-  foreach ($headers as $_ => $header) {
-    if (isset($header['name'])) {
-    }
-    // \Civi::log()->debug(print_r($header['name'], TRUE) . $header['weight']);
-    if (!empty($header['name']) && $header['name'] == 'Amount') {
-      //NOTE: the contribution amount is hardcoded as the first column even through the weight is different - see templates/CRM/Contribute/Form/Selector.tpl:47
-      // As such the trxn id is to the right of Amount
-      $weight = $header['weight'] + 5;
-      $headers[] = [
-        'name' => E::ts('Transaction ID'),
-        'field_name' => 'trxn_id',
-        'type' => null,
-        'weight' => $weight,
-      ];
-      foreach ($values as $key => $value) {
-        \Civi::log()->debug(print_r($value, TRUE));
-        $contribution = \Civi\Api4\Contribution::get(FALSE)
-          ->addWhere('id', '=', $value['contribution_id'])
-          ->addSelect('trxn_id')
-          ->execute();
-        if (!empty($contribution)) {
-          $trxnId = $contribution[0]['trxn_id'];
+  if ($objectName == 'contribution') {
+    foreach ($headers as $_ => $header) {
+      // \Civi::log()->debug(print_r($header['name'], TRUE) . $header['weight']);
+      if (!empty($header['name']) && $header['name'] == 'Amount') {
+        //NOTE: the contribution amount is hardcoded as the first column even through the weight is different - see templates/CRM/Contribute/Form/Selector.tpl:47
+        // As such the trxn id is to the right of Amount
+        $weight = $header['weight'] + 5;
+        $headers[] = [
+          'name' => E::ts('Transaction ID'),
+          'field_name' => 'trxn_id',
+          'type' => null,
+          'weight' => $weight,
+        ];
+        foreach ($values as $key => $value) {
+          // \Civi::log()->debug(print_r($value, TRUE));
+          $contribution = \Civi\Api4\Contribution::get(FALSE)
+            ->addWhere('id', '=', $value['contribution_id'])
+            ->addSelect('trxn_id')
+            ->execute();
+          if (!empty($contribution)) {
+            $trxnId = $contribution[0]['trxn_id'];
+          }
+          $values[$key]['trxn_id'] = $trxnId;
+          // \Civi::log()->debug(print_r($values[$key], TRUE));
         }
-        $values[$key]['trxn_id'] = $trxnId;
-        \Civi::log()->debug(print_r($values[$key], TRUE));
+        break;
       }
-      break;
+    }
+  }
+  if ($objectName == 'event') {
+    //TODO: use another hook for Contact Summary > Events as the search doesn't support this hook
+    foreach ($headers as $_ => $header) {
+      // \Civi::log()->debug($header['name'] . "\n");
+      // \Civi::log()->debug(print_r($header, TRUE));
+      if (!empty($header['name'] && $header['name'] == 'Exam')) {
+        $weight = $header['weight'] + 5;
+        $headers[] = [
+          'name' => E::ts('Transaction ID'),
+          'sort' => 'trxn_id',
+          'direction' => 4,
+          'weight' => $weight,
+        ];
+        foreach ($values as $key => $value) {
+          // \Civi::log()->debug(print_r($value, TRUE));
+          $result = civicrm_api3('ParticipantPayment', 'get', [
+            'sequential' => 1,
+            'return' => ["contribution_id.trxn_id"],
+            'participant_id' => $value['participant_id']
+          ]);
+          if (!empty($result['values'])) {
+            $trxnId = $result['values'][0]['contribution_id.trxn_id'];
+          }
+          $values[$key]['trxn_id'] = $trxnId;
+          // \Civi::log()->debug(print_r($values[$key], TRUE));
+        }
+        break;
+      }
     }
   }
   // foreach ($headers as $i => $header) {
@@ -80,11 +109,35 @@ function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, 
 function show_trxn_ids_civicrm_buildForm($formName, &$form)
 {
   \Civi::log()->debug($formName);
-  //TODO: fix the form names
-  if ($formName != 'CRM_Event_Page_Tab') {
+  if ($formName == 'CRM_Event_Form_Search') {
+    CRM_Core_Region::instance('page-body')->add(array(
+      'template' => __DIR__ . '/templates/trxn_column.tpl',
+    ));
+  }
+  if ($formName != 'CRM_Event_Form_ParticipantView' && $formName != 'CRM_Contribute_Form_ContributionView') {
     return;
   }
-  //TODO: get the actual value using the API
-  $contributionId = 98;
-  $trxnId = 'test';
+  if ($formName == 'CRM_Contribute_Form_ContributionView') {
+    $contactClass = 'crm-contribution-form-block-contact_id';
+    $contributionId = $form->getContributionID();
+    $trxnId = \Civi\Api4\Contribution::get(FALSE)
+      ->addWhere('id', '=', $contributionId)
+      ->addSelect('trxn_id')
+      ->execute()[0]['trxn_id'];
+  }
+  if ($formName == 'CRM_Event_Form_ParticipantView') {
+    $contactClass = 'crm-event-participantview-form-block-displayName';
+    $participantId = $form->getParticipantID();
+    $result = civicrm_api3('ParticipantPayment', 'get', [
+      'sequential' => 1,
+      'return' => ["contribution_id.trxn_id"],
+      'participant_id' => $participantId,
+    ]);
+    $trxnId = $result['values'][0]['contribution_id.trxn_id'];
+  }
+  $form->assign('trxn_id', $trxnId);
+  $form->assign('contact_class', $contactClass);
+  CRM_Core_Region::instance('page-body')->add(array(
+    'template' => __DIR__ . '/templates/transaction_id.tpl',
+  ));
 }
