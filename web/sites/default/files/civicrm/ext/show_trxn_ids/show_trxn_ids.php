@@ -41,7 +41,6 @@ function show_trxn_ids_civicrm_enable(): void
  */
 function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, &$selector): void
 {
-  \Civi::log()->debug($objectName);
   if ($objectName == 'contribution') {
     foreach ($headers as $_ => $header) {
       // \Civi::log()->debug(print_r($header['name'], TRUE) . $header['weight']);
@@ -71,7 +70,8 @@ function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, 
       }
     }
   }
-  if ($objectName == 'event') {
+  /*if ($objectName == 'event') {
+	  CRM_Core_Error::debug('hader', $headers);
     //TODO: use another hook for Contact Summary > Events as the search doesn't support this hook
     foreach ($headers as $_ => $header) {
       // \Civi::log()->debug($header['name'] . "\n");
@@ -82,7 +82,6 @@ function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, 
           'name' => E::ts('Transaction ID'),
           'sort' => 'trxn_id',
           'direction' => 4,
-          'weight' => $weight,
         ];
         foreach ($values as $key => $value) {
           // \Civi::log()->debug(print_r($value, TRUE));
@@ -104,11 +103,50 @@ function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, 
   // foreach ($headers as $i => $header) {
   //   \Civi::log()->debug($header['name'] . $header['weight'] . print_r($header, TRUE));
   // }
+   */
+  if ($objectName == 'event') {
+    // Find the index of the column after which you want to insert Transaction ID
+    $insertAfter = -1;
+    foreach ($headers as $idx => $header) {
+      if (!empty($header['name']) && $header['name'] == 'Exam') {
+        $insertAfter = $idx;
+        break;
+      }
+    }
+
+    if ($insertAfter >= 0) {
+      // Prepare the new header
+      $newHeader = [
+        'name' => 'Transaction ID',
+        'title' => 'Transaction ID',
+        'sort' => 'trxn_id',
+        'direction' => 4, // Direction is rarely needed; remove if not used
+      ];
+
+      // Insert the new header at the desired position
+      array_splice($headers, $insertAfter + 1, 0, [$newHeader]);
+
+      // Add trxn_id to each value row
+      foreach ($values as $key => $value) {
+        $trxnId = '';
+        if (!empty($value['participant_id'])) {
+          $result = civicrm_api3('ParticipantPayment', 'get', [
+            'sequential' => 1,
+            'return' => ["contribution_id.trxn_id"],
+            'participant_id' => $value['participant_id'],
+          ]);
+          if (!empty($result['values'][0]['contribution_id.trxn_id'])) {
+            $trxnId = $result['values'][0]['contribution_id.trxn_id'];
+          }
+        }
+        $values[$key]['trxn_id'] = $trxnId;
+      }
+    }
+  }
 }
 
 function show_trxn_ids_civicrm_buildForm($formName, &$form)
 {
-  \Civi::log()->debug($formName);
   if ($formName == 'CRM_Event_Form_Search') {
     CRM_Core_Region::instance('page-body')->add(array(
       'template' => __DIR__ . '/templates/trxn_column.tpl',
