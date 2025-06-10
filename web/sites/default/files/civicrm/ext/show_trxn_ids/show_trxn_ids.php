@@ -41,7 +41,6 @@ function show_trxn_ids_civicrm_enable(): void
  */
 function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, &$selector): void
 {
-  \Civi::log()->debug($objectName);
   if ($objectName == 'contribution') {
     foreach ($headers as $_ => $header) {
       if (!empty($header['name']) && $header['name'] == 'Amount') {
