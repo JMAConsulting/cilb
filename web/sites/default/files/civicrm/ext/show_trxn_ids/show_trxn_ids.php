@@ -41,9 +41,9 @@ function show_trxn_ids_civicrm_enable(): void
  */
 function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, &$selector): void
 {
+  \Civi::log()->debug($objectName);
   if ($objectName == 'contribution') {
     foreach ($headers as $_ => $header) {
-      // \Civi::log()->debug(print_r($header['name'], TRUE) . $header['weight']);
       if (!empty($header['name']) && $header['name'] == 'Amount') {
         //NOTE: the contribution amount is hardcoded as the first column even through the weight is different - see templates/CRM/Contribute/Form/Selector.tpl:47
         // As such the trxn id is to the right of Amount
@@ -55,7 +55,6 @@ function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, 
           'weight' => $weight,
         ];
         foreach ($values as $key => $value) {
-          // \Civi::log()->debug(print_r($value, TRUE));
           $contribution = \Civi\Api4\Contribution::get(FALSE)
             ->addWhere('id', '=', $value['contribution_id'])
             ->addSelect('trxn_id')
@@ -64,46 +63,11 @@ function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, 
             $trxnId = $contribution[0]['trxn_id'];
           }
           $values[$key]['trxn_id'] = $trxnId;
-          // \Civi::log()->debug(print_r($values[$key], TRUE));
         }
         break;
       }
     }
   }
-  /*if ($objectName == 'event') {
-	  CRM_Core_Error::debug('hader', $headers);
-    //TODO: use another hook for Contact Summary > Events as the search doesn't support this hook
-    foreach ($headers as $_ => $header) {
-      // \Civi::log()->debug($header['name'] . "\n");
-      // \Civi::log()->debug(print_r($header, TRUE));
-      if (!empty($header['name'] && $header['name'] == 'Exam')) {
-        $weight = $header['weight'] + 5;
-        $headers[] = [
-          'name' => E::ts('Transaction ID'),
-          'sort' => 'trxn_id',
-          'direction' => 4,
-        ];
-        foreach ($values as $key => $value) {
-          // \Civi::log()->debug(print_r($value, TRUE));
-          $result = civicrm_api3('ParticipantPayment', 'get', [
-            'sequential' => 1,
-            'return' => ["contribution_id.trxn_id"],
-            'participant_id' => $value['participant_id']
-          ]);
-          if (!empty($result['values'])) {
-            $trxnId = $result['values'][0]['contribution_id.trxn_id'];
-          }
-          $values[$key]['trxn_id'] = $trxnId;
-          // \Civi::log()->debug(print_r($values[$key], TRUE));
-        }
-        break;
-      }
-    }
-  }
-  // foreach ($headers as $i => $header) {
-  //   \Civi::log()->debug($header['name'] . $header['weight'] . print_r($header, TRUE));
-  // }
-   */
   if ($objectName == 'event') {
     // Find the index of the column after which you want to insert Transaction ID
     $insertAfter = -1;
@@ -113,19 +77,19 @@ function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, 
         break;
       }
     }
+    \Civi::log()->debug($idx);
 
     if ($insertAfter >= 0) {
       // Prepare the new header
       $newHeader = [
-        'name' => 'Transaction ID',
+        'name' => E::ts('Transaction ID'),
         'title' => 'Transaction ID',
-        'sort' => 'trxn_id',
-        'direction' => 4, // Direction is rarely needed; remove if not used
+        // 'sort' => 'trxn_id', // Sort seens to be breaking this as the header title is not displayed if sort is set
+        // 'direction' => 4, // Direction is rarely needed; remove if not used
       ];
 
       // Insert the new header at the desired position
       array_splice($headers, $insertAfter + 1, 0, [$newHeader]);
-
       // Add trxn_id to each value row
       foreach ($values as $key => $value) {
         $trxnId = '';

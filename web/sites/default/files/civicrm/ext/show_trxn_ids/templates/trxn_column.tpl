@@ -1,8 +1,3 @@
-{*Move the Transaction ID header*}
-<script type="text/javascript">
-  var examHeader = cj("table.selector > thead th").eq(1);
-  cj("table.selector > thead th").first().insertAfter(examHeader);
-</script>
 {*Add a column for transaction ID for each record*}
 <script type="text/javascript">
 {foreach from=$rows item=row}
