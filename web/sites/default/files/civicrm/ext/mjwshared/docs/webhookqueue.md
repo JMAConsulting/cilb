@@ -269,7 +269,7 @@ In your IPN code instead of using a `main()` method create two functions:
    * Process the given webhook
    *
    * @return bool
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function processWebhook() {

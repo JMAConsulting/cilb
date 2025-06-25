@@ -24,25 +24,4 @@ return [
       'match' => ['name'],
     ],
   ],
-  [
-    'name' => 'mjwshared_paymentprocessor_webhooks',
-    'entity' => 'Navigation',
-    'cleanup' => 'always',
-    'update' => 'unmodified',
-    'params' => [
-      'version' => 4,
-      'values' => [
-        'label' => E::ts('Payment processor webhooks'),
-        'name' => 'mjwshared_paymentprocessor_webhooks',
-        'url' => 'civicrm/a#/paymentprocessorWebhook',
-        'permission' => 'administer payment processors',
-        'permission_operator' => 'OR',
-        'parent_id.name' => 'CiviContribute',
-        'is_active' => TRUE,
-        'has_separator' => 0,
-        'weight' => 90,
-      ],
-      'match' => ['name'],
-    ],
-  ],
 ];

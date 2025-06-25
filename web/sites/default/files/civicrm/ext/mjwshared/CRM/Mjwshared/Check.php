@@ -28,8 +28,6 @@ class CRM_Mjwshared_Check {
    *
    * @param array $messages
    *
-   * @throws \API_Exception
-   * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function __construct($messages) {
     $this->messages = $messages;
@@ -37,7 +35,6 @@ class CRM_Mjwshared_Check {
 
   /**
    * @return array
-   * @throws \API_Exception
    * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
@@ -48,6 +45,7 @@ class CRM_Mjwshared_Check {
     $this->checkIfSeparateMembershipPaymentEnabled();
     $this->checkExtensionSweetalert();
     $this->checkMultidomainJobs();
+    $this->checkPaymentprocessorWebhooks();
     return $this->messages;
   }
 
@@ -188,7 +186,6 @@ class CRM_Mjwshared_Check {
   /**
    * We don't support "Separate Membership Payment" configuration
    *
-   * @throws \API_Exception
    * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
@@ -280,7 +277,6 @@ class CRM_Mjwshared_Check {
   }
 
   /**
-   * @throws \API_Exception
    * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
@@ -318,6 +314,45 @@ class CRM_Mjwshared_Check {
         \Psr\Log\LogLevel::WARNING,
         'fa-code'
       );
+      $this->messages[] = $message;
+    }
+  }
+
+  /**
+   * @throws \CRM_Core_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
+   */
+  private function checkPaymentprocessorWebhooks() {
+    $paymentprocessorWebhooksProcessingCount = \Civi\Api4\PaymentprocessorWebhook::get(FALSE)
+      ->addSelect('row_count')
+      ->addWhere('status', '=', 'processing')
+      ->addWhere('created_date', '<', 'now-1hour')
+      ->addOrderBy('created_date', 'DESC')
+      ->execute()
+      ->countMatched();
+
+    if ($paymentprocessorWebhooksProcessingCount > 0) {
+      $paymentprocessorWebhookProcessors = \Civi\Api4\PaymentprocessorWebhook::get(FALSE)
+        ->addSelect('id', 'payment_processor_id:label')
+        ->addWhere('status', '=', 'processing')
+        ->addWhere('created_date', '<', 'now-1hour')
+        ->addOrderBy('created_date', 'DESC')
+        ->addGroupBy('payment_processor_id')
+        ->execute()
+        ->indexBy('payment_processor_id:label')
+        ->getArrayCopy();
+      $message = new CRM_Utils_Check_Message(
+        __FUNCTION__ . 'mjwshared_paymentprocessorwebhooks',
+        E::ts('You have %1 payment processor webhooks in "processing" status for %2 payment processors.
+        This means that the system started processing them but something went wrong that can\'t be fixed automatically.
+        Please check and identify the problem. Then you can mark them for retry.',
+          [1 => $paymentprocessorWebhooksProcessingCount, 2 => implode(',', array_keys($paymentprocessorWebhookProcessors))]
+        ),
+        E::ts('Payment Processor Webhooks: Processing failed'),
+        \Psr\Log\LogLevel::ERROR,
+        'fa-code'
+      );
+      $message->addAction('Check now', FALSE, 'href', ['path' => 'civicrm/paymentprocessorwebhooks']);
       $this->messages[] = $message;
     }
   }

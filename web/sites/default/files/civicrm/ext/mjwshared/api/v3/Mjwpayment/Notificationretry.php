@@ -32,12 +32,12 @@ function civicrm_api3_mjwpayment_notificationretry($params) {
     $paymentProcessorType = civicrm_api3('PaymentProcessor', 'getsingle', ['id' => $paymentProcessorId]);
   }
   else {
-    throw new API_Exception('Unsupported payment processor');
+    throw new CRM_Core_Exception('Unsupported payment processor');
   }
 
   $processorClassName = "CRM_Core_{$paymentProcessorType['class_name']}";
   if (!method_exists($processorClassName, 'processPaymentNotification')) {
-    throw new API_Exception('Unsupported payment processor');
+    throw new CRM_Core_Exception('Unsupported payment processor');
   }
 
   $result = FALSE;
