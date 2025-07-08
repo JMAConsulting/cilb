@@ -57,39 +57,45 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
       case 'authorize_credit_card_charge':
       case 'contribution_pagebreak':
-	// we do this first before loading the billing address field page,
-	// so the user can choose to use the preloaded or edit them
-	// then we do it *again* after to ensure country and state are populated
-	// because these seem to be corrupted by the chain selector otherwise
+        // we do this first before loading the billing address field page,
+        // so the user can choose to use the preloaded or edit them
+        // then we do it *again* after to ensure country and state are populated
+        // because these seem to be corrupted by the chain selector otherwise
         $this->populateBillingAddress($form, $form_state);
         break;
     }
   }
 
-  /*
-  * If user is registering on behalf of another candidate, we remind
-  * them to use the candidate details on this page
-  */
+  /**
+   * If user is registering on behalf of another candidate, we remind
+   * them to use the candidate details on this page
+   */
   private function registeringOnBehalfMessage(FormStateInterface $formState) {
     if ($formState->getValue('candidate_representative') == 1) {
       \Drupal::messenger()->addWarning($this->t('Please ensure you enter the identifying information for <b>the candidate</b> on this page. You will need to be able to access their email to perform account verification.'));
     }
   }
 
-  /*
-  * Populate billing address fields
-  *
-  * For new contacts, these come from the fields on earlier pages
-  * For existing contacts, those pages are skipped, so we need to fetch
-  * the data from the database
-  *
-  * Note: we have to set the default_value keys in the form array for
-  * it to be passed to the renderer
-  */
+  /**
+   * Populate billing address fields
+   *
+   * For new contacts, these come from the fields on earlier pages
+   * For existing contacts, those pages are skipped, so we need to fetch
+   * the data from the database
+   *
+   * Note: we have to set the default_value keys in the form array for
+   * it to be passed to the renderer
+   */
   private function populateBillingAddress(array &$form, FormStateInterface $formState) {
     $targetPrefix = 'civicrm_1_contribution_1_contribution_billing_address';
     // instead we have to set defaults in the form array
-    $targetFieldset = &$form["elements"]["authorize_credit_card_charge"]["civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset"];
+    $formId = $formState->getFormObject()->getFormId();
+    if ($formId == "webform_submission_register_english_add_form") {
+      $targetFieldset = &$form["elements"]["authorize_credit_card_charge"]["civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset"];
+    }
+    if ($formId == "webform_submission_backoffice_registration_add_form") {
+      $targetFieldset = &$form["elements"]["contribution_pagebreak"]["civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset"];
+    }
     $sourceFields = [
       // fill name fields from contact
       'civicrm_1_contact_1_contact' => [
@@ -104,16 +110,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         'street_address',
         'postal_code',
         'city',
-        'country_id',
+        // 'country_id',
         'state_province_id',
       ],
     ];
 
     $values = $formState->getValues();
 
-    $loggedInContact = \CRM_Core_Session::getLoggedInContactId();
+    $contactId = $values['civicrm_1_contact_1_contact_existing'];
 
-    if ($loggedInContact) {
+    if (is_numeric($contactId)) {
       // for existing contacts, the form data won't contain some of the fields we
       // need, because these pages are skipped, so we need to fetch from the DB
 
@@ -122,7 +128,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       // this is the current logged in contact, so they are allowed to
       // access their own data
       $apiData = \Civi\Api4\Contact::get(FALSE)
-        ->addWhere('id', '=', $loggedInContact)
+        ->addWhere('id', '=', $contactId)
         ->addSelect(
           'first_name',
           'last_name',
@@ -142,11 +148,17 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       // (in case for some reason those field have *not* been skipped)
       foreach ($sourceFields as $sourcePrefix => $fields) {
         // address fields are prefixed in the api result
-        $apiPrefix = ($sourcePrefix === 'civicrm_1_contact_1_address') ? 'address_primary.' : '';
+        if ($sourcePrefix === 'civicrm_1_contact_1_address') {
+          $apiPrefix = 'address_primary.';
+        } elseif ($sourcePrefix === 'civicrm_1_contact_1_email') {
+          $apiPrefix = 'email_primary.';
+        } else {
+          $apiPrefix = '';
+        }
         foreach ($fields as $field) {
           $sourceKey = $sourcePrefix . '_' . $field;
           if (!$values[$sourceKey]) {
-            $values[$sourcePrefix . '_' . $field] = $apiData[$apiPrefix . $field];
+            $values[$sourceKey] = $apiData[$apiPrefix . $field];
           }
         }
       }
@@ -155,18 +167,19 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $contactInfoFieldset = &$form['elements']['registrant_contact_info']['candidate_contact_information'];
       $contactInfoFieldset['phones']['civicrm_1_contact_1_email_email']['#default_value'] = $values['civicrm_1_contact_2_email_email'];
     }
-
     foreach ($sourceFields as $sourcePrefix => $fields) {
       $targetPrefix = ($sourcePrefix == 'civicrm_1_contact_1_email') ? 'civicrm_1_contact_2_email' : 'civicrm_1_contribution_1_contribution_billing_address';
       foreach ($fields as $field) {
         $targetKey = $targetPrefix . '_' . $field;
         if (!$values[$targetKey]) {
           $sourceKey = $sourcePrefix . '_' . $field;
+          echo "Target Key: $targetKey, value: ";
+          print_r($values[$sourceKey]);
           $formState->setValue($targetKey, $values[$sourceKey]);
 
-	  // unfortunately values in the form state are *not* passed to the renderer,
-	  // so the user cant see what's happening unless we set the default
-	  // in the form array as well
+          // unfortunately values in the form state are *not* passed to the renderer,
+          // so the user cant see what's happening unless we set the default
+          // in the form array as well
           $targetFieldset[$targetKey]['#default_value'] = $values[$sourceKey];
         }
       }
@@ -175,19 +188,21 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
 
   /**
-  * Submission hook to:
-  * - handle creation of new Drupal user
-  * - register contact for selected events
-  */
+   * Submission hook to:
+   * - handle creation of new Drupal user
+   * - register contact for selected events
+   */
   public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     $this->civicrm->initialize();
 
-    if (!\Drupal::currentUser()->isAuthenticated()) {
-      $this->registerDrupalUser($webform_submission, $update);
-    }
+    $this->registerDrupalUser($webform_submission, $update);
+
     $this->registerEventParticipants($webform_submission, $update);
   }
 
+  /**
+   * Registers a Drupal user if no other user with the submitted email exists
+   */
   protected function registerDrupalUser(WebformSubmissionInterface $webform_submission, $update = TRUE): void {
     $webform_submission_data = $webform_submission->getData();
 
@@ -208,10 +223,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // processing
     $existing_user = user_load_by_mail($email);
     if ($existing_user) {
+      // Only log an error if the user is not authenticated
+      if (!\Drupal::currentUser()->isAuthenticated()) {
         // User with this email already exists, log a message and stop further processing
         \Drupal::logger('candidate_reg')->info('User with email ' . $email . ' already exists with UID: ' . $existing_user->id());
         \Drupal::messenger()->addError($this->t('A user with this email address already exists.'));
-        return;
+      }
+      return;
     }
 
     // Check if a user with the same username already exists but has a different email
@@ -223,12 +241,12 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->execute();
 
     if (!empty($query)) {
-        // User with the same username but a different email exists, increment username
-        $i = 1;
-        while (user_load_by_name($username)) {
-            $username = $baseUsername . $i;
-            $i++;
-        }
+      // User with the same username but a different email exists, increment username
+      $i = 1;
+      while (user_load_by_name($username)) {
+        $username = $baseUsername . $i;
+        $i++;
+      }
     }
 
     // Create a new Drupal user
@@ -255,7 +273,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     );
 
 
-    if(isset($webform_submission_data['civicrm_1_contact_1_contact_existing'])) {
+    if (isset($webform_submission_data['civicrm_1_contact_1_contact_existing']) && is_numeric($webform_submission_data['civicrm_1_contact_1_contact_existing'])) {
       $results = \Civi\Api4\UFMatch::create(FALSE)
         ->addValue('domain_id', 1)
         ->addValue('uf_id', $user->id())
@@ -265,11 +283,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
+  /**
+   * Register the CiviCRM contact for the selected events
+   */
   protected function registerEventParticipants(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     $webform_submission_data = $webform_submission->getData();
-    $contactId = $webform_submission_data['civicrm_1_contact_1_contact_existing'] ?? NULL;
-
-    if (!$contactId) {
+    $contactId = $webform_submission_data['civicrm_1_contact_1_contact_existing'];
+    if (!is_numeric($contactId)) {
       return FALSE;
     }
 
@@ -289,14 +309,26 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     // when registering events, we add event payments to the webform contribution
     // need to know the webform contribution ID
-    //$contributionId = $webform_submission_data['civcrm_1_contribution_1_id'] ?? 33;
     $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
     $contributionId = $webformCivicrmPostProcess->getContributionId();
+    $contribution = \Civi\Api4\Contribution::get(FALSE)
+      ->addWhere('id', '=', $contributionId)
+      ->addSelect('payment_instrument_id:name')
+      ->execute()->first();
+    if ($contribution['payment_instrument_id:name'] === 'Check') {
+      $transactionId = $this->generateTransactionId();
+      \Civi\Api4\Contribution::update(FALSE)
+        ->addWhere('id', '=', $contributionId)
+        ->addValue('check_number', $webform_submission_data['check_number'])
+        ->addValue('contribution_status_id:name', 'Completed')
+        ->addValue('trxn_id', $transactionId)
+        ->execute();
+    }
 
     // webform_civicrm will have created a single line item for the contribution
     // with the Total Amount Payable. we will need to update this
     //
-    // NOTE: throw an error if more than one line item. that shouldn't happen,
+    // NOTE: throw an error if more than one line item. That shouldn't happen,
     // and if it does the following logic might be totally wrong
     $defaultLineItem = (array) \Civi\Api4\LineItem::get(FALSE)
       ->addSelect('id', 'line_total')
@@ -307,7 +339,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $paidAmount = $defaultLineItem['line_total'];
 
     $seatFees = $this->getEventSeatFees($eventIds);
-    $eventFeesPaid = array_sum(array_map(fn ($fee) => $fee['amount_payable_now'], $seatFees));
+    $eventFeesPaid = array_sum(array_map(fn($fee) => $fee['amount_payable_now'], $seatFees));
 
     $formFeeAmount = $paidAmount - $eventFeesPaid;
 
@@ -335,7 +367,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           ->addValue('contact_id', $contactId)
           ->addValue('event_id', $eventId)
           ->addValue('register_date', 'now')
-          ->addValue('Participant_Webform.Candidate_Representative_Name', $webform_submission_data['candidate_representative_name'] ?? NULL)
+          ->addValue('Participant_Webform.Candidate_Representative_Name', $webform_submission_data['candidate_representative_name'])
           ->addValue('participant_fee_amount', $priceOption['amount'])
           ->addValue('participant_fee_level', $priceOption['label'])
           ->execute()
@@ -343,6 +375,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
         // create additional line items in the contribution for the event registration fees
 
+        // TODO: figure out what to do in the case that the client wants to record more than the form registration fee
         $params = [
           'entity_id' => $participantId,
           'entity_table' => 'civicrm_participant',
@@ -350,18 +383,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           'price_field_id' => $priceOption['price_field_id'],
           'price_field_value_id' => $priceOption['id'],
           'label' => "{$eventTitle} - CILB Candidate Registration - {$priceOption['label']}",
-          //'field_title' => $fieldTitle,
-          //'description' => $options[$oid]['description'] ?? NULL,
           'qty' => 1,
           'unit_price' => $priceOption['amount'],
           'line_total' => $priceOption['amount'],
           'participant_count' => 1,
           'financial_type_id' => $priceOption['financial_type_id'],
         ];
+        // TODO: why are we calling BAO directly?
         \CRM_Price_BAO_LineItem::create($params);
-      }
-      catch (\Exception $e) {
-        \Drupal::logger('candidate_reg')->debug('Unable to register contact ID ' . $contactID . ' for event ID ' . $eventId . ' because ' . $e->getMessage());
+      } catch (\Exception $e) {
+        \Drupal::logger('candidate_reg')->debug('Unable to register contact ID ' . $contactId . ' for event ID ' . $eventId . ' because ' . $e->getMessage());
         \Drupal::messenger()->addError($this->t('Sorry, we were unable to register you for this exam. Please contact the administrator at %adminEmail', [
           '%adminEmail' => \Drupal::config('system.site')->get('mail'),
         ]));
@@ -401,23 +432,32 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   public function validateForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
     $current_page = $webform_submission->getCurrentPage();
 
+    // Self-serve form
     if ($current_page == 'registrant_personal_info') {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
       $this->validateUniqueUser($form_state);
-    }
-    elseif ($current_page == 'exam_fee_page') {
+    } elseif ($current_page == 'exam_fee_page') {
       $this->validateContributionAmount($form_state);
-    }
-    elseif ($current_page == 'user_identification') {
+    } elseif ($current_page == 'user_identification') {
       $this->validateCandidateRep($form_state);
-    }
-    elseif ($current_page == 'payment_options') {
+    } elseif ($current_page == 'payment_options') {
       $this->redirectPayByCheck($form_state);
-    }
-    elseif ($current_page == 'select_exam_page') {
+    } elseif ($current_page == 'select_exam_page') {
       $this->validateParticipantStatus($form_state);
       $this->validateExamPreference($form_state);
+    }
+
+    // Backoffice registration
+    if ($current_page == 'candidate_information') {
+      $this->validateAgeReq($form_state);
+      $this->validateSSNMatch($form_state);
+      $this->validateUniqueUser($form_state);
+    } elseif ($current_page == 'exam_information') {
+      $this->validateParticipantStatus($form_state);
+      $this->validateExamPreference($form_state);
+    } elseif ($current_page == 'payment_information') {
+      $this->validateContributionAmount($form_state);
     }
   }
 
@@ -431,8 +471,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       foreach ($events as $event) {
         if (empty($selectedEvents[$event['Exam_Details.Exam_Part']])) {
           $selectedEvents[$event['Exam_Details.Exam_Part']] = [$event['id']];
-        }
-        else {
+        } else {
           $error_message = $this->t('You cannot select more then one ' . $event['Exam_Details.Exam_Part:label'] . ' event');
           $formState->setErrorByName('exam_preference', $error_message);
           break;
@@ -452,15 +491,15 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   }
 
   /**
-  * Validate candidate birthdate to ensure they are 16 years or older.
-  */
+   * Validate candidate birthdate to ensure they are 16 years or older.
+   */
   private function validateAgeReq(FormStateInterface $formState) {
     $birthday = $formState->getValue('civicrm_1_contact_1_contact_birth_date');
     $birthDate = \DateTime::createFromFormat('Y-m-d', $birthday);
 
     if ($birthDate === false) {
-        $formState->setErrorByName('civicrm_1_contact_1_contact_birth_date', $this->t('Please enter a valid birth date.'));
-        return;
+      $formState->setErrorByName('civicrm_1_contact_1_contact_birth_date', $this->t('Please enter a valid birth date.'));
+      return;
     }
 
     $today = new \DateTime();
@@ -470,18 +509,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     // If candidate is not 16 years or older
     if ($age < 16) {
-        $formState->setErrorByName('civicrm_1_contact_1_contact_birth_date', $this->t('In order to create an account with PTI Online Services and register for the DBPR/BET exam, you must be at least 16 years old.'));
+      $formState->setErrorByName('civicrm_1_contact_1_contact_birth_date', $this->t('In order to create an account with PTI Online Services and register for the DBPR/BET exam, you must be at least 16 years old.'));
     }
   }
 
   /**
-  * Validate SSN entries.
-  */
+   * Validate SSN entries.
+   */
   private function validateSSNMatch(FormStateInterface $formState) {
     $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
     $ssnMatch = $formState->getValue('verify_ssn');
 
-    if($ssn !== $ssnMatch && !\Drupal::currentUser()->isAuthenticated()) {
+    if ($ssn !== $ssnMatch && !$formState->isValueEmpty('verify_ssn')) {
       $error_message = $this->t('The SSNs do not match. Please check the numbers and try again.');
       $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
       $formState->setErrorByName('verify_ssn', $error_message);
@@ -489,11 +528,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   }
 
   /**
-  * Validate no user shares the same DOB and SSN.
-  */
-  private function validateUniqueUser(FormStateInterface $formState) {
+   * Validate no user shares the same DOB and SSN.
+   */
+  private function validateUniqueUser(FormStateInterface $formState, WebformSubmissionInterface $webform_submission) {
     // If not logged in, check SSN against existing contacts
-    if (!\Drupal::currentUser()->isAuthenticated()) {
+    $contactId = $webform_submission->getData()['civicrm_1_contact_1_contact_existing'];
+    if (!is_numeric($contactId)) {
+      // No existing contact found
       $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
 
       $this->civicrm->initialize();
@@ -540,6 +581,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           return;
         }
 
+        // A matching SSN was found for a CiviCRM contact as well as a different Drupal user
         // => direct to login
         $error_message = $this->t('A user account already exists with this Social Security Number. Please <a href="/user/login">login</a> first in order to continue registration, or contact %adminEmail for assistance.', [
           '%adminEmail' => \Drupal::config('system.site')->get('mail'),
@@ -567,25 +609,25 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
-  /*
-  * Validate the total contribution amount
-  *
-  * This checks the client side calculation matches the server side one. But it might be
-  * better to just use the server side calc
-  */
+  /**
+   * Validate the total contribution amount
+   *
+   * This checks the client side calculation matches the server side one. But it might be
+   * better to just use the server side calc
+   */
   private function validateContributionAmount(FormStateInterface $formState) {
     $examFee = (int) $formState->getValue('civicrm_1_contribution_1_contribution_total_amount');
 
     if (!$examFee) {
-        $formState->setErrorByName('exam_fee_markup', $this->t('Payable amount is missing'));
-        return;
+      $formState->setErrorByName('exam_fee_markup', $this->t('Payable amount is missing'));
+      return;
     }
 
     $eventIds = $formState->getValue('event_ids');
 
     if ($examFee !== $this->getPayableNowAmount($eventIds)) {
-        $formState->setErrorByName('exam_fee_markup', $this->t('Payable amount is incorrect'));
-        return;
+      $formState->setErrorByName('exam_fee_markup', $this->t('Payable amount is incorrect'));
+      return;
     }
   }
 
@@ -597,8 +639,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $repName = $formState->getValue('candidate_representative_name');
 
     if ($isRep == 1 && $repName == '') {
-        $formState->setErrorByName('candidate_representative_name', $this->t('Enter your full name to continue.'));
-        return;
+      $formState->setErrorByName('candidate_representative_name', $this->t('Enter your full name to continue.'));
+      return;
     }
   }
 
@@ -610,7 +652,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $contactID = $formState->getValue('civicrm_1_contact_1_contact_existing');
 
     // If the user is logged in
-    if($contactID) {
+    if ($contactID) {
       $participants = \Civi\Api4\Participant::get(FALSE)
         ->addWhere('contact_id', '=', $contactID)
         ->addWhere('event_id', 'IN', $eventIds)
@@ -618,10 +660,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->addWhere('status_id:label', '!=', 'Expired')
         ->execute();
 
-      if(count($participants)) {
-        $formState->setErrorByName('civicrm_1_participant_1_participant_event_id', $this->t('You are already registered for this exam.'));
-      }
+      if (count($participants)) {
+        $formId = $formState->getFormObject()->getFormId();
 
+        if ($formId == "webform_submission_register_english_add_form") {
+          $message = 'You are already registered for this exam.';
+        } elseif ($formId == "webform_submission_backoffice_registration_add_form") {
+          $message = 'The candidate is already registered for this exam.';
+        } else { // Default in case we want to use this handler with another form
+          $message = 'The candidate is already registered for this exam.';
+        }
+        $formState->setErrorByName('civicrm_1_participant_1_participant_event_id', $this->t($message));
+      }
     }
 
     // If no contact is created for the registrant yet, check for duplicates by name and email
@@ -638,7 +688,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->addWhere('event_id', 'IN', $eventIds)
         ->execute();
 
-      if(count($participants)) {
+      if (count($participants)) {
         $formState->setErrorByName('civicrm_1_participant_1_participant_event_id', $this->t('Another user with the same email and name has already registered for this exam.'));
       }
     }
@@ -667,9 +717,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->addWhere('price_field_id.price_set_id', 'IN', $priceSetsByEventId)
       ->addSelect(
         // price field value fields
-        'id', 'amount', 'financial_type_id', 'label',
+        'id',
+        'amount',
+        'financial_type_id',
+        'label',
         // price field fields
-        'price_field_id', 'price_field_id.price_set_id'
+        'price_field_id',
+        'price_field_id.price_set_id'
       )
       ->execute()
       ->indexBy('price_field_id.price_set_id');
@@ -712,7 +766,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    */
   private function getPayableNowAmount($eventIds): int {
     $eventFees = $this->getEventSeatFees($eventIds);
-    $eventAmountsPayableNow = array_map(fn ($fee) => $fee['amount_payable_now'], $eventFees);
+    $eventAmountsPayableNow = array_map(fn($fee) => $fee['amount_payable_now'], $eventFees);
     $eventTotal = array_sum($eventAmountsPayableNow);
 
     $formFee = \Civi\Api4\PriceFieldValue::get(FALSE)
@@ -722,5 +776,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->first()['amount'] ?? 135;
 
     return $eventTotal + $formFee;
+  }
+
+  /**
+   * Generates a pseduo-random transaction id starting with 99. It is guaranteed to be unique in the database
+   */
+  private function generateTransactionId(): string {
+    do {
+      $id = '99' . bin2hex(random_bytes(5));
+      $num_contributions = \Civi\Api4\Contribution::get(FALSE)
+        ->addWhere('id', '=', $id)
+        ->execute()->count();
+    } while ($num_contributions > 0);
+    return $id;
   }
 }

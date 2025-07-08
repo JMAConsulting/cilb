@@ -1,4 +1,7 @@
-jQuery(document).ready(function ($) {
+/**
+ * Conditional rendering of on behalf of field and setting readonly for DOB and SIN fields
+ */
+jQuery(document).ready(function($) {
   var next = $('#edit-actions input[type="submit"]');
   var behalfOf = $("#behalf-of");
   var candidateRep = $("#edit-candidate-representative-name");
@@ -6,24 +9,23 @@ jQuery(document).ready(function ($) {
   var returnPrev = $("#return-prev");
   var isCandidate = $("input[name='candidate_representative']");
   var cancelReg = $("#cancel-reg");
-  
+  var existingContactField = $("input[name='civicrm_1_contact_1_contact_existing']");
+
   // Move button to before on behalf of field.
+  // TODO: why not have this done in the webform interface
   $('button[value="I am the Candidate"]').insertBefore('#behalf-of');
   $('button[value="Yo soy el candidato"]').insertBefore('#behalf-of');
   $('<br><br>').insertBefore('#behalf-of');
 
-   // Check if form is in English or Spanish based on url
+  // Check if form is in English or Spanish based on url
   const currentUrl = window.location.href;
   const lang = (currentUrl.indexOf("/es/") !== -1) ? 'es_MX' : 'en_US';
 
-  var isExistingContact = $(
-    "input[name='civicrm_1_contact_1_contact_existing']"
-  ).val();
-
   // If registration is being completed on behalf of candidate
+  // show and hide various fields and set isCandidate
   if (behalfOf.length) {
     candidateRepField.hide();
-    behalfOf.on("click", function () {
+    behalfOf.on("click", function() {
       behalfOf.hide();
       cancelReg.hide();
 
@@ -37,7 +39,7 @@ jQuery(document).ready(function ($) {
       var originalNextLabel = next.val();
       next.val((lang === 'es_MX') ? "Siguiente > " : "Next >");
 
-      returnPrev.off("click").on("click", function (event) {
+      returnPrev.off("click").on("click", function(event) {
         event.preventDefault();
         returnPrev.attr("href", originalhref);
 
@@ -62,24 +64,46 @@ jQuery(document).ready(function ($) {
     }
   }
 
-  const ssnField = $("#edit-civicrm-1-contact-1-cg1-custom-5");
-  const dobField = $("#edit-civicrm-1-contact-1-contact-birth-date");
-
-  [ssnField, dobField].forEach((field) => {
-    if (isExistingContact && field.length && field.val()) {
-      field.prop("readonly", true);
-      field.parent().addClass("form-readonly webform-readonly");
-    }
-    else if (!isExistingContact) {
-      // "request info change" links dont apply if not logged in => remove
-      field.parent().find('[href$="/request-information-change"]').remove();
-    }
+  setReadonly();
+  existingContactField.on("change", function() {
+    setReadonly();
   });
 
   // replace final form submit button with a loading indicator on click
-  $('.webform-button--submit').on('click', function () {
+  $('.webform-button--submit').on('click', function() {
     $(this).hide();
     $(this).parent().append($('<div class="loader" style="max-width: 2rem; max-height: 2rem; margin: 0.5rem;" />'));
   });
 
+  /**
+   * Checks if there is an existing contact
+   * @return true if there is an existing contact, otherwise false
+   */
+  function isExistingContact() {
+    var contactId = $(
+      "input[name='civicrm_1_contact_1_contact_existing']"
+    ).val();
+    // contactId is not numeric if no existing contact was found
+    return !Number.isNaN(parseInt(contactId));
+  }
+
+  /**
+    * Set the readonly attribute for SSN and Birth Date fields based on if we have an existing contact
+    */
+  function setReadonly() {
+    var contactExists = isExistingContact();
+    const ssnField = $("#edit-civicrm-1-contact-1-cg1-custom-5");
+    const dobField = $("#edit-civicrm-1-contact-1-contact-birth-date");
+    [ssnField, dobField].forEach((field) => {
+      if (contactExists && field.length && field.val()) {
+        field.prop("readonly", true);
+        field.parent().addClass("form-readonly webform-readonly");
+      }
+      else if (!contactExists) {
+        field.prop("readonly", false);
+        field.parent().removeClass("form-readonly webform-readonly");
+      }
+    });
+  }
 });
+
