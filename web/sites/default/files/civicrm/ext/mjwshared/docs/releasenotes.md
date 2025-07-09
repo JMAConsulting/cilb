@@ -9,6 +9,10 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.4.1 (2025-07-07)
+
+* Regenerate code (civix upgrade). Min version CiviCRM 6.0.
+
 ## Release 1.4.0 (2025-04-04)
 
 * Add SearchKit-based payment processor webhooks display (and remove old one)
