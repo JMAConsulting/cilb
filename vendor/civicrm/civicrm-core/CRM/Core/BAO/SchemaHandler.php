@@ -589,6 +589,10 @@ MODIFY      {$columnName} varchar( $length )
    * @return bool TRUE if FK is found
    */
   public static function checkFKExists(string $table_name, string $constraint_name): bool {
+    if (!isset(\Civi::$statics['CRM_Core_DAO']['init'])) {
+      // This could get called early during installation.
+      return FALSE;
+    }
     $query = "
       SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
       WHERE TABLE_SCHEMA = DATABASE()
@@ -875,11 +879,11 @@ MODIFY      {$columnName} varchar( $length )
         if (!$dao->Collation || $dao->Collation === $newCollation || $dao->Collation === $newBinaryCollation) {
           continue;
         }
-        if (strpos($dao->Collation, 'utf8') !== 0) {
+        if (!str_starts_with($dao->Collation, 'utf8')) {
           continue;
         }
 
-        if (strpos($dao->Collation, '_bin') !== FALSE) {
+        if (str_contains($dao->Collation, '_bin')) {
           $tableCollation = $newBinaryCollation;
         }
         else {

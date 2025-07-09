@@ -220,6 +220,72 @@ class CRM_Core_DAO extends DB_DataObject {
   }
 
   /**
+   * Set the sql maximum execution time value.
+   *
+   * Note the preferred way to access this is via
+   * `$autoClean = CRM_Utils_AutoClean::swapMaxExecutionTime(800);`
+   *
+   * It can then be reverted with
+   * `$autoClean->cleanup()`
+   * Note that the auto clean will do the clean up itself on `__destruct`
+   * but formally doing it makes it clear that it is being done and, importantly,
+   * avoids the situation where someone just calls
+   * `CRM_Utils_AutoClean::swapMaxExecutionTime(800);`
+   * without assigning it to a variable (because `__destruct` is implicitly called)
+   *
+   * https://mariadb.com/kb/en/aborting-statements/
+   */
+  public static function setMaxExecutionTime(int $time): int {
+    $version = CRM_Utils_SQL::getDatabaseVersion();
+    $originalTimeLimit = self::getMaxExecutionTime();
+    if (stripos($version, 'mariadb') !== FALSE) {
+      // MariaDB variable has a certain name, and value is in seconds.
+      $sql = "SET SESSION MAX_STATEMENT_TIME={$time}";
+    }
+    else {
+      // MySQL variable has a different name, and value is in milliseconds.
+      $sql = "SET SESSION MAX_EXECUTION_TIME=" . ($time * 1000);
+    }
+    try {
+      CRM_Core_DAO::executeQuery($sql);
+    }
+    catch (CRM_Core_Exception $e) {
+      \Civi::log()->warning('failed to adjust maximum query execution time {sql}', [
+        'sql' => $sql,
+        'exception' => $e,
+      ]);
+    }
+    finally {
+      return $originalTimeLimit;
+    }
+  }
+
+  /**
+   * Get the mysql / mariaDB maximum execution time variable.
+   *
+   * https://mariadb.com/kb/en/aborting-statements/
+   *
+   * @return int
+   * @throws \Civi\Core\Exception\DBQueryException
+   */
+  public static function getMaxExecutionTime(): int {
+    $version = CRM_Utils_SQL::getDatabaseVersion();
+    if (stripos($version, 'mariadb') !== FALSE) {
+      $originalSql = 'SHOW VARIABLES LIKE "MAX_STATEMENT_TIME"';
+      $variableDao = CRM_Core_DAO::executeQuery($originalSql);
+      $variableDao->fetch();
+      return (int) $variableDao->Value;
+    }
+    else {
+      $originalSql = 'SHOW VARIABLES LIKE "MAX_EXECUTION_TIME"';
+      $variableDao = CRM_Core_DAO::executeQuery($originalSql);
+      $variableDao->fetch();
+      return ((int) $variableDao->Value) / 1000;
+    }
+
+  }
+
+  /**
    * Returns the list of fields that can be imported
    *
    * @param bool $prefix
@@ -1566,7 +1632,7 @@ LIKE %1
 
     self::$_dbColumnValueCache ??= [];
 
-    while (strpos($daoName, '_BAO_') !== FALSE) {
+    while (str_contains($daoName, '_BAO_')) {
       $daoName = get_parent_class($daoName);
     }
 
@@ -1789,11 +1855,6 @@ LIKE %1
       $dao = new $daoName();
     }
 
-    if ($trapException) {
-      CRM_Core_Error::deprecatedFunctionWarning('calling functions should handle exceptions');
-      $errorScope = CRM_Core_TemporaryErrorScope::ignoreException();
-    }
-
     if ($dao->isValidOption($options)) {
       $dao->setOptions($options);
     }
@@ -1803,11 +1864,6 @@ LIKE %1
     // since it is unbuffered, ($dao->N==0) is true.  This blocks the standard fetch() mechanism.
     if (($options['result_buffering'] ?? NULL) === 0) {
       $dao->N = TRUE;
-    }
-
-    if (is_a($result, 'DB_Error')) {
-      CRM_Core_Error::deprecatedFunctionWarning('calling functions should handle exceptions');
-      return $result;
     }
 
     return $dao;
@@ -2603,23 +2659,6 @@ SELECT contact_id
   }
 
   /**
-   * @param null $message
-   * @param bool $printDAO
-   */
-  public static function debugPrint($message = NULL, $printDAO = TRUE) {
-    CRM_Utils_System::xMemory("{$message}: ");
-
-    if ($printDAO) {
-      global $_DB_DATAOBJECT;
-      $q = [];
-      foreach (array_keys($_DB_DATAOBJECT['RESULTS']) as $id) {
-        $q[] = $_DB_DATAOBJECT['RESULTS'][$id]->query;
-      }
-      CRM_Core_Error::debug('_DB_DATAOBJECT', $q);
-    }
-  }
-
-  /**
    * Build a list of triggers via hook and add them to (err, reconcile them
    * with) the database.
    *
@@ -2723,10 +2762,8 @@ SELECT contact_id
         $counts[] = $count;
       }
     }
-
-    foreach (CRM_Core_Component::getEnabledComponents() as $component) {
-      $counts = array_merge($counts, $component->getReferenceCounts($this));
-    }
+    // TODO: Fix hook to work with non-dao entities
+    // (probably need to add 2 params for $entityName and $record and deprecate the $dao param)
     CRM_Utils_Hook::referenceCounts($this, $counts);
 
     return $counts;
@@ -2956,7 +2993,7 @@ SELECT contact_id
     }
     $checkPermissions = (bool) ($values['check_permissions'] ?? ($context == 'create' || $context == 'search'));
     $includeDisabled = ($context == 'validate' || $context == 'get');
-    $options = $entity->getOptions($fieldName, $values, $includeDisabled, $checkPermissions);
+    $options = $entity->getOptions($fieldName, $values, $includeDisabled, $checkPermissions, NULL, ($context == 'get' || $context === 'search'));
     return $options ? CRM_Core_PseudoConstant::formatArrayOptions($context, $options) : $options;
   }
 
@@ -3505,7 +3542,7 @@ SELECT contact_id
    */
   private function clearDbColumnValueCache() {
     $daoName = get_class($this);
-    while (strpos($daoName, '_BAO_') !== FALSE) {
+    while (str_contains($daoName, '_BAO_')) {
       $daoName = get_parent_class($daoName);
     }
     if (isset($this->id)) {

@@ -160,34 +160,30 @@ class CRM_Utils_System_Standalone extends CRM_Utils_System_Base {
 
   /**
    * @inheritDoc
+   *
+   * Note: Standalone renders the html-header region directly in its smarty page template
+   * so this should never be called
    */
   public function addHTMLHead($header) {
-    $template = CRM_Core_Smarty::singleton();
-    // Smarty's append function does not check for the existence of the var before appending to it.
-    // So this prevents a stupid notice error:
-    $template->ensureVariablesAreAssigned(['pageHTMLHead']);
-    $template->append('pageHTMLHead', $header);
-    return;
+    throw new \CRM_Core_Exception('addHTMLHead should never be called in Standalone');
   }
 
   /**
-   * @inheritDoc
+   * @inheritdoc
+   *
+   * No such things as CMS-rendering in Standalone => always return FALSE
    */
   public function addStyleUrl($url, $region) {
-    if ($region != 'html-header') {
-      return FALSE;
-    }
-    $this->addHTMLHead('<link rel="stylesheet" href="' . $url . '"></style>');
+    return FALSE;
   }
 
   /**
-   * @inheritDoc
+   * @inheritdoc
+   *
+   * No such things as CMS-rendering in Standalone => always return FALSE
    */
   public function addStyle($code, $region) {
-    if ($region != 'html-header') {
-      return FALSE;
-    }
-    $this->addHTMLHead('<style>' . $code . '</style>');
+    return FALSE;
   }
 
   /**
@@ -303,13 +299,10 @@ class CRM_Utils_System_Standalone extends CRM_Utils_System_Base {
   }
 
   /**
-   * Immediately stop script execution and log out the user
+   * @inheritdoc
    */
-  public function logout() {
-    _authx_uf()->logoutSession();
-    // redirect to the home page?
-    // breaks tests in standaloneusers-e2e
-    // \CRM_Utils_System::redirect('/civicrm/login');
+  public function postLogoutUrl(): string {
+    return '/civicrm/login?justLoggedOut';
   }
 
   /**
@@ -333,28 +326,35 @@ class CRM_Utils_System_Standalone extends CRM_Utils_System_Base {
    */
   public function theme(&$content, $print = FALSE, $maintenance = FALSE) {
     if ($maintenance) {
-      // if maintenance, we need to wrap in a minimal header
-      $headerContent = CRM_Core_Region::instance('html-header', FALSE)->render('');
-
-      // note - now adding #crm-container is a hacky way to avoid rendering
-      // the civicrm menubar. @todo a better way
-      $content = <<<HTML
-        <!DOCTYPE html >
-        <html class="crm-standalone">
-          <head>
-            {$headerContent}
-          </head>
-          <body>
-            <div class="crm-container standalone-page-padding">
-              {$content}
-            </div>
-          </body>
-        </html>
-      HTML;
+      \CRM_Core_Error::deprecatedWarning('Calling CRM_Utils_Base::theme with $maintenance is deprecated - use renderMaintenanceMessage instead');
+      $content = $this->renderMaintenanceMessage($content, $print);
     }
-
     print $content;
     return NULL;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function renderMaintenanceMessage(string $content): string {
+    // wrap in a minimal header
+    $headerContent = CRM_Core_Region::instance('html-header', FALSE)->render('');
+
+    // note - not adding #crm-container is a hacky way to avoid rendering
+    // the civicrm menubar. @todo a better way
+    return <<<HTML
+      <!DOCTYPE html >
+      <html class="crm-standalone">
+        <head>
+          {$headerContent}
+        </head>
+        <body>
+          <div class="crm-container standalone-page-padding">
+            {$content}
+          </div>
+        </body>
+      </html>
+    HTML;
   }
 
   /**
@@ -578,6 +578,21 @@ class CRM_Utils_System_Standalone extends CRM_Utils_System_Base {
 
   /**
    * @inheritDoc
+   */
+  public function getUFLocale(): ?string {
+    $userId = $this->getLoggedInUfID();
+    if ($userId) {
+      $user = $this->getUserById($userId);
+      if ($user && !empty($user['language'])) {
+        return $user['language'];
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * @inheritDoc
    * @todo implement language negotiation for Standalone?
    */
   public function languageNegotiationURL($url, $addLanguagePart = TRUE, $removeLanguagePart = FALSE) {
@@ -595,36 +610,36 @@ class CRM_Utils_System_Standalone extends CRM_Utils_System_Base {
   /**
    * Respond that permission has been denied.
    *
-   * Note that there are a few subtle variations on this:
-   *
-   * - For authenticated users with a session/cookie, it uses "statusBounce()" to show popup (on prior page or dashboard page).
-   * - For authenticated users with stateless requests, it shows formatted error page.
-   * - For unauthenticated users, it shows login screen with an error blurb.
+   * There are a few variations:
+   * - For stateful requests where no one is logged in => redirect to login page
+   * - For stateful requests where user is logged in => redirect to home page with a message (unless caught in redirect loop)
+   * - Otherwise, show a "Permission Denied" page
    */
   public function permissionDenied() {
-    // If not logged in, they need to.
+    http_response_code(403);
+
     $session = CRM_Core_Session::singleton();
     $useSession = ($session->get('authx')['useSession'] ?? TRUE);
-    if ($this->isUserLoggedIn() && $useSession) {
-      // They are logged in; they're just not allowed this page.
-      CRM_Core_Error::statusBounce(ts("Access denied"), CRM_Utils_System::url('civicrm'));
-      return;
-    }
-    elseif ($this->isUserLoggedIn() && !$useSession) {
-      return (new CRM_Standaloneusers_Page_PermissionDenied())->run();
-    }
-    else {
-      http_response_code(403);
 
-      // render a login page
-      if (class_exists('CRM_Standaloneusers_Page_Login')) {
-        $loginPage = new CRM_Standaloneusers_Page_Login();
-        CRM_Core_Session::setStatus(ts('You need to be logged in to access this page.'), ts('Please sign in.'));
-        return $loginPage->run();
+    if ($useSession && !$this->isUserLoggedIn()) {
+      // Stateful request, but no one is logged in => show log in prompt
+      $loginPage = new CRM_Standaloneusers_Page_Login();
+      CRM_Core_Session::setStatus(ts('You need to be logged in to access this page.'), ts('Please sign in.'));
+      return $loginPage->run();
+    }
+
+    if ($useSession && $this->isUserLoggedIn()) {
+      // Stateful login => redirect to home page with message (unless they are caught in a redirect loop)
+      if (!\CRM_Utils_Request::retrieve('permissionDeniedRedirect', 'Boolean')) {
+        CRM_Core_Error::statusBounce(ts("Access denied"), \Civi::url('current://civicrm/home')->setQuery([
+          'permissionDeniedRedirect' => 1,
+        ]));
+        return;
       }
-
-      throw new CRM_Core_Exception('Access denied. Standaloneusers login page not found');
     }
+
+    // show a stateless access denied page
+    return (new CRM_Standaloneusers_Page_PermissionDenied())->run();
   }
 
   /**
@@ -696,13 +711,12 @@ class CRM_Utils_System_Standalone extends CRM_Utils_System_Base {
    * Standalone's session cannot be initialized until CiviCRM is booted,
    * since it is defined in an extension,
    *
-   * This is also when we set timezone
+   * This used to be when we set timezone, but this is moved to
+   * standaloneusers_civicrm_config hook to avoid crashing multilingual sites`
    */
   public function postContainerBoot(): void {
     $sess = \CRM_Core_Session::singleton();
     $sess->initialize();
-
-    $this->setTimeZone();
   }
 
 }

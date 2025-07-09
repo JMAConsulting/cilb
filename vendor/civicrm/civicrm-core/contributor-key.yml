@@ -109,6 +109,7 @@
 
 - github      : angusfretwell
   name        : Angus Fretwell
+  organization: Buildkite
 
 - github      : AnwenW
   name        : Anwen Williams
@@ -398,6 +399,10 @@
   name        : David Glick
   organization: Glick Software
 
+- github      : DieEinzigWahreWarsteinerin
+  name        : Evita Wagner
+  organization: ASMAC (American Society of Music Arrangers and Composers)
+
 - github      : deb1990
   name        : Debarshi Bhaumik
   organization: CompuCorp
@@ -440,11 +445,15 @@
   name        : Peter Haight
   organization: Giant Rabbit
 
-- github      : dlobo
-  name        : Donald Lobo
+- github      : djnatedagreat
+  name        : Nate Harris
+  organization: New York State Senate
 
 - github      : dkguru
   organization: Jesper Angelo
+
+- github      : dlobo
+  name        : Donald Lobo
 
 - github      : don-alejandro-z
 
@@ -980,6 +989,10 @@
   name        : Carl Andrew Lema
   organization: Kanzu Code
 
+- github      : lenajukna
+  name        : Lena Jukna
+  organization: SYSTOPIA
+
 - github      : Levi-70
   name        : Levi.k
 
@@ -1081,6 +1094,8 @@
   name        : Matthew Wire
   organization: MJW Consulting
 
+- github      : Matt5K
+
 - github      : marcineqpol
   name        : Marcin Lewandowski
 
@@ -1169,7 +1184,7 @@
   name        : Mathieu Lutfy
   organization: Coop SymbioTIC
 
-  github      : 19ATf72
+- github      : 19ATf72
   name        : Micah Hobby
   organization: Circle Interactive
 
@@ -1347,6 +1362,8 @@
   name        : Peter Davis
   organization: Fuzion
 
+- github      : Peter-Reck
+
 - github      : pillarsdotnet
   name        : Bob Vincent
 
@@ -1385,6 +1402,8 @@
 - github      : rasmuswinter
   name        : Rasmus Winter
   organization: Outlandish
+
+- github      : RaulJMCD
 
 - github      : ray-wright
   name        : Ray Wright
@@ -1470,6 +1489,10 @@
   organization: Palante Technology Cooperative
 
 - name        : Steve Binkowski
+
+- github      : stuart897
+  name        : Stuart
+  organization: NIAB
 
 - github      : shaneonabike
   name        : Shane Bill
@@ -1747,7 +1770,7 @@
   name        : Vinu Varshith Sekar
   organization: CompuCorp
 
-- github      : vinay-osseed
+- github      : vinugawade
   name        : Vinay Gawade
   organization: OSSeed Technologies LLP
 
@@ -1889,3 +1912,15 @@
 - github      : jsuchogorska
   name        : Joanna Suchogórska
   organization: Future Processing
+
+- github      : peetcreative
+  name        : Peter Klausing
+  organization: 5Knoten
+
+- github      : pzukowicz
+  name        : Patryk Żukowicz
+  organization: TechSoup
+
+- github      : shahrukh-compuco
+  name        : Muhammad Shahrukh
+  organization: CompuCo

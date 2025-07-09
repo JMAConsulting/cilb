@@ -194,6 +194,17 @@ class Afform extends Generic\AbstractEntity {
           'data_type' => 'Array',
         ],
         [
+          'name' => 'placement_filters',
+          'title' => E::ts('Placement Filters'),
+          'data_type' => 'Array',
+          'description' => 'E.g. contact_type, case_type, event_type, etc.',
+        ],
+        [
+          'name' => 'placement_weight',
+          'title' => E::ts('Placement Order'),
+          'data_type' => 'Integer',
+        ],
+        [
           'name' => 'tags',
           'title' => E::ts('Tags'),
           'pseudoconstant' => [
@@ -203,20 +214,9 @@ class Afform extends Generic\AbstractEntity {
           'input_type' => 'Select',
         ],
         [
-          'name' => 'summary_contact_type',
-          'title' => E::ts('Summary Contact Type'),
-          'data_type' => 'Array',
-          'options' => \CRM_Contact_BAO_ContactType::contactTypePairs(),
-        ],
-        [
-          'name' => 'summary_weight',
-          'title' => E::ts('Order'),
-          'data_type' => 'Integer',
-        ],
-        [
           'name' => 'icon',
           'title' => E::ts('Icon'),
-          'description' => 'Icon shown in the contact summary tab',
+          'description' => 'Icon shown in the placement',
         ],
         [
           'name' => 'server_route',
@@ -297,6 +297,16 @@ class Afform extends Generic\AbstractEntity {
           'title' => E::ts('Date Modified'),
           'data_type' => 'Timestamp',
           'readonly' => TRUE,
+        ],
+        [
+          'name' => 'confirmation_type',
+          'pseudoconstant' => ['optionGroupName' => 'afform_confirmation_type'],
+          'default_value' => 'redirect_to_url',
+        ],
+        [
+          'name' => 'confirmation_message',
+          'title' => E::ts('Confirmation Message'),
+          'input_type' => 'Text',
         ],
       ];
       // Calculated fields returned by get action

@@ -182,11 +182,11 @@ a.crm-expand-row:focus {
 .crm-container .status-past,
 .crm-contact-deceased,
 .crm-container .status-warning {
-  color: var(--crm-c-alert);
+  color: var(--crm-c-danger-on-page-bg);
 }
 .crm-container .alert.alert-info.font-red { /* for when an info alert wants to be a danger alert! */
-  background-color: var(--crm-alert-background-danger);
-  border-color: var(--crm-alert-border-danger);
+  background-color: var(--crm-alert-danger-bg);
+  border-color: var(--crm-alert-danger-border);
 }
 
 /******************
@@ -360,12 +360,6 @@ body[class*="page-civicrm-report-"] #report-tab-order-by-elements #optionFieldLi
   border-radius: var(--crm-roundness) var(--crm-roundness) 0 0;
   margin-bottom: 0;
 }
-.crm-container .crm-search-nav-tabs { /* Fix for SK tabs border */
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  margin-bottom: 0;
-  border-bottom: 0;
-}
 .crm-container .panel-heading:has(.nav-tabs) {
   padding: 0;
   border-bottom: 0;
@@ -380,14 +374,6 @@ body[class*="page-civicrm-report-"] #report-tab-order-by-elements #optionFieldLi
   box-shadow: none;
   border-radius: 0 0 var(--crm-roundness) var(--crm-roundness);
   background: var(--crm-tab-bg-active);
-  overflow-x: auto;
-}
-.crm-search:has(.crm-search-nav-tabs) .crm-search-display.crm-search-display-table table {
-  border-width: 1px 0 0 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  box-shadow: none;
-  margin-bottom: 0;
 }
 .crm-container .afadmin-list >  .form-inline,
 .crm-search > .ng-scope > .form-inline {
@@ -421,8 +407,8 @@ body[class*="page-civicrm-report-"] #report-tab-order-by-elements #optionFieldLi
 .CRM_Contact_Form_Contact > .crm-form-block > details,
 .CRM_Contact_Form_Contact > .crm-form-block > div > details {
   margin-inline: calc(-1 * var(--crm-form-block-padding));
-  padding-inline: var(--crm-expand-2-body-padding);
-  margin-bottom: var(--crm-expand-2-body-padding);
+  padding-inline: var(--crm-expand2-body-padding);
+  margin-bottom: var(--crm-expand2-body-padding);
 }
 .crm-container .crm-add-address-wrapper {
   height: auto;
@@ -566,9 +552,6 @@ body[class*="page-civicrm-report-"] #report-tab-order-by-elements #optionFieldLi
 .crm-case-caseview-form-block h3 {
   background: transparent;
   padding: 0;
-}
-.crm-case-activity-form-block-followup_activity_type_id .crm-form-date-wrapper {
-  display: inline-block;
 }
 .crm-case-activity-form-block table.form-layout-compressed {
   width: 100%;

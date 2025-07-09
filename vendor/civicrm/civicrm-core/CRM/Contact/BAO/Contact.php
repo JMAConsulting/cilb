@@ -191,7 +191,7 @@ class CRM_Contact_BAO_Contact extends CRM_Contact_DAO_Contact implements Civi\Co
     // Fixed in 1.5 by making hash optional, only do this in create mode, not update.
     if ((!isset($contact->hash) || !$contact->hash) && !$contact->id) {
       $allNull = FALSE;
-      $contact->hash = md5(uniqid(rand(), TRUE));
+      $contact->hash = bin2hex(random_bytes(16));
     }
 
     // Even if we don't need $employerId, it's important to call getFieldValue() before
@@ -304,7 +304,7 @@ class CRM_Contact_BAO_Contact extends CRM_Contact_DAO_Contact implements Civi\Co
 
     $params['contact_id'] = $contact->id;
 
-    if (!$isEdit && Civi::settings()->get('is_enabled')) {
+    if (!$isEdit && Civi::settings()->get('multisite_is_enabled')) {
       // Enabling multisite causes the contact to be added to the domain group.
       $domainGroupID = CRM_Core_BAO_Domain::getGroupId();
       if (!empty($domainGroupID)) {
@@ -781,11 +781,14 @@ WHERE     civicrm_contact.id = " . CRM_Utils_Type::escape($id, 'Integer');
    *   (reference ) an assoc array to hold the name / value pairs.
    *                        in a hierarchical manner
    * @param bool $microformat
-   *   For location in microformat.
+   *   Deprecated value
    *
    * @return CRM_Contact_BAO_Contact
    */
   public static function &retrieve(&$params, &$defaults = [], $microformat = FALSE) {
+    if ($microformat) {
+      CRM_Core_Error::deprecatedWarning('microformat is deprecated in CRM_Contact_BAO_Contact::retrieve');
+    }
     if (array_key_exists('contact_id', $params)) {
       $params['id'] = $params['contact_id'];
     }
@@ -835,6 +838,20 @@ WHERE     civicrm_contact.id = " . CRM_Utils_Type::escape($id, 'Integer');
     }
 
     return $displayName;
+  }
+
+  /**
+   * Get the CMS user id
+   *
+   * @param int $contactId
+   * @return int
+   */
+  private static function getUFId(int $contactId): int {
+    // Note: we're not using CRM_Core_BAO_UFMatch::getUFId() because that's cached.
+    $ufmatch = new CRM_Core_DAO_UFMatch();
+    $ufmatch->contact_id = $contactId;
+    $ufmatch->domain_id = CRM_Core_Config::domainID();
+    return $ufmatch->find(TRUE) ? $ufmatch->uf_id : 0;
   }
 
   /**
@@ -890,15 +907,6 @@ WHERE     civicrm_contact.id = " . CRM_Utils_Type::escape($id, 'Integer');
       return FALSE;
     }
 
-    // Note: we're not using CRM_Core_BAO_UFMatch::getUFId() because that's cached.
-    $ufmatch = new CRM_Core_DAO_UFMatch();
-    $ufmatch->contact_id = $id;
-    $ufmatch->domain_id = CRM_Core_Config::domainID();
-    if ($ufmatch->find(TRUE)) {
-      // Do not permit a contact to be deleted if it is linked to a site user.
-      return FALSE;
-    }
-
     $contactType = $contact->contact_type;
     if ($restore) {
       // @todo deprecate calling contactDelete with the intention to restore.
@@ -914,8 +922,19 @@ WHERE     civicrm_contact.id = " . CRM_Utils_Type::escape($id, 'Integer');
     $transaction = new CRM_Core_Transaction();
 
     if ($skipUndelete) {
-      $hookParams = ['check_permissions' => $checkPermissions];
+      $hookParams = [
+        'check_permissions' => $checkPermissions,
+        'uf_id' => self::getUFId($id),
+      ];
+
+      // Hook might delete the CMS user
       CRM_Utils_Hook::pre('delete', $contactType, $id, $hookParams);
+
+      // Do not permit a contact to be deleted if it is (still) linked to a site user.
+      if ($hookParams['uf_id'] && self::getUFId($id)) {
+        $transaction->rollback();
+        return FALSE;
+      }
 
       //delete billing address if exists.
       CRM_Contribute_BAO_Contribution::deleteAddress(NULL, $id);
@@ -953,6 +972,9 @@ WHERE     civicrm_contact.id = " . CRM_Utils_Type::escape($id, 'Integer');
       $contact->delete();
     }
     else {
+      if (self::getUFId($id)) {
+        return FALSE;
+      }
       self::contactTrash($contact);
     }
     // currently we only clear employer cache.
@@ -1661,7 +1683,7 @@ WHERE     civicrm_contact.id = " . CRM_Utils_Type::escape($id, 'Integer');
 
     $multipleFields = ['website' => 'url'];
     foreach ($fields as $name => $dontCare) {
-      if (strpos($name, '-') !== FALSE) {
+      if (str_contains($name, '-')) {
         [$fieldName, $id, $type] = CRM_Utils_System::explode('-', $name, 3);
 
         if (!in_array($fieldName, $multipleFields)) {
@@ -2190,7 +2212,7 @@ ORDER BY civicrm_email.is_primary DESC";
           if (isset($params[$key . '-provider_id'])) {
             $data['im'][$loc]['provider_id'] = $params[$key . '-provider_id'];
           }
-          if (strpos($key, '-provider_id') !== FALSE) {
+          if (str_contains($key, '-provider_id')) {
             $data['im'][$loc]['provider_id'] = $params[$key];
           }
           else {

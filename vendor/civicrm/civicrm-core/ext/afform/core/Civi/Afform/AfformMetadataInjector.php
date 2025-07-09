@@ -142,7 +142,7 @@ class AfformMetadataInjector {
     if ($inputType === 'Select' || $inputType === 'ChainSelect') {
       $fieldInfo['input_attrs']['placeholder'] = E::ts('Select');
     }
-    elseif ($inputType === 'EntityRef' && empty($field['input_attrs']['placeholder'])) {
+    elseif ($inputType === 'EntityRef' && !empty($fieldInfo['fk_entity']) && empty($field['input_attrs']['placeholder'])) {
       $info = civicrm_api4('Entity', 'get', [
         'where' => [['name', '=', $fieldInfo['fk_entity']]],
         'checkPermissions' => FALSE,
@@ -167,14 +167,6 @@ class AfformMetadataInjector {
 
     // Boolean checkbox has no options
     if ($fieldInfo['data_type'] === 'Boolean' && $inputType === 'CheckBox') {
-      unset($fieldInfo['options'], $fieldDefn['options']);
-    }
-
-    if ($inputType === 'DisplayOnly' && isset($fieldDefn['afform_default'])) {
-      $fieldName = $fieldInfo['name'];
-      $defaultValue = \CRM_Utils_JS::decode($fieldDefn['afform_default']);
-      $defaultValue = Utils::formatViewValue($fieldName, $fieldInfo, [$fieldName => $defaultValue]);
-      $fieldDefn['afform_default'] = \CRM_Utils_JS::encode($defaultValue);
       unset($fieldInfo['options'], $fieldDefn['options']);
     }
 

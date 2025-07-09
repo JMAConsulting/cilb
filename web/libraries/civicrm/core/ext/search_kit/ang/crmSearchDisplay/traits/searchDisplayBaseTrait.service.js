@@ -15,6 +15,7 @@
       onPreRun: [],
       onPostRun: [],
       _runCount: 0,
+      isArray: Array.isArray,
 
       // Called by the controller's $onInit function
       initializeDisplay: function($scope, $element) {
@@ -23,6 +24,7 @@
         this.limit = this.settings.limit;
         this.sort = this.settings.sort ? _.cloneDeep(this.settings.sort) : [];
         this.seed = Date.now();
+        this.uniqueId = generateUniqueId(20);
         this.placeholders = [];
         var placeholderCount = 'placeholder' in this.settings ? this.settings.placeholder : 5;
         for (var p=0; p < placeholderCount; ++p) {
@@ -31,7 +33,6 @@
         _.each(ctrl.onInitialize, function(callback) {
           callback.call(ctrl, $scope, $element);
         });
-        this.isArray = angular.isArray;
 
         // _.debounce used here to trigger the initial search immediately but prevent subsequent launches within 300ms
         this.getResultsPronto = _.debounce(ctrl.runSearch, 300, {leading: true, trailing: false});
@@ -70,6 +71,15 @@
           }
         }
 
+        function generateUniqueId(length) {
+          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+          let result = "";
+          for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return result;
+        }
+
         // Popup forms in this display or surrounding Afform trigger a refresh
         $element.closest('form').on('crmPopupFormSuccess crmFormSuccess', function() {
           ctrl.rowCount = null;
@@ -94,6 +104,25 @@
           if (ctrl.results) {
             ctrl.getResultsSoon();
           }
+        }
+
+        // Process toolbar after run
+        if (this.settings.toolbar) {
+          this.onPostRun.push(function (apiResults) {
+            if (apiResults.run.toolbar) {
+              ctrl.toolbar = apiResults.run.toolbar;
+              // If there are no results on initial load, open an "autoOpen" toolbar link
+              ctrl.toolbar.forEach((link) => {
+                if (link.autoOpen && ctrl._runCount === 1 && !ctrl.results.length) {
+                  CRM.loadForm(link.url)
+                    .on('crmFormSuccess', (e, data) => {
+                      ctrl.rowCount = null;
+                      ctrl.getResultsPronto();
+                    });
+                }
+              });
+            }
+          });
         }
 
         if (this.afFieldset) {
@@ -196,7 +225,7 @@
         _.each(ctrl.onPreRun, function(callback) {
           callback.call(ctrl, apiCalls);
         });
-        var apiRequest = crmApi4(apiCalls);
+        const apiRequest = crmApi4(apiCalls);
         apiRequest.then(function(apiResults) {
           if (requestId < ctrl._runCount) {
             return; // Another request started after this one
@@ -210,24 +239,10 @@
               ctrl.rowCount = ctrl.results.length;
             } else if (ctrl.settings.pager || ctrl.settings.headerCount) {
               var params = ctrl.getApiParams('row_count');
-              crmApi4('SearchDisplay', 'run', params).then(function(result) {
+              crmApi4('SearchDisplay', apiCalls.run[1], params).then(function(result) {
                 ctrl.rowCount = result.count;
               });
             }
-          }
-          // Process toolbar
-          if (apiResults.run.toolbar) {
-            ctrl.toolbar = apiResults.run.toolbar;
-            // If there are no results on initial load, open an "autoOpen" toolbar link
-            ctrl.toolbar.forEach((link) => {
-              if (link.autoOpen && requestId === 1 && !ctrl.results.length) {
-                CRM.loadForm(link.url)
-                  .on('crmFormSuccess', (e, data) => {
-                    ctrl.rowCount = null;
-                    ctrl.getResultsPronto();
-                  });
-              }
-            });
           }
           _.each(ctrl.onPostRun, function(callback) {
             callback.call(ctrl, apiResults, 'success', editedRow);
