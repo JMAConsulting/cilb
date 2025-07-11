@@ -68,6 +68,8 @@ jQuery(document).ready(function ($) {
   const birthDate = $("input[name='civicrm_1_contact_1_contact_birth_date']");
   const ssn = $("input[name='civicrm_1_contact_1_cg1_custom_5']");
 
+  const candidateContactInfoFields = $("fieldset#edit-candidate-contact-information input");
+
   setReadonly();
 
   // Clear DOB, birth date, name suffix when the user selects a new contact
@@ -75,9 +77,11 @@ jQuery(document).ready(function ($) {
     if (isExistingContact()) {
       return;
     }
-    nameSuffix.val("");
-    birthDate.val("");
-    ssn.val("");
+    var fieldsToReset = candidateContactInfoFields.add(nameSuffix).add(nameSuffix).add(birthDate).add(ssn);
+    fieldsToReset.each(function (index) {
+      console.log($(this));
+      $(this).val("");
+    });
 
   });
   // Replace final form submit button with a loading indicator on click
