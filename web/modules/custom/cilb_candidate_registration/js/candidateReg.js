@@ -1,7 +1,7 @@
 /**
  * Conditional rendering of on behalf of field and setting readonly for DOB and SIN fields
  */
-jQuery(document).ready(function($) {
+jQuery(document).ready(function ($) {
   var next = $('#edit-actions input[type="submit"]');
   var behalfOf = $("#behalf-of");
   var candidateRep = $("#edit-candidate-representative-name");
@@ -25,7 +25,7 @@ jQuery(document).ready(function($) {
   // show and hide various fields and set isCandidate
   if (behalfOf.length) {
     candidateRepField.hide();
-    behalfOf.on("click", function() {
+    behalfOf.on("click", function () {
       behalfOf.hide();
       cancelReg.hide();
 
@@ -39,7 +39,7 @@ jQuery(document).ready(function($) {
       var originalNextLabel = next.val();
       next.val((lang === 'es_MX') ? "Siguiente > " : "Next >");
 
-      returnPrev.off("click").on("click", function(event) {
+      returnPrev.off("click").on("click", function (event) {
         event.preventDefault();
         returnPrev.attr("href", originalhref);
 
@@ -64,13 +64,24 @@ jQuery(document).ready(function($) {
     }
   }
 
-  setReadonly();
-  existingContactField.on("change", function() {
-    setReadonly();
-  });
+  const nameSuffix = $("input[name='civicrm_1_contact_1_contact_suffix_id']");
+  const birthDate = $("input[name='civicrm_1_contact_1_contact_birth_date']");
+  const ssn = $("input[name='civicrm_1_contact_1_cg1_custom_5']");
 
-  // replace final form submit button with a loading indicator on click
-  $('.webform-button--submit').on('click', function() {
+  setReadonly();
+
+  // Clear DOB, birth date, name suffix when the user selects a new contact
+  existingContactField.on("change", function () {
+    if (isExistingContact()) {
+      return;
+    }
+    nameSuffix.val("");
+    birthDate.val("");
+    ssn.val("");
+
+  });
+  // Replace final form submit button with a loading indicator on click
+  $('.webform-button--submit').on('click', function () {
     $(this).hide();
     $(this).parent().append($('<div class="loader" style="max-width: 2rem; max-height: 2rem; margin: 0.5rem;" />'));
   });
@@ -92,9 +103,7 @@ jQuery(document).ready(function($) {
     */
   function setReadonly() {
     var contactExists = isExistingContact();
-    const ssnField = $("#edit-civicrm-1-contact-1-cg1-custom-5");
-    const dobField = $("#edit-civicrm-1-contact-1-contact-birth-date");
-    [ssnField, dobField].forEach((field) => {
+    [ssn, birthDate].forEach((field) => {
       if (contactExists && field.length && field.val()) {
         field.prop("readonly", true);
         field.parent().addClass("form-readonly webform-readonly");

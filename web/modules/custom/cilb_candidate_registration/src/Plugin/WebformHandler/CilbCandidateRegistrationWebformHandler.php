@@ -436,7 +436,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($current_page == 'registrant_personal_info') {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
-      $this->validateUniqueUser($form_state);
+      $this->validateUniqueUser($form_state, $webform_submission);
     } elseif ($current_page == 'exam_fee_page') {
       $this->validateContributionAmount($form_state);
     } elseif ($current_page == 'user_identification') {
@@ -452,7 +452,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($current_page == 'candidate_information') {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
-      $this->validateUniqueUser($form_state);
+      $this->validateUniqueUser($form_state, $webform_submission);
     } elseif ($current_page == 'exam_information') {
       $this->validateParticipantStatus($form_state);
       $this->validateExamPreference($form_state);
