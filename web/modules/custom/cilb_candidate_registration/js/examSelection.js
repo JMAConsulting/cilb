@@ -115,7 +115,7 @@ jQuery(document).ready(function($) {
             });
           }
         });
-        if (finalOptions.length) {
+        if (finalOptions.length && examPartSelector.length) {
           // Disable the options we don't want
           examPartSelector.find("option").prop("disabled", true);
 
