@@ -70,4 +70,25 @@ return [
       ],
     ],
   ],
+  [
+    'name' => 'CustomGroup_Participant_Webform_CustomField_Candidate_Payment',
+    'entity' => 'CustomField',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'custom_group_id.name' => 'Participant_Webform',
+        'name' => 'Candidate_Payment',
+        'label' => E::ts('Candidate Payment'),
+        'data_type' => 'EntityReference',
+        'html_type' => 'Autocomplete-Select',
+        'fk_entity' => 'Contribution',
+      ],
+      'match' => [
+        'name',
+        'custom_group_id',
+      ],
+    ],
+  ],
 ];

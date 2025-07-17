@@ -1,234 +1,59 @@
-jQuery(document).ready(function($) {
-  // Check if form is in English or Spanish
-  var currentUrl = window.location.href;
-  var lang;
-  var htmlType;
-
-  // Check if '/es/' is in the URL
-  if (currentUrl.indexOf("/es/") !== -1) {
-    lang = "es_MX";
-  } else {
-    lang = "en_US";
-  }
+jQuery(document).ready(function ($) {
+  const $eventIdField = $('#edit-exam-preference');
+  const $locationDetail = $('#edit-location-detail');
 
   /**
    * Gets the address of a single event and fills the information in all html elements with id location_detail
    * @param eventID the id of the event
    */
-  function fetchLocationDetail(eventID) {
+  const updateLocationDetail = (eventID) => {
+    if (!eventID) {
+      $locationDetail.hide();
+    }
+
     CRM.api4('Event', 'get', {
       select: ["address.street_address", "address.supplemental_address_1", "address.supplemental_address_2", "address.city", "address.state_province_id:abbr", "address.country_id:label", "address.postal_code"],
       join: [["Address AS address", "LEFT", ["loc_block_id.address_id", "=", "address.id"]]],
       where: [["id", "IN", eventID], ["Exam_Details.Exam_Part", "<>", "BF"]],
-    }).then(function(events) {
-      if (events.length > 0) {
-        $('#edit-location-detail').show();
-
-        var supplemental_address_2 = events[0]["address.supplemental_address_2"] == null ? '' : events[0]["address.supplemental_address_2"] + '<br/>',
-          postal_code = events[0]["address.postal_code"] == null ? '' : events[0]["address.postal_code"] + '<br/>',
-          street_address = events[0]["address.street_address"] == null ? '' : events[0]["address.street_address"] + '<br/>',
-          supplemental_address_1 = events[0]["address.supplemental_address_1"] == null ? '' : events[0]["address.supplemental_address_1"] + '<br/>',
-          state_province_id = events[0]["address.state_province_id:abbr"] == null ? '' : events[0]["address.state_province_id:abbr"] + ",",
-          country_id = events[0]["address.country_id:label"] == null ? '' : events[0]["address.country_id:label"] + "<br/>";
-
-        var address = street_address
-          + supplemental_address_1
-          + supplemental_address_2
-          + postal_code
-          + state_province_id + country_id + "<br/>";
-
-        $('#location_detail').html(address);
+    }).then((events) => {
+      if (!events.length) {
+        $locationDetail.hide();
+        return;
       }
-      else {
-        $('#edit-location-detail').hide();
-      }
-    }, function(failure) {
+
+      $locationDetail.show();
+
+      const event = events[0];
+
+      const supplemental_address_2 = event["address.supplemental_address_2"] == null ? '' : event["address.supplemental_address_2"] + '<br/>',
+            postal_code = event["address.postal_code"] == null ? '' : event["address.postal_code"] + '<br/>',
+            street_address = event["address.street_address"] == null ? '' : event["address.street_address"] + '<br/>',
+            supplemental_address_1 = event["address.supplemental_address_1"] == null ? '' : event["address.supplemental_address_1"] + '<br/>',
+            state_province_id = event["address.state_province_id:abbr"] == null ? '' : event["address.state_province_id:abbr"] + ",",
+            country_id = event["address.country_id:label"]  == null ? '' : event["address.country_id:label"] + "<br/>";
+
+      const address = street_address
+         + supplemental_address_1
+         + supplemental_address_2
+         + postal_code
+         + state_province_id  + country_id + "<br/>";
+
+      $('#location_detail').html(address);
+
+    })
+    .catch((failure) => {
       // handle failure
     });
   }
 
-  const contributionAmountField = $("#edit-civicrm-1-contribution-1-contribution-total-amount");
+  if ($eventIdField.length > 0) {
+    updateLocationDetail($eventIdField.val());
 
-  // show scope markup from event description
-  const examCatIdField = $('[data-drupal-selector="edit-exam-category-id"]');
-  const selectedCatId = examCatIdField.val();
-  const eventIdsField = $('[data-drupal-selector="edit-event-ids"]');
-  var selectedEventIds = eventIdsField.val();
-  const scopeMarkup = $("#edit-scope-markup");
-
-  if ($('#edit-exam-preference').length > 0 && $('#edit-exam-preference').val()) {
-    fetchLocationDetail($('#edit-exam-preference').val());
-  }
-  else if ($('#edit-exam-preference').length > 0) {
-    $('#edit-location-detail').hide();
+    $eventIdField.on('change', () => updateLocationDetail($eventIdField.val()));
   }
 
-  $('#edit-exam-preference').on('change', function(e) { fetchLocationDetail($(this).val()); });
+  // hide contribution amount field
+  const $contributionAmountField = $("#edit-civicrm-1-contribution-1-contribution-total-amount");
+  $contributionAmountField.parent().hide();
 
-
-  // Fill the description of the Exam Category
-  if (scopeMarkup.length) {
-    scopeMarkup.empty();
-
-    scopeMarkup.html('<div class="loader" />');
-
-    CRM.api4("OptionValue", "get", {
-      select: ["label", "description"],
-      where: [["id", "=", selectedCatId]],
-      language: lang,
-      checkPermissions: false,
-      limit: 1,
-    }).then((categories) => {
-      scopeMarkup.html(categories[0]["description"] ? categories[0]["description"] : "[Exam category description missing]");
-
-      $(".fieldset__legend .fieldset__label").append(
-        " - " + categories[0]["label"]
-      );
-    });
-  }
-
-  // check selection for any exam-specific prices
-  // display and total them
-  const examFeeMarkup = $("#edit-exam-fee-markup");
-  if (examFeeMarkup.length) {
-    setExamFeeTable(examFeeMarkup, selectedEventIds, contributionAmountField, lang);
-  }
-
-  // This should only be called in the backoffice registration form
-  const eventIdSelector = $('[data-drupal-selector="edit-select-exam-parts"]');
-  eventIdSelector.on('change', function() {
-    selectedEventIds = $(this).val();
-    setExamFeeTable(examFeeMarkup, selectedEventIds, contributionAmountField, lang);
-  });
-
-  /**
-    * Fills in the table to display the exam fees of all selected exams, plus a flat charge of $135 for registration
-    *
-    * @param examFeeMarkup html element to display the exam fee information in
-    * @param selectedEventIds array of event ids to add the fees from
-    * @param contributionAmountField html form element for the contribution amount
-    * @param lang language to display, one of en_US or es_MX
-    */
-  function setExamFeeTable(examFeeMarkup, selectedEventIds, contributionAmountField, lang) {
-
-    examFeeMarkup.empty();
-
-    examFeeMarkup.html('<div class="loader" />');
-
-    /**
-      * line items to add, each an object with the schema
-      * `{
-      *   description: string,
-      *   amount: number,
-      *   payableNow: boolean
-      * }`
-      */
-    const lineItems = [];
-
-    // Get the relevant Events
-    // Using many API calls because there may be many price sets per entity and many price fields per price set
-    // while we just want one
-    CRM.api4("Event", "get", {
-      select: ["title", "Exam_Details.Exam_Format"],
-      where: [["id", "IN", selectedEventIds]],
-      language: lang,
-      checkPermissions: false,
-    }).then((events) => Promise.all(events.map((event) =>
-      // for each event we just fetch the first price set
-      // and the first price set value
-      // Get the price sets for each event
-      CRM.api4("PriceSetEntity", "get", {
-        select: ["price_set_id"],
-        where: [
-          ["entity_table", "=", "civicrm_event"],
-          ["entity_id", "=", event.id],
-        ],
-        language: lang,
-      }).then((priceSets) => CRM.api4("PriceField", "get", {
-        where: [["price_set_id", "=", priceSets[0]["price_set_id"]]],
-        language: lang,
-      })).then((priceFields) => {
-        const priceFieldLabel = priceFields[0]['label'];
-
-        return CRM.api4("PriceFieldValue", "get", {
-          where: [["price_field_id", "=", priceFields[0]["id"]]],
-          language: lang,
-        }).then((priceFieldValues) => {
-          if (priceFieldValues.length > 0) {
-            const priceFieldAmount = priceFieldValues[0]['amount'];
-
-            lineItems.push({
-              description: `${event.title} - ${priceFieldLabel}`,
-              amount: priceFieldAmount,
-              // TODO add paper exam amount to charged total
-              payableNow: (event['Exam_Details.Exam_Format'] === 'paper'),
-            });
-          } else {
-            console.log('No price field found for event ID '.event.id);
-          }
-          return Promise.resolve();
-        });
-      })
-    )))
-      .then(() => {
-        // add fixed webform fee
-        lineItems.push({
-          amount: 135,
-          description: 'Registration fee',
-          payableNow: true
-        });
-
-        let totalAmount = 0;
-        let amountPayable = 0;
-
-        let examFeeHtml = [];
-
-        // Build the html table from the lineItems array
-        examFeeHtml.push(`<table class="candidate-fee-table" width="100%">`);
-
-        examFeeHtml.push(`
-          <tr>
-            <th class="candidate-fee-title">Item</th>
-            <th class="candidate-fee-amount">Amount</th>
-            <th class="candidate-fee-payable">Payable now?</th>
-          </tr>
-        `);
-
-        lineItems.forEach((line) => {
-          examFeeHtml.push(`
-            <tr class="exam-fee">
-              <td class="candidate-fee-title">${line.description}</td>
-              <td class="candidate-fee-amount">${line.amount}</td>
-              <td class="candidate-fee-payable">${line.payableNow ? '✔' : ''}</td>
-            </tr>
-          `);
-
-          totalAmount += line.amount;
-          amountPayable += line.payableNow ? line.amount : 0;
-        });
-
-        examFeeHtml.push(`
-          <tr class="total-fee">
-            <td class="candidate-fee-title">Total fees</td>
-            <td class="candidate-fee-amount">${totalAmount}</td>
-          </tr>
-        `);
-
-        if (totalAmount !== amountPayable) {
-          examFeeHtml.push(`
-            <tr class="total-payable-now">
-              <td class="candidate-fee-title">Total payable now</td>
-              <td class="candidate-fee-amount">${amountPayable}</td>
-            </tr>
-          `);
-        }
-
-        examFeeHtml.push(`</table>`);
-
-        examFeeMarkup.html(examFeeHtml.join(''));
-
-        // copy the amount here so we have access to it when saving in PHP
-        contributionAmountField.val(amountPayable);
-      });
-  }
 });

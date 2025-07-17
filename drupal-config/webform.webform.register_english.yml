@@ -542,24 +542,24 @@ elements: |-
         '#type': webform_markup
         '#display_on': both
         '#markup': '<p>*</p>'
-  civicrm_1_contribution_1_contribution_total_amount:
-    '#type': civicrm_number
-    '#title': 'Total Payable Now'
-    '#readonly': true
-    '#required': true
-    '#states_clear': false
-    '#default_value': '0'
-    '#wrapper_attributes':
-      style: 'display: none;'
-    '#parent': contribution_pagebreak
-    '#data_type': Money
-    '#extra':
-      field_prefix: $
-      point: .
-      separator: ','
-      decimals: 2
-      min: 0
-    '#form_key': civicrm_1_contribution_1_contribution_total_amount
+      civicrm_1_contribution_1_contribution_total_amount:
+        '#type': civicrm_number
+        '#title': 'Total Payable Now'
+        '#readonly': true
+        '#required': true
+        '#states_clear': false
+        '#default_value': '0'
+        '#wrapper_attributes':
+          style: 'display: none;'
+        '#parent': contribution_pagebreak
+        '#data_type': Money
+        '#extra':
+          field_prefix: $
+          point: .
+          separator: ','
+          decimals: 2
+          min: 0
+        '#form_key': civicrm_1_contribution_1_contribution_total_amount
   authorize_credit_card_charge:
     '#type': webform_wizard_page
     '#title': 'Authorize Credit Card Charge'
