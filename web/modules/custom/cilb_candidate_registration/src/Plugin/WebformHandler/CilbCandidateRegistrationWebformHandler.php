@@ -75,7 +75,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         break;
 
       case 'exam_fee_page':
-        $this->calculateFees($form, $form_state);
+        $this->setContributionAmount($form, $form_state);
+        $this->renderFeeTable($form, $form_state);
         break;
     }
   }
@@ -235,107 +236,123 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   }
 
   private function renderScope(array &$form, FormStateInterface $form_state): void {
+    $elements = WebformFormHelper::flattenElements($form);
     $catId = $form_state->getValue('exam_category_id');
 
-    $category = \Civi\Api4\OptionValue::get(FALSE)
+    $category = $catId ? \Civi\Api4\OptionValue::get(FALSE)
       ->addSelect("label", "description")
       ->addWhere("id", "=", $catId)
       ->execute()
-      ->first();
+      ->first() : NULL;
 
-    $elements = WebformFormHelper::flattenElements($form);
+    if (!$category) {
+      return;
+    }
 
     $elements['scope_markup']['#markup'] = $category['description'] ?: "[Exam category description missing]";
     $elements['definition_scope_of_practice_1']['#title'] .= $category['label'] ? " - {$category['label']}" : "";
   }
 
-  private function calculateFees(array &$form, FormStateInterface $form_state): void {
-
-    $eventIds = $form_state->getValue('event_ids');
-
-    // get the ingredients
-    $feesPayableNow = $this->getEventFeesPayableNow($eventIds);
-    $feesPayableLater = $this->getEventFeesPayableLater($eventIds);
-    $formFeeAmount = $this->getFormFeeAmount();
-
-    // totals
-    $lineItems = [];
-
-    $lineItems[] = [
-        'payable_now' => TRUE,
-        'description' => 'Registration Form Fee',
-        'amount' => $formFeeAmount,
-    ];
-
-    foreach ($feesPayableNow as $fee) {
-      $lineItems[] = [
-        'payable_now' => TRUE,
-        'description' => $fee['label'],
-        'amount' => $fee['amount'],
-      ];
+  /**
+   * Set the total contribution amount based on event ids
+   */
+  private function setContributionAmount(array &$form, FormStateInterface $formState) {
+    $eventIds = $formState->getValue('event_ids');
+    if (!$eventIds) {
+      return;
     }
-
-    foreach ($feesPayableLater as $fee) {
-      $lineItems[] = [
-        'payable_now' => FALSE,
-        'description' => $fee['label'],
-        'amount' => $fee['amount'],
-      ];
-    }
-
-    $totalPayableNow = array_sum(array_map(fn ($line) => $line['payable_now'] ? $line('amount') : 0, $lineItems));
-
-    $formElements = WebformFormHelper::flattenElements($form);
-    $formElements['civicrm_1_contribution_1_contribution_total_amount']['#default_value'] = $totalPayableNow;
-
-    $formElements['exam_fee_markup'] = $this->renderFeeTable($lineItems);
+    $amount = $this->getPayableNowAmount($eventIds);
+    $elements = WebformFormHelper::flattenElements($form);
+    $elements['civicrm_1_contribution_1_contribution_total_amount']['#default_value'] = $amount;
   }
 
+  private function renderFeeTable(array &$form, FormStateInterface $form_state): void {
+    $eventIds = $form_state->getValue('event_ids');
+    $elements = WebformFormHelper::flattenElements($form);
 
+    $feeLines = [];
 
+    $feeLines[] = [
+      'payable_now' => TRUE,
+      'description' => $this->t('Registration Fee'),
+      'amount' => $this->getFormFeeAmount(),
+    ];
 
-  private function renderFeeTable(array $lineItems): string {
-    foreach ($lineItems as &$line) {
+    $feesPayableNow = $this->getEventFeesPayableNow($eventIds);
+    $feesPayableLater = $this->getEventFeesPayableLater($eventIds);
+
+    // fetch and flatten event lines
+    // we combine by event id first so that payable/non payable for the same
+    // event are next to each other
+    $feeLinesByEvent = [];
+
+    foreach ($feesPayableNow as $eventId => $fees) {
+      $feeLinesByEvent[$eventId] ??= [];
+      foreach ($fees as $fee) {
+        $feeLinesByEvent[$eventId][] = [
+          'payable_now' => TRUE,
+          'description' => $fee['label'],
+          'amount' => $fee['amount'],
+        ];
+
+      }
+    }
+
+    foreach ($feesPayableLater as $eventId => $fees) {
+      $feeLinesByEvent[$eventId] ??= [];
+      foreach ($fees as $fee) {
+        $feeLinesByEvent[$eventId][] = [
+          'payable_now' => FALSE,
+          'description' => $fee['label'],
+          'amount' => $fee['amount'],
+        ];
+      }
+    }
+
+    $feeLines = array_merge($feeLines, array_merge(...array_values($feeLinesByEvent)));
+    foreach ($feeLines as &$line) {
       $line['payable_marker'] = $line['payable_now'] ? '✔' : '';
     }
 
-    $totalAmount = array_sum(array_map(fn ($line) => $line('amount'), $lineItems));
-    $totalPayableNow = array_sum(array_map(fn ($line) => $line['payable_now'] ? $line('amount') : 0, $lineItems));
+    $totalAmount = array_sum(array_map(fn ($line) => $line['amount'], $feeLines));
+    $totalPayableNow = array_sum(array_map(fn ($line) => $line['payable_now'] ? $line['amount'] : 0, $feeLines));
 
     $tableRows = array_map(fn ($line) => "
       <tr class='exam-fee'>
         <td class='candidate-fee-title'>{$line['description']}</td>
         <td class='candidate-fee-amount'>{$line['amount']}</td>
         <td class='candidate-fee-payable'>{$line['payable_marker']}</td>
-      </tr>", $lineItems);
+      </tr>", $feeLines);
 
     $tableRows[] = "<tr class='total-fee'>
-      <td class='candidate-fee-title'>Total fees</td>
-      <td class='candidate-fee-amount'>{$totalAmount}</td>
-    </tr>";
+        <td class='candidate-fee-title'>Total fees</td>
+        <td class='candidate-fee-amount'>{$totalAmount}</td>
+      </tr>";
 
     if ($totalPayableNow !== $totalAmount) {
-    $tableRows[] = "<tr class='total-payable-now'>
-              <td class='candidate-fee-title'>Total payable now</td>
-              <td class='candidate-fee-amount'>{$totalPayableNow}</td>
-            </tr>";
+      $tableRows[] = "<tr class='total-payable-now'>
+         <td class='candidate-fee-title'>Total payable now</td>
+         <td class='candidate-fee-amount'>{$totalPayableNow}</td>
+       </tr>";
     }
 
     $tableRows = implode("\n", $tableRows);
 
-    return <<<HTML
+    $markup = <<<HTML
       <table class="candidate-fee-table" width="100%">
 
         <tr>
-          <th class="candidate-fee-title">Item</th>
-          <th class="candidate-fee-amount">Amount</th>
-          <th class="candidate-fee-payable">Payable now?</th>
+          <th class="candidate-fee-title">{$this->t('Item')}</th>
+          <th class="candidate-fee-amount">{$this->t('Amount')}</th>
+          <th class="candidate-fee-payable">{$this->t('Payable now?')}</th>
         </tr>
 
         {$tableRows}
 
       </table>
     HTML;
+
+    $elements['exam_fee_markup']['#markup'] = $markup;
   }
 
   /**
@@ -448,15 +465,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     // fetch event details for line items
     // (and to validate the events exist)
-    $events = \Civi\Api4\Event::get(FALSE)
+    $eventIds = \Civi\Api4\Event::get(FALSE)
       ->addWhere('id', 'IN', $eventIds)
-      ->addSelect('id', 'title')
+      ->addSelect('id')
       ->execute()
-      ->indexBy('id')
-      ->column('title');
-
-    // remove any ids that weren't found
-    $eventIds = array_keys($events);
+      ->column('id');
 
     // when registering events, we add event payments to the webform contribution
     // need to know the webform contribution ID
@@ -511,7 +524,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       WHERE `id` = {$defaultLineItem['id']}
     SQL);
 
-    foreach ($events as $eventId => $eventTitle) {
+    foreach ($eventIds as $eventId) {
       try {
         $participantId = \Civi\Api4\Participant::create(FALSE)
           ->addValue('contact_id', $contactId)
@@ -545,7 +558,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
               'unit_price' => $fee['amount'],
               'line_total' => $fee['amount'],
               'financial_type_id' => $fee['financial_type_id'],
-              'label' => "{$eventTitle} - CILB Candidate Registration - {$fee['label']}",
+              'label' => "CILB Candidate Registration - {$fee['label']}",
             ];
             \CRM_Price_BAO_LineItem::create($params);
           }
@@ -871,6 +884,17 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     //   ->execute()
     //   ->column('id');
 
+    // fetch event titles
+    $eventTitles = \Civi\Api4\Event::get(FALSE)
+      ->addWhere('id', 'IN', $eventIds)
+      ->addSelect('title')
+      ->execute()
+      ->indexBy('id')
+      ->column('title');
+
+    // remove any event ids that werent found in the db
+    $eventIds = \array_keys($eventTitles);
+
     // fetch price sets
     $priceSetsByEventId = \Civi\Api4\PriceSetEntity::get(FALSE)
       ->addSelect('price_set_id', 'entity_id')
@@ -906,6 +930,12 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $fees[$eventId] = array_filter($priceOptions, function ($option) use ($priceSetId) {
         return ($option['price_field_id.price_set_id'] === $priceSetId);
       });
+
+      // prepend event title to line item labels
+      $eventTitle = $eventTitles[$eventId];
+      foreach ($fees[$eventId] as &$fee) {
+        $fee['label'] = "{$eventTitle} - {$fee['label']}";
+      }
     }
 
     return $fees;
