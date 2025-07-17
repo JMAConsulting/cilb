@@ -11,7 +11,7 @@ elements: |
   candidate_representative_name:
     '#title': '<strong>Si está completando este registro en nombre de un candidato, ingrese su nombre completo. </strong>'
   user_identification_markup:
-    '#markup': '<p><a class="button" id="behalf-of">Estoy completando el registro en nombre del candidato</a><br><a class="button" href="https://cilb.jmaconsulting.biz/es/register-notification" id="return-prev">Vuelva a la página anterior</a><br><a class="button button--secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancele esta matrícula y vuelva a la página inicial</a><br>&nbsp;</p>'
+    '#markup': '<p><a class="button btn btn-primary" id="behalf-of">Estoy completando el registro en nombre del candidato</a><br><br><a class="button btn btn-primary" href="https://cilb.jmaconsulting.biz/es/register-notification" id="return-prev">Vuelva a la página anterior</a><br><br><a class="button button--secondary btn btn-secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancele esta matrícula y vuelva a la página inicial</a><br>&nbsp;</p>'
   registration_info:
     '#title': 'Pasos para obtener la licencia'
   steps_for_licensure_1:
@@ -98,17 +98,17 @@ elements: |
     '#title': 'Selecciona una categoría'
   select_exam_category:
     '#title': 'Seleccione la categoría del examen'
+  definition_scope_of_practice:
+    '#title': 'Alcance de la práctica'
+    '#prev_button_label': '< Cambiar la categoría de licencia'
+  definition_scope_of_practice_1:
+    '#title': ' Definición y alcance de la práctica'
   select_exam:
     '#title': 'Seleccione su categoría de examen:'
   category_info:
     '#markup': '<p>Las especialidades de Torre, Demolición y Especialista de Instalaciones Industriales requieren aprobar todas las partes del examen de contratista General: Administración de contrato, Administración de proyecto, Negocios y finanzas.<br><br>Si tiene dudas o preguntas luego de revisar en detalle la información de la licenciatura, deberá revisar la página en línea de <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a>y/o comunicarse con el centro al cliente de DBPR/BET al 850.487.1395</p>'
   select_exam_parts:
     '#title': 'Tarifa del examen'
-  definition_scope_of_practice:
-    '#title': 'Alcance de la práctica'
-    '#prev_button_label': '< Cambiar la categoría de licencia'
-  definition_scope_of_practice_1:
-    '#title': ' Definición y alcance de la práctica'
   exam_fee:
     '#title': 'Ingrese la información del examen'
   authorize_credit_card_charge:
@@ -131,7 +131,7 @@ elements: |
     '#title': Estado/Provincia
     '#empty_option': '- Ninguno -'
   credit_card_auth:
-    '#title': 'Autorizo ​​a Professional Testing a procesar la tarifa de inscripción de $80 a la tarjeta de crédito mencionada anteriormente.'
+    '#title': 'Autorizo ​​a Professional Testing a procesar la tarifa de inscripcións de a la tarjeta de crédito mencionada anteriormente.'
   online_exam_auth:
     '#title': 'Reconozco que los exámenes por computadora de Negocios y Finanzas, Administración de Contratos y Gestión de Proyectos se administrarán a través de los Centros de pruebas de Pearson VUE. Soy responsable de programar las fechas de los exámenes CBT y pagar las tarifas relacionadas directamente a Pearson VUE al 888.204.6230.'
   no_refund_auth:
@@ -142,11 +142,6 @@ elements: |
     '#title': 'Reconozco que no presentarme a la hora programada para cualquier parte del examen o no obtener una calificación aprobatoria en cualquier parte del examen requerirá otra inscripción y pago para volver a tomar esa parte del examen.'
   contribution_pagebreak:
     '#title': Pago
-  civicrm_1_contribution_1_contribution_payment_processor_id:
-    '#title': 'Método de Pago'
-    '#options':
-      3: 'Tarjeta de crédito'
-      0: 'Pagar con cheque'
   actions:
     '#submit__label': 'Regístrate >'
 settings:

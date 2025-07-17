@@ -1,0 +1,72 @@
+uuid: e9ae3df5-f0bb-4d7c-b869-36b34fef2082
+langcode: en
+status: true
+dependencies:
+  config:
+    - block_content.type.registration_notification
+    - node.type.article
+    - node.type.page
+  module:
+    - block_content
+    - civicrm
+    - config_translation
+    - content_translation
+id: staff
+label: Staff
+weight: 5
+is_admin: null
+permissions:
+  - 'access CiviContribute'
+  - 'access CiviEvent'
+  - 'access CiviMail'
+  - 'access CiviReport'
+  - 'access Contact Dashboard'
+  - 'access Report Criteria'
+  - 'access contact reference fields'
+  - 'access deleted contacts'
+  - 'add contact notes'
+  - 'add contacts'
+  - 'administer private reports'
+  - 'administer reserved reports'
+  - 'create content translations'
+  - 'create event'
+  - 'delete contacts'
+  - 'delete content translations'
+  - 'delete in CiviContribute'
+  - 'delete in CiviEvent'
+  - 'delete in CiviMail'
+  - 'delete own event templates'
+  - 'edit all contacts'
+  - 'edit all event templates'
+  - 'edit all events'
+  - 'edit any registration_notification block content'
+  - 'edit contributions'
+  - 'edit event participants'
+  - 'edit groups'
+  - 'edit message templates'
+  - 'edit my contact'
+  - 'edit own event templates'
+  - 'edit system workflow message templates'
+  - 'edit user-driven message templates'
+  - 'force merge duplicate contacts'
+  - 'import contacts'
+  - 'manage event profiles'
+  - 'manage tags'
+  - 'merge duplicate contacts'
+  - 'profile listings'
+  - 'profile listings and forms'
+  - 'save Report Criteria'
+  - 'translate any entity'
+  - 'translate article node'
+  - 'translate block_content'
+  - 'translate configuration'
+  - 'translate editable entities'
+  - 'translate page node'
+  - 'update content translations'
+  - 'view all activities'
+  - 'view all contacts'
+  - 'view all event templates'
+  - 'view all notes'
+  - 'view my contact'
+  - 'view own event templates'
+  - 'view public CiviMail content'

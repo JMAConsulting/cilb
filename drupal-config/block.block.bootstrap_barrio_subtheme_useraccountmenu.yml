@@ -1,0 +1,25 @@
+uuid: 4b25f5af-92ec-4f4e-887e-1e944108cfa3
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.account
+  module:
+    - system
+  theme:
+    - bootstrap_barrio_subtheme
+id: bootstrap_barrio_subtheme_useraccountmenu
+theme: bootstrap_barrio_subtheme
+region: primary_menu
+weight: -5
+provider: null
+plugin: 'system_menu_block:account'
+settings:
+  id: 'system_menu_block:account'
+  label: Login
+  label_display: '0'
+  provider: system
+  level: 1
+  depth: 0
+  expand_all_items: false
+visibility: {  }
