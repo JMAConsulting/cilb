@@ -51,6 +51,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * {@inheritdoc}
    */
   public function alterForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
+    // save typing when testing
+    if (\Drupal::request()->get('test_prefill')) {
+      $this->testPrefill($form);
+    }
+
     switch ($webform_submission->getCurrentPage()) {
       case 'registrant_personal_info':
         $this->registeringOnBehalfMessage($form_state);
@@ -73,6 +78,40 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $this->calculateFees($form, $form_state);
         break;
     }
+  }
+
+  private function testPrefill(array &$form) {
+    $elements = WebformFormHelper::flattenElements($form);
+
+    $testPrefill = [
+      // contact
+      'civicrm_1_contact_1_contact_first_name' => 'test',
+      'civicrm_1_contact_1_contact_last_name' => 'test',
+      'civicrm_1_contact_1_contact_birth_date' => '1990-01-01',
+      // TODO: custom field ids vary on deployments
+      // ssn
+      'civicrm_1_contact_1_cg1_custom_5' => '111-11-1222',
+      'verify_ssn' => '111-11-1222',
+      // lang / ada / bac
+      'civicrm_1_contact_1_cg1_custom_3' => '1',
+      'civicrm_1_contact_1_cg1_custom_2' => '0',
+      'civicrm_1_contact_1_cg1_custom_4' => '0',
+      'candidate_has_degree' => '0',
+      // address
+      'civicrm_1_contact_1_address_street_address' => 'test st',
+      'civicrm_1_contact_1_address_city' => 'test town',
+      'civicrm_1_contact_1_address_state_province_id' => 1000,
+      'civicrm_1_contact_1_address_postal_code' => 12345,
+      // emailphone
+      'civicrm_1_contact_1_email_email' => 'test@test.example',
+      'civicrm_1_contact_1_phone_phone' => 1234521342,
+    ];
+
+    foreach (\array_intersect_key($testPrefill, $elements) as $key => $value) {
+
+      $elements[$key]['#default_value'] = $value;
+    }
+
   }
 
   /**
