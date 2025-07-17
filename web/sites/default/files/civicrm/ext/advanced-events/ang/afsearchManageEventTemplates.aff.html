@@ -1,0 +1,19 @@
+<div af-fieldset="">
+  <div class="af-markup">
+    
+    
+    <div class="help">Event Templates can be used to create single or multiple "repeat" events. You can see how many events are linked to the template in the "Events" column of the table below.</div>
+  
+  
+  </div>
+  <div class="af-container af-layout-inline" open="" af-title="Filters">
+    <af-field name="template_title" defn="{label: 'Title', input_attrs: {}}" />
+    <af-field name="event_type_id" defn="{input_attrs: {multiple: true}}" />
+    <af-field name="is_public" />
+    <af-field name="is_online_registration" />
+    <af-field name="is_active" defn="{afform_default: true}" />
+  </div>
+  <fieldset class="af-container">
+    <crm-search-display-table search-name="Event_Templates" display-name="Event_Templates_Table_1" filters="{id: options.id}"></crm-search-display-table>
+  </fieldset>
+</div>

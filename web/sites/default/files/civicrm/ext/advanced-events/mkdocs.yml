@@ -1,0 +1,20 @@
+site_name: Advanced Events
+repo_url: https://lab.civicrm.org/extensions/civicrm-advanced-events
+theme:
+  name: material
+markdown_extensions:
+  - attr_list
+  - admonition
+  - def_list
+  - codehilite
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tilde
+  - pymdownx.betterem
+  - pymdownx.mark
+
+nav:
+  - Overview: index.md
+  - Release Notes: releasenotes.md
