@@ -221,8 +221,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $targetKey = $targetPrefix . '_' . $field;
         if (!$values[$targetKey]) {
           $sourceKey = $sourcePrefix . '_' . $field;
-          echo "Target Key: $targetKey, value: ";
-          print_r($values[$sourceKey]);
+          // echo "Target Key: $targetKey, value: ";
+          // print_r($values[$sourceKey]);
           $formState->setValue($targetKey, $values[$sourceKey]);
 
           // unfortunately values in the form state are *not* passed to the renderer,
