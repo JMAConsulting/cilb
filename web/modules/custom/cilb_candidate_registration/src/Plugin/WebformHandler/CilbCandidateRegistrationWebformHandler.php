@@ -8,6 +8,7 @@ use Drupal\webform\Plugin\WebformHandlerBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\user\Entity\User;
+use Drupal\webform\Utility\WebformFormHelper;
 
 /**
  * Sace CiviCRM Activity Update Handler.
@@ -62,6 +63,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         // then we do it *again* after to ensure country and state are populated
         // because these seem to be corrupted by the chain selector otherwise
         $this->populateBillingAddress($form, $form_state);
+        break;
+
+      case 'exam_fee_page':
+        $this->calculateFees($form, $form_state);
         break;
     }
   }
@@ -186,6 +191,94 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
+  private function calculateFees(array &$form, FormStateInterface $form_state): void {
+
+    $eventIds = $form_state->getValue('event_ids');
+
+    // get the ingredients
+    $feesPayableNow = $this->getEventFeesPayableNow($eventIds);
+    $feesPayableLater = $this->getEventFeesPayableLater($eventIds);
+    $formFeeAmount = $this->getFormFeeAmount();
+
+    // totals
+    $lineItems = [];
+
+    $lineItems[] = [
+        'payable_now' => TRUE,
+        'description' => 'Registration Form Fee',
+        'amount' => $formFeeAmount,
+    ];
+
+    foreach ($feesPayableNow as $fee) {
+      $lineItems[] = [
+        'payable_now' => TRUE,
+        'description' => $fee['label'],
+        'amount' => $fee['amount'],
+      ];
+    }
+
+    foreach ($feesPayableLater as $fee) {
+      $lineItems[] = [
+        'payable_now' => FALSE,
+        'description' => $fee['label'],
+        'amount' => $fee['amount'],
+      ];
+    }
+
+    $totalPayableNow = array_sum(array_map(fn ($line) => $line['payable_now'] ? $line('amount') : 0, $lineItems));
+
+    $formElements = WebformFormHelper::flattenElements($form);
+    $formElements['civicrm_1_contribution_1_contribution_total_amount']['#default_value'] = $totalPayableNow;
+
+    $formElements['exam_fee_markup'] = $this->renderFeeTable($lineItems);
+  }
+
+
+
+
+  private function renderFeeTable(array $lineItems): string {
+    foreach ($lineItems as &$line) {
+      $line['payable_marker'] = $line['payable_now'] ? '✔' : '';
+    }
+
+    $totalAmount = array_sum(array_map(fn ($line) => $line('amount'), $lineItems));
+    $totalPayableNow = array_sum(array_map(fn ($line) => $line['payable_now'] ? $line('amount') : 0, $lineItems));
+
+    $tableRows = array_map(fn ($line) => "
+      <tr class='exam-fee'>
+        <td class='candidate-fee-title'>{$line['description']}</td>
+        <td class='candidate-fee-amount'>{$line['amount']}</td>
+        <td class='candidate-fee-payable'>{$line['payable_marker']}</td>
+      </tr>", $lineItems);
+
+    $tableRows[] = "<tr class='total-fee'>
+      <td class='candidate-fee-title'>Total fees</td>
+      <td class='candidate-fee-amount'>{$totalAmount}</td>
+    </tr>";
+
+    if ($totalPayableNow !== $totalAmount) {
+    $tableRows[] = "<tr class='total-payable-now'>
+              <td class='candidate-fee-title'>Total payable now</td>
+              <td class='candidate-fee-amount'>{$totalPayableNow}</td>
+            </tr>";
+    }
+
+    $tableRows = implode("\n", $tableRows);
+
+    return <<<HTML
+      <table class="candidate-fee-table" width="100%">
+
+        <tr>
+          <th class="candidate-fee-title">Item</th>
+          <th class="candidate-fee-amount">Amount</th>
+          <th class="candidate-fee-payable">Payable now?</th>
+        </tr>
+
+        {$tableRows}
+
+      </table>
+    HTML;
+  }
 
   /**
    * Submission hook to:
@@ -765,21 +858,14 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * For most events, the fee will be provided by the CustomField External_Fee field
    * on the event. The amount will be shown to users at checkout, but no line item will be created
    *
+   * Note: we dont exclude an event having a pay now fee AND a pay layer fee
+   *
    * @return array[] keys are event IDs, items are arrays of fee lines
    */
   private function getEventFeesPayableLater(array $eventIds): array {
-    $eventsPayableNow = \Civi\Api4\PriceSetEntity::get(FALSE)
-      ->addSelect('price_set_id', 'entity_id')
-      ->addWhere('entity_table', '=', 'civicrm_event')
-      ->addWhere('entity_id', 'IN', $eventIds)
-      ->execute()
-      ->column('entity_id');
-
-    $eventsPayableLater = array_diff($eventIds, $eventsPayableNow);
-
     $events = (array) \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id', 'title', 'Exam_Details.External_Fee')
-      ->addWhere('id', 'IN', $eventsPayableLater)
+      ->addSelect('id', 'title', 'Exam_Details.External_Fee_Amount', 'Exam_Details.External_Fee_Description')
+      ->addWhere('id', 'IN', $eventIds)
       ->execute();
 
     $fees = [];
@@ -787,27 +873,31 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     foreach ($events as $event) {
       $fees[$event['id']] = [];
 
-      if ($event['Exam_Details.External_Fee']) {
-        $fees[$event['id']][] = [
-          'label' => "{$event['title']} (pay later)",
-          'amount' => $event['Exam_Details.External_Fee'],
+      if ($event['Exam_Details.External_Fee_Amount']) {
+        $fee = [
+          'label' => $event['title'],
+          'amount' => $event['Exam_Details.External_Fee_Amount'],
         ];
+        if ($event['Exam_Details.External_Fee_Description']) {
+          $fee['label'] .= ' - ' . $event['Exam_Details.External_Fee_Description'];
+        }
+        $fees[$event['id']][] = $fee;
       }
     }
 
     return $fees;
   }
 
+  private function getFormFeeAmount(): int {
+    return \Civi\Api4\PriceFieldValue::get(FALSE)
+      ->addSelect('amount')
+      ->addWhere('price_field_id.price_set_id.name', '=', 'Registration_Form_Fee')
+      ->execute()
+      ->first()['amount'] ?? 135;
+  }
 
   /**
    * Get the total amount payable now
-   *
-   * NOTE: this is currently calculated client side on the webform.
-   *
-   * we have a validation step to ensure the submitted amount matches, but it would probably
-   * be better to pass the server side calc to the form explicitly
-   *
-   * (we would need to pass the line item details for display also. i suppose we could form alter a #markup element)
    */
   private function getPayableNowAmount($eventIds): int {
     $eventTotal = 0;
@@ -819,11 +909,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
     }
 
-    $formFee = \Civi\Api4\PriceFieldValue::get(FALSE)
-      ->addSelect('amount')
-      ->addWhere('price_field_id.price_set_id.name', '=', 'Registration_Form_Fee')
-      ->execute()
-      ->first()['amount'] ?? 135;
+    $formFee = $this->getFormFeeAmount();
 
     return $eventTotal + $formFee;
   }
