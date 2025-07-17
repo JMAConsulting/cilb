@@ -65,6 +65,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $this->populateBillingAddress($form, $form_state);
         break;
 
+      case 'definition_scope_of_practice':
+        $this->renderScope($form, $form_state);
+        break;
+
       case 'exam_fee_page':
         $this->calculateFees($form, $form_state);
         break;
@@ -189,6 +193,21 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         }
       }
     }
+  }
+
+  private function renderScope(array &$form, FormStateInterface $form_state): void {
+    $catId = $form_state->getValue('exam_category_id');
+
+    $category = \Civi\Api4\OptionValue::get(FALSE)
+      ->addSelect("label", "description")
+      ->addWhere("id", "=", $catId)
+      ->execute()
+      ->first();
+
+    $elements = WebformFormHelper::flattenElements($form);
+
+    $elements['scope_markup']['#markup'] = $category['description'] ?: "[Exam category description missing]";
+    $elements['definition_scope_of_practice_1']['#title'] .= $category['label'] ? " - {$category['label']}" : "";
   }
 
   private function calculateFees(array &$form, FormStateInterface $form_state): void {
