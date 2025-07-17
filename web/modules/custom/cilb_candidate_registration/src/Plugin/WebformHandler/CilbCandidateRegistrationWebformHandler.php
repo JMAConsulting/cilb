@@ -479,6 +479,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           ->addValue('event_id', $eventId)
           ->addValue('register_date', 'now')
           ->addValue('Participant_Webform.Candidate_Representative_Name', $webform_submission_data['candidate_representative_name'] ?? NULL)
+          ->addValue('Participant_Webform.Candidate_Payment', $contributionId)
           ->execute()
           ->first()['id'];
 
