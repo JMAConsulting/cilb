@@ -117,4 +117,43 @@ return [
       ],
     ],
   ],
+  [
+    'name' => 'CustomGroup_Exam_Details_CustomField_External_Fee_Amount',
+    'entity' => 'CustomField',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'custom_group_id.name' => 'Exam_Details',
+        'name' => 'External_Fee_Amount',
+        'label' => E::ts('External Fee Amount'),
+        'html_type' => 'Text',
+        'data_type' => 'Float',
+      ],
+      'match' => [
+        'name',
+        'custom_group_id',
+      ],
+    ],
+  ],
+  [
+    'name' => 'CustomGroup_Exam_Details_CustomField_External_Fee_Description',
+    'entity' => 'CustomField',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'custom_group_id.name' => 'Exam_Details',
+        'name' => 'External_Fee_Description',
+        'label' => E::ts('External Fee Description'),
+        'html_type' => 'Text',
+      ],
+      'match' => [
+        'name',
+        'custom_group_id',
+      ],
+    ],
+  ],
 ];
