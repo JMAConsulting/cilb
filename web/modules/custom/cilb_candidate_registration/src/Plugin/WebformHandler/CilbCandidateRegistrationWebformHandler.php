@@ -243,14 +243,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->addSelect("label", "description")
       ->addWhere("id", "=", $catId)
       ->execute()
-      ->first() : NULL;
+      ->first() : [];
 
-    if (!$category) {
-      return;
-    }
-
+    // note this needs to work if we go back and change the category and/or the category is not found
     $elements['scope_markup']['#markup'] = $category['description'] ?: "[Exam category description missing]";
-    $elements['definition_scope_of_practice_1']['#title'] .= $category['label'] ? " - {$category['label']}" : "";
+    $elements['definition_scope_of_practice_1']['#title'] = $this->t('Definition & Scope of Practice') . ($category['label'] ? " - {$category['label']}" : "");
   }
 
   /**
