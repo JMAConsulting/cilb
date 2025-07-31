@@ -48,3 +48,32 @@ function cilb_reports_civicrm_buildForm(string $formName): void {
     \Civi::service('angularjs.loader')->addModules($modules);
   }
 }
+
+/**
+ * Implements hook_civicrm_buildForm().
+ *
+ * Include link to Candidate Payment
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterCustomFieldDisplayValue
+ */
+function cilb_reports_civicrm_alterCustomFieldDisplayValue(&$displayValue, $value, $entityID, $fieldInfo) {
+  switch ($fieldInfo['name']) {
+    case 'Candidate_Payment':
+
+      $viewContributionUrl = "/civicrm/contact/view/contribution?reset=1&id={$value}&action=view&context=participant&selectedChild=contribute";
+      $text = E::ts('View payment');
+      $displayValue = "
+        <span>{$displayValue}</span>
+        <a
+          class='btn btn-primary'
+          target='crm-popup'
+          href='{$viewContributionUrl}'
+          >
+          <i class='crm-i fa-credit-card'></i>
+          {$text}
+        </a>
+      ";
+      break;
+
+  }
+}
