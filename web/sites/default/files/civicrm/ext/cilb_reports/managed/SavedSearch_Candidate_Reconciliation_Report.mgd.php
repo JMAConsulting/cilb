@@ -21,14 +21,14 @@ return [
         'api_params' => [
           'version' => 4,
           'select' => [
-            'GROUP_FIRST(Participant_Contribution_Candidate_Payment_01.receive_date) AS GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_receive_date',
-            'GROUP_FIRST(Participant_Contribution_Candidate_Payment_01.trxn_id) AS GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_trxn_id',
-            'GROUP_FIRST(Participant_Contribution_Candidate_Payment_01.id) AS GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_id',
+            'Participant_Contribution_Candidate_Payment_01.receive_date',
+            'Participant_Contribution_Candidate_Payment_01.trxn_id',
+            'Participant_Contribution_Candidate_Payment_01.id',
             'contact_id.sort_name',
-            'GROUP_FIRST(Participant_Contribution_Candidate_Payment_01.payment_instrument_id:label) AS GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_payment_instrument_id_label',
-            'GROUP_FIRST(Participant_Contribution_Candidate_Payment_01.check_number) AS GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_check_number',
+            'Participant_Contribution_Candidate_Payment_01.payment_instrument_id:label',
+            'Participant_Contribution_Candidate_Payment_01.check_number',
             'SUM(Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01.amount) AS SUM_Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01_amount',
-            'GROUP_FIRST(Participant_Contribution_Candidate_Payment_01.total_amount) AS GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_total_amount',
+            'Participant_Contribution_Candidate_Payment_01.total_amount',
             'id',
             'Participant_Event_event_id_01.start_date',
             'Participant_Event_event_id_01.event_type_id:label',
@@ -39,6 +39,7 @@ return [
           'groupBy' => [
             'id',
             'Participant_Event_event_id_01.id',
+            'Participant_Contribution_Candidate_Payment_01.id',
           ],
           'join' => [
             [
@@ -48,20 +49,6 @@ return [
                 'event_id',
                 '=',
                 'Participant_Event_event_id_01.id',
-              ],
-            ],
-            [
-              'LineItem AS Participant_LineItem_entity_id_01',
-              'INNER',
-              [
-                'id',
-                '=',
-                'Participant_LineItem_entity_id_01.entity_id',
-              ],
-              [
-                'Participant_LineItem_entity_id_01.entity_table',
-                '=',
-                '\'civicrm_participant\'',
               ],
             ],
             [
@@ -120,7 +107,7 @@ return [
           'description' => E::ts(''),
           'sort' => [
             [
-              'GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_receive_date',
+              'Participant_Contribution_Candidate_Payment_01.receive_date',
               'ASC',
             ],
           ],
@@ -130,14 +117,14 @@ return [
           'columns' => [
             [
               'type' => 'field',
-              'key' => 'GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_receive_date',
+              'key' => 'Participant_Contribution_Candidate_Payment_01.receive_date',
               'dataType' => 'Timestamp',
               'label' => E::ts('Trans Date'),
               'sortable' => TRUE,
             ],
             [
               'type' => 'field',
-              'key' => 'GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_trxn_id',
+              'key' => 'Participant_Contribution_Candidate_Payment_01.trxn_id',
               'dataType' => 'String',
               'label' => E::ts('Trans#'),
               'sortable' => TRUE,
@@ -169,14 +156,14 @@ return [
             ],
             [
               'type' => 'field',
-              'key' => 'GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_payment_instrument_id_label',
+              'key' => 'Participant_Contribution_Candidate_Payment_01.payment_instrument_id_label',
               'dataType' => 'Integer',
               'label' => E::ts('Payment Method'),
               'sortable' => TRUE,
             ],
             [
               'type' => 'field',
-              'key' => 'GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_check_number',
+              'key' => 'Participant_Contribution_Candidate_Payment_01.check_number',
               'dataType' => 'String',
               'label' => E::ts('Check#'),
               'sortable' => TRUE,
@@ -191,16 +178,16 @@ return [
             ],
             [
               'type' => 'field',
-              'key' => 'GROUP_FIRST_Participant_Contribution_Candidate_Payment_01_total_amount',
+              'key' => 'Participant_Contribution_Candidate_Payment_01.total_amount',
               'dataType' => 'Money',
-              'label' => E::ts('Total To Pay'),
+              'label' => E::ts('Total Payable'),
               'sortable' => TRUE,
             ],
             [
               'type' => 'field',
               'key' => 'SUM_Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01_amount',
               'dataType' => 'Money',
-              'label' => E::ts('Amount Paid'),
+              'label' => E::ts('Total External Fees'),
               'sortable' => TRUE,
             ],
             [
