@@ -81,7 +81,7 @@ return [
               'type' => 'field',
               'key' => 'event_id.title',
               'dataType' => 'String',
-              'label' => E::ts('Exam Title'),
+              'label' => E::ts('Exam'),
               'sortable' => TRUE,
               'link' => [
                 'path' => 'civicrm/contact/view/participant?action=view&reset=1&id=[id]&cid=[contact_id]',
@@ -120,6 +120,7 @@ return [
               'dataType' => 'Float',
               'label' => E::ts('Exam External Fee Amount'),
               'sortable' => TRUE,
+              'rewrite' => '{$Participant_Event_event_id_01.Exam_Details.External_Fee_Amount|crmMoney}',
             ],
           ],
           'actions' => FALSE,
