@@ -27,7 +27,6 @@ return [
             'contact_id.sort_name',
             'Participant_Contribution_Candidate_Payment_01.payment_instrument_id:label',
             'Participant_Contribution_Candidate_Payment_01.check_number',
-            'SUM(Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01.amount) AS SUM_Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01_amount',
             'Participant_Contribution_Candidate_Payment_01.total_amount',
             'id',
             'Participant_Event_event_id_01.start_date',
@@ -67,21 +66,6 @@ return [
                 'Participant_Webform.Candidate_Payment',
                 '=',
                 'Participant_Contribution_Candidate_Payment_01.id',
-              ],
-            ],
-            [
-              'FinancialTrxn AS Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01',
-              'LEFT',
-              'EntityFinancialTrxn',
-              [
-                'Participant_Contribution_Candidate_Payment_01.id',
-                '=',
-                'Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01.entity_id',
-              ],
-              [
-                'Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01.entity_table',
-                '=',
-                '\'civicrm_contribution\'',
               ],
             ],
           ],
@@ -156,7 +140,7 @@ return [
             ],
             [
               'type' => 'field',
-              'key' => 'Participant_Contribution_Candidate_Payment_01.payment_instrument_id_label',
+              'key' => 'Participant_Contribution_Candidate_Payment_01.payment_instrument_id:label',
               'dataType' => 'Integer',
               'label' => E::ts('Payment Method'),
               'sortable' => TRUE,
@@ -180,14 +164,7 @@ return [
               'type' => 'field',
               'key' => 'Participant_Contribution_Candidate_Payment_01.total_amount',
               'dataType' => 'Money',
-              'label' => E::ts('Total Payable'),
-              'sortable' => TRUE,
-            ],
-            [
-              'type' => 'field',
-              'key' => 'SUM_Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01_amount',
-              'dataType' => 'Money',
-              'label' => E::ts('Total External Fees'),
+              'label' => E::ts('Amt'),
               'sortable' => TRUE,
             ],
             [
@@ -200,6 +177,7 @@ return [
           ],
           'actions' => TRUE,
           'classes' => ['table', 'table-striped'],
+          'actions_display_mode' => 'menu',
         ],
       ],
       'match' => [

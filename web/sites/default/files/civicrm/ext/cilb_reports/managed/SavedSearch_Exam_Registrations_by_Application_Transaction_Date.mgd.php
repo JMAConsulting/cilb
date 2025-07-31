@@ -1,5 +1,6 @@
 <?php
 use CRM_CilbReports_ExtensionUtil as E;
+
 return [
   [
     'name' => 'SavedSearch_Exam_Registrations_by_Application_Transaction_Date',
@@ -27,8 +28,6 @@ return [
             'Participant_Contact_contact_id_01.Registrant_Info.SSN',
             'Participant_Contribution_Candidate_Payment_01.payment_instrument_id:label',
             'Participant_Contribution_Candidate_Payment_01.check_number',
-            'SUM(Participant_LineItem_entity_id_01.line_total) AS SUM_Participant_LineItem_entity_id_01_line_total',
-            'SUM(Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01.amount) AS SUM_Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01_amount',
             'Participant_Contribution_Candidate_Payment_01.total_amount',
             'id',
             'Participant_Event_event_id_01_Event_LocBlock_loc_block_id_01_LocBlock_Address_address_id_01.street_address',
@@ -55,20 +54,6 @@ return [
                 'event_id',
                 '=',
                 'Participant_Event_event_id_01.id',
-              ],
-            ],
-            [
-              'LineItem AS Participant_LineItem_entity_id_01',
-              'INNER',
-              [
-                'id',
-                '=',
-                'Participant_LineItem_entity_id_01.entity_id',
-              ],
-              [
-                'Participant_LineItem_entity_id_01.entity_table',
-                '=',
-                '\'civicrm_participant\'',
               ],
             ],
             [
@@ -110,21 +95,6 @@ return [
                 'Participant_Webform.Candidate_Payment',
                 '=',
                 'Participant_Contribution_Candidate_Payment_01.id',
-              ],
-            ],
-            [
-              'FinancialTrxn AS Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01',
-              'LEFT',
-              'EntityFinancialTrxn',
-              [
-                'Participant_Contribution_Candidate_Payment_01.id',
-                '=',
-                'Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01.entity_id',
-              ],
-              [
-                'Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01.entity_table',
-                '=',
-                '\'civicrm_contribution\'',
               ],
             ],
           ],
@@ -229,21 +199,7 @@ return [
               'type' => 'field',
               'key' => 'Participant_Contribution_Candidate_Payment_01.total_amount',
               'dataType' => 'Money',
-              'label' => E::ts('Total To Pay'),
-              'sortable' => TRUE,
-            ],
-            [
-              'type' => 'field',
-              'key' => 'SUM_Participant_LineItem_entity_id_01_line_total',
-              'dataType' => 'Money',
-              'label' => E::ts('Seat Fee'),
-              'sortable' => TRUE,
-            ],
-            [
-              'type' => 'field',
-              'key' => 'SUM_Participant_Contribution_Candidate_Payment_01_Contribution_EntityFinancialTrxn_FinancialTrxn_01_amount',
-              'dataType' => 'Money',
-              'label' => E::ts('Amount Paid'),
+              'label' => E::ts('Amt'),
               'sortable' => TRUE,
             ],
             [
@@ -292,6 +248,7 @@ return [
           ],
           'actions' => TRUE,
           'classes' => ['table', 'table-striped'],
+          'actions_display_mode' => 'menu',
         ],
       ],
       'match' => [
