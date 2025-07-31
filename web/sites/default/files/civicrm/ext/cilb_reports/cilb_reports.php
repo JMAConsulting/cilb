@@ -41,6 +41,7 @@ function cilb_reports_civicrm_enable(): void {
 function cilb_reports_civicrm_buildForm(string $formName): void {
   $modules = match ($formName) {
     'CRM_Contribute_Form_ContributionView' => 'afsearchCandidatesForPayment',
+    'CRM_Event_Form_ParticipantView' => 'afsearchCandidatesForPayment',
     default => NULL,
   };
   if ($modules) {
