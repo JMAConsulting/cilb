@@ -454,6 +454,9 @@ elements: |-
           view_name: exams
           display_name: entity_reference_1
           arguments: {  }
+  exam_fee_page:
+    '#type': webform_wizard_page
+    '#title': 'Exam Fee'
     exam_fee:
       '#type': fieldset
       '#title': 'Exam Fee'
@@ -461,21 +464,21 @@ elements: |-
         '#type': webform_markup
         '#display_on': both
         '#markup': '<p>*</p>'
-      civicrm_1_contribution_1_contribution_total_amount:
-        '#type': civicrm_number
-        '#title': 'Total Payable Now'
-        '#required': true
-        '#states_clear': false
-        '#default_value': '0'
-        '#parent': contribution_pagebreak
-        '#data_type': Money
-        '#extra':
-          field_prefix: $
-          point: .
-          separator: ','
-          decimals: 2
-          min: 0
-        '#form_key': civicrm_1_contribution_1_contribution_total_amount
+    civicrm_1_contribution_1_contribution_total_amount:
+      '#type': civicrm_number
+      '#title': 'Total Payable Now'
+      '#required': true
+      '#states_clear': false
+      '#default_value': '0'
+      '#parent': contribution_pagebreak
+      '#data_type': Money
+      '#extra':
+        field_prefix: $
+        point: .
+        separator: ','
+        decimals: 2
+        min: 0
+      '#form_key': civicrm_1_contribution_1_contribution_total_amount
   contribution_pagebreak:
     '#type': webform_wizard_page
     '#form_key': contribution_pagebreak
