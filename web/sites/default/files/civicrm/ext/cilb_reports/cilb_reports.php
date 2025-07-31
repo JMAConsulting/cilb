@@ -30,3 +30,20 @@ function cilb_reports_civicrm_install(): void {
 function cilb_reports_civicrm_enable(): void {
   _cilb_reports_civix_civicrm_enable();
 }
+
+/**
+ * Implements hook_civicrm_buildForm().
+ *
+ * Add our extra afform dependencies
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_buildForm
+ */
+function cilb_reports_civicrm_buildForm(string $formName): void {
+  $modules = match ($formName) {
+    'CRM_Contribute_Form_ContributionView' => 'afsearchCandidatesForPayment',
+    default => NULL,
+  };
+  if ($modules) {
+    \Civi::service('angularjs.loader')->addModules($modules);
+  }
+}
