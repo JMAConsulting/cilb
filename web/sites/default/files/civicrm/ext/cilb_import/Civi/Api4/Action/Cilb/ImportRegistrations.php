@@ -69,7 +69,8 @@ class ImportRegistrations extends ImportBase {
       /**
        * Note source data has 0, 1, and NULL
        */
-      $status = match ($registration['Pass']) {
+      //TODO this is missing
+      $status = match ($registration['Pass'] ?? NULL) {
         '1' => 'Pass',
         '0' => 'Fail',
         default => 'Registered',
@@ -79,7 +80,8 @@ class ImportRegistrations extends ImportBase {
         ->addValue('event_id', $event['id'])
         ->addValue('contact_id', $contactId)
         ->addValue('register_date', $registration['Transaction_Date'])
-        ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
+     // TODO this is missing
+     //   ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
         ->addValue('status_id:label', $status)
         ->execute();
     }
