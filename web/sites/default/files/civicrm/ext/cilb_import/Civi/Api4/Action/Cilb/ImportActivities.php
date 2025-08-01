@@ -34,6 +34,8 @@ class ImportActivities extends ImportBase {
    *
    */
   protected function import() {
+    $this->info("Importing activities for {$this->transactionYear}...");
+
     $activityTypes = [];
 
     foreach ($this->getRows("SELECT PK_Activity_Type, Activity_Type FROM pti_Code_Activity_Type") as $activityType) {

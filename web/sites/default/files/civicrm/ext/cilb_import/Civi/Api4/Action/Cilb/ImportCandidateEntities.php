@@ -36,7 +36,7 @@ class ImportCandidateEntities extends ImportBase {
         ->execute()->first();
 
       if (!$contact) {
-        \Civi::log()->warning("Imported target contact not found for Candidate Entity with Entity ID {$candidateEntity['Entity_ID']}. Account ID was {$candidateEntity['FK_Account_ID']}");
+        $this->warning("Imported target contact not found for Candidate Entity with Entity ID {$candidateEntity['Entity_ID']}. Account ID was {$candidateEntity['FK_Account_ID']}");
         continue;
       }
 

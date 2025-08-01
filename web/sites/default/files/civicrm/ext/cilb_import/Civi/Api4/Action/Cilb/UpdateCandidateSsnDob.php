@@ -11,7 +11,7 @@ namespace Civi\Api4\Action\Cilb;
 class UpdateCandidateSsnDob extends ImportBase {
 
   protected function import() {
-    echo 'Importing contact DOB/SSNs...';
+    $this->info('Importing contact DOB/SSNs...');
     $this->updateDobSsn();
   }
 

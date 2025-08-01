@@ -21,7 +21,11 @@ class ImportRegistrations extends ImportBase {
   protected string $transactionYear;
 
   protected function import() {
+    $this->info("Importing registrations for {$this->transactionYear}...");
+
+    $this->info('Importing main parts...');
     $this->importParts();
+    $this->info('Importing business and finance...');
     $this->importBusinessAndFinance();
   }
 
@@ -63,7 +67,8 @@ class ImportRegistrations extends ImportBase {
 
       if (!$event) {
         $debug = json_encode($registration);
-        \Civi::log()->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
+        $this->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
+        continue;
       }
 
       /**
@@ -111,7 +116,7 @@ class ImportRegistrations extends ImportBase {
         ->execute()->first()['id'] ?? NULL;
 
       if (!$contactId) {
-        \Civi::log()->warning('No contact id found for Account ID: ' . $registration['FK_Account_ID']);
+        $this->warning('No contact id found for Account ID: ' . $registration['FK_Account_ID']);
         continue;
       }
 
@@ -124,7 +129,7 @@ class ImportRegistrations extends ImportBase {
 
       if (!$event) {
         $debug = json_encode($registration);
-        \Civi::log()->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
+        $this->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
       }
 
       /**

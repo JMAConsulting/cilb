@@ -13,15 +13,15 @@ namespace Civi\Api4\Action\Cilb;
 class ImportCandidates extends ImportBase {
 
   protected function import() {
-    echo 'Importing contacts...';
+    $this->info('Importing contacts...');
     $this->importContacts();
-    echo 'Importing language preferences...';
+    $this->info('Importing language preferences...');
     $this->importLanguagePreferences();
-    echo 'Importing emails...';
+    $this->info('Importing emails...');
     $this->importEmails();
-    echo 'Importing addresses...';
+    $this->info('Importing addresses...');
     $this->importAddresses();
-    echo 'Importing phones...';
+    $this->info('Importing phones...');
     $this->importPhones();
   }
 
@@ -66,7 +66,7 @@ class ImportCandidates extends ImportBase {
       };
 
       if (!$langPref) {
-        \Civi::log()->warning('Unexpected Language Preference: ' . $contact['Language_Preference']);
+        $this->warning('Unexpected Language Preference: ' . $contact['Language_Preference']);
       }
       else {
         \Civi\Api4\Contact::update(FALSE)

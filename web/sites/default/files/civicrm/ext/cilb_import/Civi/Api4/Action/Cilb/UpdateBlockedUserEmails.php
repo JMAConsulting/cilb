@@ -52,16 +52,14 @@ class UpdateBlockedUserEmails extends ImportBase {
       if (count($findContact) > 1) {
         // unexpected, log and skip
         $contactIds = implode(', ', $findContact->column('id'));
-        \Civi::log()->warning("Could not determine unique contact for SSN {$blocked['SSN']} - found {$contactIds}");
-        echo "Could not determine unique contact for SSN {$blocked['SSN']} - found {$contactIds}";
+        $this->warning("Could not determine unique contact for SSN {$blocked['SSN']} - found {$contactIds}");
         continue;
       }
 
       $contact = $findContact->first();
 
       if (!$contact) {
-        \Civi::log()->warning("Could not find ANY contact for SSN {$blocked['SSN']}");
-        echo "Could not find ANY contact for SSN {$blocked['SSN']}";
+        $this->warning("Could not find ANY contact for SSN {$blocked['SSN']}");
         continue;
       }
 
@@ -75,7 +73,7 @@ class UpdateBlockedUserEmails extends ImportBase {
 
         $oldUser = \Drupal\user\Entity\User::load($oldUserId);
         if (!$oldUser) {
-          \Civi::log()->warning("No existing CMS user could be created for found for {$blocked['SSN']}");
+          $this->warning("No existing CMS user could be created for found for {$blocked['SSN']}");
         }
         $oldUser->delete();
       }
@@ -119,7 +117,7 @@ class UpdateBlockedUserEmails extends ImportBase {
 
       $user = \Drupal\user\Entity\User::load($cmsUserId);
       if (!$user) {
-        \Civi::log()->warning("No CMS user could be created for contact id {$contact['id']} email {$blocked['Email']}");
+        $this->warning("No CMS user could be created for contact id {$contact['id']} email {$blocked['Email']}");
         continue;
       }
       $user->block();
@@ -133,7 +131,7 @@ class UpdateBlockedUserEmails extends ImportBase {
 
     if (count($emails) > 1) {
       $emails = implode(', ', $emails);
-      \Civi::log()->warning("Found multiple candidate emails for SSN {$blocked['SSN']} - found {$emails}");
+      $this->warning("Found multiple candidate emails for SSN {$blocked['SSN']} - found {$emails}");
     }
 
     // use the first (hopefully unique) email - or else create a pseudo email

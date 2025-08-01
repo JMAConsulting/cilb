@@ -43,7 +43,7 @@ class ImportBlockedUsers extends ImportBase {
 
       $user = \Drupal\user\Entity\User::load($cmsUserId);
       if (!$user) {
-        \Civi::log()->warning("No CMS user could be created for contact id {$contact['id']} email {$pseudoEmail}");
+        $this->warning("No CMS user could be created for contact id {$contact['id']} email {$pseudoEmail}");
         continue;
       }
       $user->block();
