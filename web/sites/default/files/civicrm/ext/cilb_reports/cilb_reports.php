@@ -60,17 +60,32 @@ function cilb_reports_civicrm_alterCustomFieldDisplayValue(&$displayValue, $valu
   switch ($fieldInfo['name']) {
     case 'Candidate_Payment':
 
-      $viewContributionUrl = "/civicrm/contact/view/contribution?reset=1&id={$value}&action=view&context=participant&selectedChild=contribute";
-      $text = E::ts('View payment');
+      $contribution = \Civi\Api4\Contribution::get(FALSE)
+        ->addSelect('contact_id.display_name', 'total_amount', 'receive_date')
+        ->addWhere('id', '=', $value)
+        ->execute()
+        ->first();
+
+      if (!$contribution) {
+        return;
+      }
+
+      $name = $contribution['contact_id.display_name'];
+      $amount = \CRM_Utils_Money::format($contribution['total_amount']);
+      $date = $contribution['receive_date'] ?: E::ts('date missing');
+
+      $recordText = "{$name} - {$amount} - {$date}";
+      $buttonUrl = "/civicrm/contact/view/contribution?reset=1&id={$value}&action=view&context=participant&selectedChild=contribute";
+      $buttonText = E::ts('View payment');
       $displayValue = "
-        <span>{$displayValue}</span>
+        <span>{$recordText}</span>
         <a
           class='btn btn-primary'
           target='crm-popup'
-          href='{$viewContributionUrl}'
+          href='{$buttonUrl}'
           >
           <i class='crm-i fa-credit-card'></i>
-          {$text}
+          {$buttonText}
         </a>
       ";
       break;
