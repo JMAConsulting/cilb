@@ -66,43 +66,48 @@ class ImportRegistrations extends ImportBase {
         WHERE Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(Transaction_Date) = '{$this->transactionYear}'
     ") as $registration) {
-
-      $contactId = \Civi\Api4\Contact::get(FALSE)
-        ->addWhere('external_identifier', '=', $registration['FK_Account_ID'])
-        ->execute()->first()['id'] ?? NULL;
-
-      if (!$contactId) {
-        \Civi::log()->warning('No contact id found for Account ID: ' . $registration['FK_Account_ID']);
-        continue;
+      try {
+        $this->importRegistrationRow($registration);
       }
-
-      $event = $this->eventMap[$registration['Category_Name']][$registration['Exam_Part_Name_Abbr']] ?? NULL;
-
-      if (!$event) {
-        $debug = json_encode($registration);
-        $this->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
-        continue;
+      catch (\Exception $e) {
+        $this->warning($e->getMessage() . " when importing " . \json_encode($registration, \JSON_PRETTY_PRINT));
       }
-
-      /**
-       * Note source data has 0, 1, and NULL
-       */
-      //TODO this is missing
-      $status = match ($registration['Pass'] ?? NULL) {
-        '1' => 'Pass',
-        '0' => 'Fail',
-        default => 'Registered',
-      };
-
-      \Civi\Api4\Participant::create(FALSE)
-        ->addValue('event_id', $event)
-        ->addValue('contact_id', $contactId)
-        ->addValue('register_date', $registration['Transaction_Date'])
-     // TODO this is missing
-     //   ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
-        ->addValue('status_id:label', $status)
-        ->execute();
     }
+  }
+
+  protected function importRegistrationRow($registration) {
+    $contactId = \Civi\Api4\Contact::get(FALSE)
+      ->addWhere('external_identifier', '=', $registration['FK_Account_ID'])
+      ->execute()->first()['id'] ?? NULL;
+
+    if (!$contactId) {
+      throw new \Exception('No contact id found for Account ID: ' . $registration['FK_Account_ID']);
+    }
+
+    $event = $this->eventMap[$registration['Category_Name']][$registration['Exam_Part_Name_Abbr']] ?? NULL;
+
+    if (!$event) {
+      throw new \Exception("No event found for registration ID {$registration['PK_Exam_Registration_ID']}");
+    }
+
+    /**
+     * Note source data has 0, 1, and NULL
+     */
+    //TODO this is missing
+    $status = match ($registration['Pass'] ?? NULL) {
+      '1' => 'Pass',
+      '0' => 'Fail',
+      default => 'Registered',
+    };
+
+    \Civi\Api4\Participant::create(FALSE)
+      ->addValue('event_id', $event)
+      ->addValue('contact_id', $contactId)
+      ->addValue('register_date', $registration['Transaction_Date'])
+   // TODO this is missing
+   //   ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
+      ->addValue('status_id:label', $status)
+      ->execute();
   }
 
   protected function importBusinessAndFinance() {
@@ -123,40 +128,46 @@ class ImportRegistrations extends ImportBase {
         AND YEAR(Transaction_Date) = '{$this->transactionYear}'
         AND Confirm_BF_Exam IS NOT NULL
     ") as $registration) {
-
-      $contactId = \Civi\Api4\Contact::get(FALSE)
-        ->addWhere('external_identifier', '=', $registration['FK_Account_ID'])
-        ->execute()->first()['id'] ?? NULL;
-
-      if (!$contactId) {
-        $this->warning('No contact id found for Account ID: ' . $registration['FK_Account_ID']);
-        continue;
+      try {
+        $this->importBusinessAndFinanceRow($registration);
       }
-
-      $event = $this->eventMap[$registration['Category_Name']]['BF'] ?? NULL;
-
-      if (!$event) {
-        $debug = json_encode($registration);
-        $this->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
+      catch (\Exception $e) {
+        $this->warning($e->getMessage() . " when importing " . \json_encode($registration, \JSON_PRETTY_PRINT));
       }
-
-      /**
-       * Note source data has 0, 1, and NULL
-       */
-      $status = match ($registration['BF_Pass']) {
-        '1' => 'Pass',
-        '0' => 'Fail',
-        default => 'Registered',
-      };
-
-      \Civi\Api4\Participant::create(FALSE)
-        ->addValue('event_id', $event)
-        ->addValue('contact_id', $contactId)
-        ->addValue('register_date', $registration['Transaction_Date'])
-        ->addValue('Candidate_Result.Candidate_Score', $registration['BF_Score'])
-        ->addValue('status_id:label', $status)
-        ->execute();
     }
+  }
+
+  protected function importBusinessAndFinanceRow($registration) {
+    $contactId = \Civi\Api4\Contact::get(FALSE)
+      ->addWhere('external_identifier', '=', $registration['FK_Account_ID'])
+      ->execute()->first()['id'] ?? NULL;
+
+    if (!$contactId) {
+      throw new \Exception('No contact id found for Account ID: ' . $registration['FK_Account_ID']);
+    }
+
+    $event = $this->eventMap[$registration['Category_Name']]['BF'] ?? NULL;
+
+    if (!$event) {
+      throw new \Exception("No event found for registration ID {$registration['PK_Exam_Registration_ID']}.");
+    }
+
+    /**
+     * Note source data has 0, 1, and NULL
+     */
+    $status = match ($registration['BF_Pass']) {
+      '1' => 'Pass',
+      '0' => 'Fail',
+      default => 'Registered',
+    };
+
+    \Civi\Api4\Participant::create(FALSE)
+      ->addValue('event_id', $event)
+      ->addValue('contact_id', $contactId)
+      ->addValue('register_date', $registration['Transaction_Date'])
+      ->addValue('Candidate_Result.Candidate_Score', $registration['BF_Score'])
+      ->addValue('status_id:label', $status)
+      ->execute();
   }
 
 }
