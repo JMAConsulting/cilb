@@ -20,13 +20,31 @@ class ImportRegistrations extends ImportBase {
    */
   protected string $transactionYear;
 
+  private array $eventMap = [];
+
   protected function import() {
     $this->info("Importing registrations for {$this->transactionYear}...");
+
+    $this->info('Building event map...');
+    $this->buildEventMap();
 
     $this->info('Importing main parts...');
     $this->importParts();
     $this->info('Importing business and finance...');
     $this->importBusinessAndFinance();
+  }
+
+  protected function buildEventMap() {
+    $events = \Civi\Api4\Event::get(FALSE)
+      ->addSelect('id', 'event_type_id:name', 'Exam_Details.Exam_Part')
+      ->execute();
+
+    foreach ($events as $event) {
+      $type = $event['event_type_id:name'];
+      $part = $event['Exam_Details.Exam_Part'];
+      $this->eventMap[$type] ??= [];
+      $this->eventMap[$type][$part] = $event['id'];
+    }
   }
 
   protected function importParts() {
@@ -58,12 +76,7 @@ class ImportRegistrations extends ImportBase {
         continue;
       }
 
-      $event = \Civi\Api4\Event::get(FALSE)
-        ->addSelect('id')
-        ->addWhere('event_type_id:name', '=', $registration['Category_Name'])
-        ->addWhere('Exam_Details.Exam_Part', '=', $registration['Exam_Part_Name_Abbr'])
-        ->execute()
-        ->first();
+      $event = $this->eventMap[$registration['Category_Name']][$registration['Exam_Part_Name_Abbr']] ?? NULL;
 
       if (!$event) {
         $debug = json_encode($registration);
@@ -82,7 +95,7 @@ class ImportRegistrations extends ImportBase {
       };
 
       \Civi\Api4\Participant::create(FALSE)
-        ->addValue('event_id', $event['id'])
+        ->addValue('event_id', $event)
         ->addValue('contact_id', $contactId)
         ->addValue('register_date', $registration['Transaction_Date'])
      // TODO this is missing
@@ -120,12 +133,7 @@ class ImportRegistrations extends ImportBase {
         continue;
       }
 
-      $event = \Civi\Api4\Event::get(FALSE)
-        ->addSelect('id')
-        ->addWhere('event_type_id:name', '=', $registration['Category_Name'])
-        ->addWhere('Exam_Details.Exam_Part', '=', 'BF')
-        ->execute()
-        ->first();
+      $event = $this->eventMap[$registration['Category_Name']]['BF'] ?? NULL;
 
       if (!$event) {
         $debug = json_encode($registration);
@@ -142,7 +150,7 @@ class ImportRegistrations extends ImportBase {
       };
 
       \Civi\Api4\Participant::create(FALSE)
-        ->addValue('event_id', $event['id'])
+        ->addValue('event_id', $event)
         ->addValue('contact_id', $contactId)
         ->addValue('register_date', $registration['Transaction_Date'])
         ->addValue('Candidate_Result.Candidate_Score', $registration['BF_Score'])
