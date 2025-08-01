@@ -1005,7 +1005,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    */
   private function generateTransactionId(): string {
     do {
-      $trxnId = '99' . bin2hex(random_bytes(5));
+      $trxnId = '99';
+      foreach (\range(1, 10) as $i) {
+        $trxnId .= (string) \random_int(0, 9);
+      }
       $alreadyUsed = \Civi\Api4\Contribution::get(FALSE)
         ->addSelect('id')
         ->addWhere('trxn_id', '=', $trxnId)
