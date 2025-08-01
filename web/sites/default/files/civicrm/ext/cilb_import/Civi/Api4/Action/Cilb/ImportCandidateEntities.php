@@ -17,17 +17,17 @@ class ImportCandidateEntities extends ImportBase {
    * custom field on Contacts
    *
    * The ClassCode is used to reference an exam category by
-   * matching to DBPRCode in `pti_code_categories`
+   * matching to DBPRCode in `pti_Code_Categories`
    */
   protected function import() {
     foreach ($this->getRows("SELECT
-        `pti_candidate_entity`.`FK_Account_ID`,
-        `pti_candidate_entity`.`Class_Code`,
-        `pti_candidate_entity`.`Entity_ID`,
-        `pti_code_categories`.`Category_Name`
-      FROM `pti_candidate_entity`
-      LEFT JOIN `pti_code_categories`
-      ON `pti_candidate_entity`.`Class_Code` = `pti_code_categories`.`DBPRCode`
+        `pti_Candidate_Entity`.`FK_Account_ID`,
+        `pti_Candidate_Entity`.`Class_Code`,
+        `pti_Candidate_Entity`.`Entity_ID`,
+        `pti_Code_Categories`.`Category_Name`
+      FROM `pti_Candidate_Entity`
+      LEFT JOIN `pti_Code_Categories`
+      ON `pti_Candidate_Entity`.`Class_Code` = `pti_Code_Categories`.`DBPRCode`
     ") as $candidateEntity) {
 
       $contact = \Civi\Api4\Contact::get(FALSE)

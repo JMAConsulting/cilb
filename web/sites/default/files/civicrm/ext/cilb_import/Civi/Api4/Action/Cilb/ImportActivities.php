@@ -36,7 +36,7 @@ class ImportActivities extends ImportBase {
   protected function import() {
     $activityTypes = [];
 
-    foreach ($this->getRows("SELECT PK_Activity_Type, Activity_Type FROM pti_code_activity_type") as $activityType) {
+    foreach ($this->getRows("SELECT PK_Activity_Type, Activity_Type FROM pti_Code_Activity_Type") as $activityType) {
       $activityTypes[$activityType['PK_Activity_Type']] = $activityType['Activity_Type'];
     }
 
@@ -61,7 +61,7 @@ class ImportActivities extends ImportBase {
          Created_Date,
          Description,
          FK_Activity_Log_Type_ID
-      FROM pti_activity_log
+      FROM pti_Activity_Log
       WHERE Created_Date > '{$this->cutOffDate}'
       AND YEAR(Created_Date) = '{$this->transactionYear}'
     ") as $activity) {

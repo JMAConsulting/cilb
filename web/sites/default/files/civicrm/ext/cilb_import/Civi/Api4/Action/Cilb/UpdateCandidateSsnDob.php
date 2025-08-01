@@ -24,7 +24,7 @@ class UpdateCandidateSsnDob extends ImportBase {
     $whereClauses[] = "Last_Updated_Timestamp > '{$this->cutOffDate}'";
     $whereList = implode(' AND ', $whereClauses);
 
-    return $this->getRows("SELECT {$fieldList} FROM pti_candidates WHERE {$whereList}");
+    return $this->getRows("SELECT {$fieldList} FROM pti_Candidates WHERE {$whereList}");
   }
 
   protected function updateDobSsn() {

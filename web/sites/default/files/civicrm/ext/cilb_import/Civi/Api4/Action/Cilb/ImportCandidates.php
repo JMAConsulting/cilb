@@ -14,9 +14,9 @@ class ImportCandidates extends ImportBase {
 
   protected function import() {
     echo 'Importing contacts...';
-    //$this->importContacts();
+    $this->importContacts();
     echo 'Importing language preferences...';
-    //$this->importLanguagePreferences();
+    $this->importLanguagePreferences();
     echo 'Importing emails...';
     $this->importEmails();
     echo 'Importing addresses...';
@@ -34,7 +34,7 @@ class ImportCandidates extends ImportBase {
     $whereClauses[] = "Last_Updated_Timestamp > '{$this->cutOffDate}'";
     $whereList = implode(' AND ', $whereClauses);
 
-    return $this->getRows("SELECT {$fieldList} FROM pti_candidates WHERE {$whereList}");
+    return $this->getRows("SELECT {$fieldList} FROM pti_Candidates WHERE {$whereList}");
   }
 
   public function importContacts() {
@@ -66,7 +66,7 @@ class ImportCandidates extends ImportBase {
       };
 
       if (!$langPref) {
-        Civi::log()->warning('Unexpected Language Preference: ' . $contact['Language_Preference']);
+        \Civi::log()->warning('Unexpected Language Preference: ' . $contact['Language_Preference']);
       }
       else {
         \Civi\Api4\Contact::update(FALSE)

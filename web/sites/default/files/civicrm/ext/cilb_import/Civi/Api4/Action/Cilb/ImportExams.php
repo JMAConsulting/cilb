@@ -24,7 +24,7 @@ class ImportExams extends ImportBase {
           `PK_Category_ID`, `Category_Name`, `Specialty_ID`, `Begin_Date`,
           `DBPRCode`, `CategoryID`, `CILB_Class`, `GusCode`, `GusDBPRCode`, `Category_Name_Spanish`
       FROM
-          `pti_code_categories`
+          `pti_Code_Categories`
       ") as $eventCategory) {
 
       \Civi\Api4\OptionValue::save(FALSE)
@@ -48,9 +48,9 @@ class ImportExams extends ImportBase {
 
   public function importEvents() {
 
-    // TO CHECK: pti_category_exam_parts or pti_code_exam_parts
+    // TO CHECK: pti_category_exam_parts or pti_Code_Exam_Parts
     // spec says pti_category_exam_parts;
-    // but pti_code_exam_parts contains all the data from pti_category_exam_parts
+    // but pti_Code_Exam_Parts contains all the data from pti_category_exam_parts
     // as well as the Business and Finance exams, which match the Google Sheet
     // of expected parts for each Exam Category
     foreach ($this->getRows("
@@ -62,13 +62,13 @@ class ImportExams extends ImportBase {
         `dbpr_info`.`Exam_Series_Code`, `dbpr_info`.`Number_Exam_Questions`
 
     FROM
-        `pti_code_exam_parts` as `part`
+        `pti_Code_Exam_Parts` as `part`
     JOIN
-        `pti_code_categories` as `category`
+        `pti_Code_Categories` as `category`
     ON
         `part`.`FK_Category_ID` = `category`.`PK_Category_ID`
     LEFT JOIN
-        `pti_category_exam_parts_dbpr_xref` as `dbpr_info`
+        `pti_Category_Exam_Parts_DBPR_Xref` as `dbpr_info`
     ON
         `part`.`PK_Exam_Part_ID` = `dbpr_info`.`PK_Exam_Part_ID`
       ") as $event) {

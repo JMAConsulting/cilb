@@ -17,13 +17,13 @@ class ImportBlockedUsers extends ImportBase {
    *
    * Note: there is nothing in the source DB that actually links these
    * with other records. They only have SSN and Candidate Name and the SSN
-   * don't match any records in pti_candidates
+   * don't match any records in pti_Candidates
    *
    * We create contacts using these SSNs, then create a linked user and
    * set the status to blocked
    */
   protected function import() {
-    foreach ($this->getRows("SELECT SSN, Restriction_Reason, Candidate_Name FROM pti_restricted_candidates") as $blocked) {
+    foreach ($this->getRows("SELECT SSN, Restriction_Reason, Candidate_Name FROM pti_Restricted_Candidates") as $blocked) {
       $contact = \Civi\Api4\Contact::create(FALSE)
         ->addValue('display_name', $blocked['Candidate_Name'])
         ->addValue('Registrant_Info.SSN', $blocked['SSN'] ?? NULL)

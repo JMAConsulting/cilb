@@ -30,19 +30,17 @@ class ImportRegistrations extends ImportBase {
         SELECT
           PK_Exam_Registration_ID,
           FK_Account_ID,
-          pti_exam_registrations.FK_Category_ID,
+          pti_Exam_Registrations.FK_Category_ID,
           Category_Name,
           Transaction_Date,
-          Exam_Part_Name_Abbr,
-          Pass,
-          Score
-        FROM pti_exam_registrations
-        JOIN pti_code_categories
+          Exam_Part_Name_Abbr
+        FROM pti_Exam_Registrations
+        JOIN pti_Code_Categories
         ON `FK_Category_ID` = `PK_Category_ID`
-        JOIN pti_exam_registration_parts
-        ON `FK_Exam_Registration_ID` = `PK_Exam_Registration_ID`
-        JOIN pti_code_exam_parts
-        ON `FK_Exam_Part_ID` = `PK_Exam_Part_ID`
+
+        JOIN pti_Code_Exam_Parts
+        ON pti_Exam_Registrations.`FK_Category_ID` = pti_Code_Exam_Parts.`FK_Category_ID`
+
         WHERE Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(Transaction_Date) = '{$this->transactionYear}'
     ") as $registration) {
@@ -98,8 +96,8 @@ class ImportRegistrations extends ImportBase {
           BF_Pass,
           BF_Score,
           Transaction_Date
-        FROM pti_exam_registrations
-        JOIN pti_code_categories
+        FROM pti_Exam_Registrations
+        JOIN pti_Code_Categories
         ON `FK_Category_ID` = `PK_Category_ID`
         WHERE Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(Transaction_Date) = '{$this->transactionYear}'
@@ -124,7 +122,7 @@ class ImportRegistrations extends ImportBase {
 
       if (!$event) {
         $debug = json_encode($registration);
-        Civi::log()->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
+        \Civi::log()->warning("No event found for registration ID {$registration['PK_Exam_Registration_ID']}. ({$debug})");
       }
 
       /**
