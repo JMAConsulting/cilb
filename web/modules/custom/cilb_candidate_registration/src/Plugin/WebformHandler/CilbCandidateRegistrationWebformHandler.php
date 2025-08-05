@@ -533,7 +533,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           ->first()['id'];
 
         $feesForThisEvent = $eventFees[$eventId] ?? NULL;
-
+        $addedAmount = 0;
         // for fees payable now, we create additional line items in the contribution
         // and update the partipant_fee_amount and fee_level
         if ($feesForThisEvent) {
@@ -558,7 +558,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
               'label' => "CILB Candidate Registration - {$fee['label']}",
             ];
             \CRM_Price_BAO_LineItem::create($params);
+            $addedAmount += $fee['amount'];
           }
+
+          $updateAmount = $formFeeAmount - $addedAmount;
+          \CRM_Core_DAO::executeQuery(<<<SQL
+             UPDATE `civicrm_line_item`
+           SET
+             `unit_price` = {$updateAmount},
+             `line_total` = {$updateAmount},
+             `label` = 'Registration Form Fee'
+           WHERE `id` = {$defaultLineItem['id']}
+           SQL);
 
           $feeLevel = implode (', ', $feeLevel);
 
