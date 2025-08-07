@@ -50,13 +50,19 @@ class ImportRegistrations extends ImportBase {
           pti_Exam_Registrations.FK_Category_ID,
           Category_Name,
           Transaction_Date,
-          Exam_Part_Name_Abbr
+          Exam_Part_Name_Abbr,
+          Pass,
+          Score
         FROM pti_Exam_Registrations
+
         JOIN pti_Code_Categories
         ON `FK_Category_ID` = `PK_Category_ID`
 
         JOIN pti_Code_Exam_Parts
         ON pti_Exam_Registrations.`FK_Category_ID` = pti_Code_Exam_Parts.`FK_Category_ID`
+
+        JOIN pti_Exam_Registration_Parts
+        ON pti_Exam_Registration_Parts.`FK_Exam_Registration_ID` = pti_Exam_Registrations.`PK_Exam_Registration_ID`
 
         WHERE Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(Transaction_Date) = '{$this->transactionYear}'
@@ -89,7 +95,6 @@ class ImportRegistrations extends ImportBase {
     /**
      * Note source data has 0, 1, and NULL
      */
-    //TODO this is missing
     $status = match ($registration['Pass'] ?? NULL) {
       '1' => 'Pass',
       '0' => 'Fail',
@@ -100,8 +105,7 @@ class ImportRegistrations extends ImportBase {
       ->addValue('event_id', $event)
       ->addValue('contact_id', $contactId)
       ->addValue('register_date', $registration['Transaction_Date'])
-   // TODO this is missing
-   //   ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
+      ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
       ->addValue('status_id:name', $status)
       ->execute();
   }
