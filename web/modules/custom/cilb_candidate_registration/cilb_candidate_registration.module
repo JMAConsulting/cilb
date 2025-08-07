@@ -158,17 +158,6 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
     $valid_events = [];
     foreach ($events as $event) {
       $eventPart = $event['Exam_Details.Exam_Part'] ?? '';
-      if ($event['event_type_id:name'] == "Plumbing" && !in_array($event['id'], array_keys($previousRegistrations ?? []))) {
-        if ($eventPart == 'TK' && (date('Ymd', strtotime($event['start_date'])) < date('Ymd')) && $view->current_display == 'entity_reference_3') {
-          // Only show future TK Plumbing exams
-          continue;
-        }        
-        if ($eventPart == 'BF' && in_array($eventPart, $generalExclusions)) {
-          continue;
-        }
-        $valid_events[] = $event['id'];
-        continue;
-      }
 
       if (in_array($eventPart, $generalExclusions)) {
         // existing reg for this part, and its not category specific => skip
@@ -181,6 +170,11 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
         in_array($eventCategory, $categorySpecificExclusions[$eventPart] ?? [])
       ) {
         // we have an existing reg for the same part and category => skip
+        continue;
+      }
+
+      if ($eventPart == 'TK' && $event['event_type_id:name'] == "Plumbing" && (date('Ymd', strtotime($event['start_date'])) < date('Ymd')) && $view->current_display == 'entity_reference_3') {
+        // Only show future TK Plumbing exams
         continue;
       }
 
