@@ -2,27 +2,33 @@
 
 set -e
 
-docker compose exec civicrm cv api4 Cilb.importCandidates cutOffDate=2019-09-01
-docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE' > data/1-candidates.sql
+MIGRATION_NAME=2025-08-07
+CV=docker compose exec civicrm cv
+DB_DUMP=docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE'
 
-docker compose exec civicrm cv api4 Cilb.importCandidateEntities cutOffDate=2019-09-01
-docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE' > data/2-candidate-entities.sql
+mkdir data/$MIGRATION_NAME
 
-docker compose exec civicrm cv api4 Cilb.importExams cutOffDate=2019-09-01
-docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE' > data/3-exams.sql
+$CV api4 Cilb.importCandidates cutOffDate=2019-09-01
+$DB_DUMP > data/$MIGRATION_NAME/1-candidates.sql
+
+$CV api4 Cilb.importCandidateEntities cutOffDate=2019-09-01
+$DB_DUMP > data/$MIGRATION_NAME/2-candidate-entities.sql
+
+$CV api4 Cilb.importExams cutOffDate=2019-09-01
+$DB_DUMP > data/$MIGRATION_NAME/3-exams.sql
 
 for YEAR in 2019 2020 2021 2022 2023 2024 2025; do
 
-docker compose exec civicrm cv api4 Cilb.importRegistrations cutOffDate=2019-09-01 transactionYear=$YEAR
-docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE' > data/4-registrations-$YEAR.sql
+$CV api4 Cilb.importRegistrations cutOffDate=2019-09-01 transactionYear=$YEAR
+$DB_DUMP > data/$MIGRATION_NAME/4-registrations-$YEAR.sql
 
-docker compose exec civicrm cv api4 Cilb.importRegistrationsBF cutOffDate=2019-09-01 transactionYear=$YEAR
-docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE' > data/5-registrations-bf-$YEAR.sql
+$CV api4 Cilb.importRegistrationsBF cutOffDate=2019-09-01 transactionYear=$YEAR
+$DB_DUMP > data/$MIGRATION_NAME/5-registrations-bf-$YEAR.sql
 
-docker compose exec civicrm cv api4 Cilb.importActivities cutOffDate=2019-09-01 transactionYear=$YEAR
-docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE' > data/6-activities-$YEAR.sql
+$CV api4 Cilb.importActivities cutOffDate=2019-09-01 transactionYear=$YEAR
+$DB_DUMP > data/$MIGRATION_NAME/6-activities-$YEAR.sql
 
 done
 
-docker compose exec civicrm cv api4 Cilb.importBlockedUsers cutOffDate=2019-09-01
-docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE' > data/7-blocked-users.sql
+$CV api4 Cilb.importBlockedUsers cutOffDate=2019-09-01
+$DB_DUMP > data/$MIGRATION_NAME/7-blocked-users.sql
