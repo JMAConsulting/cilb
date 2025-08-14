@@ -247,7 +247,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     $category = $catId ? \Civi\Api4\OptionValue::get(FALSE)
       ->addSelect("label", "description")
-      ->addWhere("id", "=", $catId)
+      ->addWhere("value", "=", $catId)
+      ->addWhere('option_group_id:name', '=', 'event_type')
       ->execute()
       ->first() : [];
 
