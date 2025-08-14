@@ -243,7 +243,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
   private function renderScope(array &$form, FormStateInterface $form_state): void {
     $elements = WebformFormHelper::flattenElements($form);
-    $catId = $form_state->getValue('exam_category_id');
+    $catId = $form_state->getValue('select_exam_category');
 
     $category = $catId ? \Civi\Api4\OptionValue::get(FALSE)
       ->addSelect("label", "description")
@@ -260,7 +260,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * Set the total contribution amount based on event ids
    */
   private function setContributionAmount(array &$form, FormStateInterface $formState) {
-    $eventIds = $formState->getValue('event_ids');
+    $eventIds = $this->getSelectedEvents($formState);
     if (!$eventIds) {
       return;
     }
@@ -270,7 +270,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   }
 
   private function renderFeeTable(array &$form, FormStateInterface $form_state): void {
-    $eventIds = $form_state->getValue('event_ids');
+    $eventIds = $this->getSelectedEvents($form_state);
     $elements = WebformFormHelper::flattenElements($form);
 
     $feeLines = [];
@@ -464,7 +464,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return FALSE;
     }
 
-    $eventIds = $webform_submission_data['event_ids'];
+    $eventIds = $webform_submission_data['exam_preference'] ?: $webform_submission_data['select_exam_parts'];
 
     // fetch event details for line items
     // (and to validate the events exist)
@@ -802,12 +802,20 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return;
     }
 
-    $eventIds = $formState->getValue('event_ids');
+    $eventIds = $this->getSelectedEvents($formState);
 
     if ($examFee !== $this->getPayableNowAmount($eventIds)) {
       $formState->setErrorByName('exam_fee_markup', $this->t('Payable amount is incorrect'));
       return;
     }
+  }
+
+  /**
+   * Usually events are selected with the select_exam_parts field,
+   * but for plumbing the value will be found in exam_preference
+   */
+  private function getSelectedEvents(FormStateInterface $formState) {
+    return $formState->getValue('exam_preference') ?: $formState->getValue('select_exam_parts');
   }
 
   /*
@@ -1053,8 +1061,22 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $elements['select_exam_parts']['#options'] = array_map(fn ($event) => $event['title'], $events);
     }
 
+    // populate exam category selector based on available events
+    if (isset($elements['select_exam_category'])) {
+      $categories = [];
+
+      foreach ($events as $event) {
+        $categoryId = "{$event['event_type_id']}";
+        $categoryLabel = $event['event_type_id:label'];
+        $categories[$categoryId] = $categoryLabel;
+      }
+      asort($categories);
+      $elements['select_exam_category']['#options'] = $categories;
+    }
+
+    // this field provides a map from event id to category on the front end
     if (isset($elements['event_ids'])) {
-      $elements['event_ids']['#options'] = array_map(fn ($event) => $event['title'], $events);
+      $elements['event_ids']['#options'] = array_map(fn ($event) => $event['event_type_id'], $events);
     }
 
     // exam preference is specifically for plumbing exams, and
@@ -1071,7 +1093,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         return implode(' - ', array_filter([
           $event['title'],
           $event['loc_block_id.address_id.city'],
-          $event['start_date'],
+          date('Y-m-d', \strtotime($event['start_date'])),
         ]));
       }, $plumbingEvents);
     }
@@ -1085,7 +1107,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   protected function getEventRegistrationOptions(?int $contactId): array {
     //  Get all events with space remaining or no space cap
     $events = (array) \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id', 'title', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'start_date', 'loc_block_id.address_id.city')
+      ->addSelect('id', 'title', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'event_type_id:label', 'start_date', 'loc_block_id.address_id.city')
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('is_online_registration', '=', TRUE)
       ->addWhere('is_template', '!=', TRUE)

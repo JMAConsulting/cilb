@@ -435,20 +435,6 @@ elements: |-
             view_name: exam_type
             display_name: entity_reference_1
             arguments: {  }
-  exam_category_id:
-    '#type': webform_entity_select
-    '#title': 'Exam Category ID'
-    '#empty_option': '- Select Category -'
-    '#states_clear': false
-    '#wrapper_attributes':
-      style: 'display: none;'
-    '#target_type': civicrm_option_value
-    '#selection_handler': views
-    '#selection_settings':
-      view:
-        view_name: exam_type
-        display_name: entity_reference_1
-        arguments: {  }
   definition_scope_of_practice:
     '#type': webform_wizard_page
     '#title': 'Scope of Practice'
@@ -476,10 +462,6 @@ elements: |-
         '#multiple': true
         '#select2': true
         '#required': true
-        '#states':
-          visible:
-            ':input[name="exam_category_id"]':
-              '!value': '900'
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':
@@ -493,12 +475,6 @@ elements: |-
         '#select2': true
         '#multiple': true
         '#required': true
-        '#states':
-          visible:
-            ':input[name="select_exam_category"]':
-              value: '900'
-            ':input[name="select_exam_parts[]"]':
-              filled: true
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':
@@ -508,25 +484,21 @@ elements: |-
             arguments: {  }
       location_detail:
         '#type': webform_markup
-        '#states':
-          visible:
-            ':input[name="select_exam_category"]':
-              value: '900'
         '#markup': '<h5>Location:</h5><div id="location_detail">&nbsp;</div>'
-  event_ids:
-    '#type': webform_entity_select
-    '#title': 'Event IDs'
-    '#multiple': true
-    '#states_clear': false
-    '#wrapper_attributes':
-      style: 'display: none;'
-    '#target_type': civicrm_event
-    '#selection_handler': views
-    '#selection_settings':
-      view:
-        view_name: exams
-        display_name: entity_reference_1
-        arguments: {  }
+      event_ids:
+        '#type': webform_entity_select
+        '#title': 'Event IDs'
+        '#multiple': true
+        '#states_clear': false
+        '#wrapper_attributes':
+          style: 'display: none;'
+        '#target_type': civicrm_event
+        '#selection_handler': views
+        '#selection_settings':
+          view:
+            view_name: exams
+            display_name: entity_reference_1
+            arguments: {  }
   exam_fee_page:
     '#type': webform_wizard_page
     '#title': 'Exam Fee'

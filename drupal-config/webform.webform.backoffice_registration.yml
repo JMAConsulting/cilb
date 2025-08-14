@@ -387,33 +387,29 @@ elements: |-
       '#readonly': true
       '#wrapper_attributes':
         style: 'display: none;'
-    exam_category_id:
-      '#type': webform_entity_select
-      '#title': 'Exam Category ID'
-      '#empty_option': '- Select Category -'
-      '#states_clear': false
-      '#wrapper_attributes':
-        style: 'display: none;'
-      '#target_type': civicrm_option_value
-      '#selection_handler': views
-      '#selection_settings':
-        view:
-          view_name: exam_type
-          display_name: entity_reference_1
-          arguments: {  }
     select_exam:
       '#type': fieldset
       '#title': 'Select Examination'
+      event_ids:
+        '#type': webform_entity_select
+        '#title': 'Event ID to Category Map'
+        '#multiple': false
+        '#states_clear': false
+        '#wrapper_attributes':
+          style: 'display: none;'
+        '#target_type': civicrm_event
+        '#selection_handler': views
+        '#selection_settings':
+          view:
+            view_name: exams
+            display_name: entity_reference_1
+            arguments: {  }
       select_exam_parts:
         '#type': webform_entity_select
         '#title': 'Select examination part(s):'
         '#multiple': true
         '#select2': true
         '#required': true
-        '#states':
-          visible:
-            ':input[name="exam_category_id"]':
-              '!value': '900'
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':
@@ -427,12 +423,6 @@ elements: |-
         '#select2': true
         '#multiple': true
         '#required': true
-        '#states':
-          visible:
-            ':input[name="select_exam_category"]':
-              value: '900'
-            ':input[name="select_exam_parts[]"]':
-              filled: true
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':
@@ -440,20 +430,6 @@ elements: |-
             view_name: exams
             display_name: entity_reference_3
             arguments: {  }
-    event_ids:
-      '#type': webform_entity_select
-      '#title': 'Event IDs'
-      '#multiple': true
-      '#states_clear': false
-      '#wrapper_attributes':
-        style: 'display: none;'
-      '#target_type': civicrm_event
-      '#selection_handler': views
-      '#selection_settings':
-        view:
-          view_name: exams
-          display_name: entity_reference_1
-          arguments: {  }
   exam_fee_page:
     '#type': webform_wizard_page
     '#title': 'Exam Fee'
