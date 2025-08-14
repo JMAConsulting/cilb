@@ -1028,4 +1028,99 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     } while ($alreadyUsed);
     return $trxnId;
   }
+
+
+  /**
+   * @param ?int $contactId the contact who is registering or being registered (if using backend form)
+   *   or NULL if this is a new contact (so no contact specific filters should apply)
+   * @return int[] array of event ids for valid registration options
+   */
+  public static function getEventRegistrationOptions(?int $contactId): array {
+
+    // Check to make sure exams are not full
+    $events = \Civi\Api4\Event::get(FALSE)
+      ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'start_date')
+      ->addWhere('is_active', '=', TRUE)
+      //->addWhere('start_date', '>', 'now')
+      //      ->addWhere('is_online_registration', '=', TRUE)
+      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
+      ->execute();
+
+    // check for existing registrations that mean we cant reregister for an exam
+    //
+    // NOTES:
+    // - previous registrations where the result is FAIL or CANCELLED are excluded (need to be able to retake)
+    // - previous registrations where the admin has set Bypass are excluded (this is used for cases
+    //   where e.g. candidates need to retake after 3 years)
+    // - the logic is different depending on whether the Exam Part is "Category Specific":
+    //     category specific => only exclude registration is for the same part AND same category
+    //     otherwise => exclude if registration for any exam for the same part, regardless of category
+    //
+    $categorySpecificExclusions = [];
+    $generalExclusions = [];
+
+    // only check if someone is logged in
+    if (!empty($contactId)) {
+
+      $examPartCategorySpecificity = \Civi\Api4\OptionValue::get(FALSE)
+        ->addWhere('option_group_id:name', '=', 'Exam_Part')
+        ->addSelect('value', 'Exam_Part_Options.Category_Specific')
+        ->execute()
+        ->indexBy('value')
+        ->column('Exam_Part_Options.Category_Specific');
+
+      $previousRegistrations = \Civi\Api4\Participant::get(FALSE)
+        ->addSelect('event_id.Exam_Details.Exam_Part', 'event_id.event_type_id', 'event_id', 'status_id:name')
+        ->addJoin('Event AS event', 'INNER', ['event.id', '=', 'event_id'])
+        ->addWhere('contact_id', '=', $contactId)
+        ->addWhere('status_id:name', 'NOT IN', ['Fail', 'Cancelled'])
+        ->addWhere('Candidate_Result.Bypass_Reregistration_Check', 'IS EMPTY')
+        ->execute()
+        ->indexBy('event_id')
+        ->getArrayCopy();
+
+      foreach ($previousRegistrations as $previousReg) {
+        // part = Trade Knowledge or Business & Finance or ...
+        $previousRegPart = $previousReg['event_id.Exam_Details.Exam_Part'];
+
+        if ($examPartCategorySpecificity[$previousRegPart]) {
+          // initialise sub array for this part if not seen before
+          $categorySpecificExclusions[$previousRegPart] ??= [];
+          // sub-array of types, e.g. Air A, Air B
+          $categorySpecificExclusions[$previousRegPart][] = $previousReg['event_id.event_type_id'];
+        } else {
+          $generalExclusions[] = $previousRegPart;
+        }
+      }
+    }
+    $valid_events = [];
+    foreach ($events as $event) {
+      $eventPart = $event['Exam_Details.Exam_Part'] ?? '';
+
+      if (in_array($eventPart, $generalExclusions)) {
+        // existing reg for this part, and its not category specific => skip
+        continue;
+      }
+
+      $eventCategory = $event['event_type_id'];
+
+      if (
+        in_array($eventCategory, $categorySpecificExclusions[$eventPart] ?? [])
+      ) {
+        // we have an existing reg for the same part and category => skip
+        continue;
+      }
+
+      if ($eventPart == 'TK' && $event['event_type_id:name'] == "Plumbing" && (date('Ymd', strtotime($event['start_date'])) < date('Ymd')) && $view->current_display == 'entity_reference_3') {
+        // Only show future TK Plumbing exams
+        continue;
+      }
+
+      // no matching previous => add to valid events
+      $valid_events[] = $event['id'];
+    }
+
+    return $valid_events;
+  }
+
 }

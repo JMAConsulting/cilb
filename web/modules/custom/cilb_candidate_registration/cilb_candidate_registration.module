@@ -4,6 +4,7 @@ use Drupal\webform\Utility\WebformFormHelper;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\block\Entity\Block;
+use Drupal\cilb_candidate_registration\Plugin\WebformHandler\CilbCandidateRegistrationWebformHandler;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 
@@ -98,93 +99,13 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
     $submittedValues = $_POST;
     $selectedContact = $submittedValues['civicrm_1_contact_1_contact_existing'] ?? (
       (array_key_exists('civicrm_1_contact_1_contact_existing', $submittedValues) && empty($submittedValues['civicrm_1_contact_1_contact_existing'])) ? NULL : \CRM_Core_Session::getLoggedInContactID());
-        
-    // Check to make sure exams are not full
-    $events = \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'start_date')
-      ->addWhere('is_active', '=', TRUE)
-      //->addWhere('start_date', '>', 'now')
-      //      ->addWhere('is_online_registration', '=', TRUE)
-      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
-      ->execute();
 
-    // check for existing registrations that mean we cant reregister for an exam
-    //
-    // NOTES:
-    // - previous registrations where the result is FAIL or CANCELLED are excluded (need to be able to retake)
-    // - previous registrations where the admin has set Bypass are excluded (this is used for cases
-    //   where e.g. candidates need to retake after 3 years)
-    // - the logic is different depending on whether the Exam Part is "Category Specific":
-    //     category specific => only exclude registration is for the same part AND same category
-    //     otherwise => exclude if registration for any exam for the same part, regardless of category
-    //
-    $categorySpecificExclusions = [];
-    $generalExclusions = [];
-
-    // only check if someone is logged in
-    if (!empty($selectedContact)) {
-
-      $examPartCategorySpecificity = \Civi\Api4\OptionValue::get(FALSE)
-        ->addWhere('option_group_id:name', '=', 'Exam_Part')
-        ->addSelect('value', 'Exam_Part_Options.Category_Specific')
-        ->execute()
-        ->indexBy('value')
-        ->column('Exam_Part_Options.Category_Specific');
-
-      $previousRegistrations = \Civi\Api4\Participant::get(FALSE)
-        ->addSelect('event_id.Exam_Details.Exam_Part', 'event_id.event_type_id', 'event_id', 'status_id:name')
-        ->addJoin('Event AS event', 'INNER', ['event.id', '=', 'event_id'])
-        ->addWhere('contact_id', '=', $selectedContact)
-        ->addWhere('status_id:name', 'NOT IN', ['Fail', 'Cancelled'])
-        ->addWhere('Candidate_Result.Bypass_Reregistration_Check', 'IS EMPTY')
-        ->execute()
-        ->indexBy('event_id')
-        ->getArrayCopy();
-
-      foreach ($previousRegistrations as $previousReg) {
-        // part = Trade Knowledge or Business & Finance or ...
-        $previousRegPart = $previousReg['event_id.Exam_Details.Exam_Part'];
-
-        if ($examPartCategorySpecificity[$previousRegPart]) {
-          // initialise sub array for this part if not seen before
-          $categorySpecificExclusions[$previousRegPart] ??= [];
-          // sub-array of types, e.g. Air A, Air B
-          $categorySpecificExclusions[$previousRegPart][] = $previousReg['event_id.event_type_id'];
-        } else {
-          $generalExclusions[] = $previousRegPart;
-        }
-      }
-    }
-    $valid_events = [];
-    foreach ($events as $event) {
-      $eventPart = $event['Exam_Details.Exam_Part'] ?? '';
-
-      if (in_array($eventPart, $generalExclusions)) {
-        // existing reg for this part, and its not category specific => skip
-        continue;
-      }
-
-      $eventCategory = $event['event_type_id'];
-
-      if (
-        in_array($eventCategory, $categorySpecificExclusions[$eventPart] ?? [])
-      ) {
-        // we have an existing reg for the same part and category => skip
-        continue;
-      }
-
-      if ($eventPart == 'TK' && $event['event_type_id:name'] == "Plumbing" && (date('Ymd', strtotime($event['start_date'])) < date('Ymd')) && $view->current_display == 'entity_reference_3') {
-        // Only show future TK Plumbing exams
-        continue;
-      }
-
-      // no matching previous => add to valid events
-      $valid_events[] = $event['id'];
-    }
+    $valid_events = CilbCandidateRegistrationWebformHandler::getEventRegistrationOptions($selectedContact);
 
     if (!empty($valid_events)) {
       $query->addWhere('AND', 'civicrm_event.id', $valid_events, 'IN');
-    } else {
+    }
+    else {
       $query->addWhere('AND', 'civicrm_event.id', '0', '=');
     }
   }
