@@ -1037,8 +1037,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    */
   public static function getEventRegistrationOptions(?int $contactId): array {
 
-    // Check to make sure exams are not full
-    $events = \Civi\Api4\Event::get(FALSE)
+    //  Get all events with space remaining or no space cap
+    $events = (array) \Civi\Api4\Event::get(FALSE)
       ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'start_date')
       ->addWhere('is_active', '=', TRUE)
       //->addWhere('start_date', '>', 'now')
@@ -1046,81 +1046,97 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
       ->execute();
 
-    // check for existing registrations that mean we cant reregister for an exam
-    //
-    // NOTES:
-    // - previous registrations where the result is FAIL or CANCELLED are excluded (need to be able to retake)
-    // - previous registrations where the admin has set Bypass are excluded (this is used for cases
-    //   where e.g. candidates need to retake after 3 years)
-    // - the logic is different depending on whether the Exam Part is "Category Specific":
-    //     category specific => only exclude registration is for the same part AND same category
-    //     otherwise => exclude if registration for any exam for the same part, regardless of category
-    //
-    $categorySpecificExclusions = [];
-    $generalExclusions = [];
+    // if existing contact, check for existing registrations that mean we cant reregister for an exam
+    if ($contactId) {
+      $events = self::filterRegisterableEventsForContact($events, $contactId);
+    }
 
-    // only check if someone is logged in
-    if (!empty($contactId)) {
+    // exclude Plumbing TK exams that are in the past
+    $events = array_filter($events, function ($event) {
+      if (
+        ($event['event_type_id:name'] === "Plumbing")
+        && ($event['Exam_Details.Exam_Part'] === 'TK')
+        && (date('Ymd', strtotime($event['start_date'])) < date('Ymd'))
+        // TO CHECK: why would this have only applied to view 3
+        // && $view->current_display == 'entity_reference_3') {
+      ) {
+        return FALSE;
+      }
+      return TRUE;
+    });
 
-      $examPartCategorySpecificity = \Civi\Api4\OptionValue::get(FALSE)
-        ->addWhere('option_group_id:name', '=', 'Exam_Part')
-        ->addSelect('value', 'Exam_Part_Options.Category_Specific')
-        ->execute()
-        ->indexBy('value')
-        ->column('Exam_Part_Options.Category_Specific');
+    return array_map(fn ($event) => $event['id'], $events);
+  }
 
-      $previousRegistrations = \Civi\Api4\Participant::get(FALSE)
-        ->addSelect('event_id.Exam_Details.Exam_Part', 'event_id.event_type_id', 'event_id', 'status_id:name')
-        ->addJoin('Event AS event', 'INNER', ['event.id', '=', 'event_id'])
-        ->addWhere('contact_id', '=', $contactId)
-        ->addWhere('status_id:name', 'NOT IN', ['Fail', 'Cancelled'])
-        ->addWhere('Candidate_Result.Bypass_Reregistration_Check', 'IS EMPTY')
-        ->execute()
-        ->indexBy('event_id')
-        ->getArrayCopy();
+  /**
+   * NOTES:
+   * - previous registrations where the result is FAIL or CANCELLED are excluded (need to be able to retake)
+   * - previous registrations where the admin has set Bypass are excluded (this is used for cases
+   *   where e.g. candidates need to retake after 3 years)
+   * - the logic is different depending on whether the Exam Part is "Category Specific":
+   *     category specific => only exclude registration is for the same part AND same category
+   *     otherwise => exclude if registration for any exam for the same part, regardless of category
+   *
+   */
+  protected static function filterRegisterableEventsForContact(array $events, int $contactId): array {
+    $exclusions = [];
 
-      foreach ($previousRegistrations as $previousReg) {
-        // part = Trade Knowledge or Business & Finance or ...
-        $previousRegPart = $previousReg['event_id.Exam_Details.Exam_Part'];
+    $examPartCategorySpecificity = (array) \Civi\Api4\OptionValue::get(FALSE)
+      ->addWhere('option_group_id:name', '=', 'Exam_Part')
+      ->addSelect('value', 'Exam_Part_Options.Category_Specific')
+      ->execute()
+      ->indexBy('value')
+      ->column('Exam_Part_Options.Category_Specific');
 
-        if ($examPartCategorySpecificity[$previousRegPart]) {
-          // initialise sub array for this part if not seen before
-          $categorySpecificExclusions[$previousRegPart] ??= [];
-          // sub-array of types, e.g. Air A, Air B
-          $categorySpecificExclusions[$previousRegPart][] = $previousReg['event_id.event_type_id'];
-        } else {
-          $generalExclusions[] = $previousRegPart;
+    $previousRegistrations = (array) \Civi\Api4\Participant::get(FALSE)
+      ->addSelect('event_id.Exam_Details.Exam_Part', 'event_id.event_type_id', 'event_id', 'status_id:name')
+      ->addJoin('Event AS event', 'INNER', ['event.id', '=', 'event_id'])
+      ->addWhere('contact_id', '=', $contactId)
+      ->addWhere('status_id:name', 'NOT IN', ['Fail', 'Cancelled'])
+      ->addWhere('Candidate_Result.Bypass_Reregistration_Check', 'IS EMPTY')
+      ->execute()
+      ->indexBy('event_id');
+
+    foreach ($previousRegistrations as $previousReg) {
+      // part = Trade Knowledge or Business & Finance or ...
+      $previousRegPart = $previousReg['event_id.Exam_Details.Exam_Part'];
+
+      if ($examPartCategorySpecificity[$previousRegPart]) {
+        // if registrations for this part are category specific,
+        // exclude events that match the Part AND Category
+        $exclusions[] = [
+          // part
+          'Exam_Details.Exam_Part' => $previousReg['event_id.Exam_Details.Exam_Part'],
+          // category
+          'event_type_id' => $previousReg['event_id.event_type_id'],
+        ];
+      }
+      else {
+        // events only need to match the part to be excluded
+        $exclusions[] = [
+          'Exam_Details.Exam_Part' => $previousRegPart,
+        ];
+      }
+    }
+
+    // apply our exclusions to the event list
+    return array_filter($events, function ($event) use ($exclusions) {
+      foreach ($exclusions as $exclusion) {
+        if (self::exclusionMatch($event, $exclusion)) {
+          return FALSE;
         }
       }
+      return TRUE;
+    });
+  }
+
+  private static function exclusionMatch($event, $exclusion) {
+    foreach ($exclusion as $key => $value) {
+      if ($event[$key] !== $value) {
+        return FALSE;
+      }
     }
-    $valid_events = [];
-    foreach ($events as $event) {
-      $eventPart = $event['Exam_Details.Exam_Part'] ?? '';
-
-      if (in_array($eventPart, $generalExclusions)) {
-        // existing reg for this part, and its not category specific => skip
-        continue;
-      }
-
-      $eventCategory = $event['event_type_id'];
-
-      if (
-        in_array($eventCategory, $categorySpecificExclusions[$eventPart] ?? [])
-      ) {
-        // we have an existing reg for the same part and category => skip
-        continue;
-      }
-
-      if ($eventPart == 'TK' && $event['event_type_id:name'] == "Plumbing" && (date('Ymd', strtotime($event['start_date'])) < date('Ymd')) && $view->current_display == 'entity_reference_3') {
-        // Only show future TK Plumbing exams
-        continue;
-      }
-
-      // no matching previous => add to valid events
-      $valid_events[] = $event['id'];
-    }
-
-    return $valid_events;
+    return TRUE;
   }
 
 }
