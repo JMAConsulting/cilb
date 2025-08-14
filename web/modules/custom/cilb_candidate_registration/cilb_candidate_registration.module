@@ -95,18 +95,5 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
     } else {
       $query->addWhere('AND', 'civicrm_option_value.id', '0', '=');
     }
-  } elseif ($view->id() == 'exams' && ($view->current_display == 'entity_reference_1' || $view->current_display == 'entity_reference_3')) {
-    $submittedValues = $_POST;
-    $selectedContact = $submittedValues['civicrm_1_contact_1_contact_existing'] ?? (
-      (array_key_exists('civicrm_1_contact_1_contact_existing', $submittedValues) && empty($submittedValues['civicrm_1_contact_1_contact_existing'])) ? NULL : \CRM_Core_Session::getLoggedInContactID());
-
-    $valid_events = CilbCandidateRegistrationWebformHandler::getEventRegistrationOptions($selectedContact);
-
-    if (!empty($valid_events)) {
-      $query->addWhere('AND', 'civicrm_event.id', $valid_events, 'IN');
-    }
-    else {
-      $query->addWhere('AND', 'civicrm_event.id', '0', '=');
-    }
   }
 }

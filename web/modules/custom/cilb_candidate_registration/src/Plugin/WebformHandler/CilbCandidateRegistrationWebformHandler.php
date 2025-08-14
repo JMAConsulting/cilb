@@ -2,6 +2,7 @@
 
 namespace Drupal\cilb_candidate_registration\Plugin\WebformHandler;
 
+use CRM_Core_Session;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\webform\WebformSubmissionInterface;
 use Drupal\webform\Plugin\WebformHandlerBase;
@@ -59,6 +60,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     switch ($webform_submission->getCurrentPage()) {
       case 'registrant_personal_info':
         $this->registeringOnBehalfMessage($form_state);
+        break;
+
+      case 'select_exam_page':
+      case 'exam_information':
+        $this->setEventOptions($form, $form_state);
         break;
 
       case 'authorize_credit_card_charge':
@@ -1029,22 +1035,64 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     return $trxnId;
   }
 
+  protected function setEventOptions($form, $form_state) {
+    $elements = WebformFormHelper::flattenElements($form);
+
+    if ($form['#webform_id'] === 'backoffice_registration') {
+      // never use the logged in contact
+      // but check selected existing contact
+      $registrantContact = (int) $form_state->getValue('civicrm_1_contact_1_contact_existing');
+    }
+    else {
+      $registrantContact = CRM_Core_Session::getLoggedInContactID();
+    }
+
+    $events = $this->getEventRegistrationOptions($registrantContact);
+
+    if (isset($elements['select_exam_parts'])) {
+      $elements['select_exam_parts']['#options'] = array_map(fn ($event) => $event['title'], $events);
+    }
+
+    if (isset($elements['event_ids'])) {
+      $elements['event_ids']['#options'] = array_map(fn ($event) => $event['title'], $events);
+    }
+
+    // exam preference is specifically for plumbing exams, and
+    // requires more detail than just title
+    if (isset($elements['exam_preference'])) {
+      $plumbingEvents = array_filter($events, fn ($event) => ($event['event_type_id:name'] === 'Plumbing'));
+
+
+      $elements['exam_preference']['#options'] = array_map(function ($event) {
+        if ($event['Exam_Details.Exam_Part'] === 'BF') {
+          return $event['title'];
+        }
+
+        return implode(' - ', array_filter([
+          $event['title'],
+          $event['loc_block_id.address_id.city'],
+          $event['start_date'],
+        ]));
+      }, $plumbingEvents);
+    }
+  }
 
   /**
    * @param ?int $contactId the contact who is registering or being registered (if using backend form)
    *   or NULL if this is a new contact (so no contact specific filters should apply)
    * @return int[] array of event ids for valid registration options
    */
-  public static function getEventRegistrationOptions(?int $contactId): array {
-
+  protected function getEventRegistrationOptions(?int $contactId): array {
     //  Get all events with space remaining or no space cap
     $events = (array) \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'start_date')
+      ->addSelect('id', 'title', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'start_date', 'loc_block_id.address_id.city')
       ->addWhere('is_active', '=', TRUE)
+      ->addWhere('is_online_registration', '=', TRUE)
+      ->addWhere('is_template', '!=', TRUE)
       //->addWhere('start_date', '>', 'now')
-      //      ->addWhere('is_online_registration', '=', TRUE)
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
-      ->execute();
+      ->execute()
+      ->indexBy('id');
 
     // if existing contact, check for existing registrations that mean we cant reregister for an exam
     if ($contactId) {
@@ -1057,15 +1105,14 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ($event['event_type_id:name'] === "Plumbing")
         && ($event['Exam_Details.Exam_Part'] === 'TK')
         && (date('Ymd', strtotime($event['start_date'])) < date('Ymd'))
-        // TO CHECK: why would this have only applied to view 3
-        // && $view->current_display == 'entity_reference_3') {
       ) {
         return FALSE;
       }
       return TRUE;
     });
 
-    return array_map(fn ($event) => $event['id'], $events);
+
+    return $events;
   }
 
   /**
@@ -1078,7 +1125,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    *     otherwise => exclude if registration for any exam for the same part, regardless of category
    *
    */
-  protected static function filterRegisterableEventsForContact(array $events, int $contactId): array {
+  protected function filterRegisterableEventsForContact(array $events, int $contactId): array {
     $exclusions = [];
 
     $examPartCategorySpecificity = (array) \Civi\Api4\OptionValue::get(FALSE)
