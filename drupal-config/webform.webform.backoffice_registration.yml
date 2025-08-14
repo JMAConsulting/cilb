@@ -409,7 +409,7 @@ elements: |-
         '#title': 'Select examination part(s):'
         '#multiple': true
         '#select2': true
-        '#required': true
+        '#required': false
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':
@@ -422,7 +422,7 @@ elements: |-
         '#title': 'Exam preference:'
         '#select2': true
         '#multiple': true
-        '#required': true
+        '#required': false
         '#target_type': civicrm_event
         '#selection_handler': views
         '#selection_settings':

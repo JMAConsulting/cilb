@@ -68,6 +68,7 @@ jQuery(document).ready(function($) {
       }
       const toggleInput = (input, on) => {
         input.parentElement.style.display = on ? 'block' : 'none';
+        input.toggleAttribute('required', on);
         if (!on) {
           input.value = null;
         }

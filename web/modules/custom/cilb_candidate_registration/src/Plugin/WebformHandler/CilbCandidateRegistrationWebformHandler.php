@@ -262,6 +262,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   private function setContributionAmount(array &$form, FormStateInterface $formState) {
     $eventIds = $this->getSelectedEvents($formState);
     if (!$eventIds) {
+      $formState->setErrorByName('select_exam', $this->t('You must select at least one exam'));
       return;
     }
     $amount = $this->getPayableNowAmount($eventIds);
