@@ -38,6 +38,9 @@ class ImportRegistrations extends ImportBase {
       $type = $event['event_type_id:name'];
       $part = $event['Exam_Details.Exam_Part'];
       $this->eventMap[$type] ??= [];
+      if (isset($this->eventMap[$type][$part])) {
+        throw new \CRM_Core_Exception("Duplicate event exists for type {$type} {$part}");
+      }
       $this->eventMap[$type][$part] = $event['id'];
     }
   }

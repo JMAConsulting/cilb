@@ -71,21 +71,51 @@ class ImportExams extends ImportBase {
         `pti_Category_Exam_Parts_DBPR_Xref` as `dbpr_info`
     ON
         `part`.`PK_Exam_Part_ID` = `dbpr_info`.`PK_Exam_Part_ID`
-      ") as $event) {
+      ") as $sourceEvent) {
 
+
+      $eventValues = $this->mapEventFields($sourceEvent);
+
+      $match = \Civi\Api4\Event::get(FALSE)
+        ->addSelect(...array_keys($eventValues))
+        ->addWhere('event_type_id:name', '=', $eventValues['event_type_id:name'])
+        ->addWhere('Exam_Details.Exam_Part', '=', $eventValues['Exam_Details.Exam_Part'])
+        ->execute()
+        ->first();
+
+      if ($match) {
+        $this->debug("Found existing event for {$eventValues['title']}");
+        foreach ($eventValues as $key => $value) {
+          $existingValue = $match[$key];
+          if ($existingValue !== $value) {
+            $this->warning("Imperfect match on {$key} - discarding import value {$value}, leaving existing {$existingValue}");
+          }
+        }
+        continue;
+      }
+
+      // no match, create new event
+      $this->debug("Importing event {$eventValues['title']}");
       \Civi\Api4\Event::create(FALSE)
-        ->addValue('event_type_id:name', $event['Category_Name'])
-        ->addValue('start_date', $event['Begin_Date'])
-        ->addValue('title', $event['Category_Name'] . ' - ' . $event['Exam_Part_Name'])
-        ->addValue('is_online_registration', TRUE)
-        ->addValue('Exam_Details.imported_id', $event['PK_Exam_Part_ID'])
-        ->addValue('Exam_Details.Exam_Series_Code', $event['Exam_Series_Code'] ?? NULL)
-        ->addValue('Exam_Details.Exam_Question_Count', $event['Number_Exam_Questions'] ?? NULL)
+        ->setValues($eventValues)
+        ->execute();
+
+    }
+  }
+
+  protected function mapEventFields(array $sourceEvent): array {
+    return [
+        'event_type_id:name' => $sourceEvent['Category_Name'],
+        'start_date' => $sourceEvent['Begin_Date'],
+        'title' => $sourceEvent['Category_Name'] . ' - ' . $sourceEvent['Exam_Part_Name'],
+        'is_online_registration' => TRUE,
+        'Exam_Details.imported_id' => $sourceEvent['PK_Exam_Part_ID'],
+        'Exam_Details.Exam_Series_Code' => $sourceEvent['Exam_Series_Code'] ?? NULL,
+        'Exam_Details.Exam_Question_Count' => $sourceEvent['Number_Exam_Questions'] ?? NULL,
           // option values for exam parts created as managed record
           // @see managed/OptionGroup_EventPart.mgd.php
-        ->addValue('Exam_Details.Exam_Part', $event['Exam_Part_Name_Abbr'])
-        ->addValue('Exam_Details.Exam_Part_Sequence', $event['Exam_Part_Sequence'])
-        ->execute();
-    }
+        'Exam_Details.Exam_Part' => $sourceEvent['Exam_Part_Name_Abbr'],
+        'Exam_Details.Exam_Part_Sequence' => $sourceEvent['Exam_Part_Sequence'],
+      ];
   }
 }
