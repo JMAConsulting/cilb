@@ -62,8 +62,22 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $this->registeringOnBehalfMessage($form_state);
         break;
 
+      case 'select_category_page':
+        $this->setCategoryOptions($form, $form_state);
+        break;
+
       case 'select_exam_page':
+        // on frontend form:
+        // - the event category is selected on an earlier page, so this will limit the options directly
+        // - limit options based on logged in contact, or none
+        $this->setEventOptions($form, $form_state);
+        break;
+
       case 'exam_information':
+        // on backoffice form:
+        // - provide all options, filter on the fly (see examSelection.js)
+        // - limit options based on selected contact, rather than logged in
+        $this->setCategoryOptions($form, $form_state);
         $this->setEventOptions($form, $form_state);
         break;
 
@@ -250,7 +264,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->addWhere("value", "=", $catId)
       ->addWhere('option_group_id:name', '=', 'event_type')
       ->execute()
-      ->first() : [];
+      ->first() : NULL;
+
+    if (!$category) {
+      $elements['scope_markup']['#markup'] = "[No category selected]";
+      $elements['definition_scope_of_practice_1']['#title'] = $this->t('Definition & Scope of Practice');
+      return;
+    }
 
     // note this needs to work if we go back and change the category and/or the category is not found
     $elements['scope_markup']['#markup'] = $category['description'] ?: "[Exam category description missing]";
@@ -1045,24 +1065,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     return $trxnId;
   }
 
-  protected function setEventOptions($form, $form_state) {
-    $elements = WebformFormHelper::flattenElements($form);
-
+  protected function getRegistrantContact($form, $form_state) {
     if ($form['#webform_id'] === 'backoffice_registration') {
       // never use the logged in contact
       // but check selected existing contact
-      $registrantContact = (int) $form_state->getValue('civicrm_1_contact_1_contact_existing');
+      return (int) $form_state->getValue('civicrm_1_contact_1_contact_existing');
     }
-    else {
-      $registrantContact = CRM_Core_Session::getLoggedInContactID();
-    }
+    return CRM_Core_Session::getLoggedInContactID();
+  }
 
-    $events = $this->getEventRegistrationOptions($registrantContact);
-
-    if (isset($elements['select_exam_parts'])) {
-      $elements['select_exam_parts']['#options'] = array_map(fn ($event) => $event['title'], $events);
-    }
-
+  protected function setCategoryOptions($form, $form_state) {
+    $elements = WebformFormHelper::flattenElements($form);
+    $events = $this->getEventRegistrationOptions($form, $form_state);
     // populate exam category selector based on available events
     if (isset($elements['select_exam_category'])) {
       $categories = [];
@@ -1074,6 +1088,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
       asort($categories);
       $elements['select_exam_category']['#options'] = $categories;
+    }
+  }
+
+  protected function setEventOptions($form, $form_state) {
+    $elements = WebformFormHelper::flattenElements($form);
+
+    $events = $this->getEventRegistrationOptions($form, $form_state);
+
+    if (isset($elements['select_exam_parts'])) {
+      $elements['select_exam_parts']['#options'] = array_map(fn ($event) => $event['title'], $events);
     }
 
     // this field provides a map from event id to category on the front end
@@ -1102,23 +1126,31 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   }
 
   /**
-   * @param ?int $contactId the contact who is registering or being registered (if using backend form)
-   *   or NULL if this is a new contact (so no contact specific filters should apply)
    * @return int[] array of event ids for valid registration options
    */
-  protected function getEventRegistrationOptions(?int $contactId): array {
-    //  Get all events with space remaining or no space cap
-    $events = (array) \Civi\Api4\Event::get(FALSE)
+  protected function getEventRegistrationOptions($form, $form_state): array {
+    // Fetch events with space remaining or no space cap
+    $eventFetch = \Civi\Api4\Event::get(FALSE)
       ->addSelect('id', 'title', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'event_type_id:label', 'start_date', 'loc_block_id.address_id.city')
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('is_online_registration', '=', TRUE)
       ->addWhere('is_template', '!=', TRUE)
       //->addWhere('start_date', '>', 'now')
-      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
+      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0]);
+
+    // if we have already picked a category on earlier page, we limit this
+    // down
+    $selectedCategory = $form_state->getValue('select_exam_category');
+    if ($selectedCategory) {
+      $eventFetch->addWhere('event_type_id', '=', $selectedCategory);
+    }
+
+    $events = (array) $eventFetch
       ->execute()
       ->indexBy('id');
 
     // if existing contact, check for existing registrations that mean we cant reregister for an exam
+    $contactId = $this->getRegistrantContact($form, $form_state);
     if ($contactId) {
       $events = self::filterRegisterableEventsForContact($events, $contactId);
     }
