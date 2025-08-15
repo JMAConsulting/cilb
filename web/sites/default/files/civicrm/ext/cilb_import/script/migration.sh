@@ -2,33 +2,34 @@
 
 set -e
 
-MIGRATION_NAME=2025-08-07
-CV=docker compose exec civicrm cv
-DB_DUMP=docker compose exec db sh -c 'mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE'
+MIGRATION_NAME=2025-08-15
+DB_DUMP="mysqldump -h db --no-tablespaces --skip-triggers -u $DB_USER -p$DB_PASS $CIVICRM_DB_NAME"
+CUT_OFF_DATE=2019-09-01
+BACKUP_FOLDER=data
 
-mkdir data/$MIGRATION_NAME
+mkdir -p $BACKUP_FOLDER/$MIGRATION_NAME
 
-$CV api4 Cilb.importCandidates cutOffDate=2019-09-01
-$DB_DUMP > data/$MIGRATION_NAME/1-candidates.sql
+cv api4 Cilb.importCandidates cutOffDate=$CUT_OFF_DATE
+$DB_DUMP > $BACKUP_FOLDER/$MIGRATION_NAME/1-candidates.sql
 
-$CV api4 Cilb.importCandidateEntities cutOffDate=2019-09-01
-$DB_DUMP > data/$MIGRATION_NAME/2-candidate-entities.sql
+cv api4 Cilb.importCandidateEntities cutOffDate=$CUT_OFF_DATE
+$DB_DUMP > $BACKUP_FOLDER/$MIGRATION_NAME/2-candidate-entities.sql
 
-$CV api4 Cilb.importExams cutOffDate=2019-09-01
-$DB_DUMP > data/$MIGRATION_NAME/3-exams.sql
+cv api4 Cilb.importExams cutOffDate=$CUT_OFF_DATE
+$DB_DUMP > $BACKUP_FOLDER/$MIGRATION_NAME/3-exams.sql
 
 for YEAR in 2019 2020 2021 2022 2023 2024 2025; do
 
-$CV api4 Cilb.importRegistrations cutOffDate=2019-09-01 transactionYear=$YEAR
-$DB_DUMP > data/$MIGRATION_NAME/4-registrations-$YEAR.sql
+  cv api4 Cilb.importRegistrations cutOffDate=$CUT_OFF_DATE transactionYear=$YEAR
+  $DB_DUMP > $BACKUP_FOLDER/$MIGRATION_NAME/4-$YEAR-1-registrations.sql
 
-$CV api4 Cilb.importRegistrationsBF cutOffDate=2019-09-01 transactionYear=$YEAR
-$DB_DUMP > data/$MIGRATION_NAME/5-registrations-bf-$YEAR.sql
+  cv api4 Cilb.importRegistrationsBF cutOffDate=$CUT_OFF_DATE transactionYear=$YEAR
+  $DB_DUMP > $BACKUP_FOLDER/$MIGRATION_NAME/4-$YEAR-2-registrations-bf.sql
 
-$CV api4 Cilb.importActivities cutOffDate=2019-09-01 transactionYear=$YEAR
-$DB_DUMP > data/$MIGRATION_NAME/6-activities-$YEAR.sql
+  cv api4 Cilb.importActivities cutOffDate=$CUT_OFF_DATE transactionYear=$YEAR
+  $DB_DUMP > $BACKUP_FOLDER/$MIGRATION_NAME/4-$YEAR-3-activities.sql
 
 done
 
-$CV api4 Cilb.importBlockedUsers cutOffDate=2019-09-01
-$DB_DUMP > data/$MIGRATION_NAME/7-blocked-users.sql
+cv api4 Cilb.importBlockedUsers cutOffDate=$CUT_OFF_DATE
+$DB_DUMP > $BACKUP_FOLDER/$MIGRATION_NAME/5-blocked-users.sql
