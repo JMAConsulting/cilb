@@ -77,31 +77,54 @@ class ImportCandidates extends ImportBase {
     }
   }
 
+  protected function getContactId($accountId): ?int {
+    $id = \Civi\Api4\Contact::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('external_identifier', '=', $accountId)
+      ->execute()
+      ->first()['id'] ?? NULL;
+
+    if (!$id) {
+      $this->warning("Contact ID not found when importing linked data for Account ID {$accountId}");
+    }
+    return $id;
+  }
+
   public function importEmails() {
     foreach ($this->selectCandidates(['Email'], ['Email IS NOT NULL']) as $email) {
       if (!$email['Email']) {
         continue;
       }
+      $contactId = $this->getContactId($email['FK_Account_ID']);
       \Civi\Api4\Email::create(FALSE)
         ->addValue('email', $email['Email'])
-        ->addValue('contact_id.external_identifier', $email['FK_Account_ID'])
+        ->addValue('contact_id', $contactId)
         ->execute();
     }
   }
 
   public function importAddresses() {
+    $states = \Civi\Api4\StateProvince::get(FALSE)
+      ->addWhere('country_id', '=', 1228)
+      ->execute()
+      ->indexBy('abbreviation')
+      ->column('id');
+
     foreach ($this->selectCandidates(['Address1', 'Address2', 'City', 'State', 'Zip']) as $address) {
       if (!array_filter($address)) {
         // if all fields are blank, then skip
         continue;
       }
+      $contactId = $this->getContactId($address['FK_Account_ID']);
+      $state = $states[$address['State'] ?? 'NONE'] ?? NULL;
+
       \Civi\Api4\Address::create(FALSE)
-        ->addValue('contact_id.external_identifier', $address['FK_Account_ID'])
-        ->addValue('AddressLine1', $address['Address1'])
-        ->addValue('AddressLine2', $address['Address2'])
-        ->addValue('City', $address['City'])
-        ->addValue('State', $address['State'])
-        ->addValue('Zip', $address['Zip'])
+        ->addValue('contact_id', $contactId)
+        ->addValue('street_address', $address['Address1'])
+        ->addValue('supplemental_address_1', $address['Address2'])
+        ->addValue('city', $address['City'])
+        ->addValue('state_province_id', $state)
+        ->addValue('postal_code', $address['Zip'])
         ->execute();
     }
   }
@@ -112,7 +135,9 @@ class ImportCandidates extends ImportBase {
         // skip if no actual phone number
         continue;
       }
+      $contactId = $this->getContactId($homePhone['FK_Account_ID']);
       \Civi\Api4\Phone::create(FALSE)
+        ->addValue('contact_id', $contactId)
         ->addValue('location_type_id:name', 'Home')
         ->addValue('phone', $homePhone['Home_Phone'])
         ->addValue('phone_ext', $homePhone['Home_Phone_Extension'])
@@ -123,7 +148,9 @@ class ImportCandidates extends ImportBase {
         // skip blanks
         continue;
       }
+      $contactId = $this->getContactId($workPhone['FK_Account_ID']);
       \Civi\Api4\Phone::create(FALSE)
+        ->addValue('contact_id', $contactId)
         ->addValue('location_type_id:name', 'Work')
         ->addValue('phone', $workPhone['Work_Phone'])
         ->addValue('phone_ext', $workPhone['Work_Phone_Extension'])

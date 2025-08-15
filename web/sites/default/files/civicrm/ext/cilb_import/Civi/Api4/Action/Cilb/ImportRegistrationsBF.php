@@ -32,12 +32,20 @@ class ImportRegistrationsBF extends ImportBase {
   protected function buildEventMap() {
     $events = \Civi\Api4\Event::get(FALSE)
       ->addSelect('id', 'event_type_id:name', 'Exam_Details.Exam_Part')
+      ->addWhere('is_active', '=', TRUE)
       ->execute();
 
     foreach ($events as $event) {
       $type = $event['event_type_id:name'];
       $part = $event['Exam_Details.Exam_Part'];
+      if (!$type || !$part) {
+        // not relevant for us
+        continue;
+      }
       $this->eventMap[$type] ??= [];
+      if (isset($this->eventMap[$type][$part])) {
+        throw new \CRM_Core_Exception("Duplicate event exists for type {$type} {$part}");
+      }
       $this->eventMap[$type][$part] = $event['id'];
     }
   }

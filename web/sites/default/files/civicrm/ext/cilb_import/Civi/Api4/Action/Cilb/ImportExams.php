@@ -80,22 +80,25 @@ class ImportExams extends ImportBase {
         ->addSelect(...array_keys($eventValues))
         ->addWhere('event_type_id:name', '=', $eventValues['event_type_id:name'])
         ->addWhere('Exam_Details.Exam_Part', '=', $eventValues['Exam_Details.Exam_Part'])
+        ->addWhere('is_active', '=', TRUE)
         ->execute()
         ->first();
 
       if ($match) {
-        $this->debug("Found existing event for {$eventValues['title']}");
+        $this->info("Found existing event for {$eventValues['title']}");
         foreach ($eventValues as $key => $value) {
           $existingValue = $match[$key];
           if ($existingValue !== $value) {
-            $this->warning("Imperfect match on {$key} - discarding import value {$value}, leaving existing {$existingValue}");
+            if ($existingValue || $value) {
+              $this->warning("Imperfect match on {$key} - discarding import value {$value}, leaving existing {$existingValue}");
+            }
           }
         }
         continue;
       }
 
       // no match, create new event
-      $this->debug("Importing event {$eventValues['title']}");
+      $this->info("Importing event {$eventValues['title']}");
       \Civi\Api4\Event::create(FALSE)
         ->setValues($eventValues)
         ->execute();
