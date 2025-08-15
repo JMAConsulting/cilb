@@ -22,7 +22,6 @@ function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormSt
     // Attach library
     $form['#attached']['library'][] = 'cilb_candidate_registration/candidate_registration';
     $form['#attached']['library'][] = 'cilb_candidate_registration/exam_selection';
-    $form['#attached']['library'][] = 'cilb_candidate_registration/selected_exam_info';
 
     if ($form_id == "webform_submission_register_english_add_form") {
       // Redirect to /register if notification block is disabled

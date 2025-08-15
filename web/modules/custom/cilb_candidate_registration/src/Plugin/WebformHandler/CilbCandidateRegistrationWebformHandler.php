@@ -52,6 +52,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * {@inheritdoc}
    */
   public function alterForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
+    $form['#attached']['library'][] = 'cilb_candidate_registration/candidate_registration';
+    $form['#attached']['library'][] = 'cilb_candidate_registration/exam_selection';
+
     // save typing when testing
     if (\Drupal::request()->get('test_prefill')) {
       $this->testPrefill($form);
@@ -67,18 +70,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         break;
 
       case 'select_exam_page':
-        // on frontend form:
+        // note on frontend form:
         // - the event category is selected on an earlier page, so this will limit the options directly
         // - limit options based on logged in contact, or none
-        $this->setEventOptions($form, $form_state);
+        $this->setEventOptions($form, $form_state, TRUE);
         break;
 
       case 'exam_information':
-        // on backoffice form:
-        // - provide all options, filter on the fly (see examSelection.js)
+        // note on backoffice form:
+        // - provide all event options, filter on the fly (see examSelection.js)
         // - limit options based on selected contact, rather than logged in
-        $this->setCategoryOptions($form, $form_state);
         $this->setEventOptions($form, $form_state);
+        $this->setCategoryOptions($form, $form_state);
         break;
 
       case 'authorize_credit_card_charge':
@@ -257,7 +260,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
   private function renderScope(array &$form, FormStateInterface $form_state): void {
     $elements = WebformFormHelper::flattenElements($form);
-    $catId = $form_state->getValue('select_exam_category');
+    $catId = $form_state->getValue('select_category_id');
 
     $category = $catId ? \Civi\Api4\OptionValue::get(FALSE)
       ->addSelect("label", "description")
@@ -281,18 +284,14 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * Set the total contribution amount based on event ids
    */
   private function setContributionAmount(array &$form, FormStateInterface $formState) {
-    $eventIds = $this->getSelectedEvents($formState);
-    if (!$eventIds) {
-      $formState->setErrorByName('select_exam', $this->t('You must select at least one exam'));
-      return;
-    }
+    $eventIds = $formState->getValue('select_exam_ids');
     $amount = $this->getPayableNowAmount($eventIds);
     $elements = WebformFormHelper::flattenElements($form);
     $elements['civicrm_1_contribution_1_contribution_total_amount']['#default_value'] = $amount;
   }
 
   private function renderFeeTable(array &$form, FormStateInterface $form_state): void {
-    $eventIds = $this->getSelectedEvents($form_state);
+    $eventIds = $form_state->getValue('select_exam_ids');
     $elements = WebformFormHelper::flattenElements($form);
 
     $feeLines = [];
@@ -486,7 +485,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return FALSE;
     }
 
-    $eventIds = $webform_submission_data['exam_preference'] ?: $webform_submission_data['select_exam_parts'];
+    $eventIds = $webform_submission_data['select_exam_ids'];
 
     // fetch event details for line items
     // (and to validate the events exist)
@@ -646,7 +645,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->redirectPayByCheck($form_state);
     } elseif ($current_page == 'select_exam_page') {
       $this->validateParticipantStatus($form_state);
-      $this->validateExamPreference($form_state);
+      $this->validateExamSelection($form_state);
     }
 
     // Backoffice registration
@@ -656,27 +655,33 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateUniqueUser($form_state, $webform_submission);
     } elseif ($current_page == 'exam_information') {
       $this->validateParticipantStatus($form_state);
-      $this->validateExamPreference($form_state);
+      $this->validateExamSelection($form_state);
     } elseif ($current_page == 'payment_information') {
       $this->validateContributionAmount($form_state);
     }
   }
 
-  private function validateExamPreference(FormStateInterface $formState) {
-    $examPreferences = $formState->getValue('exam_preference');
-    if (isset($examPreferences) && count($examPreferences) > 1) {
-      $events = \Civi\Api4\Event::get(FALSE)
-        ->addSelect('Exam_Details.Exam_Part', 'Exam_Details.Exam_Part:label')
-        ->addWhere('id', 'IN', $examPreferences)
-        ->execute();
-      foreach ($events as $event) {
-        if (empty($selectedEvents[$event['Exam_Details.Exam_Part']])) {
-          $selectedEvents[$event['Exam_Details.Exam_Part']] = [$event['id']];
-        } else {
-          $error_message = $this->t('You cannot select more then one ' . $event['Exam_Details.Exam_Part:label'] . ' event');
-          $formState->setErrorByName('exam_preference', $error_message);
-          break;
-        }
+  private function validateExamSelection(FormStateInterface $formState)
+  {
+    $selectedEvents = $formState->getValue('select_exam_ids');
+    if (!$selectedEvents) {
+      $formState->setErrorByName('select_exam_ids', $this->t('You must select at least one exam'));
+      return;
+    }
+
+    $events = \Civi\Api4\Event::get(FALSE)
+      ->addSelect('Exam_Details.Exam_Part', 'Exam_Details.Exam_Part:label')
+      ->addWhere('id', 'IN', $selectedEvents)
+      ->execute();
+    $eventsByPart = [];
+    foreach ($events as $event) {
+      if (empty($eventsByPart[$event['Exam_Details.Exam_Part']])) {
+        $eventsByPart[$event['Exam_Details.Exam_Part']] = $event['id'];
+      }
+      else {
+        $error_message = $this->t('You cannot select more then one %1 event', [1 => $event['Exam_Details.Exam_Part:label']]);
+        $formState->setErrorByName('select_exam_ids', $error_message);
+        break;
       }
     }
   }
@@ -824,20 +829,12 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return;
     }
 
-    $eventIds = $this->getSelectedEvents($formState);
+    $eventIds = $formState->getValue('select_exam_ids');
 
     if ($examFee !== $this->getPayableNowAmount($eventIds)) {
       $formState->setErrorByName('exam_fee_markup', $this->t('Payable amount is incorrect'));
       return;
     }
-  }
-
-  /**
-   * Usually events are selected with the select_exam_parts field,
-   * but for plumbing the value will be found in exam_preference
-   */
-  private function getSelectedEvents(FormStateInterface $formState) {
-    return $formState->getValue('exam_preference') ?: $formState->getValue('select_exam_parts');
   }
 
   /*
@@ -1076,9 +1073,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
   protected function setCategoryOptions(&$form, $form_state) {
     $elements = WebformFormHelper::flattenElements($form);
-    $events = $this->getEventRegistrationOptions($form, $form_state);
-    // populate exam category selector based on available events
-    if (isset($elements['select_exam_category'])) {
+    if (isset($elements['select_category_id'])) {
+      // populate exam category selector based on available events
+      $events = $this->getEventRegistrationOptions($form, $form_state);
       $categories = [];
 
       foreach ($events as $event) {
@@ -1087,41 +1084,53 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $categories[$categoryId] = $categoryLabel;
       }
       asort($categories);
-      $elements['select_exam_category']['#options'] = $categories;
+      $elements['select_category_id']['#options'] = $categories;
     }
   }
 
   protected function setEventOptions(&$form, $form_state) {
-    $elements = WebformFormHelper::flattenElements($form);
 
     $events = $this->getEventRegistrationOptions($form, $form_state);
 
-    if (isset($elements['select_exam_parts'])) {
-      $elements['select_exam_parts']['#options'] = array_map(fn ($event) => $event['title'], $events);
-    }
-
-    // this field provides a map from event id to category on the front end
-    if (isset($elements['event_ids'])) {
-      $elements['event_ids']['#options'] = array_map(fn ($event) => $event['event_type_id'], $events);
-    }
-
-    // exam preference is specifically for plumbing exams, and
-    // requires more detail than just title
-    if (isset($elements['exam_preference'])) {
-      $plumbingEvents = array_filter($events, fn ($event) => ($event['event_type_id:name'] === 'Plumbing'));
-
-
-      $elements['exam_preference']['#options'] = array_map(function ($event) {
-        if ($event['Exam_Details.Exam_Part'] === 'BF') {
-          return $event['title'];
-        }
-
-        return implode(' - ', array_filter([
+    $events = array_map(function ($event) {
+      // provide data and location for non-BF plumbing.
+      // TODO: use in person / external field
+      if (
+        ($event['event_type_id:name'] === 'Plumbing')
+        && ($event['Exam_Details.Exam_Part'] !== 'BF')
+      ) {
+        $event['label'] = implode(' - ', array_filter([
           $event['title'],
           $event['loc_block_id.address_id.city'],
           date('Y-m-d', \strtotime($event['start_date'])),
         ]));
-      }, $plumbingEvents);
+
+        $addressPartKeys = [
+          'loc_block_id.address_id.street_address',
+          'loc_block_id.address_id.supplemental_address_1',
+          'loc_block_id.address_id.supplemental_address_2',
+          'loc_block_id.address_id.city',
+          'loc_block_id.address_id.postal_code',
+          'loc_block_id.address_id.state_province_id:abbr',
+          'loc_block_id.address_id.country_id:label',
+        ];
+        $addressParts = array_filter(array_map(fn($key) => \strip_tags($event[$key] ?? ''), $addressPartKeys));
+        $event['address'] = implode('<br />', $addressParts);
+        return $event;
+      }
+      // for all other events, just use title
+      $event['label'] = $event['title'];
+      $event['address'] = NULL;
+      return $event;
+    }, $events);
+
+    // pass event info to javascript for filtering etc
+    $form['#attached']['drupalSettings']['cilbEventOptions'] = $events;
+
+    // set form element options for validation
+    $elements = WebformFormHelper::flattenElements($form);
+    if (isset($elements['select_exam_ids'])) {
+      $elements['select_exam_ids']['#options'] = array_map(fn ($event) => $event['label'], $events);
     }
   }
 
@@ -1131,18 +1140,35 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   protected function getEventRegistrationOptions($form, $form_state): array {
     // Fetch events with space remaining or no space cap
     $eventFetch = \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id', 'title', 'Exam_Details.Exam_Part', 'event_type_id', 'event_type_id:name', 'event_type_id:label', 'start_date', 'loc_block_id.address_id.city')
+      ->addSelect(
+        'id',
+        'title',
+        'Exam_Details.Exam_Part',
+        'event_type_id',
+        'event_type_id:name',
+        'event_type_id:label',
+        'start_date',
+        'loc_block_id.address_id.street_address',
+        "loc_block_id.address_id.supplemental_address_1",
+        "loc_block_id.address_id.supplemental_address_2",
+        "loc_block_id.address_id.city",
+        "loc_block_id.address_id.state_province_id:abbr",
+        "loc_block_id.address_id.country_id:label",
+        "loc_block_id.address_id.postal_code"
+      )
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('is_online_registration', '=', TRUE)
       ->addWhere('is_template', '!=', TRUE)
       //->addWhere('start_date', '>', 'now')
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0]);
 
-    // if we have already picked a category on earlier page, we limit this
-    // down
-    $selectedCategory = $form_state->getValue('select_exam_category');
-    if ($selectedCategory) {
-      $eventFetch->addWhere('event_type_id', '=', $selectedCategory);
+    // for frontend form, we need to limit based on category selection on
+    // earlier page
+    if ($form['#webform_id'] !== 'backoffice_registration') {
+      $selectedCategory = $form_state->getValue('select_category_id');
+      if ($selectedCategory) {
+        $eventFetch->addWhere('event_type_id', '=', $selectedCategory);
+      }
     }
 
     $events = (array) $eventFetch

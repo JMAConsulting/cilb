@@ -369,18 +369,11 @@ elements: |-
     select_category:
       '#type': fieldset
       '#title': 'Select Contractor Category'
-      select_exam_category:
-        '#type': webform_entity_select
+      select_category_id:
+        '#type': select
         '#title': 'Select contractor category:'
         '#empty_option': '- Select Category -'
         '#required': true
-        '#target_type': civicrm_option_value
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exam_type
-            display_name: entity_reference_1
-            arguments: {  }
     candidate_has_degree:
       '#type': number
       '#title': 'Candidate has degree'
@@ -390,46 +383,12 @@ elements: |-
     select_exam:
       '#type': fieldset
       '#title': 'Select Examination'
-      event_ids:
-        '#type': webform_entity_select
-        '#title': 'Event ID to Category Map'
-        '#multiple': false
-        '#states_clear': false
-        '#wrapper_attributes':
-          style: 'display: none;'
-        '#target_type': civicrm_event
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exams
-            display_name: entity_reference_1
-            arguments: {  }
-      select_exam_parts:
-        '#type': webform_entity_select
+      select_exam_ids:
+        '#type': select
         '#title': 'Select examination part(s):'
         '#multiple': true
         '#select2': true
-        '#required': false
-        '#target_type': civicrm_event
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exams
-            display_name: entity_reference_1
-            arguments: {  }
-      exam_preference:
-        '#type': webform_entity_select
-        '#title': 'Exam preference:'
-        '#select2': true
-        '#multiple': true
-        '#required': false
-        '#target_type': civicrm_event
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exams
-            display_name: entity_reference_3
-            arguments: {  }
+        '#required': true
   exam_fee_page:
     '#type': webform_wizard_page
     '#title': 'Exam Fee'
@@ -455,6 +414,8 @@ elements: |-
         decimals: 2
         min: 0
       '#form_key': civicrm_1_contribution_1_contribution_total_amount
+      '#wrapper_attributes':
+        style: 'display: none;'
   contribution_pagebreak:
     '#type': webform_wizard_page
     '#form_key': contribution_pagebreak

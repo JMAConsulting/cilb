@@ -423,18 +423,11 @@ elements: |-
     select_category:
       '#type': fieldset
       '#title': 'Select Contractor Category'
-      select_exam_category:
-        '#type': webform_entity_select
+      select_category_id:
+        '#type': select
         '#title': 'Select contractor category:'
         '#empty_option': '- Select Category -'
         '#required': true
-        '#target_type': civicrm_option_value
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exam_type
-            display_name: entity_reference_1
-            arguments: {  }
   definition_scope_of_practice:
     '#type': webform_wizard_page
     '#title': 'Scope of Practice'
@@ -456,49 +449,15 @@ elements: |-
       category_info:
         '#type': webform_markup
         '#markup': '<p>Specialty Contractors must pass the same General category examination of three parts, Contract Administration, Project Management and Business and Finance<br><br>After reviewing the license category information, if you still have questions, you may refer to the <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a> and/or contact the Department of Business and Professional Regulation''s Customer Contact Center at 850.487.1395</p>'
-      select_exam_parts:
-        '#type': webform_entity_select
+      select_exam_ids:
+        '#type': select
         '#title': 'Select examination part(s):'
         '#multiple': true
         '#select2': true
-        '#required': false
-        '#target_type': civicrm_event
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exams
-            display_name: entity_reference_1
-            arguments: {  }
-      exam_preference:
-        '#type': webform_entity_select
-        '#title': 'Exam preference:'
-        '#select2': true
-        '#multiple': true
-        '#required': false
-        '#target_type': civicrm_event
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exams
-            display_name: entity_reference_3
-            arguments: {  }
+        '#required': true
       location_detail:
         '#type': webform_markup
         '#markup': '<h5>Location:</h5><div id="location_detail">&nbsp;</div>'
-      event_ids:
-        '#type': webform_entity_select
-        '#title': 'Event IDs'
-        '#multiple': true
-        '#states_clear': false
-        '#wrapper_attributes':
-          style: 'display: none;'
-        '#target_type': civicrm_event
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exams
-            display_name: entity_reference_1
-            arguments: {  }
   exam_fee_page:
     '#type': webform_wizard_page
     '#title': 'Exam Fee'

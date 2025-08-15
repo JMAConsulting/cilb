@@ -1,146 +1,116 @@
-/**
- * Storing of inputted values for subsequent pages and conditional loading of exam parts
- */
-jQuery(document).ready(function($) {
-  // Check if form is in English or Spanish
-  var lang;
-  const currentUrl = window.location.href;
+(function ($, Drupal, drupalSettings) {
 
-  // Check if '/es/' is in the URL
-  if (currentUrl.indexOf("/es/") !== -1) {
-    lang = "es_MX";
-  } else {
-    lang = "en_US";
-  }
+  Drupal.behaviors.cilbExamSelection = {
+    attach: function (context, settings) {
+      if (!settings.cilbEventOptions) {
+        return;
+      }
+      const eventOptions = Object.values(settings.cilbEventOptions);
 
-  const eventIdCategoryMapField = document.querySelector('[data-drupal-selector="edit-event-ids"]');
-  const examCatField = document.querySelector('[data-drupal-selector="edit-select-exam-category"]');
-  const examPartField = document.querySelector('[data-drupal-selector="edit-select-exam-parts"]');
-  const plumbingPartField = document.querySelector('[data-drupal-selector="edit-exam-preference"]');
-  const eventSelectionFieldset = document.querySelector('[data-drupal-selector="edit-select-exam"]');
+      // Check if form is in English or Spanish
+      const currentUrl = window.location.href;
+      // Check if '/es/' is in the URL
+      const lang = (currentUrl.indexOf("/es/") !== -1) ? "es_MX" : "en_US";
 
-  // we have to listen to change events on both radio buttons, thanks jquery...
-  const candidateDegreeSelectors = $('.form-item-civicrm-1-contact-1-cg1-custom-2 input')
-  const candidateDegreeSelectorYes = $('[data-drupal-selector="edit-civicrm-1-contact-1-cg1-custom-2-1"]');
-  const candidateDegreeField = $('[data-drupal-selector="edit-candidate-has-degree"]');
+      const categorySelector = document.querySelector('[data-drupal-selector="edit-select-category-id"]');
+      const eventSelectFieldset = document.querySelector('[data-drupal-selector="edit-select-exam"]');
+      const eventsSelector = document.querySelector('[data-drupal-selector="edit-select-exam-ids"]');
+      const locationFieldset = document.querySelector('#edit-location-detail');
+      const locationPlaceholder = document.querySelector('#location_detail');
 
-  candidateDegreeField.parent().hide();
+      /**
+       * On backend form, we need to filter the events selector based on the category selector
+       */
+      if (categorySelector && eventsSelector) {
+        /**
+          * Filter event selector by category
+          */
+        const updateExamOptions = () => {
+          const selectedCategoryId = parseInt(categorySelector.value);
 
-  if (candidateDegreeSelectorYes.length) {
-    // store candidate degree selection for reference on subsequent pages
-    // NOTE: selector will load candidate value from DB initially => ensure propagated
-    candidateDegreeField.val(candidateDegreeSelectorYes.is(':checked') ? 1 : 0);
-    candidateDegreeSelectors.on('change', function() {
-      candidateDegreeField.val(candidateDegreeSelectorYes.is(':checked') ? 1 : 0);
-    });
-  }
+          // if no exam category is selected, hide the event selector
+          if (!selectedCategoryId) {
+            eventSelectFieldset.style.display = 'none';
+            return;
+          }
 
-  if (examCatField && examPartField) {
-    if (!eventIdCategoryMapField) {
-      throw new Error('Missing exam category map');
+          const eventsForCat = eventOptions.filter((option) => option.event_type_id === selectedCategoryId);
+
+          // preserve current selection (getting multivalue from select2)
+          const currentlySelected = $(eventsSelector).val().map((v) => parseInt(v));
+
+          const selectOptions = eventsForCat.map((option) => ({
+            id: option.id,
+            text: option.label,
+            selected: (currentlySelected.includes(option.id))
+          }));
+
+          // remove existing options and reinitialise select2 with new ones
+          eventsSelector.querySelectorAll('option').forEach((e) => e.remove());
+          $(eventsSelector).select2({ data: selectOptions, multiple: true, width: '100%' });
+
+          // Always remove any prior notices to avoid duplication
+          eventSelectFieldset.querySelectorAll('em').forEach((e) => e.remove());
+
+          if (selectOptions.length) {
+            // unhide the input
+            eventsSelector.parentElement.style.display = 'block';
+          }
+          else {
+            // hide the input and add a notice
+            eventsSelector.parentElement.style.display = 'none';
+
+            const notice = document.createElement('em');
+            notice.innerText = 'No more exam parts are available for this contractor type';
+            eventSelectFieldset.append(notice);
+          }
+
+          eventSelectFieldset.style.display = 'block';
+        };
+
+        // run initial filter
+        updateExamOptions();
+
+        // update exam parts selector when category selector changes
+        categorySelector.addEventListener('change', () => {
+          updateExamOptions();
+        });
+
+      }
+
+      /**
+       * Show address detail for events selected that have address
+       */
+      if (eventsSelector && locationFieldset && locationPlaceholder) {
+        const updateLocationDetail = () => {
+
+          // get selection (getting multivalue from select2)
+          const selectedEvents = $(eventsSelector).val().map((v) => parseInt(v));
+
+          if (!selectedEvents.length) {
+            locationFieldset.style.display = 'none';
+          }
+
+          const addresses = eventOptions.filter((event) => selectedEvents.includes(event.id)).map((event) => event.address).filter((address) => address);
+
+          if (!addresses.length) {
+            locationFieldset.style.display = 'none';
+            return;
+          }
+
+          locationPlaceholder.innerHTML = addresses.join('<br />')
+          locationFieldset.style.display = 'block';
+        }
+        updateLocationDetail();
+
+        // listen to select2 changes
+        $(eventsSelector).on('change', () => updateLocationDetail());
+      }
+
     }
 
-    // build event id => category map from the select element
-    const eventIdCategoryMap = {};
-    eventIdCategoryMapField.querySelectorAll('option').forEach((option) => {
-      const eventId = parseInt(option.value);
-      const catId = parseInt(option.innerText);
-      eventIdCategoryMap[eventId] = catId;
-    });
-
-    // stash the list of all event options
-    const allEventOptions = Array.from(examPartField.querySelectorAll('option'))
-      .map((option) => ({
-        id: parseInt(option.value),
-        text: option.innerText,
-        category: eventIdCategoryMap[option.value],
-      }));
-
-    const plumbingOption = Array.from(examCatField.querySelectorAll('option')).find((option) => option.innerText === 'Plumbing')
-    const plumbingCatId = plumbingOption ? parseInt(plumbingOption.value) : null;
-
-    /**
-      * Loads the available exam parts depending on the selected category
-      */
-    const updateExamOptions = () => {
-      const toggleFieldset = (on) => {
-        eventSelectionFieldset.style.display = on ? 'block' : 'none';
-      }
-      const toggleInput = (input, on) => {
-        input.parentElement.style.display = on ? 'block' : 'none';
-        input.toggleAttribute('required', on);
-        if (!on) {
-          input.value = null;
-        }
-      }
-      const examCatId = parseInt(examCatField.value);
-
-      // if no exam category is selected, hide this input and its container
-      if (!examCatId) {
-        toggleFieldset(false);
-        return;
-      }
-
-      // examCatId = 20 is plumbing
-      // TODO: fetch this better
-      if (plumbingPartField && examCatId === plumbingCatId) {
-        // show examPref selector rather than examPart
-        toggleInput(plumbingPartField, true);
-        toggleInput(examPartField, false);
-        return;
-      }
-
-      if (plumbingPartField) {
-        toggleInput(plumbingPartField, false);
-      }
-      toggleInput(examPartField, true);
-
-      const eventsForCat = allEventOptions.filter((option) => option.category === examCatId);
-
-      // preserve current selection
-      const currentlySelected = parseInt(examPartField.value);
-      eventsForCat.forEach((option, i) => {
-        if (option.id === currentlySelected) {
-          eventsForCat[i].selected = true;
-        }
-      });
-
-      if (eventsForCat.length) {
-
-        // Remove the notice that there are no exam parts available
-        examPartField.parentElement.querySelectorAll('em').forEach((e) => e.remove());
-
-        // remove existing options and reinitialise select2 with new ones
-        examPartField.querySelectorAll('option').forEach((e) => e.remove());
-        $(examPartField).select2({ data: eventsForCat, multiple: true, width: '100%' });
-
-        // unhide the input itself, replace with a notice
-        examPartField.style.display = 'block';
-      }
-      else {
-        // hide the input itself, replace with a notice
-
-        examPartField.style.display = 'none';
-        // Remove any notice that there are no exam parts available (to avoid dupes)
-        examPartField.parentElement.querySelectorAll('em').forEach((e) => e.remove());
-
-        // Add notice that no parts left
-        const notice = document.createElement('em');
-        notice.innerText = 'No more exam parts are available for this contractor type';
-        examPartField.parentElement.append(notice);
-      }
-
-      toggleFieldset(true);
-    };
-
-    // run initial filter
-    updateExamOptions();
-
-    // update exam parts selector when category selector changes
-    examCatField.addEventListener('change', () => {
-      updateExamOptions();
-    });
-
   }
 
-});
+})(jQuery, Drupal, drupalSettings);
+
+

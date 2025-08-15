@@ -96,7 +96,7 @@ elements: |
       1: ' Sí'
   select_category:
     '#title': 'Selecciona una categoría'
-  select_exam_category:
+  select_category_id:
     '#title': 'Seleccione la categoría del examen'
   definition_scope_of_practice:
     '#title': 'Alcance de la práctica'
