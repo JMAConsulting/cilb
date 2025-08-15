@@ -61,11 +61,12 @@ class ImportRegistrations extends ImportBase {
         JOIN pti_Code_Categories
         ON `FK_Category_ID` = `PK_Category_ID`
 
-        JOIN pti_Code_Exam_Parts
-        ON pti_Exam_Registrations.`FK_Category_ID` = pti_Code_Exam_Parts.`FK_Category_ID`
-
         JOIN pti_Exam_Registration_Parts
         ON pti_Exam_Registration_Parts.`FK_Exam_Registration_ID` = pti_Exam_Registrations.`PK_Exam_Registration_ID`
+
+        JOIN pti_Code_Exam_Parts
+        ON pti_Exam_Registration_Parts.`FK_Exam_Part_ID` = pti_Code_Exam_Parts.`PK_Exam_Part_ID`
+
 
         WHERE Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(Transaction_Date) = '{$this->transactionYear}'
