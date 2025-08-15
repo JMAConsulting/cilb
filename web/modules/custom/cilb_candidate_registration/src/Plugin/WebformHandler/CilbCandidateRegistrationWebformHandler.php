@@ -1074,7 +1074,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     return CRM_Core_Session::getLoggedInContactID();
   }
 
-  protected function setCategoryOptions($form, $form_state) {
+  protected function setCategoryOptions(&$form, $form_state) {
     $elements = WebformFormHelper::flattenElements($form);
     $events = $this->getEventRegistrationOptions($form, $form_state);
     // populate exam category selector based on available events
@@ -1091,7 +1091,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
-  protected function setEventOptions($form, $form_state) {
+  protected function setEventOptions(&$form, $form_state) {
     $elements = WebformFormHelper::flattenElements($form);
 
     $events = $this->getEventRegistrationOptions($form, $form_state);
