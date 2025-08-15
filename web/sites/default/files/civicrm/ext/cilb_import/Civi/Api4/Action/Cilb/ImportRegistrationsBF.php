@@ -58,7 +58,7 @@ class ImportRegistrationsBF extends ImportBase {
         ON `FK_Category_ID` = `PK_Category_ID`
         WHERE Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(Transaction_Date) = '{$this->transactionYear}'
-        AND Confirm_BF_Exam IS NOT NULL
+        AND CBT_BF_Exam = '1'
     ") as $registration) {
       try {
         $this->importBusinessAndFinanceRow($registration);
