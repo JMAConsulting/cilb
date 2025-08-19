@@ -61,6 +61,16 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
     }
   }
 
+  protected function info(string $msg) {
+    echo "$msg\n\n";
+    \Civi::log()->debug($msg);
+  }
+
+  protected function warning(string $msg) {
+    echo "[WARNING] $msg\n\n";
+    \Civi::log()->warning($msg);
+  }
+
   abstract protected function import();
 
 }

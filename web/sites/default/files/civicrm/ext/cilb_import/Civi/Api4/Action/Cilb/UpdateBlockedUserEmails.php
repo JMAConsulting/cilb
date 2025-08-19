@@ -14,7 +14,7 @@ class UpdateBlockedUserEmails extends ImportBase {
 
   /**
    * The initial version of the import db had masked the SSNs in
-   * pti_candidates - so we couldn't match to get candidate emails
+   * pti_Candidates - so we couldn't match to get candidate emails
    *
    * This action checks for restricted_candidates we can now match
    * and:
@@ -31,16 +31,16 @@ class UpdateBlockedUserEmails extends ImportBase {
   protected function import() {
     foreach ($this->getRows("
       SELECT
-        pti_restricted_candidates.SSN,
-        pti_restricted_candidates.Restriction_Reason,
-        pti_candidates.Email,
-        pti_candidates.FK_Account_ID
+        pti_Restricted_Candidates.SSN,
+        pti_Restricted_Candidates.Restriction_Reason,
+        pti_Candidates.Email,
+        pti_Candidates.FK_Account_ID
       FROM
-        pti_restricted_candidates
+        pti_Restricted_Candidates
       INNER JOIN
-        pti_candidates
+        pti_Candidates
       ON
-        pti_candidates.SSN = pti_restricted_candidates.SSN
+        pti_Candidates.SSN = pti_Restricted_Candidates.SSN
     ") as $blocked) {
 
       // next check by SSN. based on review this would be a contact
@@ -52,16 +52,14 @@ class UpdateBlockedUserEmails extends ImportBase {
       if (count($findContact) > 1) {
         // unexpected, log and skip
         $contactIds = implode(', ', $findContact->column('id'));
-        Civi::log()->warning("Could not determine unique contact for SSN {$blocked['SSN']} - found {$contactIds}");
-        echo "Could not determine unique contact for SSN {$blocked['SSN']} - found {$contactIds}";
+        $this->warning("Could not determine unique contact for SSN {$blocked['SSN']} - found {$contactIds}");
         continue;
       }
 
       $contact = $findContact->first();
 
       if (!$contact) {
-        Civi::log()->warning("Could not find ANY contact for SSN {$blocked['SSN']}");
-        echo "Could not find ANY contact for SSN {$blocked['SSN']}";
+        $this->warning("Could not find ANY contact for SSN {$blocked['SSN']}");
         continue;
       }
 
@@ -75,7 +73,7 @@ class UpdateBlockedUserEmails extends ImportBase {
 
         $oldUser = \Drupal\user\Entity\User::load($oldUserId);
         if (!$oldUser) {
-          \Civi::log()->warning("No existing CMS user could be created for found for {$blocked['SSN']}");
+          $this->warning("No existing CMS user could be created for found for {$blocked['SSN']}");
         }
         $oldUser->delete();
       }
@@ -119,7 +117,7 @@ class UpdateBlockedUserEmails extends ImportBase {
 
       $user = \Drupal\user\Entity\User::load($cmsUserId);
       if (!$user) {
-        \Civi::log()->warning("No CMS user could be created for contact id {$contact['id']} email {$blocked['Email']}");
+        $this->warning("No CMS user could be created for contact id {$contact['id']} email {$blocked['Email']}");
         continue;
       }
       $user->block();
@@ -127,13 +125,13 @@ class UpdateBlockedUserEmails extends ImportBase {
     }
   }
 
-  protected static function createNewContact(array $blocked) {
-    $candidateRecords = $this->getRows("SELECT FK_Account_ID, Email FROM pti_candidates WHERE SSN = '{$blocked['SSN']}'");
-    $emails = array_map(fn ($record) => $record['Email'], $candidateRecords);
+  protected function createNewContact(array $blocked) {
+    $candidateRecords = $this->getRows("SELECT FK_Account_ID, Email FROM pti_Candidates WHERE SSN = '{$blocked['SSN']}'");
+    $emails = array_map(fn ($record) => $record['Email'], (array) $candidateRecords);
 
     if (count($emails) > 1) {
       $emails = implode(', ', $emails);
-      Civi::log()->warning("Found multiple candidate emails for SSN {$blocked['SSN']} - found {$emails}");
+      $this->warning("Found multiple candidate emails for SSN {$blocked['SSN']} - found {$emails}");
     }
 
     // use the first (hopefully unique) email - or else create a pseudo email
