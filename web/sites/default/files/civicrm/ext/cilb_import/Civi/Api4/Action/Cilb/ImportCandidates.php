@@ -13,10 +13,8 @@ namespace Civi\Api4\Action\Cilb;
 class ImportCandidates extends ImportBase {
 
   protected function import() {
-    $this->info('Importing contacts...');
-    $this->importContacts();
-    $this->info('Importing language preferences...');
-    $this->importLanguagePreferences();
+    $this->info('Importing candidate data...');
+    $this->importCandidateData();
     $this->info('Importing emails...');
     $this->importEmails();
     $this->info('Importing addresses...');
@@ -37,46 +35,48 @@ class ImportCandidates extends ImportBase {
     return $this->getRows("SELECT {$fieldList} FROM pti_Candidates WHERE {$whereList}");
   }
 
-  public function importContacts() {
+  public function importCandidateData() {
 
-    foreach ($this->selectCandidates(['DOB', 'SSN']) as $contact) {
-      \Civi\Api4\Contact::save(FALSE)
-        ->addRecord([
-          'external_identifier' => $contact['FK_Account_ID'],
-          'birth_date' => $contact['DOB'] ?? NULL,
-          'Registrant_Info.SSN' => $contact['SSN'] ?? NULL,
-        ])
-        ->setMatch(['external_identifier'])
-        ->execute();
+    foreach ($this->selectCandidates(['DOB', 'SSN', 'Language_Preference']) as $contact) {
+      if (!$contact['DOB'] && !$contact['SSN'] && !$contact['Language_Preference']) {
+        // no data for this row
+        continue;
+      }
+
+      $contactUpdate = \Civi\Api4\Contact::update(FALSE)
+        ->addWhere('external_identifier', '=', $contact['FK_Account_ID']);
+
+      if ($contact['DOB']) {
+        $contactUpdate->addValue('birth_date', $contact['DOB'] ?? NULL);
+      }
+      if ($contact['SSN']) {
+        $contactUpdate->addValue('Registrant_Info.SSN', $contact['SSN'] ?? NULL);
+      }
+
+      // Note: db values are English or Spanish plus one candidate row has NULL - which we ignore
+      if ($contact['Language_Preference']) {
+        $langPref = match ($contact['Language_Preference']) {
+          // NOTE: Castillian Spanish - do US use MX?
+          'Spanish' => 'es_ES',
+          'English' => 'en_US',
+          default => NULL,
+        };
+
+        if (!$langPref) {
+          $this->warning('Unexpected Language Preference: ' . $contact['Language_Preference']);
+          continue;
+        }
+        else {
+          $contactUpdate->addValue('preferred_language', $langPref);
+        }
+      }
+
+      $contactUpdate->execute();
     }
   }
 
   /**
-   * Note: db values are English or Spanish plus one candidate row has NULL
-   *
-   * Ignore the NULL
    */
-  public function importLanguagePreferences() {
-    foreach ($this->selectCandidates(['Language_Preference'], ['Language_Preference IS NOT NULL']) as $contact) {
-      $langPref = match ($contact['Language_Preference']) {
-        // NOTE: Castillian Spanish - do US use MX?
-        'Spanish' => 'es_ES',
-        'English' => 'en_US',
-        default => NULL,
-      };
-
-      if (!$langPref) {
-        $this->warning('Unexpected Language Preference: ' . $contact['Language_Preference']);
-      }
-      else {
-        \Civi\Api4\Contact::update(FALSE)
-          ->addWhere('external_identifier', '=', $contact['FK_Account_ID'])
-          ->addValue('preferred_language', $langPref)
-          ->execute();
-      }
-    }
-  }
-
   protected function getContactId($accountId): ?int {
     $id = \Civi\Api4\Contact::get(FALSE)
       ->addSelect('id')
