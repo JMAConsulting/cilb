@@ -11,8 +11,11 @@ use Civi\Api4\Generic\Result;
  * e.g.
  * CILB_CLEAN_SLATE_SAFETY=off cv api4 Cilb.cleanSlate
  *
- * This should delete all contacts and participants except those with a
- * uf_match record to a Drupal administrator
+ * This should delete all contacts and participants except:
+ * - those with a uf_match record to a Drupal administrator
+ * - those with financial transactions associated (this might need to change in future
+ *   - for now it simplifies things as Contact.delete fails if it hits contacts with
+ *     financial transactions)
  *
  *  */
 class CleanSlate extends AbstractAction {
