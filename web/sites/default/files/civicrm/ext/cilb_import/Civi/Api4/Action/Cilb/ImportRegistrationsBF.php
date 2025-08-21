@@ -44,7 +44,8 @@ class ImportRegistrationsBF extends ImportBase {
       }
       $this->eventMap[$type] ??= [];
       if (isset($this->eventMap[$type][$part])) {
-        throw new \CRM_Core_Exception("Duplicate event exists for type {$type} {$part}");
+        $this->warning("More than one event exists for {$type} {$part}. Registrations will be imported to event ID {$this->eventMap[$type][$part]} - event ID {$event['id']} will be ignored");
+        continue;
       }
       $this->eventMap[$type][$part] = $event['id'];
     }
