@@ -34,17 +34,48 @@ class ImportCandidates extends ImportBase {
     $whereClauses[] = "Last_Updated_Timestamp > '{$this->cutOffDate}'";
     $whereList = implode(' AND ', $whereClauses);
 
-    return $this->getRows("SELECT {$fieldList} FROM pti_Candidates WHERE {$whereList}");
+    return $this->getRows("SELECT {$fieldList} FROM pti_Candidates c INNER JOIN System_Accounts a ON a.PK_Account_ID = c.FK_Account_ID WHERE {$whereList}");
   }
 
   public function importContacts() {
 
-    foreach ($this->selectCandidates(['DOB', 'SSN']) as $contact) {
+    foreach ($this->selectCandidates(['DOB', 'SSN', 'Prefix', 'Suffix', 'First_Name', 'Middle_Name', 'Last_Name']) as $contact) {
+      $suffix = \Civi\Api4\OptionValue::get(FALSE)
+        ->addWhere('option_group_id', '=', 'individual_suffix')
+        ->addWhere('value', '=', $contact['Suffix'])
+        ->execute();
+
+      if (!$suffix->count()) {
+        \Civi\Api4\OptionValue::create(FALSE)
+          ->addValue('option_group_id', 'individual_suffix')
+          ->addValue('label', $contact['Suffix'])
+          ->addValue('value', $contact['Suffix'])
+          ->execute();
+      }
+
+      $prefix = \Civi\Api4\OptionValue::get(FALSE)
+        ->addWhere('option_group_id', '=', 'individual_prefix')
+        ->addWhere('value', '=', $contact['Prefix'])
+        ->execute();
+
+      if (!$prefix->count()) {
+        \Civi\Api4\OptionValue::create(FALSE)
+          ->addValue('option_group_id', 'individual_prefix')
+          ->addValue('label', $contact['Prefix'])
+          ->addValue('value', $contact['Prefix'])
+          ->execute();
+      }
+      
       \Civi\Api4\Contact::save(FALSE)
         ->addRecord([
           'external_identifier' => $contact['FK_Account_ID'],
           'birth_date' => $contact['DOB'] ?? NULL,
           'Registrant_Info.SSN' => $contact['SSN'] ?? NULL,
+          'first_name' => $contact['First_Name'],
+          'middle_name' => $contact['Middle_Name'],
+          'last_name' => $contact['Last_Name'],
+          'suffix_id:label' => $contact['Suffix'] ?? NULL,
+          'prefix_id:label' => $contact['Prefix'] ?? NULL,
         ])
         ->setMatch(['external_identifier'])
         ->execute();
