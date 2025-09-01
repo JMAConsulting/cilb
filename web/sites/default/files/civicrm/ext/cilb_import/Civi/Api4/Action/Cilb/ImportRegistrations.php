@@ -113,7 +113,7 @@ class ImportRegistrations extends ImportBase {
     $status = match ($registration['Pass'] ?? NULL) {
       '1' => 'Pass',
       '0' => 'Fail',
-      'default' => 'Registered',
+      default => 'Registered',
     };
 
     $participant = \Civi\Api4\Participant::create(FALSE)
@@ -152,7 +152,7 @@ class ImportRegistrations extends ImportBase {
         ->addValue('check_number', $registration['Check_Number'])
         ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_ID'])
         ->execute();
-        
+
       // If there is a Seat Fee, add that as a separate line item.
       if (!empty($registration['Seat_Amount'])) {
         $priceSetByEventId = \Civi\Api4\PriceSetEntity::get(FALSE)
