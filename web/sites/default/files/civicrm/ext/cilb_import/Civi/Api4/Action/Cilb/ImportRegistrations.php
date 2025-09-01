@@ -183,7 +183,7 @@ class ImportRegistrations extends ImportBase {
             'qty' => 1,
             'unit_price' => $registration['Seat_Amount'],
             'line_total' => $registration['Seat_Amount'],
-            'financial_type_id' => $fee['financial_type_id'],
+            'financial_type_id' => 4,
             'label' => "CILB Candidate Registration - {$priceOptions['label']}",
           ];
           \CRM_Price_BAO_LineItem::create($params);
