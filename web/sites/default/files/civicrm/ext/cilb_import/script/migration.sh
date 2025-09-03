@@ -3,7 +3,7 @@
 set -e
 
 MIGRATION_NAME=2025-08-15
-DB_DUMP="mysqldump -h db --no-tablespaces --skip-triggers -u $DB_USER -p$DB_PASS $CIVICRM_DB_NAME"
+DB_DUMP="mysqldump -h $DB_HOST --no-tablespaces --skip-triggers -u $DB_USER -p$DB_PASS $CIVICRM_DB_NAME"
 CUT_OFF_DATE=2019-09-01
 BACKUP_FOLDER=data
 
