@@ -137,7 +137,7 @@ class ImportRegistrationsBF extends ImportBase {
           ->addValue('total_amount', $registration['Fee_Amount'])
           ->addValue('receive_date', $registration['Transaction_Date'])
           ->addValue('financial_type_id', 4) // Exam Fees
-          ->addValue('payment_instrument_id:name', 'Check')
+          ->addValue('payment_instrument_id:name', $paymentMethod)
           ->addValue('contribution_status_id:name', 'Completed')
           ->addValue('trxn_id', $registration['PK_Exam_Registration_ID'])
           ->addValue('check_number', $registration['Check_Number'])
