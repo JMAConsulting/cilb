@@ -132,7 +132,28 @@ class ImportRegistrationsBF extends ImportBase {
         default => 'Other',
       };
 
-      if (!empty($registration['Fee_Amount'])) {
+      // First search for an existing contribution for this registration
+      $payment = civicrm_api3('ParticipantPayment', 'get', [
+        'sequential' => 1,
+        'participant_id' => $participant['id'],
+      ]);
+      if (!empty($payment['values'])) {
+        $contributionId = $payment['values'][0]['contribution_id'];
+        // Add a line item for the BF registration.
+        $params = [
+            'entity_id' => $participant['id'],
+            'entity_table' => 'civicrm_participant',
+            'contribution_id' => $contribution['id'],
+            'participant_count' => 1,
+            'qty' => 1,
+            'unit_price' => $registration['Fee_Amount'],
+            'line_total' => $registration['Fee_Amount'],
+            'financial_type_id' => 4,
+            'label' => "CILB Candidate Registration - {$priceOptions['label']}",
+          ];
+          \CRM_Price_BAO_LineItem::create($params);
+      }
+      elseif (!empty($registration['Fee_Amount'])) {
         // Create a contribution record for the registration fee
         $contribution = \Civi\Api4\Contribution::create(FALSE)
           ->addValue('contact_id', $contactId)
@@ -145,50 +166,10 @@ class ImportRegistrationsBF extends ImportBase {
           ->addValue('check_number', $registration['Check_Number'])
           ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_Part_ID'])
           ->execute();
-
-        // If there is a Seat Fee, add that as a separate line item.
-        if (!empty($registration['Seat_Amount'])) {
-          $priceSetByEventId = \Civi\Api4\PriceSetEntity::get(FALSE)
-            ->addSelect('price_set_id')
-            ->addWhere('entity_table', '=', 'civicrm_event')
-            ->addWhere('entity_id', '=', $event)
-            ->execute()->first()['price_set_id'] ?? NULL;
-
-        if ($priceSetByEventId) {
-          $priceOptions = (array) \Civi\Api4\PriceFieldValue::get(FALSE)
-          ->addWhere('price_field_id.price_set_id', '=', $priceSetByEventId)
-          ->addSelect(
-            // price field value fields
-            'id',
-            'price_field_id',
-            'label'
-          )
-          ->execute();
-
-          $params = [
-            'entity_id' => $participant['id'],
-            'entity_table' => 'civicrm_participant',
-            'contribution_id' => $contribution['id'],
-            'participant_count' => 1,
-            // from getEventFees
-            'price_field_value_id' => $priceOptions['id'],
-            'price_field_id' => $priceOptions['price_field_id'],
-            'qty' => 1,
-            'unit_price' => $registration['Seat_Amount'],
-            'line_total' => $registration['Seat_Amount'],
-            'financial_type_id' => 4,
-            'label' => "CILB Candidate Registration - {$priceOptions['label']}",
-          ];
-          \CRM_Price_BAO_LineItem::create($params);
-
-          $totalFee = (float)$registration['Fee_Amount'] + (float)$registration['Seat_Amount'];
-          \Civi\Api4\Participant::update(FALSE)
-            ->addWhere('id', '=', $participant['id'])
-            ->addValue('participant_fee_amount', $totalFee)
-            ->addValue('participant_fee_level', $priceOptions['label'])
-            ->execute();
-          }
-        }
+        civicrm_api3('ParticipantPayment', 'create', [
+          'participant_id' => $participant['id'],
+          'contribution_id' => $contribution['id'],
+        ]);
       }
     }
     catch (\Exception $e) {

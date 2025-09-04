@@ -155,6 +155,11 @@ class ImportRegistrations extends ImportBase {
         ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_Part_ID'])
         ->execute();
 
+      civicrm_api3('ParticipantPayment', 'create', [
+        'participant_id' => $participant['id'],
+        'contribution_id' => $contribution['id'],
+      ]);
+
       // If there is a Seat Fee, add that as a separate line item.
       if (!empty($registration['Seat_Amount'])) {
         $priceSetByEventId = \Civi\Api4\PriceSetEntity::get(FALSE)
@@ -196,6 +201,8 @@ class ImportRegistrations extends ImportBase {
             ->addValue('participant_fee_amount', $totalFee)
             ->addValue('participant_fee_level', $priceOptions['label'])
             ->execute();
+
+          
         }
       }
     }
