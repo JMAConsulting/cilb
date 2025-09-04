@@ -55,6 +55,7 @@ class ImportRegistrationsBF extends ImportBase {
     foreach ($this->getRows("
         SELECT
           PK_Exam_Registration_ID,
+          PK_Exam_Registration_Part_ID,
           FK_Account_ID,
           FK_Category_ID,
           Category_Name,
@@ -109,7 +110,7 @@ class ImportRegistrationsBF extends ImportBase {
     };
 
     try {
-      \Civi\Api4\Participant::create(FALSE)
+      $participant = \Civi\Api4\Participant::create(FALSE)
         ->addValue('event_id', $event)
         ->addValue('contact_id', $contactId)
         ->addValue('register_date', $registration['Transaction_Date'])
@@ -142,7 +143,7 @@ class ImportRegistrationsBF extends ImportBase {
           ->addValue('contribution_status_id:name', 'Completed')
           ->addValue('trxn_id', $registration['PK_Exam_Registration_ID'])
           ->addValue('check_number', $registration['Check_Number'])
-          ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_ID'])
+          ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_Part_ID'])
           ->execute();
 
         // If there is a Seat Fee, add that as a separate line item.
