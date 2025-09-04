@@ -54,6 +54,7 @@ class ImportRegistrations extends ImportBase {
     foreach ($this->getRows("
         SELECT
           PK_Exam_Registration_ID,
+          PK_Exam_Registration_Part_ID,
           FK_Account_ID,
           pti_Exam_Registrations.FK_Category_ID,
           Category_Name,
@@ -150,7 +151,7 @@ class ImportRegistrations extends ImportBase {
         ->addValue('contribution_status_id:name', 'Completed')
         ->addValue('trxn_id', $registration['PK_Exam_Registration_ID'])
         ->addValue('check_number', $registration['Check_Number'])
-        ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_ID'])
+        ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_Part_ID'])
         ->execute();
 
       // If there is a Seat Fee, add that as a separate line item.
