@@ -158,6 +158,8 @@ class ImportRegistrations extends ImportBase {
       \Civi\Api4\Participant::update(FALSE)
         ->addWhere('id', '=', $participant['id'])
         ->addValue('Participant_Webform.Candidate_Payment', $payment)
+        ->addValue('fee_amount', $registration['Fee_Amount'])
+        ->addValue('fee_level', 'Registration Fee')
         ->execute();
     }
     elseif (!empty($registration['Fee_Amount'])) {
