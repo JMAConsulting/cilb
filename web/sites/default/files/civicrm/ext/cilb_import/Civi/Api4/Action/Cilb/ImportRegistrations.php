@@ -101,13 +101,15 @@ class ImportRegistrations extends ImportBase {
       ->execute()->first()['id'] ?? NULL;
 
     if (!$contactId) {
-      throw new \Exception('No contact id found for Account ID: ' . $registration['FK_Account_ID']);
+      return;
+      //throw new \Exception('No contact id found for Account ID: ' . $registration['FK_Account_ID']);
     }
 
     $event = $this->eventMap[$registration['Category_Name']][$registration['Exam_Part_Name_Abbr']] ?? NULL;
 
     if (!$event) {
-      throw new \Exception("No event found for registration ID {$registration['PK_Exam_Registration_ID']}");
+      return;
+      //throw new \Exception("No event found for registration ID {$registration['PK_Exam_Registration_ID']}");
     }
 
     /**
