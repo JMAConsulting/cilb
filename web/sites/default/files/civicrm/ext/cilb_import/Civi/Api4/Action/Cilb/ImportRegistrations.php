@@ -64,7 +64,7 @@ class ImportRegistrations extends ImportBase {
           Pass,
           Fee_Amount,
           Payment_Method,
-          Seat_Amount,
+          Seat_Fee_Amount,
           Registration_Status,
           Check_Number,
           Score
@@ -125,7 +125,7 @@ class ImportRegistrations extends ImportBase {
       ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
       ->addValue('status_id:name', $status)
       ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_ID'])
-      ->execute();
+      ->execute()->first();
 
     $paymentMethod = match ($registration['Payment_Method'] ?? NULL) {
       'Check' => 'Check',
@@ -153,7 +153,7 @@ class ImportRegistrations extends ImportBase {
         ->addValue('trxn_id', $registration['PK_Exam_Registration_ID'])
         ->addValue('check_number', $registration['Check_Number'])
         ->addValue('source', 'CILB Import:' . $registration['FK_Account_ID'] . '-' . $registration['PK_Exam_Registration_Part_ID'])
-        ->execute();
+        ->execute()->first();
 
       civicrm_api3('ParticipantPayment', 'create', [
         'participant_id' => $participant['id'],

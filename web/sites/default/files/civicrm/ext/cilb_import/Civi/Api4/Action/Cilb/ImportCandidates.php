@@ -31,7 +31,7 @@ class ImportCandidates extends ImportBase {
     $fieldList = implode(', ', $fields);
 
     // always limit to last 5 years
-    $whereClauses[] = "Last_Updated_Timestamp > '{$this->cutOffDate}'";
+    $whereClauses[] = "c.Last_Updated_Timestamp > '{$this->cutOffDate}'";
     $whereList = implode(' AND ', $whereClauses);
 
     return $this->getRows("SELECT {$fieldList} FROM pti_Candidates c INNER JOIN System_Accounts a ON a.PK_Account_ID = c.FK_Account_ID WHERE {$whereList}");
@@ -40,30 +40,32 @@ class ImportCandidates extends ImportBase {
   public function importContacts() {
 
     foreach ($this->selectCandidates(['DOB', 'SSN', 'Prefix', 'Suffix', 'First_Name', 'Middle_Name', 'Last_Name']) as $contact) {
+      if (!empty($contact['Suffix'])) {
       $suffix = \Civi\Api4\OptionValue::get(FALSE)
-        ->addWhere('option_group_id', '=', 'individual_suffix')
-        ->addWhere('value', '=', $contact['Suffix'])
+        ->addWhere('option_group_id:name', '=', 'individual_suffix')
+        ->addWhere('label', '=', $contact['Suffix'])
         ->execute();
 
       if (!$suffix->count()) {
         \Civi\Api4\OptionValue::create(FALSE)
-          ->addValue('option_group_id', 'individual_suffix')
+          ->addValue('option_group_id:name', 'individual_suffix')
           ->addValue('label', $contact['Suffix'])
-          ->addValue('value', $contact['Suffix'])
           ->execute();
       }
+      }
 
+      if (!empty($contact['Prefix'])) {
       $prefix = \Civi\Api4\OptionValue::get(FALSE)
-        ->addWhere('option_group_id', '=', 'individual_prefix')
-        ->addWhere('value', '=', $contact['Prefix'])
+        ->addWhere('option_group_id:name', '=', 'individual_prefix')
+        ->addWhere('label', '=', $contact['Prefix'])
         ->execute();
 
       if (!$prefix->count()) {
         \Civi\Api4\OptionValue::create(FALSE)
-          ->addValue('option_group_id', 'individual_prefix')
+          ->addValue('option_group_id:name', 'individual_prefix')
           ->addValue('label', $contact['Prefix'])
-          ->addValue('value', $contact['Prefix'])
           ->execute();
+      }
       }
       
       \Civi\Api4\Contact::save(FALSE)
@@ -74,8 +76,8 @@ class ImportCandidates extends ImportBase {
           'first_name' => $contact['First_Name'],
           'middle_name' => $contact['Middle_Name'],
           'last_name' => $contact['Last_Name'],
-          'suffix_id:label' => $contact['Suffix'] ?? NULL,
-          'prefix_id:label' => $contact['Prefix'] ?? NULL,
+          //'suffix_id:label' => $contact['Suffix'] ?? NULL,
+          //'prefix_id:label' => $contact['Prefix'] ?? NULL,
         ])
         ->setMatch(['external_identifier'])
         ->execute();
