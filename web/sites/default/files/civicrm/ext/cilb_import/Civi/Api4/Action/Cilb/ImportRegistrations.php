@@ -81,12 +81,10 @@ class ImportRegistrations extends ImportBase {
 
 
         WHERE 
-        --Transaction_Date > '{$this->cutOffDate}'
-        --AND YEAR(Transaction_Date) = '{$this->transactionYear}'
-        --AND 
-        Exam_Part_Name_Abbr != 'BF'
+        Transaction_Date > '{$this->cutOffDate}'
+        AND YEAR(Transaction_Date) = '{$this->transactionYear}'
+        AND Exam_Part_Name_Abbr != 'BF'
         AND Registration_Status IN ('Registration Complete', 'Registration Paid')
-        AND PK_Exam_Registration_ID = 488242;
     ") as $registration) {
       try {
         $this->importRegistrationRow($registration);
