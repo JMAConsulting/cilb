@@ -143,6 +143,13 @@ class ImportRegistrationsBF extends ImportBase {
         'participant_id' => $participant['id'],
         'contribution_id' => $payment,
       ]);
+      // Also update the participant record with the fee amount
+      \Civi\Api4\Participant::update(FALSE)
+        ->addWhere('id', '=', $participant['id'])
+        ->addValue('Participant_Webform.Candidate_Payment', $payment)
+        ->addValue('participant_fee_amount', $registration['Fee_Amount'])
+        ->addValue('participant_fee_level', 'Registration Fee')
+        ->execute();
     }
     elseif (!empty($registration['Fee_Amount'])) {
       // Create a contribution record for the registration fee
@@ -162,6 +169,13 @@ class ImportRegistrationsBF extends ImportBase {
         'participant_id' => $participant['id'],
         'contribution_id' => $contribution['id'],
       ]);
+      // Also update the participant record with the fee amount
+      \Civi\Api4\Participant::update(FALSE)
+        ->addWhere('id', '=', $participant['id'])
+        ->addValue('Participant_Webform.Candidate_Payment', $contribution['id'])
+        ->addValue('participant_fee_amount', $registration['Fee_Amount'])
+        ->addValue('participant_fee_level', 'Registration Fee')
+        ->execute();
 
       // If there is a Seat Fee, add that as a separate line item.
       if (!empty($registration['Seat_Amount'])) {
