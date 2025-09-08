@@ -64,7 +64,7 @@ class ImportRegistrationsBF extends ImportBase {
           BF_Score,
           Fee_Amount,
           Payment_Method,
-          Seat_Amount,
+          Seat_Fee_Amount,
           Registration_Status,
           Check_Number,
           Transaction_Date
@@ -152,6 +152,17 @@ class ImportRegistrationsBF extends ImportBase {
             'label' => "CILB Candidate Registration - {$priceOptions['label']}",
           ];
           \CRM_Price_BAO_LineItem::create($params);
+          $totalAmount = \Civi\Api4\Contribution::get(FALSE)
+          ->addSelect('total_amount')
+          ->addWhere('id', '=', $contributionId)
+          ->execute()->first()['total_amount'] ?? 0;
+          $updateAmount = (float) $totalAmount + (float) $registration['Fee_Amount'];
+          \CRM_Core_DAO::executeQuery(<<<SQL
+            UPDATE `civicrm_contribution`
+            SET
+              `total_amount` = {$updateAmount}
+            WHERE `id` = {$contributionId}
+            SQL);
       }
       elseif (!empty($registration['Fee_Amount'])) {
         // Create a contribution record for the registration fee

@@ -80,10 +80,13 @@ class ImportRegistrations extends ImportBase {
         ON pti_Exam_Registration_Parts.`FK_Exam_Part_ID` = pti_Code_Exam_Parts.`PK_Exam_Part_ID`
 
 
-        WHERE Transaction_Date > '{$this->cutOffDate}'
-        AND YEAR(Transaction_Date) = '{$this->transactionYear}'
-        AND Exam_Part_Name_Abbr != 'BF'
+        WHERE 
+        --Transaction_Date > '{$this->cutOffDate}'
+        --AND YEAR(Transaction_Date) = '{$this->transactionYear}'
+        --AND 
+        Exam_Part_Name_Abbr != 'BF'
         AND Registration_Status IN ('Registration Complete', 'Registration Paid')
+        AND PK_Exam_Registration_ID = 488242;
     ") as $registration) {
       try {
         $this->importRegistrationRow($registration);
@@ -141,7 +144,38 @@ class ImportRegistrations extends ImportBase {
       default => 'Other',
     };
 
-    if (!empty($registration['Fee_Amount'])) {
+    // First search for an existing contribution for this registration
+      $payment = civicrm_api3('ParticipantPayment', 'get', [
+        'sequential' => 1,
+        'participant_id' => $participant['id'],
+      ]);
+      if (!empty($payment['values'])) {
+        $contributionId = $payment['values'][0]['contribution_id'];
+        $params = [
+            'entity_id' => $participant['id'],
+            'entity_table' => 'civicrm_participant',
+            'contribution_id' => $contribution['id'],
+            'participant_count' => 1,
+            'qty' => 1,
+            'unit_price' => $registration['Fee_Amount'],
+            'line_total' => $registration['Fee_Amount'],
+            'financial_type_id' => 4,
+            'label' => "CILB Candidate Registration - {$priceOptions['label']}",
+          ];
+        \CRM_Price_BAO_LineItem::create($params);
+        $totalAmount = \Civi\Api4\Contribution::get(FALSE)
+          ->addSelect('total_amount')
+          ->addWhere('id', '=', $contributionId)
+          ->execute()->first()['total_amount'] ?? 0;
+        $updateAmount = (float) $totalAmount + (float) $registration['Fee_Amount'];
+        \CRM_Core_DAO::executeQuery(<<<SQL
+          UPDATE `civicrm_contribution`
+          SET
+            `total_amount` = {$updateAmount}
+          WHERE `id` = {$contributionId}
+          SQL);
+      }
+      elseif (!empty($registration['Fee_Amount'])) {
       // Create a contribution record for the registration fee
       $contribution = \Civi\Api4\Contribution::create(FALSE)
         ->addValue('contact_id', $contactId)
@@ -201,8 +235,6 @@ class ImportRegistrations extends ImportBase {
             ->addValue('participant_fee_amount', $totalFee)
             ->addValue('participant_fee_level', $priceOptions['label'])
             ->execute();
-
-          
         }
       }
     }
