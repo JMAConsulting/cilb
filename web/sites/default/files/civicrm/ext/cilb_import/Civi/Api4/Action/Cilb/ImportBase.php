@@ -71,6 +71,53 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
     \Civi::log()->warning($msg);
   }
 
+  protected function updateExamLocation($examID, $eventID) {
+    // Check to see if we have location info for this exam.
+    $locBlock = \Civi\Api4\Event::get(FALSE)
+      ->addSelect('loc_block_id')
+      ->addWhere('id', '=', $eventID)
+      ->execute()->first();
+    if (!empty($locBlock['loc_block_id'])) {
+      // We already have a location block - nothing to do.
+      return;
+    }
+    foreach ($this->getRows("
+        SELECT
+          Address1,
+          Address2,
+          City,
+          Zip
+        FROM pti_Exam_Events
+        JOIN pti_Exam_Sites
+        ON pti_Exam_Events.`FK_Exam_Site_ID` = pti_Exam_Sites.`PK_Exam_Site_ID`
+        JOIN pti_Exam_Areas
+        ON pti_Exam_Sites.`FK_Exam_Area_ID` = pti_Exam_Areas.`PK_Exam_Area_ID`
+        WHERE PK_Exam_Event_ID = {$examID}
+      ") as $eventLocation) {
+        $addressParams = [
+          'location_type_id' => 1,
+          'street_address' => $eventLocation['Address1'],
+          'supplemental_address_1' => $eventLocation['Address2'],
+          'city' => $eventLocation['City'],
+          'state_province_id:name' => 'Florida',
+          'postal_code' => $eventLocation['Zip'],
+          'country_id:name' => 'United States',
+        ];
+        if (!empty($eventLocation['Address1'])) {
+          $address = \Civi\Api4\Address::create(FALSE)
+            ->addValues($addressParams)
+            ->execute()->first()['id'];
+          $locBlockId = \Civi\Api4\LocBlock::create(FALSE)
+            ->addValue('address_id', $address)
+            ->execute()->first()['id'];
+          \Civi\Api4\Event::update(FALSE)
+            ->addValue('loc_block_id', $locBlockId)
+            ->addWhere('id', $eventID)
+            ->execute();
+        }
+      }
+  }
+
   abstract protected function import();
 
 }

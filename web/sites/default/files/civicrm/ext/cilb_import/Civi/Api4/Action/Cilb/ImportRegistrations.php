@@ -61,6 +61,8 @@ class ImportRegistrations extends ImportBase {
           Category_Name,
           Transaction_Date,
           Exam_Part_Name_Abbr,
+          Candidate_Number,
+          FK_Exam_Event_ID,
           Pass,
           Fee_Amount,
           Payment_Method,
@@ -78,7 +80,6 @@ class ImportRegistrations extends ImportBase {
 
         JOIN pti_Code_Exam_Parts
         ON pti_Exam_Registration_Parts.`FK_Exam_Part_ID` = pti_Code_Exam_Parts.`PK_Exam_Part_ID`
-
 
         WHERE 
         Transaction_Date > '{$this->cutOffDate}'
@@ -128,7 +129,13 @@ class ImportRegistrations extends ImportBase {
       ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
       ->addValue('status_id:name', $status)
       ->addValue('source', $registration['PK_Exam_Registration_Part_ID'])
+      ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
       ->execute()->first();
+
+    // Update the exam location as well.
+    if (!empty($registration['FK_Exam_Event_ID'])) {
+      $this->updateExamLocation($registration['FK_Exam_Event_ID'], $event);
+    }
 
     $paymentMethod = match ($registration['Payment_Method'] ?? NULL) {
       'Check' => 'Check',

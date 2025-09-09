@@ -60,10 +60,12 @@ class ImportRegistrationsBF extends ImportBase {
           Category_Name,
           Confirm_BF_Exam,
           BF_Pass,
+          FK_Exam_Event_ID,
           BF_Score,
           Fee_Amount,
           Payment_Method,
           Seat_Fee_Amount,
+          Candidate_Number,
           Registration_Status,
           Check_Number,
           Transaction_Date
@@ -116,8 +118,14 @@ class ImportRegistrationsBF extends ImportBase {
       ->addValue('contact_id', $contactId)
       ->addValue('register_date', $registration['Transaction_Date'])
       ->addValue('Candidate_Result.Candidate_Score', $registration['BF_Score'])
+      ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
       ->addValue('status_id:name', $status)
       ->execute()->first();
+
+    // Update the exam location as well.
+    if (!empty($registration['FK_Exam_Event_ID'])) {
+      $this->updateExamLocation($registration['FK_Exam_Event_ID'], $event);
+    }
 
     $paymentMethod = match ($registration['Payment_Method'] ?? NULL) {
       'Check' => 'Check',
