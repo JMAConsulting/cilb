@@ -55,7 +55,6 @@ class ImportRegistrationsBF extends ImportBase {
     foreach ($this->getRows("
         SELECT
           PK_Exam_Registration_ID,
-          PK_Exam_Registration_Part_ID,
           FK_Account_ID,
           FK_Category_ID,
           Category_Name,
@@ -118,7 +117,7 @@ class ImportRegistrationsBF extends ImportBase {
       ->addValue('register_date', $registration['Transaction_Date'])
       ->addValue('Candidate_Result.Candidate_Score', $registration['BF_Score'])
       ->addValue('status_id:name', $status)
-      ->execute();
+      ->execute()->first();
 
     $paymentMethod = match ($registration['Payment_Method'] ?? NULL) {
       'Check' => 'Check',
@@ -164,7 +163,7 @@ class ImportRegistrationsBF extends ImportBase {
         ->addValue('contribution_status_id:name', 'Completed')
         ->addValue('trxn_id', $registration['PK_Exam_Registration_ID'])
         ->addValue('check_number', $registration['Check_Number'])
-        ->addValue('source', 'CILB Import: Account ID (' . $registration['FK_Account_ID'] . ') - Registration Part ID (' . $registration['PK_Exam_Registration_Part_ID'] . ')')
+        ->addValue('source', 'CILB Import: Account ID (' . $registration['FK_Account_ID'] . ') - Registration ID (' . $registration['PK_Exam_Registration_ID'] . ')')
         ->execute()->first();
 
       civicrm_api3('ParticipantPayment', 'create', [
