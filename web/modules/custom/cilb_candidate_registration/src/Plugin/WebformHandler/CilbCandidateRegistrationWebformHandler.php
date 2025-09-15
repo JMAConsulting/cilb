@@ -1076,14 +1076,27 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if (isset($elements['select_category_id'])) {
       // populate exam category selector based on available events
       $events = $this->getEventRegistrationOptions($form, $form_state);
-      $categories = [];
-
+      $categories_to_hide = Civi::settings()->get('cilb_exam_registration_hidden_categories') ?? [];
+      $categories = $bfExamIds = [];
+      $genericBusinessAndFinanceExamCategoryId = self::getBusinessAndFinanceExam()->first()['event_type_id'];
       foreach ($events as $event) {
+        if (in_array($event['event_type_id'], $categories_to_hide)) {
+          continue;
+        }
         $categoryId = "{$event['event_type_id']}";
         $categoryLabel = $event['event_type_id:label'];
         $categories[$categoryId] = $categoryLabel;
+        $categoryBusinessandFiannceExamCategoryId = self::getBusinessAndFinanceExam($categoryId);
+        if (count($categoryBusinessandFiannceExamCategoryId) < 1) {
+          $bfExamIds[$categoryId] = $genericBusinessAndFinanceExamCategoryId;
+        }
+        else {
+          $bfExamIds[$categoryId] = $categoryBusinessandFiannceExamCategoryId->first()['event_type_id'];
+        }
+
       }
       asort($categories);
+      $form['#attached']['drupalSettings']['cilbBFEventMap'] = $bfExamIds;
       $elements['select_category_id']['#options'] = $categories;
     }
   }
@@ -1164,6 +1177,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     // for frontend form, we need to limit based on category selection on
     // earlier page
+    $selectedCategory = NULL;
     if ($form['#webform_id'] !== 'backoffice_registration') {
       $selectedCategory = $form_state->getValue('select_category_id');
       if ($selectedCategory) {
@@ -1175,10 +1189,32 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->execute()
       ->indexBy('id');
 
+    $examFound = FALSE;
+    if (!empty($selectedCategory)) {
+      $businessAndFinanceExam = self::getBusinessAndFinanceExam($selectedCategory);
+      if (count($businessAndFinanceExam) > 0) {
+        $examFound = TRUE;
+      }
+    }
+    if (!$examFound) {
+      if ($form['#webform_id'] !== 'backoffice_registration') {
+        $businessAndFinanceExam = self::getBusinessAndFinanceExam();
+        $bfExam = $businessAndFinanceExam->first();
+        $events[$bfExam['id']] = $bfExam;
+      }
+      else {
+        $businessAndFinanceExam = self::getBusinessAndFinanceExam(NULL, TRUE);
+        $businessAndFinanceExams = $businessAndFinanceExam->getArrayCopy();
+        foreach ($businessAndFinanceExams as $bfExam) {
+          $events[$bfExam['id']] = $bfExam;
+        }
+      }
+    }
+
     // if existing contact, check for existing registrations that mean we cant reregister for an exam
     $contactId = $this->getRegistrantContact($form, $form_state);
     if ($contactId) {
-      $events = self::filterRegisterableEventsForContact($events, $contactId);
+      $events = self::filterRegisterableEventsForContact($events, $contactId, $selectedCategory);
     }
 
     // exclude Plumbing TK exams that are in the past
@@ -1207,7 +1243,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    *     otherwise => exclude if registration for any exam for the same part, regardless of category
    *
    */
-  protected function filterRegisterableEventsForContact(array $events, int $contactId): array {
+  protected function filterRegisterableEventsForContact(array $events, int $contactId, ?int $selectedCategory = NULL): array {
     $exclusions = [];
 
     $examPartCategorySpecificity = (array) \Civi\Api4\OptionValue::get(FALSE)
@@ -1226,6 +1262,15 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->execute()
       ->indexBy('event_id');
 
+    $businessAndFinanceCategoryId = 0;
+    if (!empty($selectedCategory)) {
+      $businessAndFinanceExam = self::getBusinessAndFinanceExam($selectedCategory);
+      if (count($businessAndFinanceExam) < 1) {
+        $businessAndFinanceExam = self::getBusinessAndFinanceExam();
+      }
+      $businessAndFinanceCategoryId = $businessAndFinanceExam->first()['event_type_id'];
+    }
+
     foreach ($previousRegistrations as $previousReg) {
       // part = Trade Knowledge or Business & Finance or ...
       $previousRegPart = $previousReg['event_id.Exam_Details.Exam_Part'];
@@ -1237,6 +1282,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           // part
           'Exam_Details.Exam_Part' => $previousReg['event_id.Exam_Details.Exam_Part'],
           // category
+          'event_type_id' => $previousReg['event_id.event_type_id'],
+        ];
+      }
+      elseif (!empty($businessAndFinanceCategoryId)  && in_array($previousReg['event_id.event_type_id'], self::getBusinessAndFiannceExamCategories())) {
+        // We have a previous registration of a Business and Finance Exam and we need to figure out if its the one for the currently selected category
+        // If it is then we use that event type id as part of the exlusions. Otherwise there should be no exclusion filter applied.
+        if ($businessAndFinanceCategoryId != $previousReg['event_id.event_type_id']) {
+          continue;
+        }
+        $exclusions[] = [
           'event_type_id' => $previousReg['event_id.event_type_id'],
         ];
       }
@@ -1266,6 +1321,50 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
     }
     return TRUE;
+  }
+
+  private static function getBusinessAndFinanceExam($selectedCategory = NULL, $isBackoffice = FALSE): \Civi\Api4\Generic\Result {
+    $businessAndFinanceExams = \Civi\Api4\Event::get(FALSE)
+      ->addSelect(
+        'id',
+        'title',
+        'Exam_Details.Exam_Part',
+        'event_type_id',
+        'event_type_id:name',
+        'event_type_id:label',
+        'start_date',
+        'loc_block_id.address_id.street_address',
+        "loc_block_id.address_id.supplemental_address_1",
+        "loc_block_id.address_id.supplemental_address_2",
+        "loc_block_id.address_id.city",
+        "loc_block_id.address_id.state_province_id:abbr",
+        "loc_block_id.address_id.country_id:label",
+        "loc_block_id.address_id.postal_code"
+      )
+      ->addWhere('is_active', '=', TRUE)
+      ->addWhere('is_online_registration', '=', TRUE)
+      ->addWhere('is_template', '!=', TRUE)
+      //->addWhere('start_date', '>', 'now')
+      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
+      ->addWhere('event_type_id', 'IN', self::getBusinessAndFiannceExamCategories());
+    if (!empty($selectedCategory)) {
+      $businessAndFinanceExams->addWhere('Exam_Details.Exam_Category_this_exam_applies_to', '=', $selectedCategory);
+    }
+    elseif (!$isBackoffice) {
+      $businessAndFinanceExams->addWhere('Exam_Details.Exam_Category_this_exam_applies_to', 'IS EMPTY');
+    }
+    return $businessAndFinanceExams->execute();
+  }
+
+  private static function getBusinessAndFiannceExamCategories(): array {
+    $eventCategories = \Civi::entity('Event')->getOptions('event_type_id', [], TRUE);
+    $bfCategories = [];
+    foreach ($eventCategories as $eventCategory) {
+      if (str_contains($eventCategory['name'], 'Business and Finance')) {
+        $bfCategories[] = $eventCategory['id'];
+      }
+    }
+    return $bfCategories;
   }
 
 }
