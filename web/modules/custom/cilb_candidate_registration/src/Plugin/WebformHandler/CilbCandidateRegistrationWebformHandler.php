@@ -1076,7 +1076,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if (isset($elements['select_category_id'])) {
       // populate exam category selector based on available events
       $events = $this->getEventRegistrationOptions($form, $form_state);
-      $categories_to_hide = Civi::settings()->get('cilb_exam_registration_hidden_categories') ?? [];
+      $categories_to_hide = \Civi::settings()->get('cilb_exam_registration_hidden_categories');
+      if (!empty($categories_to_hide)) {
+        $categories_to_hide = json_decode($categories_to_hide, TRUE);
+      }
+      else {
+        $categories_to_hide = [];
+      }
       $categories = $bfExamIds = [];
       $genericBusinessAndFinanceExamCategoryId = self::getBusinessAndFinanceExam()->first()['event_type_id'];
       foreach ($events as $event) {
@@ -1182,6 +1188,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $selectedCategory = $form_state->getValue('select_category_id');
       if ($selectedCategory) {
         $eventFetch->addWhere('event_type_id', '=', $selectedCategory);
+        $selectedCategory = (int) $selectedCategory;
+      }
+      else {
+        $selectedCategory = NULL;
       }
     }
 
@@ -1194,6 +1204,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $businessAndFinanceExam = self::getBusinessAndFinanceExam($selectedCategory);
       if (count($businessAndFinanceExam) > 0) {
         $examFound = TRUE;
+        $bfExam = $businessAndFinanceExam->first();
+        $events[$bfExam['id']] = $bfExam;
       }
     }
     if (!$examFound) {
@@ -1295,7 +1307,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           'event_type_id' => $previousReg['event_id.event_type_id'],
         ];
       }
-      else {
+      elseif ($previousRegPart !== 'BF') {
         // events only need to match the part to be excluded
         $exclusions[] = [
           'Exam_Details.Exam_Part' => $previousRegPart,

@@ -6,7 +6,7 @@
         return;
       }
       const eventOptions = Object.values(settings.cilbEventOptions);
-      const bfEventTypes = Object.values(settings.cilbBFEventMap);
+      const bfEventTypes = settings.cilbBFEventMap;
 
       // Check if form is in English or Spanish
       const currentUrl = window.location.href;
@@ -35,7 +35,7 @@
             return;
           }
 
-          const eventsForCat = eventOptions.filter((option) => (option.event_type_id === selectedCategoryId || option.event_type_id === bfEventTypes[selectedCategoryId]));
+          const eventsForCat = eventOptions.filter((option) => (option.event_type_id === selectedCategoryId || option.event_type_id === parseInt(bfEventTypes[selectedCategoryId])));
 
           // preserve current selection (getting multivalue from select2)
           const currentlySelected = $(eventsSelector).val().map((v) => parseInt(v));
