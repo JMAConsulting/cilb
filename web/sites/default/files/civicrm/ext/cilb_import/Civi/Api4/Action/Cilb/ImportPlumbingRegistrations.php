@@ -121,8 +121,6 @@ class ImportPlumbingRegistrations extends ImportBase {
         LEFT OUTER JOIN pti_Code_Exam_Parts cep
         ON erp.FK_Exam_Part_ID = cep.PK_Exam_Part_ID
 
-        LEFT OUTER JOIN pti_
-
         LEFT OUTER JOIN pti_Exam_Event_Exam_Parts eeep
         ON eeep.PK_Exam_Event_Exam_Part_ID = erp.FK_Exam_Part_ID
 
