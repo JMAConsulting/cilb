@@ -113,6 +113,7 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
           \Civi\Api4\Event::update(FALSE)
             ->addValue('loc_block_id', $locBlockId)
             ->addWhere('id', $eventID)
+            ->addValue('Exam_Details.Exam_ID', $examID)
             ->execute();
         }
       }
