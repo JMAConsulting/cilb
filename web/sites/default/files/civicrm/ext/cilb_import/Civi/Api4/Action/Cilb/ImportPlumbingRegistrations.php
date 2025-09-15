@@ -81,10 +81,13 @@ class ImportPlumbingRegistrations extends ImportBase {
           ->execute()->first();
 
         // Add the price field, since this is a TK Plumbing Exam.
-        \Civi\Api4\PriceSetEntity::create(TRUE)
-            ->addValue('entity_table', 'civicrm_event')
-            ->addValue('entity_id', $event['id'])
-            ->addValue('price_set_id.name', 'Seat_Fee_80_DPBR')
+        \Civi\Api4\PriceSetEntity::save(FALSE)
+            ->addRecord([
+                'entity_table' => 'civicrm_event',
+                'entity_id' => $event['id'],
+                'price_set_id.name' => 'Seat_Fee_80_DPBR'
+            ])
+            ->setMatch(['entity_table','entity_id'])
             ->execute();
         return $event['id'];
     }
