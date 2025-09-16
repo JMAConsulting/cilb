@@ -130,8 +130,7 @@ class ImportPlumbingRegistrations extends ImportBase {
         WHERE er.Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(er.Transaction_Date) = '{$this->transactionYear}'
         AND er.Registration_Status IN ('Registration Complete', 'Registration Paid')
-        AND er.FK_Category_ID = 406
-        AND FK_Account_ID = 138105;
+        AND er.FK_Category_ID = 406;
     ") as $registration) {
       try {
         $this->importRegistrationRow($registration);
@@ -256,7 +255,7 @@ class ImportPlumbingRegistrations extends ImportBase {
           $totalFee = (float)$registration['Fee_Amount'] + (float)$registration['Seat_Fee_Amount'];
           \Civi\Api4\Participant::update(FALSE)
             ->addWhere('id', '=', $participant['id'])
-            ->addValue('participant_fee_amount', $totalFee)
+            ->addValue('participant_fee_amount', $registration['Seat_Fee_Amount']) 
             ->addValue('participant_fee_level', $priceOptions['label'])
             ->execute();
           \CRM_Core_DAO::executeQuery(<<<SQL
@@ -266,6 +265,13 @@ class ImportPlumbingRegistrations extends ImportBase {
               `net_amount` = {$totalFee}
             WHERE `id` = {$payment}
             SQL);
+
+            // Update the financial trxn as well.
+            \CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution c 
+              INNER JOIN civicrm_entity_financial_trxn eft ON eft.entity_id = c.id AND eft.entity_table = 'civicrm_contribution' 
+              INNER JOIN civicrm_financial_trxn trxn ON trxn.id = eft.financial_trxn_id 
+              SET trxn.total_amount = %1, trxn.net_amount = %1
+              WHERE c.id = %2", [1 => [$totalFee, 'Float'], 2 => [$payment, 'Integer']]);
         }
       }
     }

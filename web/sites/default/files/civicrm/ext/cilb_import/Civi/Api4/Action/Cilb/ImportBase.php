@@ -54,7 +54,7 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
   protected function getRows(string $query) {
     // add limit clause if set
     $query .= $this->recordLimit ? " LIMIT {$this->recordLimit}" : "";
-    print_R($query);
+    
     $results = $this->conn->query($query);
     while ($row = $results->fetchRow(DB_FETCHMODE_ASSOC)) {
       yield $row;
@@ -82,11 +82,11 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
       return;
     }
     foreach ($this->getRows("
-        SELECT
-          Address1,
-          Address2,
-          City,
-          Zip
+      SELECT
+        Address1,
+        Address2,
+        City,
+        Zip
         FROM pti_Exam_Events
         JOIN pti_Exam_Sites
         ON pti_Exam_Events.`FK_Exam_Site_ID` = pti_Exam_Sites.`PK_Exam_Site_ID`
@@ -94,31 +94,30 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
         ON pti_Exam_Sites.`FK_Exam_Area_ID` = pti_Exam_Areas.`PK_Exam_Area_ID`
         WHERE PK_Exam_Event_ID = {$examID}
       ") as $eventLocation) {
-        $addressParams = [
-          'location_type_id' => 1,
-          'street_address' => $eventLocation['Address1'],
-          'supplemental_address_1' => $eventLocation['Address2'],
-          'city' => $eventLocation['City'],
-          'state_province_id:name' => 'Florida',
-          'postal_code' => $eventLocation['Zip'],
-          'country_id:name' => 'United States',
-        ];
-        if (!empty($eventLocation['Address1'])) {
-		$address = civicrm_api4('Address', 'create', [
-			'values' => $addressParams,
-			'checkPermissions' => FALSE
-		])->first()['id'];
-          $locBlockId = \Civi\Api4\LocBlock::create(FALSE)
-            ->addValue('address_id', $address)
-            ->execute()->first()['id'];
-          \Civi\Api4\Event::update(FALSE)
-            ->addValue('loc_block_id', $locBlockId)
-            ->addValue('Exam_Details.Exam_ID', $examID)
-            ->addWhere('id', $eventID)
-	    ->execute();
-
-        }
+      $addressParams = [
+        'location_type_id' => 1,
+        'street_address' => $eventLocation['Address1'],
+        'supplemental_address_1' => $eventLocation['Address2'],
+        'city' => $eventLocation['City'],
+        'state_province_id:name' => 'Florida',
+        'postal_code' => $eventLocation['Zip'],
+        'country_id:name' => 'United States',
+      ];
+      if (!empty($eventLocation['Address1'])) {
+		    $address = civicrm_api4('Address', 'create', [
+			    'values' => $addressParams,
+			    'checkPermissions' => FALSE
+		    ])->first()['id'];
+        $locBlockId = \Civi\Api4\LocBlock::create(FALSE)
+          ->addValue('address_id', $address)
+          ->execute()->first()['id'];
+        \Civi\Api4\Event::update(FALSE)
+          ->addValue('loc_block_id', $locBlockId)
+          ->addValue('Exam_Details.Exam_ID', $examID)
+          ->addWhere('id', '=', $eventID)
+	        ->execute();
       }
+    }
   }
 
   abstract protected function import();
