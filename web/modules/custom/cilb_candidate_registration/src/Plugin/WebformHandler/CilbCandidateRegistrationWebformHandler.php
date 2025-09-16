@@ -10,6 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\user\Entity\User;
 use Drupal\webform\Utility\WebformFormHelper;
+use Civi\Api4\OptionValue;
 
 /**
  * Sace CiviCRM Activity Update Handler.
