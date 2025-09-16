@@ -25,7 +25,7 @@ class ImportPlumbingRegistrations extends ImportBase {
   protected function import() {
     $this->info("Importing registrations for {$this->transactionYear}...");
 
-    $this->buildEventMap();
+    //$this->buildEventMap();
     $this->importParts();
   }
 
