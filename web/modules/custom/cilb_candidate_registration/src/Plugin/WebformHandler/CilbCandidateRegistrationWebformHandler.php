@@ -1311,6 +1311,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           'event_type_id' => $previousReg['event_id.event_type_id'],
         ];
       }
+      elseif (in_array($previousReg['event_id.event_type_id'], self::getBusinessAndFiannceExamCategories())) {
+        $exclusions[] = [
+          'event_type_id' => $previousReg['event_id.event_type_id'],
+        ];
+      }
       elseif ($previousRegPart !== 'BF') {
         // events only need to match the part to be excluded
         $exclusions[] = [
