@@ -1203,8 +1203,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if (!empty($selectedCategory)) {
       $businessAndFinanceExam = self::getBusinessAndFinanceExam($selectedCategory);
       if (count($businessAndFinanceExam) > 0) {
+        $categoryTitle = OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', 'event_type')->addWhere('value', '=', $selectedCategory)->execute()->first()['label'];
         $examFound = TRUE;
         $bfExam = $businessAndFinanceExam->first();
+        $bfExam['title'] = $categoryTitle . ' - Business and Finance';
         $events[$bfExam['id']] = $bfExam;
       }
     }
