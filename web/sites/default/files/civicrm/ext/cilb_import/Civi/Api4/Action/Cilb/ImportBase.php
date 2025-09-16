@@ -104,17 +104,19 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
           'country_id:name' => 'United States',
         ];
         if (!empty($eventLocation['Address1'])) {
-          $address = \Civi\Api4\Address::create(FALSE)
-            ->addValues($addressParams)
-            ->execute()->first()['id'];
+		$address = civicrm_api4('Address', 'create', [
+			'values' => $addressParams,
+			'checkPermissions' => FALSE
+		])->first()['id'];
           $locBlockId = \Civi\Api4\LocBlock::create(FALSE)
             ->addValue('address_id', $address)
             ->execute()->first()['id'];
           \Civi\Api4\Event::update(FALSE)
             ->addValue('loc_block_id', $locBlockId)
-            ->addWhere('id', $eventID)
             ->addValue('Exam_Details.Exam_ID', $examID)
-            ->execute();
+            ->addWhere('id', $eventID)
+	    ->execute();
+
         }
       }
   }

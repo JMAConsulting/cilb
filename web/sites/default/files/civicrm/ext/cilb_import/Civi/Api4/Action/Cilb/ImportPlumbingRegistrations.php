@@ -130,7 +130,8 @@ class ImportPlumbingRegistrations extends ImportBase {
         WHERE er.Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(er.Transaction_Date) = '{$this->transactionYear}'
         AND er.Registration_Status IN ('Registration Complete', 'Registration Paid')
-        AND er.FK_Category_ID = 406;
+        AND er.FK_Category_ID = 406
+        AND FK_Account_ID = 138105;
     ") as $registration) {
       try {
         $this->importRegistrationRow($registration);
@@ -225,7 +226,7 @@ class ImportPlumbingRegistrations extends ImportBase {
           ->execute()->first()['price_set_id'] ?? NULL;
 
         if ($priceSetByEventId) {
-          $priceOptions = (array) \Civi\Api4\PriceFieldValue::get(FALSE)
+          $priceOptions = \Civi\Api4\PriceFieldValue::get(FALSE)
             ->addWhere('price_field_id.price_set_id', '=', $priceSetByEventId)
             ->addSelect(
               // price field value fields
@@ -233,7 +234,7 @@ class ImportPlumbingRegistrations extends ImportBase {
               'price_field_id',
               'label'
             )
-            ->execute();
+            ->execute()->first();
 
           $params = [
             'entity_id' => $participant['id'],
@@ -261,7 +262,8 @@ class ImportPlumbingRegistrations extends ImportBase {
           \CRM_Core_DAO::executeQuery(<<<SQL
             UPDATE `civicrm_contribution`
             SET
-              `total_amount` = {$totalFee}
+              `total_amount` = {$totalFee},
+              `net_amount` = {$totalFee}
             WHERE `id` = {$payment}
             SQL);
         }
