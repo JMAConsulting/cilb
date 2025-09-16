@@ -54,7 +54,7 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
   protected function getRows(string $query) {
     // add limit clause if set
     $query .= $this->recordLimit ? " LIMIT {$this->recordLimit}" : "";
-    
+
     $results = $this->conn->query($query);
     while ($row = $results->fetchRow(DB_FETCHMODE_ASSOC)) {
       yield $row;
@@ -72,6 +72,9 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
   }
 
   protected function updateExamLocation($examID, $eventID) {
+    if (empty($examID) || empty($eventID)) {
+      return;
+    }
     // Check to see if we have location info for this exam.
     $locBlock = \Civi\Api4\Event::get(FALSE)
       ->addSelect('loc_block_id')
