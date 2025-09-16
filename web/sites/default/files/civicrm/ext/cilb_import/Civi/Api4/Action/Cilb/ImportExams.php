@@ -48,6 +48,17 @@ class ImportExams extends ImportBase {
 
   public function importEvents() {
 
+    $options = \Civi\Api4\OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', 'event_type')->execute();
+    $bf_event_type_id = $bf_ps_event_type_id = 0;
+    foreach ($options as $option) {
+      if ($option['name'] == 'Business and Finance') {
+        $bf_event_type_id = $option['value'];
+      }
+      else if ($option['name'] == 'Pool & Spa Servicing Business and Finance') {
+        $bf_ps_event_type_id = $option['value'];
+      }
+    }
+
     // TO CHECK: pti_category_exam_parts or pti_Code_Exam_Parts
     // spec says pti_category_exam_parts;
     // but pti_Code_Exam_Parts contains all the data from pti_category_exam_parts
@@ -73,16 +84,35 @@ class ImportExams extends ImportBase {
         `part`.`PK_Exam_Part_ID` = `dbpr_info`.`PK_Exam_Part_ID`
       ") as $sourceEvent) {
 
-
       $eventValues = $this->mapEventFields($sourceEvent);
 
-      $match = \Civi\Api4\Event::get(FALSE)
-        ->addSelect(...array_keys($eventValues))
-        ->addWhere('event_type_id:name', '=', $eventValues['event_type_id:name'])
-        ->addWhere('Exam_Details.Exam_Part', '=', $eventValues['Exam_Details.Exam_Part'])
-        ->addWhere('is_active', '=', TRUE)
-        ->execute()
-        ->first();
+      if ($eventValues['Exam_Details.Exam_Part'] === 'BF') {
+        $correct_event_type_id = $bf_event_type_id;
+        if ($eventValues['event_type_id:name'] == 'Pool/Spa Servicing') {
+          $correct_event_type_id = $bf_ps_event_type_id;
+        }
+        $eventCheck = \Civi\Api4\Event::get(FALSE)
+          ->addSelect(...array_keys($eventValues))
+          ->addWhere('event_type_id', '=', $correct_event_type_id)
+          ->addWhere('Exam_Details.Exam_Part', '=', $eventValues['Exam_Details.Exam_Part'])
+          ->addWhere('is_active', '=', TRUE);
+        if ($correct_event_type_id == $bf_ps_event_type_id) {
+          $eventCheck->addWhere('Exam_Details.Exam_Category_this_exam_applies_to:name', 'CONTAINS', $eventValues['event_type_id:name']);
+          $eventValues['Exam_Details.Exam_Category_this_exam_applies_to:name'] = [$eventValues['event_type_id:name']];
+        }
+        $match = $eventCheck->execute()->first();
+        $eventValues['event_type_id'] = $correct_event_type_id;
+        unset($eventValues['event_type_id:name']);
+      }
+      else {
+        $match = \Civi\Api4\Event::get(FALSE)
+          ->addSelect(...array_keys($eventValues))
+          ->addWhere('event_type_id:name', '=', $eventValues['event_type_id:name'])
+          ->addWhere('Exam_Details.Exam_Part', '=', $eventValues['Exam_Details.Exam_Part'])
+          ->addWhere('is_active', '=', TRUE)
+          ->execute()
+          ->first();
+      }
 
       if ($match) {
         $this->info("Found existing event for {$eventValues['title']}");
