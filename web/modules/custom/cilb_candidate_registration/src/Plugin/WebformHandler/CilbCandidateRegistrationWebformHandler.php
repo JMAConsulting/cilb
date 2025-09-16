@@ -1214,6 +1214,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       if ($form['#webform_id'] !== 'backoffice_registration') {
         $businessAndFinanceExam = self::getBusinessAndFinanceExam();
         $bfExam = $businessAndFinanceExam->first();
+        $bfExam['title'] = $categoryTitle . ' - Business and Finance';
         $events[$bfExam['id']] = $bfExam;
       }
       else {
