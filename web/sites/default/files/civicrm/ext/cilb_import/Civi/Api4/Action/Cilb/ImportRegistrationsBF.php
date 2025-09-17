@@ -12,16 +12,6 @@ namespace Civi\Api4\Action\Cilb;
  */
 class ImportRegistrationsBF extends ImportBase {
 
-  /**
-   * @var string
-   * @required
-   *
-   * 4 digit year to enable importing in segments
-   */
-  protected string $transactionYear;
-
-  private array $eventMap = [];
-
   protected function import() {
     $this->info("Importing BF registrations for {$this->transactionYear}...");
 
@@ -29,6 +19,9 @@ class ImportRegistrationsBF extends ImportBase {
     $this->importBusinessAndFinance();
   }
 
+  /**
+   * Override for BF exceptions
+   */
   protected function buildEventMap() {
     $eventOptionCategories = \Civi\Api4\OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', 'event_type')->exceute();
     $eventCategories = [];
@@ -132,7 +125,7 @@ class ImportRegistrationsBF extends ImportBase {
       default => 'Registered',
     };
 
-    $participant = \Civi\Api4\Participant::create(FALSE)
+    $participantId = \Civi\Api4\Participant::create(FALSE)
       ->addValue('event_id', $event)
       ->addValue('contact_id', $contactId)
       ->addValue('register_date', $registration['Transaction_Date'])
@@ -140,116 +133,20 @@ class ImportRegistrationsBF extends ImportBase {
       ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
       ->addValue('Candidate_Result.Date_Exam_Taken', $registration['BF_Exam_Date'])
       ->addValue('status_id:name', $status)
-      ->execute()->first();
+      ->execute()->first()['id'];
 
     // Update the exam location as well.
     if (!empty($registration['FK_Exam_Event_ID'])) {
       $this->updateExamLocation($registration['FK_Exam_Event_ID'], $event);
     }
 
-    $paymentMethod = match ($registration['Payment_Method'] ?? NULL) {
-      'Check' => 'Check',
-      'Credit Card' => 'Credit Card',
-      'Cash' => 'Cash',
-      'Money Order/Cashier' => 'Money Order',
-      'Money Order/Cashier Check' => 'Money Order',
-      'Prepaid Online' => 'Prepaid Online',
-      'PTI Voucher' => 'Voucher',
-      'Voucher' => 'Voucher',
-      'Visa' => 'Credit Card',
-      'MasterCard' => 'Credit Card',
-      default => 'Other',
-    };
-
-      // First search for an existing contribution for this registration
-    $payment = \Civi\Api4\Contribution::get(FALSE)
-      ->addSelect('id')
-      ->addWhere('trxn_id', '=', $registration['PK_Exam_Registration_ID'])
-      ->execute()->first()['id'] ?? 0;
-    if (!empty($payment)) {
-      // Also update the participant record with the fee amount
-      \Civi\Api4\Participant::update(FALSE)
-        ->addWhere('id', '=', $participant['id'])
-        ->addValue('Participant_Webform.Candidate_Payment', $payment)
-        ->execute();
-    }
-    elseif (!empty($registration['Fee_Amount'])) {
-      // Create a contribution record for the registration fee
-      $contribution = \Civi\Api4\Contribution::create(FALSE)
-        ->addValue('contact_id', $contactId)
-        ->addValue('total_amount', $registration['Fee_Amount'])
-        ->addValue('receive_date', $registration['Transaction_Date'])
-        ->addValue('financial_type_id', 4) // Exam Fees
-        ->addValue('payment_instrument_id:name', $paymentMethod)
-        ->addValue('contribution_status_id:name', 'Completed')
-        ->addValue('trxn_id', $registration['PK_Exam_Registration_ID'])
-        ->addValue('check_number', $registration['Check_Number'])
-        ->addValue('source', 'CILB Import: Account ID (' . $registration['FK_Account_ID'] . ') - Registration ID (' . $registration['PK_Exam_Registration_ID'] . ')')
-        ->execute()->first();
-
-      // Also update the participant record with the fee amount
-      \Civi\Api4\Participant::update(FALSE)
-        ->addWhere('id', '=', $participant['id'])
-        ->addValue('Participant_Webform.Candidate_Payment', $contribution['id'])
-        ->execute();
-
-      // If there is a Seat Fee, add that as a separate line item.
-      if (!empty($registration['Seat_Amount'])) {
-        $priceSetByEventId = \Civi\Api4\PriceSetEntity::get(FALSE)
-          ->addSelect('price_set_id')
-          ->addWhere('entity_table', '=', 'civicrm_event')
-          ->addWhere('entity_id', '=', $event)
-          ->execute()->first()['price_set_id'] ?? NULL;
-
-        if ($priceSetByEventId) {
-          $priceOptions = (array) \Civi\Api4\PriceFieldValue::get(FALSE)
-            ->addWhere('price_field_id.price_set_id', '=', $priceSetByEventId)
-            ->addSelect(
-              // price field value fields
-              'id',
-              'price_field_id',
-              'label'
-            )
-            ->execute();
-
-          $params = [
-            'entity_id' => $participant['id'],
-            'entity_table' => 'civicrm_participant',
-            'contribution_id' => $contribution['id'],
-            'participant_count' => 1,
-            // from getEventFees
-            'price_field_value_id' => $priceOptions['id'],
-            'price_field_id' => $priceOptions['price_field_id'],
-            'qty' => 1,
-            'unit_price' => $registration['Seat_Amount'],
-            'line_total' => $registration['Seat_Amount'],
-            'financial_type_id' => 4,
-            'label' => "CILB Candidate Registration - {$priceOptions['label']}",
-          ];
-          \CRM_Price_BAO_LineItem::create($params);
-
-          \Civi\Api4\Participant::update(FALSE)
-            ->addWhere('id', '=', $participant['id'])
-            ->addValue('participant_fee_amount', $registration['Seat_Amount'])
-            ->addValue('participant_fee_level', $priceOptions['label'])
-            ->execute();
-          $totalFee = (float) $registration['Fee_Amount'] + (float) $registration['Seat_Amount'];
-          \CRM_Core_DAO::executeQuery(<<<SQL
-            UPDATE `civicrm_contribution`
-            SET
-              `total_amount` = {$totalFee},
-              `net_amount` = {$totalFee}
-            WHERE `id` = {$contribution['id']}
-            SQL);
-
-          // Update the financial trxn as well.
-          \CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution c
-            INNER JOIN civicrm_entity_financial_trxn eft ON eft.entity_id = c.id AND eft.entity_table = 'civicrm_contribution'
-            INNER JOIN civicrm_financial_trxn trxn ON trxn.id = eft.financial_trxn_id
-            SET trxn.total_amount = %1, trxn.net_amount = %1
-            WHERE c.id = %2", [1 => [$totalFee, 'Float'], 2 => [$contribution['id'], 'Integer']]);
-        }
-      }
-    }
+    $this->recordPayments(
+      $registration,
+      $contactId,
+      $participantId,
+      $event,
+      NULL, // all seat fees are external
+      "CILB Import: Account ID ({$registration['FK_Account_ID']}) - Registration ID ({$registration['PK_Exam_Registration_ID']})"
+    );
   }
 }
