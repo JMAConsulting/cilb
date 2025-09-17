@@ -63,33 +63,33 @@ class ImportPlumbingRegistrations extends ImportBase {
       WHERE
         `PK_Exam_Event_ID` = {$examId}
     ") as $exam) {
-        $event = \Civi\Api4\Event::save(FALSE)
-          ->addRecord([
-            'title' => "Plumbing TK - " . date('Y-m-d', strtotime($exam['Actual_Exam_Date'])),
-            'max_participants' => $exam['Threshold'],
-            'start_date' => $exam['Scheduled_Exam_Date'],
-            'is_online_registration' => TRUE,
-            'registration_start_date' => date('Y-m-d', strtotime($exam['Actual_Exam_Date'])),
-            'event_type_id:name' => 'Plumbing',
-            'is_online_registration' => TRUE,
-            'Exam_Details.Exam_ID' => $exam['PK_Exam_Event_ID'],
-            'Exam_Details.Exam_Part' => 'TK',
-            'is_active' => TRUE,
-            'Exam_Details.Exam_Format', 'paper',
-          ])
-          ->setMatch(['Exam_Details.Exam_ID'])
-          ->execute()->first();
+      $event = \Civi\Api4\Event::save(FALSE)
+        ->addRecord([
+          'title' => "Plumbing TK - " . date('Y-m-d', strtotime($exam['Actual_Exam_Date'])),
+          'max_participants' => $exam['Threshold'],
+          'start_date' => $exam['Scheduled_Exam_Date'],
+          'is_online_registration' => TRUE,
+          'registration_start_date' => date('Y-m-d', strtotime($exam['Actual_Exam_Date'])),
+          'event_type_id:name' => 'Plumbing',
+          'is_online_registration' => TRUE,
+          'Exam_Details.Exam_ID' => $exam['PK_Exam_Event_ID'],
+          'Exam_Details.Exam_Part' => 'TK',
+          'is_active' => TRUE,
+          'Exam_Details.Exam_Format', 'paper',
+        ])
+        ->setMatch(['Exam_Details.Exam_ID'])
+        ->execute()->first();
 
-        // Add the price field, since this is a TK Plumbing Exam.
-        \Civi\Api4\PriceSetEntity::save(FALSE)
-            ->addRecord([
-                'entity_table' => 'civicrm_event',
-                'entity_id' => $event['id'],
-                'price_set_id.name' => 'Seat_Fee_80_DPBR'
-            ])
-            ->setMatch(['entity_table','entity_id'])
-            ->execute();
-        return $event['id'];
+      // Add the price field, since this is a TK Plumbing Exam.
+      \Civi\Api4\PriceSetEntity::save(FALSE)
+        ->addRecord([
+            'entity_table' => 'civicrm_event',
+            'entity_id' => $event['id'],
+            'price_set_id.name' => 'Seat_Fee_80_DPBR'
+        ])
+        ->setMatch(['entity_table', 'entity_id'])
+        ->execute();
+      return $event['id'];
     }
   }
 
@@ -250,12 +250,12 @@ class ImportPlumbingRegistrations extends ImportBase {
             'label' => "CILB Candidate Registration - {$priceOptions['label']}",
           ];
           \CRM_Price_BAO_LineItem::create($params);
-          
+
 
           $totalFee = (float)$registration['Fee_Amount'] + (float)$registration['Seat_Fee_Amount'];
           \Civi\Api4\Participant::update(FALSE)
             ->addWhere('id', '=', $participant['id'])
-            ->addValue('participant_fee_amount', $registration['Seat_Fee_Amount']) 
+            ->addValue('participant_fee_amount', $registration['Seat_Fee_Amount'])
             ->addValue('participant_fee_level', $priceOptions['label'])
             ->execute();
           \CRM_Core_DAO::executeQuery(<<<SQL
@@ -267,9 +267,9 @@ class ImportPlumbingRegistrations extends ImportBase {
             SQL);
 
             // Update the financial trxn as well.
-            \CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution c 
-              INNER JOIN civicrm_entity_financial_trxn eft ON eft.entity_id = c.id AND eft.entity_table = 'civicrm_contribution' 
-              INNER JOIN civicrm_financial_trxn trxn ON trxn.id = eft.financial_trxn_id 
+            \CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution c
+              INNER JOIN civicrm_entity_financial_trxn eft ON eft.entity_id = c.id AND eft.entity_table = 'civicrm_contribution'
+              INNER JOIN civicrm_financial_trxn trxn ON trxn.id = eft.financial_trxn_id
               SET trxn.total_amount = %1, trxn.net_amount = %1
               WHERE c.id = %2", [1 => [$totalFee, 'Float'], 2 => [$payment, 'Integer']]);
         }
