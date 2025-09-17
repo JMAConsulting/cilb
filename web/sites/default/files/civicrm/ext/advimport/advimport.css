@@ -1,0 +1,7 @@
+/* Right-align numbers */
+#crm-container form.CRM_Advimport_Upload_Form_DataUpload table.crm-advimport-history th:first-child,
+#crm-container form.CRM_Advimport_Upload_Form_DataUpload table.crm-advimport-history td:first-child,
+#crm-container form.CRM_Advimport_Upload_Form_DataUpload table.crm-advimport-history th:nth-child(n+6),
+#crm-container form.CRM_Advimport_Upload_Form_DataUpload table.crm-advimport-history td:nth-child(n+6) {
+  text-align: right;
+}

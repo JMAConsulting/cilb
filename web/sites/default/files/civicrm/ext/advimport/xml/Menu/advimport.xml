@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/advimport</path>
+    <page_callback>CRM_Advimport_Upload_Controller</page_callback>
+    <title>Advanced Import</title>
+    <access_arguments>import contacts</access_arguments>
+    <is_ssl>true</is_ssl>
+    <is_public>false</is_public>
+  </item>
+  <item>
+    <path>civicrm/advimport/export</path>
+    <page_callback>CRM_Advimport_Page_Export</page_callback>
+    <title>Export errors</title>
+    <access_arguments>import contacts</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/advimport/newrow</path>
+    <page_callback>CRM_Advimport_Form_NewRow</page_callback>
+    <title>New Row</title>
+    <access_arguments>import contacts</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/advimport/runner</path>
+    <page_callback>CRM_Advimport_Page_Runner</page_callback>
+    <title>Runner</title>
+    <access_arguments>import contacts</access_arguments>
+  </item>
+</menu>
