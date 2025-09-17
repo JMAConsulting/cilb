@@ -75,7 +75,7 @@ class ImportPlumbingRegistrations extends ImportBase {
           'Exam_Details.Exam_ID' => $exam['PK_Exam_Event_ID'],
           'Exam_Details.Exam_Part' => 'TK',
           'is_active' => TRUE,
-          'Exam_Details.Exam_Format', 'paper',
+          'Exam_Details.Exam_Format' => 'paper',
         ])
         ->setMatch(['Exam_Details.Exam_ID'])
         ->execute()->first();
