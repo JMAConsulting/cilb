@@ -237,9 +237,17 @@ class ImportRegistrationsBF extends ImportBase {
           \CRM_Core_DAO::executeQuery(<<<SQL
             UPDATE `civicrm_contribution`
             SET
-              `total_amount` = {$totalFee}
+              `total_amount` = {$totalFee},
+              `net_amount` = {$totalFee}
             WHERE `id` = {$contribution['id']}
             SQL);
+
+          // Update the financial trxn as well.
+          \CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution c
+            INNER JOIN civicrm_entity_financial_trxn eft ON eft.entity_id = c.id AND eft.entity_table = 'civicrm_contribution'
+            INNER JOIN civicrm_financial_trxn trxn ON trxn.id = eft.financial_trxn_id
+            SET trxn.total_amount = %1, trxn.net_amount = %1
+            WHERE c.id = %2", [1 => [$totalFee, 'Float'], 2 => [$contribution['id'], 'Integer']]);
         }
       }
     }
