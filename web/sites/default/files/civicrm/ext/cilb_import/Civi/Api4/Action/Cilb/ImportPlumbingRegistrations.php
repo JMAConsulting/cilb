@@ -112,7 +112,8 @@ class ImportPlumbingRegistrations extends ImportBase {
         Seat_Fee_Amount,
         Registration_Status,
         Check_Number,
-        Score
+        Score,
+        ee.Actual_Exam_Date as Actual_Exam_Date
         FROM pti_Exam_Registrations er
 
         JOIN pti_Code_Categories cc
@@ -120,6 +121,9 @@ class ImportPlumbingRegistrations extends ImportBase {
 
         JOIN pti_Exam_Registration_Parts erp
         ON erp.FK_Exam_Registration_ID = er.PK_Exam_Registration_ID
+
+        JOIN pti_Exam_Events ee
+        ON ee.PK_Exam_Event_ID = er.FK_Exam_Event_ID
 
         LEFT OUTER JOIN pti_Code_Exam_Parts cep
         ON erp.FK_Exam_Part_ID = cep.PK_Exam_Part_ID
@@ -177,6 +181,7 @@ class ImportPlumbingRegistrations extends ImportBase {
       ->addValue('status_id:name', $status)
       ->addValue('source', $registration['PK_Exam_Registration_Part_ID'])
       ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
+      ->addValue('Candidate_Result.Exam_Taken_Date', $registration['Actual_Exam_Date'])
       ->execute()->first();
 
     // Update the exam location as well.

@@ -82,7 +82,7 @@ class ImportRegistrations extends ImportBase {
         JOIN pti_Code_Exam_Parts
         ON pti_Exam_Registration_Parts.`FK_Exam_Part_ID` = pti_Code_Exam_Parts.`PK_Exam_Part_ID`
 
-        WHERE 
+        WHERE
         Transaction_Date > '{$this->cutOffDate}'
         AND YEAR(Transaction_Date) = '{$this->transactionYear}'
         AND Exam_Part_Name_Abbr != 'BF'
@@ -129,7 +129,7 @@ class ImportRegistrations extends ImportBase {
       ->addValue('register_date', $registration['Transaction_Date'])
       ->addValue('Candidate_Result.Candidate_Score', $registration['Score'])
       ->addValue('status_id:name', $status)
-      ->addValue('Candidate_Result.Date_Exam_Taken', ($registration['CBT_Exam_Date'] ?? NULL))
+      ->addValue('Candidate_Result.Date_Exam_Taken', $registration['CBT_Exam_Date'])
       ->addValue('source', $registration['PK_Exam_Registration_Part_ID'])
       ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
       ->execute()->first();

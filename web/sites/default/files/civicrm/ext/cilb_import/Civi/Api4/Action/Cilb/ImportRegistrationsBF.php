@@ -81,6 +81,7 @@ class ImportRegistrationsBF extends ImportBase {
           BF_Pass,
           FK_Exam_Event_ID,
           BF_Score,
+          BF_Exam_Date,
           Fee_Amount,
           Payment_Method,
           Seat_Fee_Amount,
@@ -137,6 +138,7 @@ class ImportRegistrationsBF extends ImportBase {
       ->addValue('register_date', $registration['Transaction_Date'])
       ->addValue('Candidate_Result.Candidate_Score', $registration['BF_Score'])
       ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
+      ->addValue('Candidate_Result.Date_Exam_Taken', $registration['BF_Exam_Date'])
       ->addValue('status_id:name', $status)
       ->execute()->first();
 
