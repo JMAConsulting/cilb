@@ -93,13 +93,13 @@ function show_trxn_ids_civicrm_searchColumns($objectName, &$headers,  &$values, 
       foreach ($values as $key => $value) {
         $trxnId = '';
         if (!empty($value['participant_id'])) {
-          $result = civicrm_api3('ParticipantPayment', 'get', [
-            'sequential' => 1,
-            'return' => ["contribution_id.trxn_id"],
-            'participant_id' => $value['participant_id'],
-          ]);
-          if (!empty($result['values'][0]['contribution_id.trxn_id'])) {
-            $trxnId = $result['values'][0]['contribution_id.trxn_id'];
+          $result = \Civi\Api4\Participant::get(FALSE)
+            ->addWhere('id', '=', $value['participant_id'])
+            ->addSelect('Participant_Webform.Candidate_Payment.trxn_id')
+            ->execute()
+            ->first()['Participant_Webform.Candidate_Payment.trxn_id'] ?? NULL;
+          if ($result) {
+            $trxnId = $result;
           }
         }
         $values[$key]['trxn_id'] = $trxnId;
@@ -129,12 +129,11 @@ function show_trxn_ids_civicrm_buildForm($formName, &$form)
   if ($formName == 'CRM_Event_Form_ParticipantView') {
     $contactClass = 'crm-event-participantview-form-block-displayName';
     $participantId = $form->getParticipantID();
-    $result = civicrm_api3('ParticipantPayment', 'get', [
-      'sequential' => 1,
-      'return' => ["contribution_id.trxn_id"],
-      'participant_id' => $participantId,
-    ]);
-    $trxnId = $result['values'][0]['contribution_id.trxn_id'];
+    $trxnId = \Civi\Api4\Participant::get(FALSE)
+      ->addWhere('id', '=', $participantId)
+      ->addSelect('Participant_Webform.Candidate_Payment.trxn_id')
+      ->execute()
+      ->first()['Participant_Webform.Candidate_Payment.trxn_id'] ?? NULL;
   }
   $form->assign('trxn_id', $trxnId);
   $form->assign('contact_class', $contactClass);
