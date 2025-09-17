@@ -30,24 +30,43 @@ class ImportRegistrationsBF extends ImportBase {
   }
 
   protected function buildEventMap() {
+    $eventOptionCategories = \Civi\Api4\OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', 'event_type')->exceute();
+    $eventCategories = [];
+    $bfCategories = [];
+    foreach ($eventOptionCategories as $eventOptionCategory) {
+      if (in_array($eventOptionCategory['name'], ['Business and Finance', 'Pool & Spa Servicing Business and Finance'])) {
+        $bfCategories[] = $eventOptionCategory['name'];
+      }
+      if ($eventOptionCategory['name'] !== 'Pool/Spa Servicing') {
+        $eventCategories[$eventOptionCategory['name']] = 'Pool & Spa Servicing Business and Finance';
+      }
+      else {
+        $eventCategories[$eventOptionCategory['name']] = 'Business and Finance';
+      }
+    }
+
     $events = \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id', 'event_type_id:name', 'Exam_Details.Exam_Part')
+      ->addSelect('id', 'event_type_id:name', 'Exam_Details.Exam_Part', 'Exam_Details.Exam_Category_this_exam_applies_to:name')
       ->addWhere('is_active', '=', TRUE)
       ->execute();
 
     foreach ($events as $event) {
       $type = $event['event_type_id:name'];
       $part = $event['Exam_Details.Exam_Part'];
-      if (!$type || !$part) {
+      if (!$type || !$part || !in_array($type, $bfCategories)) {
         // not relevant for us
         continue;
       }
-      $this->eventMap[$type] ??= [];
-      if (isset($this->eventMap[$type][$part])) {
-        $this->warning("More than one event exists for {$type} {$part}. Registrations will be imported to event ID {$this->eventMap[$type][$part]} - event ID {$event['id']} will be ignored");
-        continue;
+      foreach ($eventCategories as $eventCategory => $bfEventType) {
+        $this->eventMap[$eventCategory] ??= [];
+        if (isset($this->eventMap[$eventCategory][$part])) {
+          $this->warning("More than one event exists for {$eventCategory} {$part}. Registrations will be imported to event ID {$this->eventMap[$eventCategory][$part]} - event ID {$event['id']} will be ignored");
+          continue;
+        }
+        if ($type == $bfEventType) {
+          $this->eventMap[$eventCategory][$part] = $event['id'];
+        }
       }
-      $this->eventMap[$type][$part] = $event['id'];
     }
   }
 
@@ -112,7 +131,6 @@ class ImportRegistrationsBF extends ImportBase {
       default => 'Registered',
     };
 
-    
     $participant = \Civi\Api4\Participant::create(FALSE)
       ->addValue('event_id', $event)
       ->addValue('contact_id', $contactId)
@@ -220,7 +238,7 @@ class ImportRegistrationsBF extends ImportBase {
             'label' => "CILB Candidate Registration - {$priceOptions['label']}",
           ];
           \CRM_Price_BAO_LineItem::create($params);
-          
+
 
           $totalFee = (float)$registration['Fee_Amount'] + (float)$registration['Seat_Amount'];
           \Civi\Api4\Participant::update(FALSE)
