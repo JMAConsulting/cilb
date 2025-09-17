@@ -67,4 +67,24 @@ return [
       ],
     ],
   ],
+  [
+    'name' => 'CustomGroup_Candidate_Result_CustomField_Date_Exam_Taken',
+    'entity' => 'CustomField',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'custom_group_id.name' => 'Candidate_Result',
+        'name' => 'Date_Exam_Taken',
+        'label' => E::ts('Date Exam Taken'),
+        'data_type' => 'Date',
+        'html_type' => 'Select Date',
+      ],
+      'match' => [
+        'name',
+        'custom_group_id',
+      ],
+    ],
+  ],
 ];
