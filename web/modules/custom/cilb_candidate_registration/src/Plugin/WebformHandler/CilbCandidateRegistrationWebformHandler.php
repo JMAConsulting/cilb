@@ -74,7 +74,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         // note on frontend form:
         // - the event category is selected on an earlier page, so this will limit the options directly
         // - limit options based on logged in contact, or none
-        $this->setEventOptions($form, $form_state, TRUE);
+        $selectedCategory = (int) $form_state->getValue('select_category_id');
+        $this->setEventOptions($form, $form_state, $selectedCategory);
         break;
 
       case 'exam_information':
@@ -1085,7 +1086,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $categories_to_hide = [];
       }
       $categories = $bfExamIds = [];
-      $genericBusinessAndFinanceExamCategoryId = self::getBusinessAndFinanceExam()->first()['event_type_id'];
+      $genericBusinessAndFinanceExamCategoryId = self::getBusinessAndFinanceExam()->first()['event_type_id'] ?? NULL;
       foreach ($events as $event) {
         if (in_array($event['event_type_id'], $categories_to_hide)) {
           continue;
@@ -1095,7 +1096,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $categories[$categoryId] = $categoryLabel;
         $categoryBusinessandFiannceExamCategoryId = self::getBusinessAndFinanceExam($categoryId);
         if (count($categoryBusinessandFiannceExamCategoryId) < 1) {
-          $bfExamIds[$categoryId] = $genericBusinessAndFinanceExamCategoryId;
+          if ($genericBusinessAndFinanceExamCategoryId) {
+            $bfExamIds[$categoryId] = $genericBusinessAndFinanceExamCategoryId;
+          }
         }
         else {
           $bfExamIds[$categoryId] = $categoryBusinessandFiannceExamCategoryId->first()['event_type_id'];
@@ -1108,9 +1111,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
-  protected function setEventOptions(&$form, $form_state) {
-
-    $events = $this->getEventRegistrationOptions($form, $form_state);
+  protected function setEventOptions(&$form, $form_state, ?int $categoryFilter = NULL) {
+    $events = $this->getEventRegistrationOptions($form, $form_state, $categoryFilter);
 
     $events = array_map(function ($event) {
       // provide data and location for non-BF plumbing.
@@ -1157,7 +1159,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
   /**
    * @return int[] array of event ids for valid registration options
    */
-  protected function getEventRegistrationOptions($form, $form_state): array {
+  protected function getEventRegistrationOptions($form, $form_state, ?int $categoryFilter = NULL): array {
     // Fetch events with space remaining or no space cap
     $eventFetch = \Civi\Api4\Event::get(FALSE)
       ->addSelect(
@@ -1183,17 +1185,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0]);
 
     // for frontend form, we need to limit based on category selection on
-    // earlier page
-    $selectedCategory = NULL;
-    if ($form['#webform_id'] !== 'backoffice_registration') {
-      $selectedCategory = $form_state->getValue('select_category_id');
-      if ($selectedCategory) {
-        $eventFetch->addWhere('event_type_id', '=', $selectedCategory);
-        $selectedCategory = (int) $selectedCategory;
-      }
-      else {
-        $selectedCategory = NULL;
-      }
+    // earlier page when we go to later page
+    // BUT not when flicking back to the category selector
+    if ($categoryFilter) {
+      $eventFetch->addWhere('event_type_id', '=', $categoryFilter);
     }
 
     $events = (array) $eventFetch
@@ -1201,9 +1196,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->indexBy('id');
 
     $examFound = FALSE;
-    if (!empty($selectedCategory)) {
-      $businessAndFinanceExam = self::getBusinessAndFinanceExam($selectedCategory);
-      $categoryTitle = OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', 'event_type')->addWhere('value', '=', $selectedCategory)->execute()->first()['label'];
+    $categoryTitle = NULL;
+    if ($categoryFilter) {
+      $categoryTitle = OptionValue::get(FALSE)
+        ->addWhere('option_group_id:name', '=', 'event_type')
+        ->addWhere('value', '=', $categoryFilter)
+        ->execute()->first()['label'] ?? NULL;
+      $businessAndFinanceExam = self::getBusinessAndFinanceExam($categoryFilter);
       if (count($businessAndFinanceExam) > 0) {
         $examFound = TRUE;
         $bfExam = $businessAndFinanceExam->first();
@@ -1215,8 +1214,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       if ($form['#webform_id'] !== 'backoffice_registration') {
         $businessAndFinanceExam = self::getBusinessAndFinanceExam();
         $bfExam = $businessAndFinanceExam->first();
-        $bfExam['title'] = $categoryTitle . ' - Business and Finance';
-        $events[$bfExam['id']] = $bfExam;
+        if ($bfExam) {
+          $bfExam['title'] = $categoryTitle ? "{$categoryTitle} - Business and Finance" : "Business and Finance";
+          $events[$bfExam['id']] = $bfExam;
+        }
       }
       else {
         $businessAndFinanceExam = self::getBusinessAndFinanceExam(NULL, TRUE);
@@ -1230,7 +1231,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // if existing contact, check for existing registrations that mean we cant reregister for an exam
     $contactId = $this->getRegistrantContact($form, $form_state);
     if ($contactId) {
-      $events = self::filterRegisterableEventsForContact($events, $contactId, $selectedCategory);
+      $events = self::filterRegisterableEventsForContact($events, $contactId, $categoryFilter);
     }
 
     // exclude Plumbing TK exams that are in the past
@@ -1245,7 +1246,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return TRUE;
     });
 
-
     return $events;
   }
 
@@ -1259,7 +1259,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    *     otherwise => exclude if registration for any exam for the same part, regardless of category
    *
    */
-  protected function filterRegisterableEventsForContact(array $events, int $contactId, ?int $selectedCategory = NULL): array {
+  protected function filterRegisterableEventsForContact(array $events, int $contactId, $selectedCategory): array {
     $exclusions = [];
 
     $examPartCategorySpecificity = (array) \Civi\Api4\OptionValue::get(FALSE)
