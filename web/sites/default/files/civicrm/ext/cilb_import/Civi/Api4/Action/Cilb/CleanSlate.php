@@ -45,14 +45,19 @@ class CleanSlate extends AbstractAction {
       ->execute();
 
     // dont delete contacts with FinancialTrxns
-    $contactsWithLineItems = \Civi\Api4\LineItem::get(FALSE)
+   /* $contactsWithLineItems = \Civi\Api4\LineItem::get(FALSE)
       ->addSelect('contribution_id.contact_id')
       ->addGroupBy('contribution_id.contact_id')
       ->execute()
-      ->column('contribution_id.contact_id');
+      ->column('contribution_id.contact_id');*/
 
     // cant delete org 1
-    $dontDelete = array_merge([1], $adminContactIds, $contactsWithLineItems);
+    $dontDelete = array_merge([1], $adminContactIds);
+
+    // Delete the participant records first
+    \Civi\Api4\Participant::delete(FALSE)
+      ->addWhere('contact_id', 'NOT IN', $dontDelete)
+      ->execute();
 
     // bye bye - dont try this at home
     \Civi\Api4\Contact::delete(FALSE)
