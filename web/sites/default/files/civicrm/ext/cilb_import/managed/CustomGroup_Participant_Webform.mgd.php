@@ -43,6 +43,7 @@ return [
         'label' => E::ts('Url'),
         'html_type' => 'Text',
         'text_length' => 255,
+        'is_active' => FALSE,
       ],
       'match' => [
         'name',
