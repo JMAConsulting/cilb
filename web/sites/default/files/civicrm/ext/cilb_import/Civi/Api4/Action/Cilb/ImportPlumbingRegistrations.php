@@ -256,13 +256,13 @@ class ImportPlumbingRegistrations extends ImportBase {
           ];
           \CRM_Price_BAO_LineItem::create($params);
 
-
-          $totalFee = (float)$registration['Fee_Amount'] + (float)$registration['Seat_Fee_Amount'];
           \Civi\Api4\Participant::update(FALSE)
             ->addWhere('id', '=', $participant['id'])
             ->addValue('participant_fee_amount', $registration['Seat_Fee_Amount'])
             ->addValue('participant_fee_level', $priceOptions['label'])
             ->execute();
+
+          $totalFee = (float) $registration['Fee_Amount'] + (float) $registration['Seat_Fee_Amount'];
           \CRM_Core_DAO::executeQuery(<<<SQL
             UPDATE `civicrm_contribution`
             SET
