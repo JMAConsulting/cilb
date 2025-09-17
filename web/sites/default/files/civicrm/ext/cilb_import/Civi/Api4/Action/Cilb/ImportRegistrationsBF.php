@@ -163,21 +163,14 @@ class ImportRegistrationsBF extends ImportBase {
 
       // First search for an existing contribution for this registration
     $payment = \Civi\Api4\Contribution::get(FALSE)
-        ->addSelect('id')
-        ->addWhere('trxn_id', '=', $registration['PK_Exam_Registration_ID'])
-        ->execute()->first()['id'] ?? 0;
+      ->addSelect('id')
+      ->addWhere('trxn_id', '=', $registration['PK_Exam_Registration_ID'])
+      ->execute()->first()['id'] ?? 0;
     if (!empty($payment)) {
-      // The transaction already exists, only associate with the new participant record
-      civicrm_api3('ParticipantPayment', 'create', [
-        'participant_id' => $participant['id'],
-        'contribution_id' => $payment,
-      ]);
       // Also update the participant record with the fee amount
       \Civi\Api4\Participant::update(FALSE)
         ->addWhere('id', '=', $participant['id'])
         ->addValue('Participant_Webform.Candidate_Payment', $payment)
-        ->addValue('fee_amount', $registration['Fee_Amount'])
-        ->addValue('fee_level', 'Registration Fee')
         ->execute();
     }
     elseif (!empty($registration['Fee_Amount'])) {
@@ -194,16 +187,10 @@ class ImportRegistrationsBF extends ImportBase {
         ->addValue('source', 'CILB Import: Account ID (' . $registration['FK_Account_ID'] . ') - Registration ID (' . $registration['PK_Exam_Registration_ID'] . ')')
         ->execute()->first();
 
-      civicrm_api3('ParticipantPayment', 'create', [
-        'participant_id' => $participant['id'],
-        'contribution_id' => $contribution['id'],
-      ]);
       // Also update the participant record with the fee amount
       \Civi\Api4\Participant::update(FALSE)
         ->addWhere('id', '=', $participant['id'])
         ->addValue('Participant_Webform.Candidate_Payment', $contribution['id'])
-        ->addValue('participant_fee_amount', $registration['Fee_Amount'])
-        ->addValue('participant_fee_level', 'Registration Fee')
         ->execute();
 
       // If there is a Seat Fee, add that as a separate line item.
