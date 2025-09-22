@@ -38,6 +38,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
         $examDate       = $params['examdate'] ?? NULL;
         $examScore      = $params['examscore'] ?? NULL;
         $examStatus     = ucfirst($params['examgrade']) ?? NULL;
+        $examTitle      = $params['examtitle'] ?? '';
 
         // Sanity Checks
         if (empty($candidateID)) {
@@ -50,6 +51,11 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
             throw new Exception("uploaded file is missing the exam score information.");
         }
 
+        // Exams --> Review
+        if ( stripos($examTitle, "review") !== false ) {
+            CRM_Advimport_Utils::logImportWarning($params, "Skipped"); // Exam is marked as being reviewed
+        }
+
         // Exam Info
         $exam = getExamInfoFromSeriesCode($examSeriesCode);
         if ( $exam == NULL ) {
@@ -59,7 +65,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
                 2 => [0, 'Positive'],
                 3 => ["Skipped", 'String'],
             ]);*/
-            CRM_Advimport_Utils::logImportWarning($params, "Skipped");
+            CRM_Advimport_Utils::logImportWarning($params, "Skipped"); // Exam was not found
             return;
         }
         $examID = $exam['id'];
