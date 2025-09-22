@@ -33,6 +33,20 @@ abstract class SyncFromSFTP extends \Civi\Api4\Generic\AbstractAction {
    * SFTP Port 
    */
   protected string $sftpPort = '22';
+
+  /**
+   * @var string
+   *
+   * SFTP User 
+   */
+  protected string $sftpUser = '';
+
+  /**
+   * @var string
+   *
+   * SFTP Password 
+   */
+  protected string $sftpPassword = '';
   
   /**
    * 
@@ -47,17 +61,44 @@ abstract class SyncFromSFTP extends \Civi\Api4\Generic\AbstractAction {
   protected string $dateToSync = '';
 
 
-  protected function prepareConnection() {
-    //$sftpURL;
-    if ( empty($this->sftpURL) ) {
-      throw new \Civi\API\Exception\UnauthorizedException('Missing SFTP connection details.');
+  protected function closeConnection() {
+    if ($this->conn) {
+      @\ssh2_disconnect($this->conn);
     }
+  }
+
+  protected function prepareConnection() {
     
+    // Credentials
+    if (!$this->checkCredentials()) {
+      $this->retrieveCredentials();
+    }
+    $this->checkCredentials(true);
+
+    // Initial connection
     $this->conn = @\ssh2_connect($this->sftpURL, $this->sftpPort);
     if (!$this->conn) {
-      throw new \Civi\API\Exception\UnauthorizedException('Cannot connect to SFTP Host');
+      throw new \Civi\API\Exception\UnauthorizedException('Cannot connect to SFTP Host [SSH]');
     }
-    \@ssh2_auth_password($this->conn, 'username', 'password');
+    if (!@\ssh2_auth_password($this->conn, $this->sftpUser, $this->sftpPassword)) {
+      throw new \Civi\API\Exception\UnauthorizedException('Cannot connect to SFTP Host [Auth]');
+    }
+  }
+
+  protected function retrieveCredentials() {
+    throw new \Civi\API\Exception\UnauthorizedException('Not implemented');
+  }
+
+  protected function checkCredentials($throwError = false): bool {
+    if (empty($this->sftpURL) || empty($this->sftpUser) || empty($this->sftpPassword)) {
+      
+      if ($throwError)
+        throw new \Civi\API\Exception\UnauthorizedException('Missing credentials');
+      
+      return false;
+    }
+
+    return true;
   }
 
 }

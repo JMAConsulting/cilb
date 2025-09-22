@@ -22,15 +22,24 @@ use Exception;
  */
 class SyncPearsonVueScores extends SyncFromSFTP {
 
-  protected string $sftpURL = 'sftp2.pearsonvue.com';
+  protected function retrieveCredentials() {
+      $this->sftpURL = 'ventura.eastus.cloudapp.azure.com';//'pearsonvue.com';
+      $this->sftpUser = getenv('SFTP_VUE_USER');
+      $this->sftpPassword = getenv('SFTP_VUE_PASS');
+  }
 
 
   public function _run(Result $result) {
 
     $this->prepareConnection(); // throws error if fails
+    
+    $sftp = @\ssh2_sftp($this->conn);
+    if (!$sftp) {
+      throw new \Civi\API\Exception\UnauthorizedException('Cannot connect to SFTP Host [FTP]');
+    }
 
-    $sftp = ssh2_sftp($this->conn);
-    echo "<pre>sftp -> " . print_r($sftp, true) . "</pre>";
+    $this->closeConnection();
+
   }
 
 }
