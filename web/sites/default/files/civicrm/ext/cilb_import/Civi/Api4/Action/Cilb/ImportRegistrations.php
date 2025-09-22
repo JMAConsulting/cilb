@@ -10,7 +10,7 @@ namespace Civi\Api4\Action\Cilb;
  *  cutOffDate=2019-09-01 \
  *  transactionYear=2020
  */
-class ImportRegistrations extends ImportBase {
+class ImportRegistrations extends ImportRegistrationsBase {
 
   /**
    * @var string
@@ -20,7 +20,7 @@ class ImportRegistrations extends ImportBase {
    */
   protected string $transactionYear;
 
-  private array $eventMap = [];
+  protected array $eventMap = [];
 
   protected function import() {
     $this->info("Importing registrations for {$this->transactionYear}...");

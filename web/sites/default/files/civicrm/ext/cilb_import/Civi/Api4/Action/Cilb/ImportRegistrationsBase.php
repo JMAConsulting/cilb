@@ -20,7 +20,7 @@ abstract class ImportRegistrationsBase extends ImportBase {
    */
   protected string $transactionYear;
 
-  private array $eventMap = [];
+  protected array $eventMap = [];
 
   private ?array $registrationFeePriceFieldValue = NULL;
 
@@ -116,9 +116,9 @@ abstract class ImportRegistrationsBase extends ImportBase {
     \CRM_Core_DAO::executeQuery(<<<SQL
       UPDATE `civicrm_line_item`
       SET
-        `label` = {$this->registrationFeePriceFieldValue['label']},
+        `label` = '{$this->registrationFeePriceFieldValue['label']}',
         `price_field_id` = {$this->registrationFeePriceFieldValue['price_field_id']},
-        `price_field_value_id` = {$this->registrationFeePriceFieldValue['id']},
+        `price_field_value_id` = {$this->registrationFeePriceFieldValue['id']}
       WHERE `contribution_id` = {$contribution['id']}
       SQL);
 
@@ -176,7 +176,7 @@ abstract class ImportRegistrationsBase extends ImportBase {
         UPDATE `civicrm_contribution`
         SET
           `total_amount` = {$newTotal},
-          `net_amount` = {$newTotal},
+          `net_amount` = {$newTotal}
         WHERE `id` = {$contributionId}
       SQL);
 

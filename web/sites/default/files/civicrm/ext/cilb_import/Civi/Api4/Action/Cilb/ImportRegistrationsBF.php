@@ -10,7 +10,7 @@ namespace Civi\Api4\Action\Cilb;
  *  cutOffDate=2019-09-01 \
  *  transactionYear=2020
  */
-class ImportRegistrationsBF extends ImportBase {
+class ImportRegistrationsBF extends ImportRegistrationsBase {
 
   protected function import() {
     $this->info("Importing BF registrations for {$this->transactionYear}...");
@@ -23,14 +23,14 @@ class ImportRegistrationsBF extends ImportBase {
    * Override for BF exceptions
    */
   protected function buildEventMap() {
-    $eventOptionCategories = \Civi\Api4\OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', 'event_type')->exceute();
+    $eventOptionCategories = \Civi\Api4\OptionValue::get(FALSE)->addWhere('option_group_id:name', '=', 'event_type')->execute();
     $eventCategories = [];
     $bfCategories = [];
     foreach ($eventOptionCategories as $eventOptionCategory) {
       if (in_array($eventOptionCategory['name'], ['Business and Finance', 'Pool & Spa Servicing Business and Finance'])) {
         $bfCategories[] = $eventOptionCategory['name'];
       }
-      if ($eventOptionCategory['name'] !== 'Pool/Spa Servicing') {
+      if ($eventOptionCategory['name'] == 'Pool/Spa Servicing') {
         $eventCategories[$eventOptionCategory['name']] = 'Pool & Spa Servicing Business and Finance';
       }
       else {
@@ -51,16 +51,17 @@ class ImportRegistrationsBF extends ImportBase {
         continue;
       }
       foreach ($eventCategories as $eventCategory => $bfEventType) {
-        $this->eventMap[$eventCategory] ??= [];
-        if (isset($this->eventMap[$eventCategory][$part])) {
+       $this->eventMap[$eventCategory] ??= [];
+        /*if (isset($this->eventMap[$eventCategory][$part])) {
           $this->warning("More than one event exists for {$eventCategory} {$part}. Registrations will be imported to event ID {$this->eventMap[$eventCategory][$part]} - event ID {$event['id']} will be ignored");
           continue;
-        }
+	}*/
         if ($type == $bfEventType) {
           $this->eventMap[$eventCategory][$part] = $event['id'];
         }
       }
     }
+
   }
 
   protected function importBusinessAndFinance() {

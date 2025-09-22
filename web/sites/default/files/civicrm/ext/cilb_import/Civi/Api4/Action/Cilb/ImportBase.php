@@ -68,6 +68,7 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
 
   protected function warning(string $msg) {
     echo "[WARNING] $msg\n\n";
+    \CRM_Core_Error::backtrace();
     \Civi::log()->warning($msg);
   }
 

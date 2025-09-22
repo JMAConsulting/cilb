@@ -52,10 +52,10 @@ class ImportExams extends ImportBase {
     $bf_event_type_id = $bf_ps_event_type_id = 0;
     foreach ($options as $option) {
       if ($option['name'] == 'Business and Finance') {
-        $bf_event_type_id = $option['value'];
+        $bf_event_type_id = $option['name'];
       }
       else if ($option['name'] == 'Pool & Spa Servicing Business and Finance') {
-        $bf_ps_event_type_id = $option['value'];
+        $bf_ps_event_type_id = $option['name'];
       }
     }
 
@@ -93,7 +93,7 @@ class ImportExams extends ImportBase {
         }
         $eventCheck = \Civi\Api4\Event::get(FALSE)
           ->addSelect(...array_keys($eventValues))
-          ->addWhere('event_type_id', '=', $correct_event_type_id)
+          ->addWhere('event_type_id:name', '=', $correct_event_type_id)
           ->addWhere('Exam_Details.Exam_Part', '=', $eventValues['Exam_Details.Exam_Part'])
           ->addWhere('is_active', '=', TRUE);
         if ($correct_event_type_id == $bf_ps_event_type_id) {
@@ -101,8 +101,8 @@ class ImportExams extends ImportBase {
           $eventValues['Exam_Details.Exam_Category_this_exam_applies_to:name'] = [$eventValues['event_type_id:name']];
         }
         $match = $eventCheck->execute()->first();
-        $eventValues['event_type_id'] = $correct_event_type_id;
-        unset($eventValues['event_type_id:name']);
+        $eventValues['event_type_id:name'] = $correct_event_type_id;
+        //unset($eventValues['event_type_id:name']);
       }
       else {
         $match = \Civi\Api4\Event::get(FALSE)
