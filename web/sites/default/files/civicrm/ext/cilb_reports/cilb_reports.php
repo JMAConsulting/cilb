@@ -11,6 +11,13 @@ use CRM_CilbReports_ExtensionUtil as E;
  */
 function cilb_reports_civicrm_config(&$config): void {
   _cilb_reports_civix_civicrm_config($config);
+  // This hook sometimes runs twice
+  if (isset(Civi::$statics[__FUNCTION__])) {
+    return;
+  }
+  Civi::$statics[__FUNCTION__] = 1;
+  // Make sure our listener runs after Afform Core has run
+  Civi::dispatcher()->addListener('hook_civicrm_angularModules', '_cilb_reports_civicrm_angularModules', -1100);
 }
 
 /**
@@ -90,5 +97,23 @@ function cilb_reports_civicrm_alterCustomFieldDisplayValue(&$displayValue, $valu
       ";
       break;
 
+  }
+}
+
+function cilb_reports_civicrm_pageRun($page) {
+  if (is_a($page, 'CRM_Afform_Page_AfformBase')) {
+    $directive = $page->getTemplateVars('directive');
+    if ($directive === 'afsearch-find-candidates') {
+      CRM_Core_Resources::singleton()->addVars('eventSearch', [
+        'positiveStatus' => array_keys(CRM_Event_PseudoConstant::participantStatus(NULL, "is_counted = 1")),
+        'negativeStatus' => array_keys(CRM_Event_PseudoConstant::participantStatus(NULL, "is_counted = 0")),
+      ]);
+    }
+  }
+}
+
+function _cilb_reports_civicrm_angularModules($event) {
+  if (array_key_exists('afsearchFindCandidates', $event->angularModules)) {
+    $event->angularModules['afsearchFindCandidates']['js'][] = 'ext://cilb_reports/js/find_candidates_search.js';
   }
 }
