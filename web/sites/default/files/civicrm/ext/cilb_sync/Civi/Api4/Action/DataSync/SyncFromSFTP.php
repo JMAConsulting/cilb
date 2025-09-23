@@ -2,56 +2,52 @@
 
 namespace Civi\Api4\Action\DataSync;
 
+use CRM_Core_Config;
+
 /**
  * Sync Data from SFTP sources
  *
  */
 abstract class SyncFromSFTP extends \Civi\Api4\Generic\AbstractAction {
 
-  /**
-   * We can override the default value of params, or add docblocks to them,
-   * by redeclaring them in our action override.
-   *
-   * For the parent's docblock contents to appear in the _API Explorer_ as well,
-   * we add the `@inheritDoc` annotation and get this:
-   * @inheritDoc
-   */
   protected $debug = TRUE;
-
   protected $checkPermissions = FALSE;
+  protected $chain = [];
 
   /**
-   * @var string
-   *
    * URL used to download the files via SFTP protocol 
    */
-  protected string $sftpURL = '';
+  protected string $_sftpURL = '';
 
   /**
-   * @var string
-   *
    * SFTP Port 
    */
-  protected string $sftpPort = '22';
+  protected string $_sftpPort = '22';
 
   /**
-   * @var string
-   *
    * SFTP User 
    */
-  protected string $sftpUser = '';
+  protected string $_sftpUser = '';
 
   /**
-   * @var string
-   *
    * SFTP Password 
    */
-  protected string $sftpPassword = '';
+  protected string $_sftpPassword = '';
+
+  /**
+   * SFTP Home Directory 
+   */
+  protected string $_sftpHomeDir = '/';
   
   /**
-   * 
+   * SSH Connection
    */
-  protected $conn;
+  protected $_ssh;
+  
+  /**
+   * SFTP Connection
+   */
+  protected $_ftp;
 
   /**
    * @var string
@@ -62,8 +58,8 @@ abstract class SyncFromSFTP extends \Civi\Api4\Generic\AbstractAction {
 
 
   protected function closeConnection() {
-    if ($this->conn) {
-      @\ssh2_disconnect($this->conn);
+    if ($this->_ssh) {
+      @\ssh2_disconnect($this->_ssh);
     }
   }
 
@@ -75,22 +71,31 @@ abstract class SyncFromSFTP extends \Civi\Api4\Generic\AbstractAction {
     }
     $this->checkCredentials(true);
 
-    // Initial connection
-    $this->conn = @\ssh2_connect($this->sftpURL, $this->sftpPort);
-    if (!$this->conn) {
+    // Initial SSH connection
+    $this->_ssh = @\ssh2_connect($this->_sftpURL, $this->_sftpPort);
+    if (!$this->_ssh) {
       throw new \Civi\API\Exception\UnauthorizedException('Cannot connect to SFTP Host [SSH]');
     }
-    if (!@\ssh2_auth_password($this->conn, $this->sftpUser, $this->sftpPassword)) {
+    if (!@\ssh2_auth_password($this->_ssh, $this->_sftpUser, $this->_sftpPassword)) {
       throw new \Civi\API\Exception\UnauthorizedException('Cannot connect to SFTP Host [Auth]');
+    }
+
+    // SFTP Connection
+    $this->_ftp = @\ssh2_sftp($this->_ssh);
+    if (!$this->_ftp) {
+      throw new \Civi\API\Exception\UnauthorizedException('Cannot connect to SFTP Host [FTP]');
     }
   }
 
+  /**
+   * Retrieve credentials to connect via SFTP
+   */
   protected function retrieveCredentials() {
     throw new \Civi\API\Exception\UnauthorizedException('Not implemented');
   }
 
   protected function checkCredentials($throwError = false): bool {
-    if (empty($this->sftpURL) || empty($this->sftpUser) || empty($this->sftpPassword)) {
+    if (empty($this->_sftpURL) || empty($this->_sftpUser) || empty($this->_sftpPassword)) {
       
       if ($throwError)
         throw new \Civi\API\Exception\UnauthorizedException('Missing credentials');
@@ -100,5 +105,17 @@ abstract class SyncFromSFTP extends \Civi\Api4\Generic\AbstractAction {
 
     return true;
   }
+
+  protected function getPath( $filePathRelative = '/' ) {
+    $folder = 'ssh2.sftp://' . $this->_ftp . $this->_sftpHomeDir;
+    rtrim($folder, '/');
+
+    if (substr($filePathRelative, 0) !== '/') {
+      $filePathRelative = '/' . $filePathRelative;
+    }
+    
+    return $folder . $filePathRelative;
+  }
+
 
 }
