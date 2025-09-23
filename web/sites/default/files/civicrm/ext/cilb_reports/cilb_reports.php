@@ -100,12 +100,20 @@ function cilb_reports_civicrm_alterCustomFieldDisplayValue(&$displayValue, $valu
   }
 }
 
+function cilb_reports_civicrm_pageRun($page) {
+  if (is_a($page, 'CRM_Afform_Page_AfformBase')) {
+    [, $pageArgs] = func_get_args();
+    if ($pageArgs['afform'] === 'afsearchFindCandidates') {
+      CRM_Core_Resources::singleton()->addVars('eventSearch', [
+        'positiveStatus' => array_keys(CRM_Event_PseudoConstant::participantStatus(NULL, "is_counted = 1")),
+        'negativeStatus' => array_keys(CRM_Event_PseudoConstant::participantStatus(NULL, "is_counted = 0")),
+      ]);
+    }
+  }
+}
+
 function _cilb_reports_civicrm_angularModules($event) {
   if (array_key_exists('afsearchFindCandidates', $event->angularModules)) {
-    $event->angularModules['afsearchFindCandidates']['js'][] = E::path('js/find_candidates_search.js');
-    CRM_Core_Resources::singleton()->addVars('eventSearch', [
-      'positiveStatus' => array_keys(CRM_Event_PseudoConstant::participantStatus(NULL, "is_counted = 1")),
-      'negativeStatus' => array_keys(CRM_Event_PseudoConstant::participantStatus(NULL, "is_counted = 0")),
-    ]);
+    $event->angularModules['afsearchFindCandidates']['js'][] = 'ext://cilb_reports/js/find_candidates_search.js';
   }
 }
