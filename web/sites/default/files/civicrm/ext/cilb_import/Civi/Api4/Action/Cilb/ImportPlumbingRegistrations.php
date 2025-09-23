@@ -43,7 +43,7 @@ class ImportPlumbingRegistrations extends ImportRegistrationsBase {
     ") as $exam) {
       $event = \Civi\Api4\Event::save(FALSE)
         ->addRecord([
-          'title' => "Plumbing TK - " . date('Y-m-d', strtotime($exam['Actual_Exam_Date'])),
+          'title' => "Plumbing - " . date('Y-m-d', strtotime($exam['Actual_Exam_Date'])),
           'max_participants' => $exam['Threshold'],
           'start_date' => $exam['Scheduled_Exam_Date'],
           'is_online_registration' => TRUE,
@@ -159,7 +159,7 @@ class ImportPlumbingRegistrations extends ImportRegistrationsBase {
       ->addValue('status_id:name', $status)
       ->addValue('source', $registration['PK_Exam_Registration_Part_ID'])
       ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
-      ->addValue('Candidate_Result.Exam_Taken_Date', $registration['Actual_Exam_Date'])
+      ->addValue('Candidate_Result.Date_Exam_Taken', $registration['Actual_Exam_Date'])
       ->execute()->first()['id'];
 
     // Update the exam location as well.
