@@ -16,6 +16,7 @@ use Civi\Api4\Generic\Result;
 use CRM_Core_Config;
 use CRM_Core_DAO;
 use Exception;
+use ZipArchive;
 
 /**
  * Migrate PearsonVUE score data
@@ -46,22 +47,68 @@ class SyncPearsonVueScores extends SyncFromSFTP {
   public function scanForFiles($date = NULL) {
 
     $config = CRM_Core_Config::singleton();
-    $dstdir = $config->customFileUploadDir . '/advimport';
+    $dstdir = $config->customFileUploadDir . '/advimport/test';
+
+    if (!file_exists($dstdir)) {
+      mkdir($dstdir, 0777, true);
+    }
 
     $files = scandir( $this->getPath('/') );
-
+    $zipFiles = ['ABE' => '', 'NS' => ''];
+    $datFiles = ['ABE' => '', 'NS' => ''];
+    $formattedDate = date('Ymd', strtotime($this->dateToSync));
+      
+    // Download ZIP
     foreach($files as $fileName) {
-      if ( preg_match("/^FLELECONST[-_](NS|ABE)-".$this->dateToSync."a.zip$/i", $fileName, $matches) ) {
-
-        $stream = @fopen($this->getPath($fileName), 'r');
-        if (! $stream) {
-            throw new Exception("Could not open file: $fileName");
+      if ( preg_match("/^FLELECONST[-_](NS|ABE)-".$formattedDate."a.zip$/i", $fileName, $matches) ) {
+        try {
+          $this->downloadZIPFile($fileName, $dstdir);
+          $zipFiles[$matches[1]] = $fileName;
+        } catch (Exception $ex) {
+          throw new Exception("Could not download ZIP file: $fileName.");
         }
-        $contents = fread($stream, filesize($this->getPath($fileName)));
-        file_put_contents ($dstdir . '/' . $fileName, $contents);
-        @fclose($stream);
       }
     }
+
+    // Extract DAT and cleanup
+    foreach($zipFiles as $type => $fileName) {
+      $datFiles[$type] = $this->extractExamDATFile($type, $dstdir . '/' . $fileName, $dstdir . '/' . $formattedDate);
+    }
+  }
+
+  public function downloadZIPFile($fileName, $directory) {
+    $stream = @fopen($this->getPath($fileName), 'r');
+    if (! $stream) {
+        throw new Exception("Could not open file: $fileName");
+    }
+    $contents = fread($stream, filesize($this->getPath($fileName)));
+    file_put_contents ($directory . '/' . $fileName, $contents);
+    @fclose($stream);
+  }
+
+  public function extractExamDATFile($type, $zipFile, $directory): array {
+    $formattedDate = date('Y-m-d', strtotime($this->dateToSync));
+    $filesToExtract = ($type == "ABE") ? 
+      ['examABE-'.$formattedDate.'-a.dat'] : 
+        ['exam-'.$formattedDate.'a-ns.dat'];
+
+    // Extract
+    $zip = new ZipArchive;
+    if ($zip->open($zipFile) === TRUE) {
+        if (!file_exists($directory)) {
+          mkdir($directory, 0777, true);
+        }
+        $zip->extractTo($directory, $filesToExtract);
+        $zip->close();
+    } else {
+        unlink($zipFile);
+        throw new Exception("Could not extract files.");
+    }
+
+    // Clean up
+    unlink($zipFile);
+
+    return $filesToExtract;
   }
 
 }
