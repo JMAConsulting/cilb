@@ -1,9 +1,9 @@
 (function($, CRM) {
-  $(document).ready(function() {
+  $(document).on('DomContentLoaded', function() {
     const searchParams = new URLSearchParams(window.location.search);
     for (const [key, value] of searchParams) {
       if (key == 'event' && !isNaN(parseFloat(value))) {
-        $("placeholder=['Select Exam']").val(value).trigger('change');
+        $("[id^='event-id']").val(value).trigger('change');
       }
       if (key == 'status') {
         const separator = $("[id^='status-id']").attr('ng-list');

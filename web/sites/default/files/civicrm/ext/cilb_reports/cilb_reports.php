@@ -102,8 +102,8 @@ function cilb_reports_civicrm_alterCustomFieldDisplayValue(&$displayValue, $valu
 
 function cilb_reports_civicrm_pageRun($page) {
   if (is_a($page, 'CRM_Afform_Page_AfformBase')) {
-    [, $pageArgs] = func_get_args();
-    if ($pageArgs['afform'] === 'afsearchFindCandidates') {
+    $directive = $page->getTemplateVars('directive');
+    if ($directive === 'afsearch-find-candidates') {
       CRM_Core_Resources::singleton()->addVars('eventSearch', [
         'positiveStatus' => array_keys(CRM_Event_PseudoConstant::participantStatus(NULL, "is_counted = 1")),
         'negativeStatus' => array_keys(CRM_Event_PseudoConstant::participantStatus(NULL, "is_counted = 0")),
