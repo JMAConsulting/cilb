@@ -1,5 +1,5 @@
-(function($, CRM) {
-  $(document).on('DOMContentLoaded', function() {
+(function($, CRM, angular) {
+  angular.element(document).ready(function() {
     const searchParams = new URLSearchParams(window.location.search);
     for (const [key, value] of searchParams) {
       if (key == 'event' && !isNaN(parseFloat(value))) {
@@ -16,4 +16,4 @@
       }
     }
   });
-}(CRM.$, CRM));
+}(CRM.$, CRM, angular));
