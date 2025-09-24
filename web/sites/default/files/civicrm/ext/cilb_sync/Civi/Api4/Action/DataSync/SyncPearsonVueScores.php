@@ -38,11 +38,18 @@ class SyncPearsonVueScores extends SyncFromSFTP {
   public function _run(Result $result) {
 
     $this->prepareConnection(); // throws error if fails
+    
+    // Get date from param or now()
+    $realDate = EU::getTimestampDate($this->dateToSync);
+    $this->dateToSync = date('Ymd', $realDate);
 
-    $this->dateToSync = date('Ymd'); // TODO: use param
-    $this->scanForFiles();
+    $downloadedFiles = $this->scanForFiles();
 
     $this->closeConnection();
+
+    $result['files'] = $downloadedFiles;
+
+    return $result;
 
   }
 
@@ -74,6 +81,8 @@ class SyncPearsonVueScores extends SyncFromSFTP {
     foreach($zipFiles as $type => $fileName) {
       $datFiles[$type] = $this->extractExamDATFile($type, $dstdir . '/' . $fileName, $dstdir . '/' . $formattedDate);
     }
+
+    return $datFiles;
   }
 
   public function downloadZIPFile($fileName, $directory) {

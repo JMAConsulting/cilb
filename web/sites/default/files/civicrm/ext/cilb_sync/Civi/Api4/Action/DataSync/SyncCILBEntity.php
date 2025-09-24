@@ -43,10 +43,13 @@ class SyncCILBEntity extends SyncFromSFTP {
     $realDate = EU::getTimestampDate($this->dateToSync);
     $this->dateToSync = date('Ymd', $realDate);
 
-    $this->scanForFiles();
+    $downloadedFiles = $this->scanForFiles();
 
     $this->closeConnection();
 
+    $result['files'] = $downloadedFiles;
+
+    return $result;
   }
 
   /**

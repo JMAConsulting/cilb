@@ -42,19 +42,27 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
 
     \Civi::log()->debug("<pre>date --> " . $this->dateToSync . "</pre>");
     
+    $result['files'] = ['entity' => [], 'scores' => []];
     
     // Download / Sync CILB entity files and PearsonVUE scores
     try {
-      $result = DataSync::syncCILBEntities(FALSE)
+      $downloadResult = DataSync::syncCILBEntities(FALSE)
         ->setDateToSync($this->dateToSync)
         ->execute();
+      $result['files']['entity'] = $downloadResult['files'];
 
-      //DataSync::syncCILBEntities(FALSE)->setDateToSync($this->dateToSync);
-      //DataSync::syncPearsonVueScores(FALSE)->setDateToSync($this->dateToSync);
+
+      $downloadResult = DataSync::syncPearsonVueScores(FALSE)
+        ->setDateToSync($this->dateToSync)
+        ->execute();
+      $result['files']['scores'] = $downloadResult['files'];
     }
     catch (\CRM_Core_Exception $e) {
       throw new Exception("Error downloading files: " . $e->getMessage());
     }
+  
+
+    return $result;
   }
   
 }
