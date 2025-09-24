@@ -12,9 +12,11 @@
 
 namespace Civi\Api4\Action\DataSync;
 
+use CRM_CILB_Sync_Utils as EU;
+
 use Civi\Api4\Generic\Result;
 use CRM_Core_Config;
-use CRM_Core_DAO;
+use CRM_Utils_File;
 use Exception;
 use ZipArchive;
 
@@ -25,7 +27,7 @@ use ZipArchive;
 class SyncPearsonVueScores extends SyncFromSFTP {
 
   protected function retrieveCredentials() {
-      // TODO: define where to store these for easy switch between dev/staging/prod
+      // TODO: use/create settings
       $this->_sftpURL      = 'ventura.eastus.cloudapp.azure.com'; //'pearsonvue.com';
       $this->_sftpUser     = getenv('SFTP_VUE_USER');
       $this->_sftpPassword = getenv('SFTP_VUE_PASS');
@@ -47,7 +49,7 @@ class SyncPearsonVueScores extends SyncFromSFTP {
   public function scanForFiles($date = NULL) {
 
     $config = CRM_Core_Config::singleton();
-    $dstdir = $config->customFileUploadDir . '/advimport/test';
+    $dstdir = $config->customFileUploadDir . '/'.EU::ADV_IMPORT_FOLDER.'/test';
 
     CRM_Utils_File::createDir($dstdir);
 
