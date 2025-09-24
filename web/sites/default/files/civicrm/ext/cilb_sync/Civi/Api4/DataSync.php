@@ -40,10 +40,10 @@ class DataSync extends Generic\AbstractEntity {
 
   /**
    * @param bool $checkPermissions
-   * @return Action\DataSync\SyncPearsonVueEntity
+   * @return Action\DataSync\SyncCILBEntity
    */
-  public static function syncPearsonVueEntity($checkPermissions = TRUE) {
-    return (new Action\DataSync\SyncPearsonVueEntity('DataSync', __FUNCTION__))
+  public static function syncCILBEntities($checkPermissions = TRUE) {
+    return (new Action\DataSync\SyncCILBEntity('DataSync', __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }
 
