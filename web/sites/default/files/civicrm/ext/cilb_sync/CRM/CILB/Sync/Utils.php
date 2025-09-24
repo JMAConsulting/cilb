@@ -11,6 +11,22 @@ class CRM_CILB_Sync_Utils {
 
   public const ADV_IMPORT_FOLDER = 'advimport';
 
+  public static function getTimestampDate($date) {
+    
+    // Validate date if provided
+    if ( !empty($date) ) {
+      $realDate = strtotime($date);
+    } else {
+      $realDate = strtotime('now');
+    }
+
+    if ( !$realDate ) {
+      throw new Exception("Invalid date");
+    }
+
+    return $realDate;
+  }
+
   public static function getExamRegistrationWithoutScore($contactID, $examID): Result {
     $participant = Participant::get(FALSE)
       ->addSelect('id')

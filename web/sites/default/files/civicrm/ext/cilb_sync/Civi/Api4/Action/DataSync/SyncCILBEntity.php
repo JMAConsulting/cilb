@@ -38,15 +38,22 @@ class SyncCILBEntity extends SyncFromSFTP {
   public function _run(Result $result) {
 
     $this->prepareConnection(); // throws error if fails
+    
+    // Get date from param or now()
+    $realDate = EU::getTimestampDate($this->dateToSync);
+    $this->dateToSync = date('Ymd', $realDate);
 
-    $this->dateToSync = date('Ymd'); // TODO: use param
     $this->scanForFiles();
 
     $this->closeConnection();
 
   }
 
-  public function scanForFiles($date = NULL) {
+  /**
+   * Scan folder for Entity files
+   * Format: PTI_DBPR_ID_YYYY-MM-DD-##-##-##.csv
+   */
+  public function scanForFiles($date = NULL): array {
 
     $config = CRM_Core_Config::singleton();
     $dstdir = $config->customFileUploadDir . '/'.EU::ADV_IMPORT_FOLDER.'/test';
@@ -54,19 +61,22 @@ class SyncCILBEntity extends SyncFromSFTP {
     CRM_Utils_File::createDir($dstdir);
 
     $files = scandir( $this->getPath('/') );
+    $CSVFiles  = [];
     $formattedDate = date('Y-m-d', strtotime($this->dateToSync));
 
     // Download CSV
     foreach($files as $fileName) {
-      if ( preg_match("/^PTI_DBPR_ID-".$formattedDate.".csv$/i", $fileName, $matches) ) {
+      if ( preg_match("/^PTI_DBPR_ID_".$formattedDate."[\n-]*.csv$/i", $fileName, $matches) ) {
         try {
           $this->downloadCSVFile($fileName, $dstdir);
-          $zipFiles[$matches[1]] = $fileName;
+          $CSVFiles[] = $fileName;
         } catch (Exception $ex) {
           throw new Exception("Could not download CSV file: $fileName.");
         }
       }
     }
+
+    return $CSVFiles;
   }
 
   public function downloadCSVFile($fileName, $directory) {
