@@ -1,12 +1,18 @@
 <?php
 
+use Civi\Api4\Contact;
+use Civi\Api4\CustomValue;
+use Civi\Api4\Event;
+use Civi\Api4\OptionValue;
+use Civi\Api4\Participant;
 use Civi\Api4\Generic\Result;
-use CRM_CILB_Sync_ExtensionUtil as E;
 
 class CRM_CILB_Sync_Utils {
 
+  public const ADV_IMPORT_FOLDER = 'advimport';
+
   public static function getExamRegistrationWithoutScore($contactID, $examID): Result {
-    $participant = \Civi\Api4\Participant::get(FALSE)
+    $participant = Participant::get(FALSE)
       ->addSelect('id')
       ->addWhere('contact_id', '=', $contactID)
       ->addWhere('event_id', '=', $examID)
@@ -19,7 +25,7 @@ class CRM_CILB_Sync_Utils {
 
 
   public static function getCandidateEntity($candidateID, $classCode): ?array {
-    $candidateEntity = \Civi\Api4\CustomValue::get('cilb_candidate_entity', FALSE)
+    $candidateEntity = CustomValue::get('cilb_candidate_entity', FALSE)
       ->addWhere('Entity_ID_imported_', '=', (int) $candidateID) // cast as Integer to remove leading 0
       ->addWhere('class_code', '=', $classCode)
       ->addOrderBy('Entity_ID_imported_', 'ASC')
@@ -28,8 +34,23 @@ class CRM_CILB_Sync_Utils {
     return $candidateEntity;
   }
 
+  public static function getCandidateEntityFromExternalID($externalID, $candidateID, $classCode): ?array {
+    $contact = \Civi\Api4\Contact::get(TRUE)
+      ->addSelect('id', 'custom_cilb_candidate_entity.*')
+      ->addJoin('Custom_cilb_candidate_entity AS custom_cilb_candidate_entity', 
+        'LEFT', 
+        ['custom_cilb_candidate_entity.entity_id', '=', 'id'], 
+        ['custom_cilb_candidate_entity.Entity_ID_imported_', '=', (int) $candidateID], // cast as Integer to remove leading 0
+        ['custom_cilb_candidate_entity.class_code', '=', $classCode]
+      )
+      ->addWhere('external_identifier', '=', $externalID)
+      ->execute()
+      ->first();
+    return $contact;
+  }
+
   public static function getExamInfoFromSeriesCode($seriesCode): ?array {
-    $exam = \Civi\Api4\Event::get(FALSE)
+    $exam = Event::get(FALSE)
       ->addSelect(
         'Exam_Details.Exam_Series_Code',
         'event_type_id:name',
@@ -47,15 +68,9 @@ class CRM_CILB_Sync_Utils {
 
   }
 
-  public static function getCandidateContactIDFromExternalIdentifier($eternalIdentifier): Result {
-    $contact = Contact::get(FALSE)
-      ->addWhere('external_identifier', '=', $eternalIdentifier)
-      ->execute();
-    return $contact;
-  }
-
-  public static function getExamCategoryFromClassCode($classCode): ?array {
-    $examCategory  = \Civi\Api4\OptionValue::get(FALSE)
+  public static function getExamInfoFromClassCode($classCode): ?array {
+    $examCategory  = OptionValue::get(FALSE)
+      ->addSelect('label', 'value', 'custom.*')
       ->addWhere('Exam_Type_Details.DBPR_Code', '=', $classCode)
       ->addWhere('option_group_id:name', '=', 'event_type')
       ->execute()

@@ -1,7 +1,7 @@
 <?php
 
 use CRM_CILB_Sync_ExtensionUtil as E;
-use CRM_CILB_SYNC_Utils as U;
+use CRM_CILB_Sync_Utils as EU;
 
 class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_Helper_Dat {
 
@@ -58,7 +58,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
     }
 
     // Exam Info
-    $exam = U::getExamInfoFromSeriesCode($examSeriesCode);
+    $exam = EU::getExamInfoFromSeriesCode($examSeriesCode);
     if ( $exam == NULL ) {
       //CRM_Advimport_Utils::logImportMessage($params, "Skipped", 0);
       /*CRM_Core_DAO::executeQuery("UPDATE $table_name SET import_status = %2, import_error = %3 where `row`= %1", [
@@ -73,14 +73,14 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
     $examClass = $exam['event_type.Exam_Type_Details.DBPR_Code'];
 
     // Candidate Info
-    $candidate = U::getCandidateEntity($candidateID, $examClass);
+    $candidate = EU::getCandidateEntity($candidateID, $examClass);
     if ($candidate == NULL) {
       throw new CRM_Core_Exception("Cannot find candidate [$candidateID, $examClass]");
     }
 
     // Exam Registration
     $contactID = $candidate['entity_id'];
-    $participantResults = U::getExamRegistrationWithoutScore($contactID, $examID);
+    $participantResults = EU::getExamRegistrationWithoutScore($contactID, $examID);
     if ( $participantResults->count() == 0 ) {
       // @TODO: log as skipped (warning) ?
       throw new CRM_Core_Exception("No registration found that doesn't have a score already.");

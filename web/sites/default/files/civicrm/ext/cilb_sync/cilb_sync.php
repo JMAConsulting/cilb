@@ -39,11 +39,11 @@ function cilb_sync_civicrm_enable(): void {
 function cilb_sync_civicrm_advimport_helpers(&$helpers) {
   $helpers[] = [
     'class' => 'CRM_CILB_Sync_AdvImport_PearsonVueWrapper',
-    'label' => E::ts('PearsonVue Import'),
+    'label' => E::ts('PearsonVue Scores Import'),
   ];
   $helpers[] = [
-    'class' => 'CRM_CILB_Sync_AdvImport_PearsonVueEntity',
-    'label' => E::ts('PearsonVue Entity Import'),
+    'class' => 'CRM_CILB_Sync_AdvImport_CILBEntityWrapper',
+    'label' => E::ts('CILB Entities Import'),
   ];
 }
 

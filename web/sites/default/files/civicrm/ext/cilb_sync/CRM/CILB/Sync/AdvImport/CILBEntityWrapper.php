@@ -1,15 +1,19 @@
 <?php
 
-use CRM_CILB_Sync_ExtensionUtil as E;
-use CRM_CILB_SYNC_Utils as U;
+use League\Csv\Reader;
 
-class CRM_CILB_Sync_AdvImport_PearsonEntity extends CRM_Advimport_Helper_Csv {
+use CRM_CILB_Sync_ExtensionUtil as E;
+use CRM_CILB_Sync_Utils as EU;
+
+use Civi\Api4\CustomValue;
+
+class CRM_CILB_Sync_AdvImport_CILBEntityWrapper extends CRM_Advimport_Helper_Csv {
 
   /**
    * Returns a human-readable name for this helper.
    */
   public function getHelperLabel() {
-    return E::ts("PearsonVue Exam Entities");
+    return E::ts("CILB Exam Entities");
   }
 
   /**
@@ -32,16 +36,12 @@ class CRM_CILB_Sync_AdvImport_PearsonEntity extends CRM_Advimport_Helper_Csv {
    * @returns Array
    */
   function getDataFromFile($file, $delimiter = '', $encoding = 'UTF-8') {
-    // Use the fieldSeparator by default, it defaults to ','
-    if (empty($delimiter)) {
-      $delimiter = Civi::settings()->get('fieldSeparator');
-    }
+    $delimiter = ",";
+    $headers = [0 => 'External Identifier', 1 => 'Entity ID', 2 => 'Class Code'];
 
+    // cannot use CSV Helper as we need to add missing headers
     $csv = Reader::createFromPath($file);
     $csv->setDelimiter($delimiter);
-
-
-    $headers = [0 => 'External Identifier', 1 => 'Entity ID', 2 => 'Class Code'];
     $records = $csv->getRecords();
 
     // Re-key data using the headers
@@ -71,8 +71,6 @@ class CRM_CILB_Sync_AdvImport_PearsonEntity extends CRM_Advimport_Helper_Csv {
     return [$headers, $data];
   }
 
-
-
   /**
    * Import an item gotten from the queue.
    *
@@ -84,43 +82,55 @@ class CRM_CILB_Sync_AdvImport_PearsonEntity extends CRM_Advimport_Helper_Csv {
     $row_id = $params['import_row_id'];
     $table_name = $params['import_table_name'];
 
-    $external_identifer = $params['external_identifier'] ?? NULL;
-    $entity_id = $params['entity_id'] ?? NULL;
-    $class_code = $params['class_code'] ?? NULL;
+    $externalID = $params['external_identifier'] ?? NULL;
+    $candidateID = $params['entity_id'] ?? NULL;
+    $classCode = $params['class_code'] ?? NULL;
 
     // Sanity Checks
-    if (empty($external_identifer)) {
+    if (empty($externalID)) {
       throw new CRM_Core_Exception("uploaded file is missing the External Identifier.");
     }
-    if (empty($entity_id)) {
+    if (empty($candidateID)) {
       throw new CRM_Core_Exception("uploaded file is missing the Entity ID.");
     }
-    if (empty($class_code)) {
+    if (empty($classCode)) {
       throw new CRM_Core_Exception("uploaded file is missing the class code information.");
     }
 
-    $contact = U::getCandidateContactIDFromExternalIdentifier($external_identifer);
-    if ($contact->count() == 0) {
+    // Contact ID + Existing Candidate Info
+    $contact = EU::getCandidateEntityFromExternalID($externalID, $candidateID, $classCode);
+    if ($contact == NULL) {
       throw new CRM_Core_Exception('Cannot Identify Contact From External Identifier');
     }
-    $contactID = $contact[0]['id'];
-    $candidate = U::getCandidateEntity($entity_id, $class_code);
-    if ($candidate) {
+    $contactID = $contact['id'];
+
+    // If candidate info exists already, skip
+    if ( !empty($contact['custom_cilb_candidate_entity.id']) ) {
       CRM_Advimport_Utils::logImportWarning($params, "Skipped");
+      return;
     }
-    $examCategory = U::getExamCategoryFromClassCode($class_code);
-    if (empty($examCategory)) {
-      throw new CRM_Core_Exception('Cannot determine Exam Category from class_code ' . $class_code);
+
+    // Exam Category
+    $examCategory = EU::getExamInfoFromClassCode($classCode);
+    if ($examCategory == NULL) {
+      throw new CRM_Core_Exception('Cannot determine Exam Category from class_code ' . $classCode);
     }
-    \Civi\Api4\CustomValue::create('cilb_candidate_entity', FALSE)
+
+    // Add Candidate Info
+    $result = CustomValue::create('cilb_candidate_entity', FALSE)
       ->addValue('entity_id', $contactID)
-      ->addValue('Entity_ID_imported_', $entity_id)
-      ->addValue('class_code', $class_code)
+      ->addValue('Entity_ID_imported_', $candidateID)
+      ->addValue('class_code', $classCode)
       ->addValue('exam_category', $examCategory['value'])
       ->execute();
 
+    if (!empty($result['error_message'])) {
+      throw new CRM_Core_Exception("Failed to update candidate entity.");
+    }
+
     // Succesfully updated.
     CRM_Advimport_Utils::setEntityTableAndId($params, 'civicrm_contact', $contactID);
+    
   }
 
 }
