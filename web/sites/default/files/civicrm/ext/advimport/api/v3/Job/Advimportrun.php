@@ -40,7 +40,7 @@ function civicrm_api3_job_advimportrun($params) {
 
     try {
       // Only supports imports that do not rely on a file upload (ex: fetch from a web API)
-      [$headers, $data] = $helper->getDataFromFile();
+      [$headers, $data] = $helper->getDataFromFile($params['filename']);
     }
     catch (Exception $e) {
       Civi::log()->info('Advimport: Failed to get data: ' . $e->getMessage());

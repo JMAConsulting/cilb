@@ -30,6 +30,24 @@ class DataSync extends Generic\AbstractEntity {
   }
 
   /**
+   * @param bool $checkPermissions
+   * @return Action\DataSync\SyncPearsonVueScores
+   */
+  public static function syncPearsonVueScores($checkPermissions = TRUE) {
+    return (new Action\DataSync\SyncPearsonVueScores('DataSync', __FUNCTION__))
+      ->setCheckPermissions($checkPermissions);
+  }
+
+  /**
+   * @param bool $checkPermissions
+   * @return Action\DataSync\SyncPearsonVueEntity
+   */
+  public static function syncPearsonVueEntity($checkPermissions = TRUE) {
+    return (new Action\DataSync\SyncPearsonVueEntity('DataSync', __FUNCTION__))
+      ->setCheckPermissions($checkPermissions);
+  }
+
+  /**
    * @return array
    */
   public static function permissions() {

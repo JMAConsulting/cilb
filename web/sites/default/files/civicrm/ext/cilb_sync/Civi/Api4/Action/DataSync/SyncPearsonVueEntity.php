@@ -20,12 +20,14 @@ use ZipArchive;
 
 /**
  * Migrate PearsonVUE score data
- *
+ * string getDateToSync
+ * setDatetoSync(string $dateToSync)
  */
-class SyncPearsonVueScores extends SyncFromSFTP {
+class SyncPearsonVueEntity extends SyncFromSFTP {
 
   protected function retrieveCredentials() {
       // TODO: define where to store these for easy switch between dev/staging/prod
+      // TODO CHANGE FOR correct production palce for entity files
       $this->_sftpURL      = 'ventura.eastus.cloudapp.azure.com'; //'pearsonvue.com';
       $this->_sftpUser     = getenv('SFTP_VUE_USER');
       $this->_sftpPassword = getenv('SFTP_VUE_PASS');
@@ -52,29 +54,22 @@ class SyncPearsonVueScores extends SyncFromSFTP {
     CRM_Utils_File::createDir($dstdir);
 
     $files = scandir( $this->getPath('/') );
-    $zipFiles = ['ABE' => '', 'NS' => ''];
-    $datFiles = ['ABE' => '', 'NS' => ''];
-    $formattedDate = date('Ymd', strtotime($this->dateToSync));
+    $formattedDate = date('Y-m-d', strtotime($this->dateToSync));
 
-    // Download ZIP
+    // Download CSV
     foreach($files as $fileName) {
-      if ( preg_match("/^FLELECONST[-_](NS|ABE)-".$formattedDate."a.zip$/i", $fileName, $matches) ) {
+      if ( preg_match("/^PTI_DBPR_ID-".$formattedDate.".csv$/i", $fileName, $matches) ) {
         try {
-          $this->downloadZIPFile($fileName, $dstdir);
+          $this->downloadCSVFile($fileName, $dstdir);
           $zipFiles[$matches[1]] = $fileName;
         } catch (Exception $ex) {
-          throw new Exception("Could not download ZIP file: $fileName.");
+          throw new Exception("Could not download CSV file: $fileName.");
         }
       }
     }
-
-    // Extract DAT and cleanup
-    foreach($zipFiles as $type => $fileName) {
-      $datFiles[$type] = $this->extractExamDATFile($type, $dstdir . '/' . $fileName, $dstdir . '/' . $formattedDate);
-    }
   }
 
-  public function downloadZIPFile($fileName, $directory) {
+  public function downloadCSVFile($fileName, $directory) {
     $stream = @fopen($this->getPath($fileName), 'r');
     if (! $stream) {
         throw new Exception("Could not open file: $fileName");
@@ -82,31 +77,6 @@ class SyncPearsonVueScores extends SyncFromSFTP {
     $contents = fread($stream, filesize($this->getPath($fileName)));
     file_put_contents ($directory . '/' . $fileName, $contents);
     @fclose($stream);
-  }
-
-  public function extractExamDATFile($type, $zipFile, $directory): array {
-    $formattedDate = date('Y-m-d', strtotime($this->dateToSync));
-    $filesToExtract = ($type == "ABE") ?
-      ['examABE-'.$formattedDate.'-a.dat'] :
-        ['exam-'.$formattedDate.'a-ns.dat'];
-
-    // Extract
-    $zip = new ZipArchive;
-    if ($zip->open($zipFile) === TRUE) {
-        if (!file_exists($directory)) {
-          mkdir($directory, 0777, true);
-        }
-        $zip->extractTo($directory, $filesToExtract);
-        $zip->close();
-    } else {
-        unlink($zipFile);
-        throw new Exception("Could not extract files.");
-    }
-
-    // Clean up
-    unlink($zipFile);
-
-    return $filesToExtract;
   }
 
 }
