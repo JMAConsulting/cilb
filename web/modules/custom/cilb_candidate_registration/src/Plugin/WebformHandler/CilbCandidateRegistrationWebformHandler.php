@@ -1078,6 +1078,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if (isset($elements['select_category_id'])) {
       // populate exam category selector based on available events
       $events = $this->getEventRegistrationOptions($form, $form_state);
+      $allCategories = $this->getAllExamCategories();
       $categories_to_hide = \Civi::settings()->get('cilb_exam_registration_hidden_categories');
       if (!empty($categories_to_hide)) {
         $categories_to_hide = json_decode($categories_to_hide, TRUE);
@@ -1087,13 +1088,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
       $categories = $bfExamIds = [];
       $genericBusinessAndFinanceExamCategoryId = self::getBusinessAndFinanceExam()->first()['event_type_id'] ?? NULL;
-      foreach ($events as $event) {
-        if (in_array($event['event_type_id'], $categories_to_hide)) {
+      foreach ($allCategories as $categoryId => $categoryLabel) {
+        if (in_array($categoryId, $categories_to_hide)) {
           continue;
         }
-        $categoryId = "{$event['event_type_id']}";
-        $categoryLabel = $event['event_type_id:label'];
-        $categories[$categoryId] = $categoryLabel;
+        $categories[(string) $categoryId] = $categoryLabel;
         $categoryBusinessandFiannceExamCategoryId = self::getBusinessAndFinanceExam($categoryId);
         if (count($categoryBusinessandFiannceExamCategoryId) < 1) {
           if ($genericBusinessAndFinanceExamCategoryId) {
@@ -1102,6 +1101,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         }
         else {
           $bfExamIds[$categoryId] = $categoryBusinessandFiannceExamCategoryId->first()['event_type_id'];
+        }
+        $categoryInEventsArray = FALSE;
+        foreach ($events as $event) {
+          // Now loop through all the Events that the person can register for to see if there is either an event with the exam category or there is it's business and finance exam present.
+          if (!$categoryInEventsArray && ($event['event_type_id'] == $categoryId || $event['event_type_id'] == $bfExamIds[$categoryId])) {
+            // If we have found an event flag it it should be in the array.
+            $categoryInEventsArray = TRUE;
+          }
+        }
+        // If the event category and its Business and Finance Event Category do not exist in the events array we need to remove it from the categories to select.
+        if (!$categoryInEventsArray) {
+          unset($categories[$categoryId]);
         }
 
       }
@@ -1387,6 +1398,15 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
     }
     return $bfCategories;
+  }
+
+  private static function getAllExamCategories(): array {
+    $eventCategories = \Civi::entity('Event')->getOptions('event_type_id', [], TRUE);
+    $categories = [];
+    foreach ($eventCategories as $eventCategory) {
+      $categories[$eventCategory['id']] = $eventCategory['label'];
+    }
+    return $categories;
   }
 
 }
