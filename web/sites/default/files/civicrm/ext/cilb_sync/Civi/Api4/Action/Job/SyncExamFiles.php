@@ -46,7 +46,7 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
     
     // Download / Sync CILB entity files and PearsonVUE scores
     try {
-      $downloadResult = DataSync::syncCILBEntities(FALSE)
+      $downloadResult = DataSync::syncCILBEntity(FALSE)
         ->setDateToSync($this->dateToSync)
         ->execute();
       $result['files']['entity'] = $downloadResult['files'];

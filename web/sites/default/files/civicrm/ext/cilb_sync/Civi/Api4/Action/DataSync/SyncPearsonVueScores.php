@@ -56,7 +56,7 @@ class SyncPearsonVueScores extends SyncFromSFTP {
   public function scanForFiles($date = NULL) {
 
     $config = CRM_Core_Config::singleton();
-    $dstdir = $config->customFileUploadDir . '/'.EU::ADV_IMPORT_FOLDER.'/test';
+    $dstdir = $config->customFileUploadDir . EU::ADV_IMPORT_FOLDER.'/test';
 
     CRM_Utils_File::createDir($dstdir);
 
@@ -69,8 +69,11 @@ class SyncPearsonVueScores extends SyncFromSFTP {
     foreach($files as $fileName) {
       if ( preg_match("/^FLELECONST[-_](NS|ABE)-".$formattedDate."a.zip$/i", $fileName, $matches) ) {
         try {
-          $this->downloadZIPFile($fileName, $dstdir);
-          $zipFiles[$matches[1]] = $fileName;
+          if ( $this->downloadZIPFile($fileName, $dstdir) ) {
+            $zipFiles[$matches[1]] = $fileName;
+          } else {
+            throw new Exception("Could not download ZIP file: $fileName.");
+          }
         } catch (Exception $ex) {
           throw new Exception("Could not download ZIP file: $fileName.");
         }
@@ -85,14 +88,26 @@ class SyncPearsonVueScores extends SyncFromSFTP {
     return $datFiles;
   }
 
-  public function downloadZIPFile($fileName, $directory) {
-    $stream = @fopen($this->getPath($fileName), 'r');
+  public function downloadZIPFile($fileName, $directory): bool {
+    $stream = @fopen($this->getPath($fileName), 'rb');
     if (! $stream) {
         throw new Exception("Could not open file: $fileName");
     }
-    $contents = fread($stream, filesize($this->getPath($fileName)));
-    file_put_contents ($directory . '/' . $fileName, $contents);
+
+    $local = fopen($directory . '/' . $fileName, 'w');
+    
+    // Write buffer 
+    // Needed for files larger than 8k
+    while(!feof($stream)){
+        fwrite($local, fread($stream, 8192));
+    }
+
+    @fclose($local);
     @fclose($stream);
+    
+    $bytes = filesize($directory . '/' . $fileName );
+
+    return ($bytes !== false && $bytes > 0);
   }
 
   public function extractExamDATFile($type, $zipFile, $directory): array {
@@ -110,8 +125,9 @@ class SyncPearsonVueScores extends SyncFromSFTP {
         $zip->extractTo($directory, $filesToExtract);
         $zip->close();
     } else {
+        $fileName = basename($zipFile);
         unlink($zipFile);
-        throw new Exception("Could not extract files.");
+        throw new Exception("Could not extract files for $fileName.");
     }
 
     // Clean up

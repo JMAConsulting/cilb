@@ -21,8 +21,6 @@ use Exception;
 
 /**
  * Migrate CILB Entity data
- * string getDateToSync
- * setDatetoSync(string $dateToSync)
  */
 class SyncCILBEntity extends SyncFromSFTP {
 
@@ -59,37 +57,52 @@ class SyncCILBEntity extends SyncFromSFTP {
   public function scanForFiles($date = NULL): array {
 
     $config = CRM_Core_Config::singleton();
-    $dstdir = $config->customFileUploadDir . '/'.EU::ADV_IMPORT_FOLDER.'/test';
+    $dstdir = $config->customFileUploadDir . EU::ADV_IMPORT_FOLDER.'/test';
 
     CRM_Utils_File::createDir($dstdir);
 
     $files = scandir( $this->getPath('/') );
-    $CSVFiles  = [];
+    $csvFiles  = [];
     $formattedDate = date('Y-m-d', strtotime($this->dateToSync));
 
     // Download CSV
     foreach($files as $fileName) {
       if ( preg_match("/^PTI_DBPR_ID_".$formattedDate."[\n-]*.csv$/i", $fileName, $matches) ) {
         try {
-          $this->downloadCSVFile($fileName, $dstdir);
-          $CSVFiles[] = $fileName;
+          if ( $this->downloadCSVFile($fileName, $dstdir) ) {
+            $csvFiles[] = $fileName;
+          } else {
+            throw new Exception("Could not download ZIP file: $fileName.");
+          }
         } catch (Exception $ex) {
           throw new Exception("Could not download CSV file: $fileName.");
         }
       }
     }
 
-    return $CSVFiles;
+    return $csvFiles;
   }
 
-  public function downloadCSVFile($fileName, $directory) {
-    $stream = @fopen($this->getPath($fileName), 'r');
+  public function downloadCSVFile($fileName, $directory): bool {
+    $stream = @fopen($this->getPath($fileName), 'rb');
     if (! $stream) {
         throw new Exception("Could not open file: $fileName");
     }
-    $contents = fread($stream, filesize($this->getPath($fileName)));
-    file_put_contents ($directory . '/' . $fileName, $contents);
+
+    $local = fopen($directory . '/' . $fileName, 'w');
+    
+    // Write buffer 
+    // Needed for files larger than 8k
+    while(!feof($stream)){
+        fwrite($local, fread($stream, 8192));
+    }
+
+    @fclose($local);
     @fclose($stream);
+    
+    $bytes = filesize($directory . '/' . $fileName );
+
+    return ($bytes !== false && $bytes > 0);
   }
 
 }

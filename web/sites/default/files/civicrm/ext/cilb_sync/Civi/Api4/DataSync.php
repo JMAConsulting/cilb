@@ -28,25 +28,7 @@ class DataSync extends Generic\AbstractEntity {
     return (new Generic\AutocompleteAction('Entity', __FUNCTION__))
       ->setCheckPermissions($checkPermissions);
   }
-
-  /**
-   * @param bool $checkPermissions
-   * @return Action\DataSync\SyncPearsonVueScores
-   */
-  public static function syncPearsonVueScores($checkPermissions = TRUE) {
-    return (new Action\DataSync\SyncPearsonVueScores('DataSync', __FUNCTION__))
-      ->setCheckPermissions($checkPermissions);
-  }
-
-  /**
-   * @param bool $checkPermissions
-   * @return Action\DataSync\SyncCILBEntity
-   */
-  public static function syncCILBEntities($checkPermissions = TRUE) {
-    return (new Action\DataSync\SyncCILBEntity('DataSync', __FUNCTION__))
-      ->setCheckPermissions($checkPermissions);
-  }
-
+  
   /**
    * @return array
    */
