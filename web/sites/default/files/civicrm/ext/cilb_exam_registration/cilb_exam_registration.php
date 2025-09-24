@@ -103,4 +103,22 @@ function _cilb_exam_registration_candidate_number_population(\Civi\Core\Event\Pr
     }
     $event->params = $params;
   }
+  if ($event->action == 'create' && \Civi\Api4\Utils\CoreUtil::isContact($event->entity)) {
+    $params = $event->params;
+    if (empty($params['external_identifier'])) {
+      $current_max_external_identifier = CRM_Core_DAO::singleValueQuery("SELECT MAX(external_identifier) FROM civicrm_contact");
+      $current_max_external_identifier = (float) $current_max_external_identifier;
+      $params['external_identifier'] = $current_max_external_identifier + 1;
+      $uniquenessCheck = CRM_Core_DAO::singleValueQuery("SELECT count(id) FROM civicrm_contact WHERE external_identifier = %1", [
+        1 => [$params['external_identifier']]
+      ]);
+      while (!empty($uniquenessCheck)) {
+        $params['external_identifier'] = $params['external_identifier'] + 1;
+        $uniquenessCheck = CRM_Core_DAO::singleValueQuery("SELECT count(id) FROM civicrm_contact WHERE external_identifier = %1", [
+          1 => [$params['external_identifier']]
+        ]);
+      }
+    }
+    $event->params = $params;
+  }
 }
