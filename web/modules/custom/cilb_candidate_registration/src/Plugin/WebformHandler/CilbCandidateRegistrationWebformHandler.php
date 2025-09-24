@@ -1170,6 +1170,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         'event_type_id:name',
         'event_type_id:label',
         'start_date',
+	'end_date',
         'loc_block_id.address_id.street_address',
         "loc_block_id.address_id.supplemental_address_1",
         "loc_block_id.address_id.supplemental_address_2",
@@ -1239,7 +1240,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       if (
         ($event['event_type_id:name'] === "Plumbing")
         && ($event['Exam_Details.Exam_Part'] === 'TK')
-        && (date('Ymd', strtotime($event['start_date'])) < date('Ymd'))
+        && (!empty($event['end_date']) && date('Ymd', strtotime($event['end_date'])) < date('Ymd'))
       ) {
         return FALSE;
       }
