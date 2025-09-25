@@ -21,6 +21,11 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
   protected $dateToSync;
 
   /**
+   * @var bool
+   */
+  protected $runInNonProductionEnvironment = TRUE;
+
+  /**
    * @var null
    */
   protected $language = NULL;
