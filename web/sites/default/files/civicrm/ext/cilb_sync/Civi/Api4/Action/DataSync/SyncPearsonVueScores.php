@@ -55,8 +55,7 @@ class SyncPearsonVueScores extends SyncFromSFTP {
 
   public function scanForFiles($date = NULL) {
 
-    $config = CRM_Core_Config::singleton();
-    $dstdir = $config->customFileUploadDir . EU::getDestinationDir();
+    $dstdir = EU::getDestinationDir();
 
     CRM_Utils_File::createDir($dstdir);
 
@@ -82,7 +81,7 @@ class SyncPearsonVueScores extends SyncFromSFTP {
 
     // Extract DAT and cleanup
     foreach($zipFiles as $type => $fileName) {
-      $datFiles[$type] = $this->extractExamDATFile($type, $dstdir . '/' . $fileName, $dstdir . '/' . $formattedDate);
+      $datFiles[$type] = $this->extractExamDATFile($type, $dstdir . '/' . $fileName, $dstdir);
     }
 
     return $datFiles;

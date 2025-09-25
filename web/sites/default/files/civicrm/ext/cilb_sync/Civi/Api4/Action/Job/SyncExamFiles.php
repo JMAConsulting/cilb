@@ -62,13 +62,16 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
 
     // Process PearsonVUE files
     if ( count($this->files['scores']) > 0 ) {
-      //$result['processed']['scores'] = $this->processPearsonVueFiles($destinationDir);
+      $result['processed']['scores'] = $this->processPearsonVueFiles($destinationDir);
     }
   
 
     return $result;
   }
 
+  /**
+   * Download CILB entity files for select data
+   */
   private function downloadCILBEntityFiles() {
     try {
       $downloadResult = DataSync::syncCILBEntity(FALSE)
@@ -81,6 +84,9 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
     }
   }
 
+  /**
+   * Download PearsonVUE score files for select data
+   */
   private function downloadPearsonVueFiles() {
     try {
       $downloadResult = DataSync::syncPearsonVueScores(FALSE)
@@ -93,76 +99,101 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
     }
   }
 
+  /**
+   * Import candidate entity from downloaded CILB files
+   */
   private function processCILBEntityFiles($directory): array {
     
     $processed = [];
-    
     foreach ($this->files['entity'] as $fileName) {
-      try {
-        $result = civicrm_api3('Job', 'advimportrun', [
-          'filename' => $directory . '/' . $fileName,
-          'helper' => 'CRM_CILB_Sync_AdvImport_CILBEntityWrapper',
-        ]);
-
-        if (!$result) {
-          $processed[] = [
-            'file'          => $fileName,
-            'error'         => 'Error loading file',
-          ];
-          //throw new Exception("Error loading file: " . $fileName); // doesn't throw error in job, simply returns early
-        }
-
-        // Get stats (not resturned by job)
-        if ($result['id']) {
-          $stats = $this->getImportStats($result['id']);
-          $processed[] = [
-            'file'          => $fileName,
-            'processed_on'  => $stats['end_date'],
-            'total'         => $stats['total_count'],
-            'processed'     => $stats['success_count'],
-            'skipped'       => $stats['warning_count'],
-            'errors'        => $stats['error_count'],
-          ];
-        }
-      }
-      catch (\CRM_Core_Exception $e) {
-        \Civi::log()->debug('Advanced Import failed with message {message}', ['message' => $e->getMessage()]);
-        //throw new Exception("Error downloading files: " . $e->getMessage());
-        $processed[] = [
-          'file'          => $fileName,
-          'error'         => 'Error: ' . $e->getMessage(),
-        ];
-      }
-      
+      $processed[] = $this->processImportFile($fileName, $directory, 'CILBEntityWrapper');
     }
-
     return $processed;
   }
 
+  /**
+   * Import scores from downloaded PearsonVUE files
+   */
   private function processPearsonVueFiles($directory): array {
     
     $processed = [];
-    
     foreach ($this->files['scores'] as $files) {
       foreach ($files as $type => $fileName) {
-        try {
-          $result = civicrm_api3('Job', 'advimportrun', [
-            'filename' => 'test/' . $fileName,
-            'helper' => 'CRM_CILB_Sync_AdvImport_CILBEntityWrapper',
-          ]);
-          \Civi::log()->debug('result -> ' .print_r($result, true) . '');
-          $processed[] = $fileName;
-        }
-        catch (\CRM_Core_Exception $e) {
-          \Civi::log()->debug('Advanced Import failed with message {message}', ['message' => $e->getMessage()]);
-          throw new Exception("Error downloading files: " . $e->getMessage());
-        }
+        $processed[] = $this->processImportFile($fileName, $directory, 'PearsonVueWrapper');
       }
     }
-
     return $processed;
   }
 
+  /**
+   * Process import for select file 
+   * using Job.advimportrun
+   */
+  private function processImportFile($fileName, $directory, $helperClass): array {
+    try {
+        
+      // check if exists first
+      $importID = $this->getPreviousImportID($fileName);
+
+      // Already exists. Do we re-try?
+      if (!empty($importID)) {
+        $returnArr = [
+          'file'          => $fileName,
+          'error'         => 'Skipped. Already processed.',
+        ];
+        return $returnArr;
+      }
+
+      $result = civicrm_api3('Job', 'advimportrun', [
+        'filename' => $directory . '/' . $fileName,
+        'helper' => 'CRM_CILB_Sync_AdvImport_' . $helperClass,
+      ]);
+
+      if (!$result) {
+        $returnArr = [
+          'file'          => $fileName,
+          'error'         => 'Error loading file',
+        ];
+        //throw new Exception("Error loading file: " . $fileName); // doesn't throw error in job, simply returns early
+        return $returnArr;
+      }
+
+      // Get stats (not returned by job)
+      if ($result['id']) {
+        $stats = $this->getImportStats($result['id']);
+        $returnArr = [
+          'file'          => $fileName,
+          'processed_on'  => $stats['end_date'],
+          'total'         => $stats['total_count'],
+          'processed'     => $stats['success_count'],
+          'skipped'       => $stats['warning_count'],
+          'errors'        => $stats['error_count'],
+        ];
+
+        // Filename not saved by job
+        if (empty($stats['filename'])) {
+          $results = \Civi\Api4\Advimport::update(FALSE)
+            ->addValue('filename', $fileName)
+            ->addWhere('id', '=', $result['id'])
+            ->execute();
+        }
+      }
+    }
+    catch (\CRM_Core_Exception $e) {
+      \Civi::log()->debug('Advanced Import failed with message {message}', ['message' => $e->getMessage()]);
+      //throw new Exception("Error downloading files: " . $e->getMessage());
+      $returnArr = [
+        'file'          => $fileName,
+        'error'         => 'Error: ' . $e->getMessage(),
+      ];
+    }
+
+    return $returnArr;
+  }
+
+  /**
+   * Get import results
+   */
   private function getImportStats($id): ?array {
     $advimport = \Civi\Api4\Advimport::get(FALSE)
       ->addWhere('id', '=', $id)
@@ -170,6 +201,20 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
       ->first();
 
     return $advimport;
+  }
+
+  /**
+   * Get the import ID if file already prcoessed before
+   */
+  private function getPreviousImportID($filename): ?int {
+    $advimport = \Civi\Api4\Advimport::get(FALSE)
+      ->addWhere('filename', '=', $filename)
+      ->addWhere('end_date', 'IS NOT NULL')
+      ->addOrderBy('end_date', 'DESC') // get latest, in case we have multiple
+      ->execute()
+      ->first();
+
+    return $advimport['id'] ?? NULL;
   }
   
 }

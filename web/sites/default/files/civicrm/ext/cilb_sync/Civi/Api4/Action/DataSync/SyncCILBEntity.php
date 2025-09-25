@@ -56,8 +56,7 @@ class SyncCILBEntity extends SyncFromSFTP {
    */
   public function scanForFiles($date = NULL): array {
 
-    $config = CRM_Core_Config::singleton();
-    $dstdir = $config->customFileUploadDir . EU::getDestinationDir();
+    $dstdir = EU::getDestinationDir();
 
     CRM_Utils_File::createDir($dstdir);
 
