@@ -47,7 +47,8 @@ class SyncPearsonVueScores extends SyncFromSFTP {
 
     $this->closeConnection();
 
-    $result['files'] = $downloadedFiles;
+    $result['date']   = $this->dateToSync;
+    $result['files']  = $downloadedFiles;
 
     return $result;
 
@@ -81,7 +82,9 @@ class SyncPearsonVueScores extends SyncFromSFTP {
 
     // Extract DAT and cleanup
     foreach($zipFiles as $type => $fileName) {
-      $datFiles[$type] = $this->extractExamDATFile($type, $dstdir . '/' . $fileName, $dstdir);
+      if (!empty($fileName)) {
+        $datFiles[$type] = $this->extractExamDATFile($type, $dstdir . '/' . $fileName, $dstdir);
+      }
     }
 
     return $datFiles;

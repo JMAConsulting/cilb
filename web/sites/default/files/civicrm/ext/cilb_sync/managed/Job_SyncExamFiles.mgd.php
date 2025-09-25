@@ -18,7 +18,8 @@ return [
         'api_action' => 'syncExamFiles',
         'run_frequency' => 'Daily',
         'parameters' => 'runInNonProductionEnvironment=1
-version=4',
+version=4
+dateToSync=yesterday',
         'is_active' => FALSE,
       ],
     ],
