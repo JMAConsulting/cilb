@@ -1181,7 +1181,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         'event_type_id:name',
         'event_type_id:label',
         'start_date',
-	'end_date',
+        'end_date',
         'loc_block_id.address_id.street_address',
         "loc_block_id.address_id.supplemental_address_1",
         "loc_block_id.address_id.supplemental_address_2",
