@@ -11,6 +11,11 @@ class CRM_CILB_Sync_Utils {
 
   public const ADV_IMPORT_FOLDER = 'advimport';
 
+  public static function getDestinationDir() : string {
+    $config = CRM_Core_Config::singleton();
+    return $config->customFileUploadDir . self::ADV_IMPORT_FOLDER.'/test';
+  }
+  
   public static function getTimestampDate($date) {
     
     // Validate date if provided

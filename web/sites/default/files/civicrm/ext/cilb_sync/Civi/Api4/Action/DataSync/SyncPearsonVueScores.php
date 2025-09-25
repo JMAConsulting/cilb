@@ -56,7 +56,7 @@ class SyncPearsonVueScores extends SyncFromSFTP {
   public function scanForFiles($date = NULL) {
 
     $config = CRM_Core_Config::singleton();
-    $dstdir = $config->customFileUploadDir . EU::ADV_IMPORT_FOLDER.'/test';
+    $dstdir = $config->customFileUploadDir . EU::getDestinationDir();
 
     CRM_Utils_File::createDir($dstdir);
 
