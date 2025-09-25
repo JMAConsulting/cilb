@@ -25,11 +25,12 @@ use Exception;
 class SyncCILBEntity extends SyncFromSFTP {
 
   protected function retrieveCredentials() {
-      // TODO: use/create settings
-      $this->_sftpURL      = 'ventura.eastus.cloudapp.azure.com'; //'pearsonvue.com';
-      $this->_sftpUser     = getenv('SFTP_VUE_USER');
-      $this->_sftpPassword = getenv('SFTP_VUE_PASS');
-      $this->_sftpHomeDir  = '/home/jma/entity-imports';
+      $this->_sftpURL      = \Civi::settings()->get('sftp_cilb_url');
+      $this->_sftpPort     = \Civi::settings()->get('sftp_cilb_url_port') ?? '22';
+      $this->_sftpUser     = \Civi::settings()->get('sftp_cilb_user');
+      $encryptedPassword   = \Civi::settings()->get('sftp_pearson_password');
+      $this->_sftpPassword = \Civi::service('crypto.token')->decrypt($encryptedPassword, ['plain', 'CRED']);
+      $this->_sftpHomeDir  = \Civi::settings()->get('sftp_cilb_home_dir');
   }
 
 
@@ -45,6 +46,7 @@ class SyncCILBEntity extends SyncFromSFTP {
 
     $this->closeConnection();
 
+    $result['date']  = $this->dateToSync;
     $result['files'] = $downloadedFiles;
 
     return $result;

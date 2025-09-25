@@ -32,6 +32,17 @@ function cilb_sync_civicrm_enable(): void {
 }
 
 
+function cilb_sync_civicrm_navigationMenu(&$menu) {
+  _cilb_sync_civix_insert_navigation_menu($menu, 'Administer/System Settings', [
+    'label' => E::ts('sFTP Settings'),
+    'name' => 'sftp_settings',
+    'url' => 'civicrm/admin/setting/sftp?reset=1',
+    'permission' => 'administer CiviCRM'
+  ]);
+}
+
+
+
 /**
  * Custom Import Wrapper for migrating score data
  * Implements hook_civicrm_advimport_helpers()
