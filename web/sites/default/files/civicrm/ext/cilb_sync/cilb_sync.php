@@ -41,8 +41,6 @@ function cilb_sync_civicrm_navigationMenu(&$menu) {
   ]);
 }
 
-
-
 /**
  * Custom Import Wrapper for migrating score data
  * Implements hook_civicrm_advimport_helpers()

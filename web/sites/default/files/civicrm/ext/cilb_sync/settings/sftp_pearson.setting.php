@@ -7,7 +7,7 @@ return [
     'name' => 'sftp_pearson_url',
     'type' => 'String',
     'title' => E::ts('URL'),
-    'description' => E::ts('sFTP URL'),
+    'description' => E::ts('sFTP Pearson URL'),
     'html_type' => 'text',
     'default' => '',
     'settings_pages' => [
@@ -18,7 +18,7 @@ return [
     'name' => 'sftp_pearson_url_port',
     'type' => 'Int',
     'title' => E::ts('Port'),
-    'description' => E::ts('sFTP URL Port'),
+    'description' => E::ts('sFTP Pearson URL Port'),
     'html_type' => 'text',
     'default' => '22',
     'settings_pages' => [
@@ -29,7 +29,7 @@ return [
     'name' => 'sftp_pearson_user',
     'type' => 'String',
     'title' => E::ts('sFTP User'),
-    'description' => E::ts('User for authentication via sFTP'),
+    'description' => E::ts('Pearson User for authentication via sFTP'),
     'html_type' => 'text',
     'default' => '',
     'settings_pages' => [
@@ -40,7 +40,7 @@ return [
     'name' => 'sftp_pearson_password',
     'type' => 'String',
     'title' => E::ts('sFTP User Password'),
-    'description' => E::ts('Password for authentication via sFTP'),
+    'description' => E::ts('Pearson Password for authentication via sFTP'),
     'html_type' => 'password',
     'default' => '',
     'settings_pages' => [
@@ -51,7 +51,7 @@ return [
     'name' => 'sftp_pearson_home_dir',
     'type' => 'String',
     'title' => E::ts('Files Directory'),
-    'description' => E::ts('Default path to look for files'),
+    'description' => E::ts('Pearson Default path to look for files'),
     'html_type' => 'text',
     'default' => '',
     'settings_pages' => [
