@@ -40,6 +40,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
     $examScore      = $params['examscore'] ?? NULL;
     $examStatus     = ucfirst($params['examgrade']) ?? NULL;
     $examTitle      = $params['examtitle'] ?? '';
+    $noshow         = $params['noshow'] ?? '';
 
     // Sanity Checks
     if (empty($candidateID)) {
@@ -48,7 +49,8 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
     if (empty($examSeriesCode)) {
       throw new CRM_Core_Exception("uploaded file is missing the Exam Series Code.");
     }
-    if (empty($examDate) || empty($examScore) || empty($examStatus) || empty($examRegID)) {
+    // if we don't have an exam date and if are msissing an exam score and the person hasn't been marked as no show then throw exception.
+    if (empty($examDate) || (empty($examScore) && empty($nowshow)) || (empty($examStatus) && empty($nowshow)) || empty($examRegID)) {
       throw new CRM_Core_Exception("uploaded file is missing the exam score information.");
     }
 
@@ -93,13 +95,22 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
 
     // Update Score / Date
     try {
-      $result = \Civi\Api4\Participant::update(FALSE)
-        ->addValue('source', $examRegID)
-        ->addValue('Candidate_Result.Candidate_Score', $examScore)
-        ->addValue('Candidate_Result.Date_Exam_Taken', $examDate)
-        ->addValue('status_id:label', $examStatus)
-        ->addWhere('id', '=', $participantID)
-        ->execute();
+      // If the candidate didn't show up mark registration as no show
+      if ($noshow) {
+        $result = \Civi\Api4\Participant::update(FALSE)
+          ->addValue('status_id:name', 'No-show')
+          ->addWhere('id', '=', $participantID)
+          ->execute();
+      }
+      else {
+        $result = \Civi\Api4\Participant::update(FALSE)
+          ->addValue('source', $examRegID)
+          ->addValue('Candidate_Result.Candidate_Score', $examScore)
+          ->addValue('Candidate_Result.Date_Exam_Taken', $examDate)
+          ->addValue('status_id:label', $examStatus)
+          ->addWhere('id', '=', $participantID)
+          ->execute();
+      }
 
       if (!empty($result['error_message'])) {
         \CRM_Core_Error::debug_var('participant_api_error_message', $result);
