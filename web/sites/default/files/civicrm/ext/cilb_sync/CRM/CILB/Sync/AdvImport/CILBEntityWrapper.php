@@ -106,7 +106,7 @@ class CRM_CILB_Sync_AdvImport_CILBEntityWrapper extends CRM_Advimport_Helper_Csv
 
     // If candidate info exists already, skip
     if ( !empty($contact['custom_cilb_candidate_entity.id']) ) {
-      CRM_Advimport_Utils::logImportWarning($params, "Skipped");
+      CRM_Advimport_Utils::logImportWarning($params, "Found Candidate information in database already");
       return;
     }
 
@@ -117,20 +117,27 @@ class CRM_CILB_Sync_AdvImport_CILBEntityWrapper extends CRM_Advimport_Helper_Csv
     }
 
     // Add Candidate Info
-    $result = CustomValue::create('cilb_candidate_entity', FALSE)
-      ->addValue('entity_id', $contactID)
-      ->addValue('Entity_ID_imported_', $candidateID)
-      ->addValue('class_code', $classCode)
-      ->addValue('exam_category', $examCategory['value'])
-      ->execute();
+    try {
+      $result = CustomValue::create('cilb_candidate_entity', FALSE)
+        ->addValue('entity_id', $contactID)
+        ->addValue('Entity_ID_imported_', $candidateID)
+        ->addValue('class_code', $classCode)
+        ->addValue('exam_category', $examCategory['value'])
+        ->execute();
 
-    if (!empty($result['error_message'])) {
-      throw new CRM_Core_Exception("Failed to update candidate entity.");
+      if (!empty($result['error_message'])) {
+        \CRM_Core_Error::debug_var('custom_value_create_error', $result);
+        throw new \CRM_Core_Exception("Failed to update candidate entity.");
+      }
+    }
+    catch (\CRM_Core_Exception $e) {
+      \CRM_Core_Error::debug_var('custom_value_create_error', $e->getMessage());
+      throw new \CRM_Core_exception("Failed to update candidate entity.");
     }
 
     // Succesfully updated.
     CRM_Advimport_Utils::setEntityTableAndId($params, 'civicrm_contact', $contactID);
-    
+
   }
 
 }

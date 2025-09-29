@@ -54,7 +54,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
 
     // Exams --> Review
     if (stripos($examTitle, "review") !== FALSE) {
-      CRM_Advimport_Utils::logImportWarning($params, "Skipped"); // Exam is marked as being reviewed
+      CRM_Advimport_Utils::logImportWarning($params, "Exam is marked as being reviewed"); // Exam is marked as being reviewed
     }
 
     // Exam Info
@@ -66,7 +66,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
         2 => [0, 'Positive'],
         3 => ["Skipped", 'String'],
       ]);*/
-      CRM_Advimport_Utils::logImportWarning($params, "Skipped"); // Exam was not found
+      CRM_Advimport_Utils::logImportWarning($params, "Exam - {$examSeriesCode} was not found"); // Exam was not found
       return;
     }
     $examID = $exam['id'];
@@ -92,16 +92,23 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
     $participantID = $participantResults->single()['id'];
 
     // Update Score / Date
-    $result = \Civi\Api4\Participant::update(FALSE)
-      ->addValue('source', $examRegID)
-      ->addValue('Candidate_Result.Candidate_Score', $examScore)
-      ->addValue('Candidate_Result.Date_Exam_Taken', $examDate)
-      ->addValue('status_id:label', $examStatus)
-      ->addWhere('id', '=', $participantID)
-      ->execute();
+    try {
+      $result = \Civi\Api4\Participant::update(FALSE)
+        ->addValue('source', $examRegID)
+        ->addValue('Candidate_Result.Candidate_Score', $examScore)
+        ->addValue('Candidate_Result.Date_Exam_Taken', $examDate)
+        ->addValue('status_id:label', $examStatus)
+        ->addWhere('id', '=', $participantID)
+        ->execute();
 
-    if (!empty($result['error_message'])) {
-      throw new CRM_Core_Exception("Failed to update exam score.");
+      if (!empty($result['error_message'])) {
+        \CRM_Core_Error::debug_var('participant_api_error_message', $result);
+        throw new \CRM_Core_Exception("Failed to update exam score.");
+      }
+    }
+    catch (\CRM_Core_Exception $e) {
+      \CRM_Core_Error::debug_var('participant_api_error_message', $e->getMessage());
+      throw new \CRM_Core_exception("Failed to update exam score.");
     }
 
     // Succesfully updated.

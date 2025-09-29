@@ -85,7 +85,7 @@ class CRM_CILB_Sync_Form_Settings extends CRM_Admin_Form_Generic {
       }
       catch (Exception $e) {
         Civi::log()->error($e->getMessage());
-        CRM_Core_Session::setStatus(ts('Unable to retrieve the encrypted password. Please check your configured encryption keys. The error message is: %1', [1 => $e->getMessage()]), ts("Encryption key error"), "error");
+        CRM_Core_Session::setStatus(E::ts('Unable to retrieve the encrypted password. Please check your configured encryption keys. The error message is: %1', [1 => $e->getMessage()]), ts("Encryption key error"), "error");
       }
     }
     return $this->_defaults;
