@@ -10,6 +10,9 @@ return [
     'description' => E::ts('sFTP URL'),
     'html_type' => 'text',
     'default' => '',
+    'settings_pages' => [
+      'sftp' => ['weight' => 60],
+    ],
   ],
   'sftp_cilb_url_port' => [
     'name' => 'sftp_cilb_url_port',
@@ -18,6 +21,9 @@ return [
     'description' => E::ts('sFTP URL Port'),
     'html_type' => 'text',
     'default' => '22',
+    'settings_pages' => [
+      'sftp' => ['weight' => 70],
+    ],
   ],
   'sftp_cilb_user' => [
     'name' => 'sftp_cilb_user',
@@ -26,6 +32,9 @@ return [
     'description' => E::ts('User for authentication via sFTP'),
     'html_type' => 'text',
     'default' => '',
+    'settings_pages' => [
+      'sftp' => ['weight' => 80],
+    ],
   ],
   'sftp_cilb_password' => [
     'name' => 'sftp_cilb_password',
@@ -34,6 +43,9 @@ return [
     'description' => E::ts('Password for authentication via sFTP'),
     'html_type' => 'password',
     'default' => '',
+    'settings_pages' => [
+      'sftp' => ['weight' => 90],
+    ],
   ],
   'sftp_cilb_home_dir' => [
     'name' => 'sftp_cilb_home_dir',
@@ -42,6 +54,9 @@ return [
     'description' => E::ts('Default path to look for files'),
     'html_type' => 'text',
     'default' => '',
+    'settings_pages' => [
+      'sftp' => ['weight' => 100],
+    ],
   ],
 ];
 
