@@ -44,6 +44,17 @@ class CRM_CILB_Sync_Utils {
     return $participant;
   }
 
+  public static function getExamRegistrationFromCandidateID($candidateID, $eventID = NULL): ?array {
+    $registration = Participant::get(FALSE)
+      ->addSelect('*', 'custom.*')
+      ->addWhere('event_id.Candidate_Result.Candidate_Number', '=', $candidateID);
+    if ($eventID) {
+      $registration->addWhere('event_id', '=', $eventID);
+    }
+    $candidateRegistration = $registration->execute()->first();
+    return $candidateRegistration;
+  }
+
 
   public static function getCandidateEntity($candidateID, $classCode): ?array {
     $candidateEntity = CustomValue::get('cilb_candidate_entity', FALSE)
@@ -97,17 +108,6 @@ class CRM_CILB_Sync_Utils {
       ->execute()
       ->first();
     return $examCategory;
-  }
-
-  public static function getExamRegistrationFromCandidateID($candidateID, $event_id = NULL): ?array {
-    $registration = Participant::get(FALSE)
-      ->addSelect('*', 'custom.*')
-      ->addWhere('event_id.Candidate_Result.Candidate_Number', '=', $candidateID);
-    if ($event_id) {
-      $registration->addWhere('event_id', '=', $event_id);
-    }
-    $candidateRegistration = $registration->execute()->first();
-    return $candidateRegistration;
   }
 
 }

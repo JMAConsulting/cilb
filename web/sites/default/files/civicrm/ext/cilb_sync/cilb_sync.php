@@ -55,8 +55,8 @@ function cilb_sync_civicrm_advimport_helpers(&$helpers) {
     'label' => E::ts('CILB Entities Import'),
   ];
   $helpers[] = [
-    'class' => 'CRM_CILB_Sync_AdvImport_Helper_PaperExamScores',
-    'label' => E::ts('Paper Exam Form Scores'),
+    'class' => 'CRM_CILB_Sync_AdvImport_PaperExamWrapper',
+    'label' => E::ts('Paper Exam Scores Import'),
   ];
 }
 

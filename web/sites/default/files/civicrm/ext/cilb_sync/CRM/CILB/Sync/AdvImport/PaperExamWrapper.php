@@ -1,10 +1,13 @@
 <?php
 
-use CRM_CILB_Sync_ExtensionUtil as E;
-use CRM_CILB_Sync_Utils as EU;
 use League\Csv\Reader;
 
-class CRM_CILB_Sync_AdvImport_Helper_PaperExamScores extends CRM_Advimport_Helper_Csv {
+use CRM_CILB_Sync_ExtensionUtil as E;
+use CRM_CILB_Sync_Utils as EU;
+
+use Civi\Api4\Participant;
+
+class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv {
 
   /**
    * Returns a human-readable name for this helper.
@@ -13,7 +16,19 @@ class CRM_CILB_Sync_AdvImport_Helper_PaperExamScores extends CRM_Advimport_Helpe
     return E::ts("Paper Exam Form Scores");
   }
 
-  public function validateUploadForm($form) {
+  /**
+   * By default, a field mapping will be shown, but unless you have defined
+   * one in getMapping() - example later below - you may want to skip it.
+   * Displaying it is useful for debugging at first.
+   */
+  public function mapfieldMethod() {
+    return 'skip';
+  }
+  
+  /**
+   * Validate the file type.
+   */
+  function validateUploadForm(&$form) {
     $valid = TRUE;
 
     $e = $form->controller->_pages['DataUpload']->getElement('uploadFile');
@@ -28,25 +43,37 @@ class CRM_CILB_Sync_AdvImport_Helper_PaperExamScores extends CRM_Advimport_Helpe
     if ($valid ) {
       return parent::validateUploadForm($form);
     }
-
+    
     return $valid;
   }
+  
 
+  /**
+   * Returns the data from the file.
+   * Fixed-width TXT file.
+   *
+   * @param $file
+   * @param $delimiter
+   * @param $encoding
+   *
+   * @returns Array
+   */
   public function getDataFromFile($file, $delimiter = '', $encoding = 'UTF-8') {
+    $delimiter = "";
+    $headers = [0 => 'candidate_number', 1 => 'examscore'];
+
+    // cannot use CSV Helper as we need to add missing headers
     $reader = Reader::createFromPath($file);
     $records = $reader->getRecords();
+
+    // Re-key data using the headers
     $data = [];
-    $headers = [0 => 'candidate_number', 1 => 'score1', 2 => 'score2', 3 => 'score3'];
     foreach ($records as $record) {
       $candidate_id = substr($record[0], 0, 6);
-      $score1 = substr($record[0], 6, 5);
-      $score2 = substr($record[0], 11, 5);
-      $score3 = substr($record[0], 16, 6);
+      $score = substr($record[0], 11, 5);
       $d = [
-        $candidate_id,
-        $score1,
-        $score2,
-        $score3,
+        'candidate_number' => $candidate_id,
+        'examscore' => (float) (substr($score, -4, 2) . '.' . substr($score, -2)),
       ];
       // Remove fields we do not want to re-import
       // Has to be done after, so that the order of colums is respected
@@ -65,24 +92,28 @@ class CRM_CILB_Sync_AdvImport_Helper_PaperExamScores extends CRM_Advimport_Helpe
    * the logic on how to handle imports the old fashioned way.
    */
   public function processItem($params) {
+
     $row_id = $params['import_row_id'];
     $table_name = $params['import_table_name'];
-    $candidate_id = $params['candidate_id'];
-    $score = $params['score2'];
-    $parsedScore = (float) (substr($score, -4, 2) . '.' . substr($score, -2));
-    $pass = (bool) ($parsedScore > 70);
-    if (empty($candidate_id) || empty($score)) {
+
+    $candidateID    = $params['candidate_id'];
+    $examScore      = $params['examscore'] ?? NULL;
+    $examStatus     = (bool) ($examScore > 70);
+    
+    if (empty($candidateID) || empty($examScore)) {
       throw new \CRM_Core_Exception("Unable to process exam score as we are missing either a candidate_id or the score");
     }
-    $candidateRegistration = EU::getExamRegistrationFromCandidateID($candidate_id);
+    $candidateRegistration = EU::getExamRegistrationFromCandidateID($candidateID);
     if (empty($candidateRegistration)) {
-      CRM_Advimport_Utils::logImportWarning($params, "Candidate Registration for candidate_id - {$candidate_id} was not found");
+      CRM_Advimport_Utils::logImportWarning($params, "Candidate Registration for candidate_id - {$candidateID} was not found");
     }
+    $participantID = $candidateRegistration['id'];
+
     try {
       Participant::update(FALSE)
-        ->addValue('Candidate_Result.Candidate_Score', $parsedScore)
-        ->addValue('status_id:name', $pass ? 'Pass' : 'Fail')
-        ->addWhere('id', '=', $candidateRegistration)
+        ->addValue('Candidate_Result.Candidate_Score', $examScore)
+        ->addValue('status_id:name', $examStatus)
+        ->addWhere('id', '=', $participantID)
         ->execute();
     }
     catch (\CRM_Core_Exception $e) {
