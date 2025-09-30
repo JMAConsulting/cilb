@@ -15,9 +15,9 @@ class CRM_CILB_Sync_Utils {
     $config = CRM_Core_Config::singleton();
     return $config->customFileUploadDir . self::ADV_IMPORT_FOLDER.'/test';
   }
-  
+
   public static function getTimestampDate($date) {
-    
+
     // Validate date if provided
     if ( !empty($date) ) {
       $realDate = strtotime($date);
@@ -58,9 +58,9 @@ class CRM_CILB_Sync_Utils {
   public static function getCandidateEntityFromExternalID($externalID, $candidateID, $classCode): ?array {
     $contact = \Civi\Api4\Contact::get(TRUE)
       ->addSelect('id', 'custom_cilb_candidate_entity.*')
-      ->addJoin('Custom_cilb_candidate_entity AS custom_cilb_candidate_entity', 
-        'LEFT', 
-        ['custom_cilb_candidate_entity.entity_id', '=', 'id'], 
+      ->addJoin('Custom_cilb_candidate_entity AS custom_cilb_candidate_entity',
+        'LEFT',
+        ['custom_cilb_candidate_entity.entity_id', '=', 'id'],
         ['custom_cilb_candidate_entity.Entity_ID_imported_', '=', (int) $candidateID], // cast as Integer to remove leading 0
         ['custom_cilb_candidate_entity.class_code', '=', $classCode]
       )
@@ -97,6 +97,17 @@ class CRM_CILB_Sync_Utils {
       ->execute()
       ->first();
     return $examCategory;
+  }
+
+  public static function getExamRegistrationFromCandidateID($candidateID, $event_id = NULL): ?array {
+    $registration = Participant::get(FALSE)
+      ->addSelect('*', 'custom.*')
+      ->addWhere('event_id.Candidate_Result.Candidate_Number', '=', $candidateID);
+    if ($event_id) {
+      $registration->addWhere('event_id', '=', $event_id);
+    }
+    $candidateRegistration = $registration->execute()->first();
+    return $candidateRegistration;
   }
 
 }
