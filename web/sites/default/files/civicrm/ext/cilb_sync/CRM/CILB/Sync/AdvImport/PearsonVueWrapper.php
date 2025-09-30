@@ -61,7 +61,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
 
     // Exams --> Review
     if (stripos($examTitle, "review") !== FALSE) {
-      CRM_Advimport_Utils::logImportWarning($params, "Exam is marked as being reviewed"); // Exam is marked as being reviewed\      return;
+      CRM_Advimport_Utils::logImportWarning($params, "Exam is marked as being reviewed"); // Exam is marked as being reviewed
       return;
     }
 
