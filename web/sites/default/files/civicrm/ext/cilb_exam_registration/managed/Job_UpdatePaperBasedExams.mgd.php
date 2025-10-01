@@ -1,5 +1,5 @@
 <?php
-use CRM_CILB_Sync_ExtensionUtil as E;
+use CRM_CilbExamRegistration_ExtensionUtil as E;
 
 return [
   [
