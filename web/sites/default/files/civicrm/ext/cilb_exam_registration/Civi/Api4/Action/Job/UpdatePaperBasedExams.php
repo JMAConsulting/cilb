@@ -47,14 +47,18 @@ class UpdatePaperBasedExams extends \Civi\Api4\Generic\AbstractAction {
         ->execute()
         ->column('id');
 
-    $result['count'] = count($participantIDs);
+    $result['values']['count'] = count($participantIDs);
+    $success = 0;
     
     foreach ($participantIDs as $participantID) {
         $maxCandidateID += 1;
 
         if ($maxCandidateID > 999999) {
-            $result['failed'][] = $participantID;
-            throw new CRM_Core_exception('Reached max Candidate_Number.');
+
+            $result['is_error'] = TRUE;
+            $result['error_message'] = 'Reached max Candidate_Number. Completed ' . $success . '/' . $result['values']['count'];
+            $result['values']['failed'][] = $participantID;
+            throw new CRM_Core_exception($result['error_message']);
         }
 
         $candidateID = str_pad($maxCandidateID, 6, '0', STR_PAD_LEFT); // ensure it's always 6 digits
@@ -63,15 +67,17 @@ class UpdatePaperBasedExams extends \Civi\Api4\Generic\AbstractAction {
                 ->addValue('Candidate_Result.Candidate_Number', $candidateID)
                 ->addWhere('id', '=', $participantID)
                 ->execute();
-            $result['updated'][] = [
-                'id' => $participantID,
-                'Candidate_Result.Candidate_Number' => $candidateID
+            $result['values']['updated'][] = [
+                $participantID => $candidateID
             ];
+            $success += 1;
         }
         catch (CRM_Core_Exception $e) {
-            $result['failed'][] = $participantID;
-            CRM_Core_Error::debug_var('participant_api_error_message', $e->getMessage());
-            throw new CRM_Core_exception("Failed to update candidate number.");
+            $result['is_error'] = TRUE;
+            $result['error_message'] = 'Failed to update candidate number ['.$participantID.']. Completed ' . $success . '/' . $result['values']['count'];
+            $result['values']['failed'][] = $participantID;
+            CRM_Core_Error::debug_var('participant_api_error_message',$result['error_message'] );
+            throw new CRM_Core_exception($result['error_message']);
         }
     }
 
