@@ -60,7 +60,7 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
    */
   public function getDataFromFile($file, $delimiter = '', $encoding = 'UTF-8') {
     $delimiter = "";
-    $headers = [0 => 'candidate_number', 1 => 'examscore'];
+    $headers = [0 => 'candidate_id', 1 => 'examscore'];
 
     // cannot use CSV Helper as we need to add missing headers
     $reader = Reader::createFromPath($file);
@@ -72,7 +72,7 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
       $candidate_id = substr($record[0], 0, 6);
       $score = substr($record[0], 11, 5);
       $d = [
-        'candidate_number' => $candidate_id,
+        'candidate_id' => $candidate_id,
         'examscore' => (float) (substr($score, -4, 2) . '.' . substr($score, -2)),
       ];
       // Remove fields we do not want to re-import
@@ -103,10 +103,14 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
     if (empty($candidateID) || empty($examScore)) {
       throw new \CRM_Core_Exception("Unable to process exam score as we are missing either a candidate_id or the score");
     }
-    $candidateRegistration = EU::getExamRegistrationFromCandidateID($candidateID);
+
+    // Get participation record matching CandidateID for a Paper-Based event
+    $candidateRegistration = EU::getExamRegistrationFromCandidateID($candidateID, NULL, 'Paper_based');
     if (empty($candidateRegistration)) {
       CRM_Advimport_Utils::logImportWarning($params, "Candidate Registration for candidate_id - {$candidateID} was not found");
+      return;
     }
+
     $participantID = $candidateRegistration['id'];
 
     try {
@@ -121,7 +125,7 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
       throw new \CRM_Core_exception("Failed to update exam score.");
     }
     // Succesfully updated.
-    CRM_Advimport_Utils::setEntityTableAndId($params, 'civicrm_participant', $candidateRegistration['id']);
+    CRM_Advimport_Utils::setEntityTableAndId($params, 'civicrm_participant', $participantID);
   }
 
 }

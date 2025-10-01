@@ -44,12 +44,15 @@ class CRM_CILB_Sync_Utils {
     return $participant;
   }
 
-  public static function getExamRegistrationFromCandidateID($candidateID, $eventID = NULL): ?array {
+  public static function getExamRegistrationFromCandidateID($candidateID, $eventID = NULL, $eventFormat = NULL): ?array {
     $registration = Participant::get(FALSE)
       ->addSelect('*', 'custom.*')
-      ->addWhere('event_id.Candidate_Result.Candidate_Number', '=', $candidateID);
+      ->addWhere('Candidate_Result.Candidate_Number', '=', $candidateID);
     if ($eventID) {
       $registration->addWhere('event_id', '=', $eventID);
+    }
+    if ($eventFormat) {
+      $registration->addWhere('event_id.Exam_Details.Exam_Format:name', '=', $eventFormat);
     }
     $candidateRegistration = $registration->execute()->first();
     return $candidateRegistration;
