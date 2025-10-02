@@ -9,7 +9,7 @@ use CRM_Core_Exception;
 
 
 /**
- * Automatically download CILB Exam files and trigger an import
+ * Generates Candidate Number for paper-based exams that don't have one assigned yet
  */
 
 class UpdatePaperBasedExams extends \Civi\Api4\Generic\AbstractAction {
@@ -35,9 +35,16 @@ class UpdatePaperBasedExams extends \Civi\Api4\Generic\AbstractAction {
   public function _run(Result $result) {
 
     $maxCandidateID = (int) \Civi\Api4\Participant::get(FALSE)
-        ->addSelect('MAX(Candidate_Result.Candidate_Number) AS max_candiate_id')
+        ->addSelect('MAX(Candidate_Result.Candidate_Number) AS max_candidate_id')
         ->execute()
-        ->first()['max_candiate_id'];
+        ->first()['max_candidate_id'];
+
+    // Just in case
+    if ($maxCandidateID == 0) {
+        $result['is_error'] = TRUE;
+        $result['error_message'] = 'Error retrieving number for Candidate ID.';
+        throw new CRM_Core_exception($result['error_message']);
+    }
   
 
     $participantIDs = \Civi\Api4\Participant::get(FALSE)
@@ -74,7 +81,7 @@ class UpdatePaperBasedExams extends \Civi\Api4\Generic\AbstractAction {
         }
         catch (CRM_Core_Exception $e) {
             $result['is_error'] = TRUE;
-            $result['error_message'] = 'Failed to update candidate number ['.$participantID.']. Completed ' . $success . '/' . $result['values']['count'];
+            $result['error_message'] = 'Failed to update candidate number ['.$participantID.']. Completed ' . $success . '/' . $result['values']['count'] . ' Error: ' . $e->getMessage();
             $result['values']['failed'][] = $participantID;
             CRM_Core_Error::debug_var('participant_api_error_message',$result['error_message'] );
             throw new CRM_Core_exception($result['error_message']);

@@ -16,9 +16,9 @@ return [
         'description' => E::ts('Generates Candidate Number for paper-based exams that don\'t have one assigned yet'),
         'api_entity' => 'Job',
         'api_action' => 'updatePaperBasedExams',
-        'run_frequency' => 'Daily',
-        'parameters' => 'runInNonProductionEnvironment=1
-version=4',
+        'run_frequency' => 'Hourly',
+        'parameters' => 'version=4
+runInNonProductionEnvironment=1',
         'is_active' => FALSE,
       ],
     ],
