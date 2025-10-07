@@ -78,7 +78,7 @@ function cilb_sync_civicrm_buildForm($formName, $form) {
     $map = CRM_Advimport_BAO_Advimport::getHelpers();
     $paperHelperId = NULL;
     foreach ($map as $id => $helper) {
-      if ($helper === 'CRM_CILB_Sync_AdvImport_PaperExamWrapper') {
+      if ($helper['class'] === 'CRM_CILB_Sync_AdvImport_PaperExamWrapper') {
         $paperHelperId = $id;
       }
     }
