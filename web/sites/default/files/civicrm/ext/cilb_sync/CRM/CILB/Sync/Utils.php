@@ -6,6 +6,7 @@ use Civi\Api4\Event;
 use Civi\Api4\OptionValue;
 use Civi\Api4\Participant;
 use Civi\Api4\Generic\Result;
+use CRM_CILB_Sync_ExtensionUtil as E;
 
 class CRM_CILB_Sync_Utils {
 
@@ -15,9 +16,9 @@ class CRM_CILB_Sync_Utils {
     $config = CRM_Core_Config::singleton();
     return $config->customFileUploadDir . self::ADV_IMPORT_FOLDER.'/test';
   }
-  
+
   public static function getTimestampDate($date) {
-    
+
     // Validate date if provided
     if ( !empty($date) ) {
       $realDate = strtotime($date);
@@ -44,6 +45,20 @@ class CRM_CILB_Sync_Utils {
     return $participant;
   }
 
+  public static function getExamRegistrationFromCandidateID($candidateID, $eventID = NULL, $eventFormat = NULL): ?array {
+    $registration = Participant::get(FALSE)
+      ->addSelect('*', 'custom.*')
+      ->addWhere('Candidate_Result.Candidate_Number', '=', $candidateID);
+    if ($eventID) {
+      $registration->addWhere('event_id', '=', $eventID);
+    }
+    if ($eventFormat) {
+      $registration->addWhere('event_id.Exam_Details.Exam_Format:name', '=', $eventFormat);
+    }
+    $candidateRegistration = $registration->execute()->first();
+    return $candidateRegistration;
+  }
+
 
   public static function getCandidateEntity($candidateID, $classCode): ?array {
     $candidateEntity = CustomValue::get('cilb_candidate_entity', FALSE)
@@ -58,9 +73,9 @@ class CRM_CILB_Sync_Utils {
   public static function getCandidateEntityFromExternalID($externalID, $candidateID, $classCode): ?array {
     $contact = \Civi\Api4\Contact::get(TRUE)
       ->addSelect('id', 'custom_cilb_candidate_entity.*')
-      ->addJoin('Custom_cilb_candidate_entity AS custom_cilb_candidate_entity', 
-        'LEFT', 
-        ['custom_cilb_candidate_entity.entity_id', '=', 'id'], 
+      ->addJoin('Custom_cilb_candidate_entity AS custom_cilb_candidate_entity',
+        'LEFT',
+        ['custom_cilb_candidate_entity.entity_id', '=', 'id'],
         ['custom_cilb_candidate_entity.Entity_ID_imported_', '=', (int) $candidateID], // cast as Integer to remove leading 0
         ['custom_cilb_candidate_entity.class_code', '=', $classCode]
       )
@@ -97,6 +112,19 @@ class CRM_CILB_Sync_Utils {
       ->execute()
       ->first();
     return $examCategory;
+  }
+
+  public static function getPaperBasedExams(): array {
+    $exams = \Civi\Api4\Event::get(FALSE)
+      ->addSelect('title', 'start_date', 'id')
+      ->addWhere('is_active', '=', TRUE)
+      ->addWhere('Exam_Details.Exam_Format:name', '=', 'Paper_based')
+      ->execute();
+    $options = [0 => E::ts('- select -')];
+    foreach ($exams as $exam) {
+      $options[$exam['id']] = $exam['title'] . ' - ' . $exam['start_date'];
+    }
+    return $options ?? [];
   }
 
 }
