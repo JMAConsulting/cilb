@@ -24,7 +24,7 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
   public function mapfieldMethod() {
     return 'skip';
   }
-  
+
   /**
    * Validate the file type.
    */
@@ -43,10 +43,10 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
     if ($valid ) {
       return parent::validateUploadForm($form);
     }
-    
+
     return $valid;
   }
-  
+
 
   /**
    * Returns the data from the file.
@@ -95,17 +95,20 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
 
     $row_id = $params['import_row_id'];
     $table_name = $params['import_table_name'];
-
+    $event_id = CRM_Core_Session::singleton()->get('advimport_' . $params['advimport_id'] . '_event_id') ?? NULL;
+    if (empty($event_id)) {
+      throw new \CRM_Core_Exception("Unable to process exam import as exam not been selected");
+    }
     $candidateID    = $params['candidate_id'];
     $examScore      = $params['examscore'] ?? NULL;
     $examStatus     = (bool) ($examScore > 70);
-    
+
     if (empty($candidateID) || empty($examScore)) {
       throw new \CRM_Core_Exception("Unable to process exam score as we are missing either a candidate_id or the score");
     }
 
     // Get participation record matching CandidateID for a Paper-Based event
-    $candidateRegistration = EU::getExamRegistrationFromCandidateID($candidateID, NULL, 'Paper_based');
+    $candidateRegistration = EU::getExamRegistrationFromCandidateID($candidateID, $event_id, 'Paper_based');
     if (empty($candidateRegistration)) {
       CRM_Advimport_Utils::logImportWarning($params, "Candidate Registration for candidate_id - {$candidateID} was not found");
       return;

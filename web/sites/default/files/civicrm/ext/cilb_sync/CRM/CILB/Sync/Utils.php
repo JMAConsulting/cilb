@@ -113,4 +113,17 @@ class CRM_CILB_Sync_Utils {
     return $examCategory;
   }
 
+  public static function getPaperBasedExams(): array {
+    $exams = \Civi\Api4\Event::get(FALSE)
+      ->addSelect('title', 'start_date', 'id')
+      ->addWhere('is_active', '=', TRUE)
+      ->addWhere('event_id.Exam_Details.Exam_Format:name', '=', 'Paper_based')
+      ->execute();
+    $options = [0 => E::ts('- select -')];
+    foreach ($exams as $exam) {
+      $options[$exam['id']] = $exam['title'] . ' - ' . $exam['start_date'];
+    }
+    return $options ?? [];
+  }
+
 }

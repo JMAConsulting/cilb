@@ -42,4 +42,7 @@
     <mixin>smarty@1.0.3</mixin>
     <mixin>menu-xml@1.0.0</mixin>
   </mixins>
+  <requires>
+    <ext>advimport</ext>
+  </requires>
 </extension>
