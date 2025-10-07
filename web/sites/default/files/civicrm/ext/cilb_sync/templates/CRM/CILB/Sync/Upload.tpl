@@ -3,7 +3,7 @@
   <div class="content">{$form.event_id.html}</div>
   <div class="clear"></div>
 </div>
-{/literal}
+{literal}
 <script type="text/javascript">
   (function($) {
     $(documetion).ready(function() {
@@ -11,4 +11,4 @@
     });
   }(CRM.$));
 </script>
-{literal}
+{/literal}
