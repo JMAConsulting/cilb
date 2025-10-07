@@ -103,8 +103,8 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
     $examScore      = $params['examscore'] ?? NULL;
     $examStatus     = (bool) ($examScore > 70);
 
-    if (empty($candidateID) || empty($examScore)) {
-      throw new \CRM_Core_Exception("Unable to process exam score as we are missing either a candidate_id or the score");
+    if (empty($candidateID)) {
+      throw new \CRM_Core_Exception("Unable to process exam score as we are missing a Candidate ID");
     }
 
     // Get participation record matching CandidateID for a Paper-Based event
@@ -115,6 +115,12 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
     }
 
     $participantID = $candidateRegistration['id'];
+    if ($examStatus) {
+	    $examStatus = "Pass";
+    }
+    else {
+	    $examStatus = "Fail";
+    }
 
     try {
       Participant::update(FALSE)
