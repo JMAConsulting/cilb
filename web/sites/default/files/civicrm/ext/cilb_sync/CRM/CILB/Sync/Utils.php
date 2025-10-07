@@ -6,6 +6,7 @@ use Civi\Api4\Event;
 use Civi\Api4\OptionValue;
 use Civi\Api4\Participant;
 use Civi\Api4\Generic\Result;
+use CRM_CILB_Sync_ExtensionUtil as E;
 
 class CRM_CILB_Sync_Utils {
 
