@@ -117,7 +117,7 @@ class CRM_CILB_Sync_Utils {
     $exams = \Civi\Api4\Event::get(FALSE)
       ->addSelect('title', 'start_date', 'id')
       ->addWhere('is_active', '=', TRUE)
-      ->addWhere('event_id.Exam_Details.Exam_Format:name', '=', 'Paper_based')
+      ->addWhere('Exam_Details.Exam_Format:name', '=', 'Paper_based')
       ->execute();
     $options = [0 => E::ts('- select -')];
     foreach ($exams as $exam) {
