@@ -39,7 +39,7 @@ return [
       'input_type' => 'EntityRef',
       'description' => E::ts('FK to Adv Import'),
       'entity_reference' => [
-        'entity' => 'AdvImport',
+        'entity' => 'Advimport',
         'key' => 'id',
         'on_delete' => 'CASCADE',
       ],
