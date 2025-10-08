@@ -8,7 +8,7 @@ return [
   'getInfo' => fn() => [
     'title' => E::ts('PaperExamImportMap'),
     'title_plural' => E::ts('PaperExamImportMaps'),
-    'description' => E::ts('FIXME'),
+    'description' => E::ts('Exam to Advanced Import Mapping'),
     'log' => TRUE,
   ],
   'getFields' => fn() => [
@@ -21,16 +21,29 @@ return [
       'primary_key' => TRUE,
       'auto_increment' => TRUE,
     ],
-    'contact_id' => [
-      'title' => E::ts('Contact ID'),
+    'exam_id' => [
+      'title' => E::ts('Exam ID'),
       'sql_type' => 'int unsigned',
       'input_type' => 'EntityRef',
-      'description' => E::ts('FK to Contact'),
+      'description' => E::ts('FK to Event'),
       'entity_reference' => [
-        'entity' => 'Contact',
+        'entity' => 'Event',
         'key' => 'id',
         'on_delete' => 'CASCADE',
       ],
+      'required' => TRUE,
+    ],
+    'advanced_import_id' => [
+      'title' => E::ts('Advanced Import ID'),
+      'sql_type' => 'int unsigned',
+      'input_type' => 'EntityRef',
+      'description' => E::ts('FK to Adv Import'),
+      'entity_reference' => [
+        'entity' => 'AdvImport',
+        'key' => 'id',
+        'on_delete' => 'CASCADE',
+      ],
+      'required' => TRUE,
     ],
   ],
   'getIndices' => fn() => [],
