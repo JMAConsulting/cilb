@@ -4,6 +4,7 @@ require_once 'cilb_sync.civix.php';
 
 use CRM_CILB_Sync_ExtensionUtil as E;
 use CRM_CILB_Sync_Utils AS EU;
+use Civi\Api4\PaperExamImportMap;
 
 /**
  * Implements hook_civicrm_config().
@@ -111,7 +112,15 @@ function cilb_sync_civicrm_postProcess($formName, $form) {
     /** @var \CRM_Advimport_Upload_Form_DataUpload $form */
     $params = $form->getSubmittedValues();
     $form->controller->set('event_id', $params['event_id']);
-    CRM_Core_Session::singleton()->set('advimport_' . $form->controller->get('advimport_id') . '_event_id', $params['event_id']);
+    PaperExamImportMap::save(FALSE)
+      ->addRecord([
+        'exam_id' => $params['event_id'],
+        'advanced_import_id' => $form->controller->get('advimport_id'),
+      ])
+      ->setMatch([
+        'advanced_import_id',
+      ])
+      ->execute();
   }
 }
 
