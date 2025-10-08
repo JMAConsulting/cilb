@@ -116,7 +116,7 @@ class CRM_CILB_Sync_Utils {
 
   public static function getPaperBasedExams(): array {
     $endDate = new DateTime();
-    $endDate->sub(new DateInterval('3 month'));
+    $endDate->sub(new DateInterval('P3M'));
     $exams = \Civi\Api4\Event::get(FALSE)
       ->addSelect('title', 'start_date', 'id')
       ->addWhere('is_active', '=', TRUE)
