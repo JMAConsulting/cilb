@@ -115,10 +115,14 @@ class CRM_CILB_Sync_Utils {
   }
 
   public static function getPaperBasedExams(): array {
+    $endDate = new DateTime();
+    $endDate->sub(new DateInterval('3 month'));
     $exams = \Civi\Api4\Event::get(FALSE)
       ->addSelect('title', 'start_date', 'id')
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('Exam_Details.Exam_Format:name', '=', 'Paper_based')
+      ->addWhere('end_date', '<=', date('Ymd'))
+      ->addWhere('end_date', '>=', $endDate->format('Ymd'))
       ->execute();
     $options = [0 => E::ts('- select -')];
     foreach ($exams as $exam) {

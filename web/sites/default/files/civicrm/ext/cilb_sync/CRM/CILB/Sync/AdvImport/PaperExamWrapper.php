@@ -6,6 +6,7 @@ use CRM_CILB_Sync_ExtensionUtil as E;
 use CRM_CILB_Sync_Utils as EU;
 
 use Civi\Api4\Participant;
+use Civi\Api4\PaperExamImportMap;
 
 class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv {
 
@@ -95,7 +96,7 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
 
     $row_id = $params['import_row_id'];
     $table_name = $params['import_table_name'];
-    $event_id = CRM_Core_Session::singleton()->get('advimport_' . $params['advimport_id'] . '_event_id') ?? NULL;
+    $event_id = PaperExamImportMap::get(FALSE)->addWhere('advanced_import_id', '=', $params['advimport_id'])->execute()->first()['exam_id'] ?? NULL;
     if (empty($event_id)) {
       throw new \CRM_Core_Exception("Unable to process exam import as exam not been selected");
     }
@@ -131,7 +132,7 @@ class CRM_CILB_Sync_AdvImport_PaperExamWrapper extends CRM_Advimport_Helper_Csv 
     }
     catch (\CRM_Core_Exception $e) {
       \CRM_Core_Error::debug_var('participant_api_error_message', $e->getMessage());
-      throw new \CRM_Core_exception("Failed to update exam score.");
+      throw new \CRM_Core_exception("Failed to update exam score due to API error. " . $e->getMessage());
     }
     // Succesfully updated.
     CRM_Advimport_Utils::setEntityTableAndId($params, 'civicrm_participant', $participantID);
