@@ -115,6 +115,7 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('Register date'),
               'sortable' => TRUE,
+              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',

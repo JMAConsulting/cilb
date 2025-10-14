@@ -134,6 +134,7 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('Trans Date'),
               'sortable' => TRUE,
+              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',
@@ -222,6 +223,7 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('Exam Date'),
               'sortable' => TRUE,
+              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',
