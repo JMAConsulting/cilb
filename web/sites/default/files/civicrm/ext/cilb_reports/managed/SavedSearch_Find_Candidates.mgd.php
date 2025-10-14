@@ -108,6 +108,7 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('Registered'),
               'sortable' => TRUE,
+              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',
@@ -115,6 +116,7 @@ return [
               'dataType' => 'Date',
               'label' => E::ts('Date Exam Taken'),
               'sortable' => TRUE,
+              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',

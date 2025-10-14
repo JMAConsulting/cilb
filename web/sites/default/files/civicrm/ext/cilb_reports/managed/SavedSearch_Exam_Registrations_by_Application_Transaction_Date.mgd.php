@@ -222,6 +222,7 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('Exam Date'),
               'sortable' => TRUE,
+              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',
