@@ -140,6 +140,7 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('Contribution Date'),
               'sortable' => TRUE,
+              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',
@@ -147,6 +148,7 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('Thank-you Sent'),
               'sortable' => TRUE,
+              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',

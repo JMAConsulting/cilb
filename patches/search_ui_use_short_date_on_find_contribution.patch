@@ -1,0 +1,20 @@
+diff --git a/ext/civicrm_search_ui/managed/SavedSearch_Find_Contributions.mgd.php b/ext/civicrm_search_ui/managed/SavedSearch_Find_Contributions.mgd.php
+index e2207da65..225c1d9b1 100644
+--- a/ext/civicrm_search_ui/managed/SavedSearch_Find_Contributions.mgd.php
++++ b/ext/civicrm_search_ui/managed/SavedSearch_Find_Contributions.mgd.php
+@@ -140,6 +140,7 @@
+               'dataType' => 'Timestamp',
+               'label' => E::ts('Contribution Date'),
+               'sortable' => TRUE,
++              'format' => 'dateformatshortdate',
+             ],
+             [
+               'type' => 'field',
+@@ -147,6 +148,7 @@
+               'dataType' => 'Timestamp',
+               'label' => E::ts('Thank-you Sent'),
+               'sortable' => TRUE,
++              'format' => 'dateformatshortdate',
+             ],
+             [
+               'type' => 'field',

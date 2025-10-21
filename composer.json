@@ -61,6 +61,10 @@
     },
     "extra": {
   	"patches": {
+        "civicrm/civicrm-core": {
+            "Use Short date in find payments search": "./patches/search_ui_use_short_date_on_find_contribution.patch",
+            "Allow for sending invoice when not logged in": "./patches/sending_invoice_when_not_logged_in.patch"
+        },
         "drupal/entity_print": {
             "Issue #3063998: mPDF Plugin": "https://www.drupal.org/files/issues/2022-12-01/3063998-18.patch"
         },
@@ -75,7 +79,7 @@
             "Fix civicrm_event_en_MX crash": "patches/civicrm_entity_497.patch"
         }
     },
-	"drupal-scaffold": {
+  	"drupal-scaffold": {
             "locations": {
                 "web-root": "web/"
             }
