@@ -1,0 +1,29 @@
+commit 102187bfdcc68b9ad28086bdff216ec72d8c8413
+Author: ben <ben@jmaconsulting.biz>
+Date:   Thu Jul 17 13:42:00 2025 +0100
+
+    patch CRM_Contribute_Form_Task to allow sending when no logged in user
+
+diff --git a/CRM/Contribute/Form/Task/Invoice.php b/CRM/Contribute/Form/Task/Invoice.php
+index 67e3250e0..6d84bfc9c 100644
+--- a/CRM/Contribute/Form/Task/Invoice.php
++++ b/CRM/Contribute/Form/Task/Invoice.php
+@@ -604,8 +604,7 @@ public static function printPDF($contribIDs, &$params, $contactIds) {
+    *
+    */
+   public static function addActivities($subject, $contactIds, $fileName, $params, $contributionId = NULL) {
+-    $session = CRM_Core_Session::singleton();
+-    $userID = $session->get('userID');
++    $sourceContactId = \CRM_Core_Session::getLoggedInContactID() ?: 1;
+     $config = CRM_Core_Config::singleton();
+     $config->doNotAttachPDFReceipt = 1;
+ 
+@@ -618,7 +617,7 @@ public static function addActivities($subject, $contactIds, $fileName, $params,
+ 
+     $activityParams = [
+       'subject' => $subject,
+-      'source_contact_id' => $userID,
++      'source_contact_id' => $sourceContactId,
+       'target_contact_id' => $contactIds,
+       'activity_type_id' => $activityType,
+       'activity_date_time' => date('YmdHis'),
