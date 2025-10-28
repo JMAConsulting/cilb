@@ -101,6 +101,10 @@ class ImportRegistrations extends ImportRegistrationsBase {
       default => 'Registered',
     };
 
+    if (empty($registration['CBT_Exam_Date'])) {
+      $status = 'Registered';
+    }
+
     $participantId = \Civi\Api4\Participant::create(FALSE)
       ->addValue('event_id', $event)
       ->addValue('contact_id', $contactId)
