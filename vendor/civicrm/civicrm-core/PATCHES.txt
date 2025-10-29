@@ -9,3 +9,7 @@ Allow for sending invoice when not logged in
 Source: ./patches/sending_invoice_when_not_logged_in.patch
 
 
+Use short date on manage exams screen
+Source: ./patches/manage_event_listing_short_date.patch
+
+

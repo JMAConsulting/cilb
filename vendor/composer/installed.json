@@ -913,7 +913,8 @@
                 ],
                 "patches_applied": {
                     "Use Short date in find payments search": "./patches/search_ui_use_short_date_on_find_contribution.patch",
-                    "Allow for sending invoice when not logged in": "./patches/sending_invoice_when_not_logged_in.patch"
+                    "Allow for sending invoice when not logged in": "./patches/sending_invoice_when_not_logged_in.patch",
+                    "Use short date on manage exams screen": "./patches/manage_event_listing_short_date.patch"
                 }
             },
             "installation-source": "dist",
