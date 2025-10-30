@@ -1,0 +1,15 @@
+name: Redirect Page By Role
+description: Allows redirect any page by user role.
+package: Redirect Page By Role
+type: module
+
+core_version_requirement: ^8 || ^9 || ^10
+configure: redirect_page_by_role.admin_settings
+
+dependencies:
+  - drupal:views
+
+# Information added by Drupal.org packaging script on 2022-12-13
+version: '3.2.2'
+project: 'redirect_page_by_role'
+datestamp: 1670941975

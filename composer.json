@@ -30,6 +30,7 @@
         "drupal/lang_dropdown": "^2.1",
         "drupal/mail_login": "^4.0",
         "drupal/redirect_after_login": "^3.0",
+        "drupal/redirect_page_by_role": "^3.2",
         "drupal/skinr": "^2.0@alpha",
         "drupal/smtp": "^1.4",
         "drupal/user_email_verification": "^1.2",

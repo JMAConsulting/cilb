@@ -1,0 +1,4 @@
+services:
+  redirect_page_by_role.enabler:
+    class: Drupal\redirect_page_by_role\EnablerService
+    arguments: ['@database']

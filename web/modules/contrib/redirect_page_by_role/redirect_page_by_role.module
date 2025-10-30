@@ -1,0 +1,266 @@
+<?php
+
+/**
+ * @file
+ * The Redirect Page By Role module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\redirect_page_by_role\Controller\RedirectPageByRoleController;
+
+/**
+ * Implements hook_preprocess_page().
+ *
+ * For redirect_page_by_role.
+ */
+function redirect_page_by_role_preprocess_page(&$variables) {
+  $is_admin = \Drupal::service('router.admin_context')->isAdminRoute();
+
+  if ($is_admin || !array_key_exists('node', $variables)) {
+    return;
+  }
+
+  $node = $variables['node'];
+  $redirect_controller = \Drupal::classResolver(RedirectPageByRoleController::class);
+
+  $rule_type = $redirect_controller->contentTypeHasRule($node);
+
+  if (!$rule_type) {
+    return;
+  }
+
+  $user_roles = $variables['user']->getRoles();
+  $redirect_controller->checkRedirect($node, $user_roles, $rule_type);
+}
+
+/**
+ * Return array with code redirect status.
+ *
+ * @return array
+ *   Return array with code redirect status.
+ */
+function redirect_page_by_role_status_code_options() {
+  return [
+    300 => t('300 Multiple Choices'),
+    301 => t('301 Moved Permanently'),
+    302 => t('302 Found'),
+    303 => t('303 See Other'),
+    304 => t('304 Not Modified'),
+    305 => t('305 Use Proxy'),
+    307 => t('307 Temporary Redirect'),
+  ];
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Alter node form to include admin setting for redirecting the node by role.
+ */
+function redirect_page_by_role_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  // Check if user has permission to administer redirect Page By Role.
+  $has_permission = \Drupal::currentUser()->hasPermission('administer redirect page by role');
+  if (!$has_permission) {
+    return;
+  }
+
+  $node = $form_state->getFormObject()->getEntity();
+  $roles = user_roles();
+
+  /** @var \Drupal\redirect_page_by_role\EnableService $enabler */
+  $enabler = \Drupal::service('redirect_page_by_role.enabler');
+  $is_enabled = $enabler->isEnabled($node);
+
+  if ($is_enabled) {
+    $redirect_controller = \Drupal::classResolver(RedirectPageByRoleController::class);
+    $rules = $redirect_controller->getNodeRedirectRules($node->id());
+  }
+
+  // Enables overwriting of default settings.
+  $form['node_menu'] = [
+    '#type' => 'details',
+    '#title' => t('Redirect Page By Role'),
+    '#tree' => TRUE,
+    '#group' => 'advanced',
+  ];
+  $form['node_menu']['enabled'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Override default settings.'),
+    '#default_value' => $is_enabled,
+  ];
+
+  $form['node_menu']['menu'] = [
+    '#type' => 'container',
+    '#states' => [
+      'invisible' => [
+        ':input[name="node_menu[enabled]"]' => ['checked' => FALSE],
+      ],
+    ],
+  ];
+
+  $form['node_menu']['menu']['table'] = [
+    '#type' => 'table',
+    '#header' => [t('Role'), t('Weight')],
+    '#tree' => TRUE,
+    '#tabledrag' => [
+      [
+        'action' => 'order',
+        'relationship' => 'sibling',
+        'group' => 'role-group-weight',
+      ],
+    ],
+  ];
+
+  foreach ($roles as $id => $role) {
+    $form['node_menu']['menu']['table']['group-' . $id][$id] = [
+      '#type' => 'details',
+      '#title' => $role->label(),
+    ];
+    $form['node_menu']['menu']['table']['group-' . $id][$id]['info'] = [
+      'redirect_to' => [
+        '#type' => 'textfield',
+        '#title' => t('Redirect @role to:', ['@role' => $role->label()]),
+      ],
+      'redirect_status' => [
+        '#type' => 'select',
+        '#title' => t('Redirect status'),
+        '#options' => redirect_page_by_role_status_code_options(),
+      ],
+    ];
+    $form['node_menu']['menu']['table']['group-' . $id]['weight'] = [
+      '#type' => 'weight',
+      '#default_value' => 0,
+      '#attributes' => ['class' => ['role-group-weight']],
+    ];
+
+    $form['node_menu']['menu']['table']['group-' . $id]['#attributes']['class'][] = 'draggable';
+  }
+
+  if (isset($rules)) {
+    foreach ($rules as $rule) {
+      $rule = (array) $rule;
+      reset($rule);
+      $form['node_menu']['menu']['table']['group-' . $rule['role']][$rule['role']]['info']['redirect_to']['#default_value'] = $rule['redirect_to'];
+      $form['node_menu']['menu']['table']['group-' . $rule['role']][$rule['role']]['info']['redirect_status']['#default_value'] = $rule['status_code'];
+      $form['node_menu']['menu']['table']['group-' . $rule['role']][$rule['role']]['#open'] = TRUE;
+      $form['node_menu']['menu']['table']['group-' . $rule['role']]['weight']['#default_value'] = $rule['weight'];
+      $form['node_menu']['menu']['table']['group-' . $rule['role']]['#weight'] = $rule['weight'];
+    }
+  }
+
+  foreach (array_keys($form['actions']) as $action) {
+    if ($action != 'preview' && isset($form['actions'][$action]['#type']) && $form['actions'][$action]['#type'] === 'submit') {
+      $form['actions'][$action]['#submit'][] = 'redirect_page_by_role_form_node_form_submit';
+    }
+  }
+}
+
+/**
+ * Form submission handler for this module item field on the node form.
+ *
+ * @param array $form
+ *   Form to be used.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   The current state of the form.
+ */
+function redirect_page_by_role_form_node_form_submit(array $form, FormStateInterface $form_state) {
+  $node = $form_state->getFormObject()->getEntity();
+  $group_rules = $form_state->getValue('node_menu');
+  $config = \Drupal::configFactory()->getEditable('redirect_page_by_role.settings');
+  $hasRules = $config->get('hasRules');
+  $type = $node->getType() . '_node';
+
+  if (!$group_rules['enabled']) {
+    \Drupal::service('database')->delete('redirect_page_by_role_enabled')
+      ->condition('nid', $node->id())
+      ->execute();
+
+    \Drupal::service('database')->delete('redirect_page_by_role_node')
+      ->condition('nid', $node->id())
+      ->execute();
+
+    if (($key = array_search($type, $hasRules))) {
+      unset($hasRules[$key]);
+    }
+
+    return;
+  }
+
+  \Drupal::service('database')->merge('redirect_page_by_role_enabled')
+    ->key(['nid'], ['nid' => $node->id()])
+    ->insertFields(['nid' => $node->id()])
+    ->updateFields(['nid' => $node->id()])
+    ->execute();
+
+  if (!in_array($type, $hasRules)) {
+    $hasRules[] = $type;
+    $config->set('hasRules', $hasRules)->save();
+  }
+
+  foreach ($group_rules['menu']['table'] as $role_rule) {
+
+    $role = key($role_rule);
+
+    if (empty($role_rule[$role]['info']['redirect_to'])) {
+
+      $old_value = $form['node_menu']['menu']['table']["group-" . $role][$role]['info']['redirect_to']['#default_value'] ?? NULL;
+
+      if (!is_null($old_value)) {
+        \Drupal::service('database')->delete('redirect_page_by_role_node')
+          ->condition('nid', $node->id())
+          ->condition('role', $role)
+          ->condition('redirect_to', $old_value)
+          ->execute();
+
+        $has_rule = \Drupal::database()->select('redirect_page_by_role_node', 'rn')
+          ->fields('rn', ['nid'])
+          ->condition('nid', $node->id())
+          ->execute()
+          ->fetchField();
+
+        if (!$has_rule) {
+          \Drupal::service('database')->delete('redirect_page_by_role_enabled')
+            ->condition('nid', $node->id())
+            ->execute();
+        }
+      }
+      continue;
+    }
+
+    \Drupal::service('database')->merge('redirect_page_by_role_node')
+      ->keys(['nid', 'role'], ['nid' => $node->id(), 'role' => $role])
+      ->insertFields([
+        'nid' => $node->id(),
+        'role' => $role,
+        'redirect_to' => $role_rule[$role]['info']['redirect_to'],
+        'status_code' => $role_rule[$role]['info']['redirect_status'],
+        'weight' => $role_rule['weight'],
+      ])
+      ->updateFields([
+        'redirect_to' => $role_rule[$role]['info']['redirect_to'],
+        'status_code' => $role_rule[$role]['info']['redirect_status'],
+        'weight' => $role_rule['weight'],
+      ])
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_help().
+ */
+function redirect_page_by_role_help($route_name, RouteMatchInterface $route_match) {
+  $output = '';
+  switch ($route_name) {
+    case 'help.page.redirect_page_by_role':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Redirect Page By Role module allows your website
+       redirect any user in any node to anywhere.') . '</p>';
+      $output .= '<p>' . t('For more information, see the
+       <a href=":doc">module\'s page</a> on <a href=":drupal">Drupal.org</a>.',
+      [
+        ':doc' => 'https://www.drupal.org/project/redirect_page_by_role',
+        ':drupal' => 'https://www.drupal.org/',
+      ]) . '</p>';
+      return $output;
+  }
+}

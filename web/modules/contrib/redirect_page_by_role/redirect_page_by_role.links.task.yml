@@ -1,0 +1,9 @@
+redirect_page_by_role.admin_settings:
+  route_name: redirect_page_by_role.admin_settings
+  base_route: redirect_page_by_role.admin_settings
+  title: Settings
+
+redirect_page_by_role.list:
+  route_name: redirect_page_by_role.list
+  base_route: redirect_page_by_role.admin_settings
+  title: Redirect list
