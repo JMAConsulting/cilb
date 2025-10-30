@@ -1,0 +1,13 @@
+cilb_admin_dashboard.admin:
+  title: 'Admin Dashboard'
+  description: 'Custom admin dashboard page'
+  parent: system.admin_config
+  route_name: cilb_admin_dashboard.admin
+  weight: 100
+
+cilb_admin_dashboard.settings:
+  title: 'Admin Dashboard Settings'
+  description: 'Configure admin dashboard links'
+  parent: cilb_admin_dashboard.admin
+  route_name: cilb_admin_dashboard.settings
+  weight: 200
