@@ -1,0 +1,7 @@
+name: 'CILB Admin Dashboard'
+type: module
+description: 'Provides a custom admin dashboard with configurable links'
+core_version_requirement: ^9 || ^10
+package: Custom
+dependencies:
+  - drupal:system
