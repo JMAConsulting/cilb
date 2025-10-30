@@ -126,6 +126,10 @@ class ImportRegistrationsBF extends ImportRegistrationsBase {
       default => 'Registered',
     };
 
+    if (empty($registration['BF_Exam_Date'])) {
+      $status = 'Registered';
+    }
+
     $participantId = \Civi\Api4\Participant::create(FALSE)
       ->addValue('event_id', $event)
       ->addValue('contact_id', $contactId)
