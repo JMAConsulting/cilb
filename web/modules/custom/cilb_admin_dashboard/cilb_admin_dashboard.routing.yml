@@ -1,0 +1,15 @@
+cilb_admin_dashboard.admin:
+  path: '/admin/config/cilb-admin-dashboard'
+  defaults:
+    _controller: '\Drupal\cilb_admin_dashboard\Controller\AdminDashboardController::dashboardPage'
+    _title: 'Admin Dashboard'
+  requirements:
+    _permission: 'administer site configuration'
+
+cilb_admin_dashboard.settings:
+  path: '/admin/config/cilb-admin-dashboard/settings'
+  defaults:
+    _form: '\Drupal\cilb_admin_dashboard\Form\AdminDashboardSettingsForm'
+    _title: 'Admin Dashboard Settings'
+  requirements:
+    _permission: 'administer site configuration'

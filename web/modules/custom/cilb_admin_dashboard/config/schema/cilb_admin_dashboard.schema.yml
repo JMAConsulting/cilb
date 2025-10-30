@@ -1,0 +1,16 @@
+cilb_admin_dashboard.settings:
+  type: config_object
+  label: 'CILB Admin Dashboard settings'
+  mapping:
+    links:
+      type: sequence
+      label: 'Admin links'
+      sequence:
+        type: map
+        mapping:
+          title:
+            type: string
+            label: 'Link title'
+          url:
+            type: string
+            label: 'Link URL'
