@@ -33,6 +33,7 @@
         "drupal/redirect_page_by_role": "^3.2",
         "drupal/skinr": "^2.0@alpha",
         "drupal/smtp": "^1.4",
+        "drupal/token": "^1.16",
         "drupal/user_email_verification": "^1.2",
         "drupal/webform": "^6.2",
         "drupal/webform_authorizenet": "^1.0",
