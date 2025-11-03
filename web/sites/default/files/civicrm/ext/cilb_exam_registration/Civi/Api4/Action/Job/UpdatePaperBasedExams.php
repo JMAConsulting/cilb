@@ -23,7 +23,6 @@ class UpdatePaperBasedExams extends \Civi\Api4\Generic\AbstractAction {
    * @var null
    */
   protected $language = NULL;
-  
   /**
    * @var null
    */
@@ -33,62 +32,63 @@ class UpdatePaperBasedExams extends \Civi\Api4\Generic\AbstractAction {
    * Runs the action
    */
   public function _run(Result $result) {
+    $maxCandidateIDs = [];
 
-    $maxCandidateID = (int) \Civi\Api4\Participant::get(FALSE)
-        ->addSelect('MAX(Candidate_Result.Candidate_Number) AS max_candidate_id')
-        ->execute()
-        ->first()['max_candidate_id'];
+    $participants = \Civi\Api4\Participant::get(FALSE)
+      ->addSelect('id', 'event_id')
+      ->addWhere('event_id.Exam_Details.Exam_Format', '=', 'paper')
+      ->addWhere('Candidate_Result.Candidate_Number', 'IS EMPTY')
+      ->execute();
 
-    // Just in case
-    if ($maxCandidateID == 0) {
-        $result['is_error'] = TRUE;
-        $result['error_message'] = 'Error retrieving number for Candidate ID.';
-        throw new CRM_Core_exception($result['error_message']);
-    }
-  
-
-    $participantIDs = \Civi\Api4\Participant::get(FALSE)
-        ->addSelect('id')
-        ->addWhere('event_id.Exam_Details.Exam_Format', '=', 'paper')
-        ->addWhere('Candidate_Result.Candidate_Number', 'IS EMPTY')
-        ->execute()
-        ->column('id');
-
-    $result['values']['count'] = count($participantIDs);
+    $result['values']['count'] = count($participants);
     $success = 0;
-    
-    foreach ($participantIDs as $participantID) {
-        $maxCandidateID += 1;
 
-        if ($maxCandidateID > 999999) {
+    foreach ($participants as $participant) {
+      if (!array_key_exists($participant['event_id'], $maxCandidateIDs)) {
+        $maxCandidateID = (int) \Civi\Api4\Participant::get(FALSE)
+          ->addSelect('MAX(Candidate_Result.Candidate_Number) AS max_candidate_id')
+          ->addWhere('event_id', '=', $participant['event_id'])
+          ->execute()
+          ->first()['max_candidate_id'];
+        if (empty($maxCandidateID)) {
+          $maxCandidateID = '570102';
+        }
+        else {
+          $maxCandidateID = $maxCandidateID + 1;
+        }
+      }
+      else {
+        $maxCandidateID = $maxCandidateIDs[$participant['event_id']] + 1;
+      }
 
-            $result['is_error'] = TRUE;
-            $result['error_message'] = 'Reached max Candidate_Number. Completed ' . $success . '/' . $result['values']['count'];
-            $result['values']['failed'][] = $participantID;
-            throw new CRM_Core_exception($result['error_message']);
-        }
+      if ($maxCandidateID > 999999) {
+        $result['is_error'] = TRUE;
+        $result['error_message'] = 'Reached max Candidate_Number. Completed ' . $success . '/' . $result['values']['count'];
+        $result['values']['failed'][] = $participant['id'];
+        throw new CRM_Core_exception($result['error_message']);
+      }
 
-        $candidateID = str_pad($maxCandidateID, 6, '0', STR_PAD_LEFT); // ensure it's always 6 digits
-        try {
-            Participant::update(FALSE)
-                ->addValue('Candidate_Result.Candidate_Number', $candidateID)
-                ->addWhere('id', '=', $participantID)
-                ->execute();
-            $result['values']['updated'][] = [
-                $participantID => $candidateID
-            ];
-            $success += 1;
-        }
-        catch (CRM_Core_Exception $e) {
-            $result['is_error'] = TRUE;
-            $result['error_message'] = 'Failed to update candidate number ['.$participantID.']. Completed ' . $success . '/' . $result['values']['count'] . ' Error: ' . $e->getMessage();
-            $result['values']['failed'][] = $participantID;
-            CRM_Core_Error::debug_var('participant_api_error_message',$result['error_message'] );
-            throw new CRM_Core_exception($result['error_message']);
-        }
+      $candidateID = str_pad($maxCandidateID, 6, '0', STR_PAD_LEFT); // ensure it's always 6 digits
+      try {
+        Participant::update(FALSE)
+          ->addValue('Candidate_Result.Candidate_Number', $candidateID)
+          ->addWhere('id', '=', $participant['id'])
+          ->execute();
+        $result['values']['updated'][] = [
+          $participant['id'] => $candidateID
+        ];
+        $success += 1;
+      }
+      catch (CRM_Core_Exception $e) {
+        $result['is_error'] = TRUE;
+        $result['error_message'] = 'Failed to update candidate number [' . $participant['id'] . ']. Completed ' . $success . '/' . $result['values']['count'] . ' Error: ' . $e->getMessage();
+        $result['values']['failed'][] = $participant['id'];
+        CRM_Core_Error::debug_var('participant_api_error_message', $result['error_message']);
+        throw new CRM_Core_exception($result['error_message']);
+      }
+      $maxCandidateIDs[$participant['event_id']] = (float) $candidateID;
     }
 
     return $result;
   }
-  
 }
