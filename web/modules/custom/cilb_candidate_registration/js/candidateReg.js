@@ -2,7 +2,7 @@
  * Conditional rendering of on behalf of field and setting readonly for DOB and SIN fields
  */
 jQuery(document).ready(function ($) {
-  var next = $('#edit-actions input[type="submit"]');
+  var next = $('#edit-actions-wizard-next input[type="submit"]');
   var behalfOf = $("#behalf-of");
   var candidateRep = $("#edit-candidate-representative-name");
   var candidateRepField = $(".form-item-candidate-representative-name");
