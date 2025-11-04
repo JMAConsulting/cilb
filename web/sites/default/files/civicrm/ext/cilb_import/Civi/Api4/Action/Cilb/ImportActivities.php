@@ -88,6 +88,7 @@ class ImportActivities extends ImportBase {
 
       $activity = \Civi\Api4\Activity::create(FALSE)
         ->addValue('source_contact_id', $sourceContactId)
+        ->addValue('source_record_id', $activity['PK_Activity_Log_ID'])
         ->addValue('target_contact_id', $targetContactIds)
         ->addValue('activity_date_time', $activity['Created_Date'])
         ->addValue('details', $activity['Description'])
