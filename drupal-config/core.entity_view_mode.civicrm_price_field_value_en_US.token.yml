@@ -1,0 +1,11 @@
+uuid: cd79d3e5-1a8c-4f3e-9192-87b5a19fd3fa
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_price_field_value_en_US.token
+label: Token
+description: ''
+targetEntityType: civicrm_price_field_value_en_US
+cache: true

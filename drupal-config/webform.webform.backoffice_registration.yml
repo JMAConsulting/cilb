@@ -40,6 +40,7 @@ elements: |-
       civicrm_1_contact_1_contact_existing:
         '#type': civicrm_contact
         '#title': 'Existing Contact'
+        '#description': '<p>Start typing to find the contact</p>'
         '#widget': autocomplete
         '#search_prompt': '- Choose existing -'
         '#none_prompt': '+ Create new +'
@@ -944,7 +945,7 @@ settings:
   confirmation_type: page
   confirmation_url: ''
   confirmation_title: ''
-  confirmation_message: '<p>Your registration for the Florida State Construction Examination was completed.</p>'
+  confirmation_message: '<p>You have successfully registered the candidate.</p><ul><li><a class="ql-link" href="/form/backoffice-registration/" rel="noopener noreferrer" target="_blank">Register another candidate</a></li><li><a class="ql-link" href="[webform_submission:contact-link:1]" rel="noopener noreferrer" target="_blank">Go to the registered candidate''s profile</a></li><li><a class="ql-link" href="/admin/config/cilb-admin-dashboard" rel="noopener noreferrer" target="_blank">Go to the Admin Dashboard</a></li></ul>'
   confirmation_attributes: {  }
   confirmation_back: true
   confirmation_back_label: ''

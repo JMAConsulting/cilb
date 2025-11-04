@@ -1,0 +1,11 @@
+uuid: c745431d-44d3-4431-894a-1eb24b41670a
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_action_schedule.token
+label: Token
+description: ''
+targetEntityType: civicrm_action_schedule
+cache: true

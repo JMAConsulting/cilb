@@ -1,0 +1,11 @@
+uuid: e9431819-a63f-4cd5-9bb1-556d17396a16
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_mailing_job.token
+label: Token
+description: ''
+targetEntityType: civicrm_mailing_job
+cache: true

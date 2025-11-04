@@ -1,0 +1,11 @@
+uuid: 0c304a82-e2b7-422b-a03d-5c60a17c271d
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_group_contact.token
+label: Token
+description: ''
+targetEntityType: civicrm_group_contact
+cache: true

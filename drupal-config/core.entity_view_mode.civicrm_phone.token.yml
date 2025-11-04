@@ -1,0 +1,11 @@
+uuid: a85ecd26-ae6c-4dba-bf04-4d5485faf508
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_phone.token
+label: Token
+description: ''
+targetEntityType: civicrm_phone
+cache: true

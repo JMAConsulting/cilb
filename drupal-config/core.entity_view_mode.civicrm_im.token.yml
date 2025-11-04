@@ -1,0 +1,11 @@
+uuid: d1d19346-d658-46b3-8bea-680afb16c3ff
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_im.token
+label: Token
+description: ''
+targetEntityType: civicrm_im
+cache: true

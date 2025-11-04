@@ -1,7 +1,8 @@
 login_redirection:
   anonymous: null
-  authenticated: /
-  content_editor: /
-  administrator: /
+  authenticated: /civicrm/user
+  content_editor: /admin/config/cilb-admin-dashboard
+  administrator: /admin/config/cilb-admin-dashboard
   candidate: /civicrm/user
+  staff: /admin/config/cilb-admin-dashboard
 exclude_urls: ''

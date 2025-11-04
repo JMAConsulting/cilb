@@ -1,0 +1,11 @@
+uuid: eed7128a-ad2c-4b8c-ab64-18ca0e99825e
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_address.token
+label: Token
+description: ''
+targetEntityType: civicrm_address
+cache: true

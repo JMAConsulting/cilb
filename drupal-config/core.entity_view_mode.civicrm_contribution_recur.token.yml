@@ -1,0 +1,11 @@
+uuid: c12c3e66-8af0-4b01-adac-ef6af5267b50
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_contribution_recur.token
+label: Token
+description: ''
+targetEntityType: civicrm_contribution_recur
+cache: true

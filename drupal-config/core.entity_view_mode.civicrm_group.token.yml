@@ -1,0 +1,11 @@
+uuid: a64948b7-c458-466f-9381-9dac62aff248
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_group.token
+label: Token
+description: ''
+targetEntityType: civicrm_group
+cache: true

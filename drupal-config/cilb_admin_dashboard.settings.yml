@@ -1,0 +1,19 @@
+links:
+  -
+    title: 'Search for candidates'
+    url: '/civicrm/contact/search/advanced?reset=1'
+  -
+    title: 'Add new registration'
+    url: /form/backoffice-registration/
+  -
+    title: 'Manage change requests'
+    url: /civicrm/manage-change-requests
+  -
+    title: 'Import Paper-based exam scores'
+    url: '/civicrm/advimport?reset=1'
+  -
+    title: 'Manage users'
+    url: /civicrm/candidate-management
+  -
+    title: 'View public registration page'
+    url: /exam-registration

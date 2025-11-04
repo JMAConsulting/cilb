@@ -409,8 +409,8 @@ elements: |-
         '#data_type': Boolean
         '#form_key': civicrm_1_contact_1_cg1_custom_4
         '#parent': civicrm_1_contact_1_cg1_fieldset
-        '#default_option': ''
-        '#default_value': ''
+        '#default_option': '0'
+        '#default_value': '0'
   candidate_has_degree:
     '#type': number
     '#title': 'Candidate has degree'
@@ -873,7 +873,7 @@ elements: |-
         '#required': true
     credit_card_auth:
       '#type': checkbox
-      '#title': 'I authorize Professional Testing to process the registration fee(s) to the above credit card.'
+      '#title': 'I authorize Professional Testing to process the registration fee(s) to the credit card I provide during the completion of this application.'
       '#title_display': inline
       '#required': true
     online_exam_auth:

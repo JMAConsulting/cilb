@@ -1,0 +1,11 @@
+uuid: 68735e63-79c3-480e-a388-273ed60b2237
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_financial_account.token
+label: Token
+description: ''
+targetEntityType: civicrm_financial_account
+cache: true

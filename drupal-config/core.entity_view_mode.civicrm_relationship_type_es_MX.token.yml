@@ -1,0 +1,11 @@
+uuid: 1e6b398a-5ed1-4d31-b59b-64496e02a06b
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_relationship_type_es_MX.token
+label: Token
+description: ''
+targetEntityType: civicrm_relationship_type_es_MX
+cache: true

@@ -285,7 +285,6 @@ handlers:
     conditions: {  }
     weight: -50
     settings:
-      disable: 'Leave Fields and Save Settings'
       nid: 1
       number_of_contacts: '1'
       1_contact_type: individual
@@ -323,6 +322,7 @@ handlers:
       contact_1_number_of_email: '0'
       contact_1_number_of_website: '0'
       contact_1_number_of_im: '0'
+      contact_1_number_of_cg7: '0'
       prefix_known: ''
       prefix_unknown: ''
       toggle_message: 0
@@ -331,8 +331,8 @@ handlers:
       activity_1_settings_existing_activity_status:
         '': ''
       activity_1_settings_details:
+        entire_result: entire_result
         view_link: view_link
-        entire_result: 0
         edit_link: 0
         view_link_secure: 0
         update_existing: 0
@@ -354,8 +354,6 @@ handlers:
       civicrm_1_activity_1_activityupload_file_1: create_civicrm_webform_element
       civicrm_1_activity_1_activityupload_file_2: 0
       civicrm_1_activity_1_activityupload_file_3: 0
-      activity_1_settings_dynamic_custom_cg4: 0
-      civicrm_1_activity_1_cg4_custom_8: 0
       participant_reg_type: '0'
       reg_options:
         event_type:
@@ -372,7 +370,6 @@ handlers:
         disable_unregister: 0
         allow_url_load: 0
         disable_primary_participant: 0
-      membership_1_number_of_membership: '0'
       civicrm_1_contribution_1_contribution_enable_contribution: '0'
       checksum_text: ''
       create_fieldsets: 1
@@ -398,22 +395,20 @@ handlers:
             number_of_email: '0'
             number_of_website: '0'
             number_of_im: '0'
+            number_of_cg7: '0'
         activity:
           number_of_activity: '1'
           1:
             existing_activity_status: {  }
             details:
+              entire_result: entire_result
               view_link: view_link
-            dynamic_custom_cg4: 0
             activity:
               1:
                 activity_type_id: '56'
                 target_contact_id:
                   1: '1'
                 status_id: '1'
-        membership:
-          1:
-            number_of_membership: '0'
         participant_reg_type: '0'
         reg_options:
           event_type:

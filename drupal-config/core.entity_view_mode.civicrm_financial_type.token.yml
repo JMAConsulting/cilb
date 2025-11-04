@@ -1,0 +1,11 @@
+uuid: 4330403e-168a-4827-b921-2ee11c2a8615
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_financial_type.token
+label: Token
+description: ''
+targetEntityType: civicrm_financial_type
+cache: true
