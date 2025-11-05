@@ -13,3 +13,7 @@ Use short date on manage exams screen
 Source: ./patches/manage_event_listing_short_date.patch
 
 
+Fix boot seqeunce
+Source: ./patches/fix_boot_sequence.patch
+
+

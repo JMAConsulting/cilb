@@ -29,6 +29,7 @@
         "drupal/entity_print": "^2.14",
         "drupal/lang_dropdown": "^2.1",
         "drupal/mail_login": "^4.0",
+        "drupal/menu_per_role": "^1.8",
         "drupal/redirect_after_login": "^3.0",
         "drupal/redirect_page_by_role": "^3.2",
         "drupal/skinr": "^2.0@alpha",

@@ -914,7 +914,8 @@
                 "patches_applied": {
                     "Use Short date in find payments search": "./patches/search_ui_use_short_date_on_find_contribution.patch",
                     "Allow for sending invoice when not logged in": "./patches/sending_invoice_when_not_logged_in.patch",
-                    "Use short date on manage exams screen": "./patches/manage_event_listing_short_date.patch"
+                    "Use short date on manage exams screen": "./patches/manage_event_listing_short_date.patch",
+                    "Fix boot seqeunce": "./patches/fix_boot_sequence.patch"
                 }
             },
             "installation-source": "dist",
@@ -3749,6 +3750,69 @@
                 "email": "mqanneh@gmail.com"
             },
             "install-path": "../../web/modules/contrib/mail_login"
+        },
+        {
+            "name": "drupal/menu_per_role",
+            "version": "1.8.0",
+            "version_normalized": "1.8.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/menu_per_role.git",
+                "reference": "8.x-1.8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/menu_per_role-8.x-1.8.zip",
+                "reference": "8.x-1.8",
+                "shasum": "4e7c27df2dfa3e4365b6069c78ffd11741f45c21"
+            },
+            "require": {
+                "drupal/core": "^10.2 || ^11"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "8.x-1.8",
+                    "datestamp": "1726948034",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "installation-source": "dist",
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "AlexisWilke",
+                    "homepage": "https://www.drupal.org/user/356197"
+                },
+                {
+                    "name": "dawehner",
+                    "homepage": "https://www.drupal.org/user/99340"
+                },
+                {
+                    "name": "fago",
+                    "homepage": "https://www.drupal.org/user/16747"
+                },
+                {
+                    "name": "grimreaper",
+                    "homepage": "https://www.drupal.org/user/2388214"
+                },
+                {
+                    "name": "neerajskydiver",
+                    "homepage": "https://www.drupal.org/user/227792"
+                }
+            ],
+            "description": "Allows restricting access to menu items per role.",
+            "homepage": "https://www.drupal.org/project/menu_per_role",
+            "support": {
+                "source": "https://git.drupalcode.org/project/menu_per_role"
+            },
+            "install-path": "../../web/modules/contrib/menu_per_role"
         },
         {
             "name": "drupal/redirect_after_login",
