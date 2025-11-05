@@ -65,6 +65,17 @@ class CleanSlate extends AbstractAction {
       ->addWhere('id', 'NOT IN', $dontDelete)
       ->execute();
 
+    // Delete all activities of type Phone Call, Email, Letter, Application, Note
+    \Civi\Api4\Activity::delete(FALSE)
+      ->addWhere('activity_type_id:name', 'IN', [
+        'Phone Call',
+        'Email',
+        'Letter',
+        'Application',
+        'Note',
+      ])
+      ->execute();
+
     // TO CHECK: how effective is the cascading delete?
 
     // now delete Drupal users
