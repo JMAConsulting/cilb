@@ -40,7 +40,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
   if ($page->getVar('_name') === 'CRM_Contact_Page_View_UserDashBoard') {
     // Personal info
     $contactId = CRM_Core_Session::singleton()->getLoggedInContactID();
-    $contact = \Civi\Api4\Contact::get()
+    $contact = \Civi\Api4\Contact::get(FALSE)
       ->addWhere('id', '=', $contactId)
       ->execute()->first();
     $phone = \Civi\Api4\Phone::get(FALSE)
@@ -49,7 +49,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     $email = \Civi\Api4\Email::get(FALSE)
       ->addWhere('contact_id', '=', $contactId)
       ->execute()->first()['email'];
-    $address = \Civi\Api4\Address::get()
+    $address = \Civi\Api4\Address::get(FALSE)
       ->addWhere('contact_id', '=', $contactId)
       ->addWhere('is_primary', '=', TRUE)
       ->execute()->first();
@@ -142,7 +142,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     $page->assign('activity_rows', $activityRows);
 
     // Notes
-    $notes = \Civi\Api4\Note::get()
+    $notes = \Civi\Api4\Note::get(FALSE)
       ->addWhere('contact_id', '=', $contactId)
       ->execute();
     $page->assign('notes', $notes); 
