@@ -23,32 +23,54 @@ class ImportBlockedUsers extends ImportBase {
    * set the status to blocked
    */
   protected function import() {
-    foreach ($this->getRows("SELECT SSN, Restriction_Reason, Candidate_Name FROM pti_Restricted_Candidates") as $blocked) {
-      $contact = \Civi\Api4\Contact::create(FALSE)
-        ->addValue('display_name', $blocked['Candidate_Name'])
-        ->addValue('Registrant_Info.SSN', $blocked['SSN'] ?? NULL)
-        ->addValue('Registrant_Info.Restriction_Reason', $blocked['Restriction_Reason'] ?? NULL)
-        ->addValue('Registrant_Info.Is_Restricted', TRUE)
-        ->execute()->single();
+    foreach ($this->getRows("
+      SELECT SSN, Restriction_Reason, Candidate_Name, Email, FK_Account_ID 
+      FROM pti_Restricted_Candidates rc
+      LEFT JOIN pti_Candidates c
+      ON rc.SSN = c.SSN
+      ") as $blocked) {
+        if (empty($blocked['Email'])) {
+          $email = preg_replace('/[^A-Za-z]/', '', $blocked['Candidate_Name']) . '@blocked.local';
+        }
+        else {
+          $email = $blocked['Email'];
+        }
+        $contact = \Civi\Api4\Contact::save(FALSE)
+          ->addRecord([
+            'display_name' => $blocked['Candidate_Name'],
+            'Registrant_Info.SSN' => $blocked['SSN'] ?? NULL,
+            'Registrant_Info.Restriction_Reason' => $blocked['Restriction_Reason'] ?? NULL,
+            'Registrant_Info.Is_Restricted' => TRUE,
+            'contact_type' => 'Individual',
+            'external_id' => $blocked['FK_Account_ID'] ?? NULL,
+          ])
+          ->setMatch(['external_id'])
+          ->execute()->first();
 
-      $pseudoEmail = preg_replace('/[^A-Za-z]/', '', $blocked['Candidate_Name']) . '@blocked.local';
+        // Set the email address as well
+        \Civi\Api4\Email::save(FALSE)
+          ->addRecord([
+            'email', $email,
+            'contact_id' => $contact['id'],
+          ])
+          ->setMatch(['contact_id', 'email'])
+          ->execute();
 
-      $params = [
-        'cms_name' => $pseudoEmail,
-        'contactId' => $contact['id'],
-        'email' => $pseudoEmail,
-      ];
+        $params = [
+          'cms_name' => $email,
+          'contactId' => $contact['id'],
+          'email' => $email,
+        ];
 
-      $cmsUserId = \CRM_Core_BAO_CMSUser::create($params, 'email');
+        $cmsUserId = \CRM_Core_BAO_CMSUser::create($params, 'email');
 
-      $user = \Drupal\user\Entity\User::load($cmsUserId);
-      if (!$user) {
-        $this->warning("No CMS user could be created for contact id {$contact['id']} email {$pseudoEmail}");
-        continue;
-      }
-      $user->block();
-      $user->save();
+        $user = \Drupal\user\Entity\User::load($cmsUserId);
+        if (!$user) {
+          $this->warning("No CMS user could be created for contact id {$contact['id']} email {$email}");
+          continue;
+        }
+        $user->block();
+        $user->save();
     }
   }
-
 }
