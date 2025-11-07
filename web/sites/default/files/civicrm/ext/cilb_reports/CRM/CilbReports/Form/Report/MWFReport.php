@@ -2,7 +2,7 @@
 use CRM_CilbReports_ExtensionUtil as E;
 use Civi\Api4\CustomField;
 
-class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
+class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
 
   protected $_addressField = FALSE;
 
@@ -12,7 +12,7 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
 
   private $_temporaryTableName = NULL;
 
-  protected $_customGroupExtends = ['Participants', 'Contacts', 'Individuals'];
+  protected $_customGroupExtends = ['Participant', 'Contacts', 'Individual'];
   protected $_customGroupGroupBy = FALSE;
   public function __construct() {
     $this->_columns = [
@@ -63,6 +63,11 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
             'dbAlias' => 'id',
             'required' => TRUE,
           ],
+          'birth_date' => [
+            'title' => E::ts('Applicatant BirthDate'),
+            'required' => TRUE,
+            'default' => TRUE,
+          ]
         ],
         'filters' => [
           'sort_name' => [
@@ -162,17 +167,25 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
       'civicrm_address' => [
         'dao' => 'CRM_Core_DAO_Address',
         'fields' => [
-          'street_address' => NULL,
-          'city' => NULL,
-          'postal_code' => NULL,
-          'state_province_id' => ['title' => E::ts('State/Province')],
-          'country_id' => ['title' => E::ts('Country')],
+          'street_address' => ['title' => E::ts('Applicant Address'), 'required' => TRUE],
+          'supplemental_address_1' => ['title' => E::ts('Applicant Suite'), 'required' => TRUE],
+          'city' => ['title' => E::ts('Applicant City'), 'required' => TRUE],
+          'postal_code' => ['title' => E::ts('Applicant Zip'), 'required' => TRUE],
+          'state_province_id' => ['title' => E::ts('Applicant State'), 'required' => TRUE],
         ],
         'grouping' => 'contact-fields',
       ],
       'civicrm_email' => [
         'dao' => 'CRM_Core_DAO_Email',
-        'fields' => ['email' => NULL],
+        'fields' => ['email' => ['title' => E::ts('Applicant Email'), 'required' => TRUE]],
+        'grouping' => 'contact-fields',
+      ],
+      'civicrm_phone' => [
+        'dao' => 'CRM_Core_DAO_Phone',
+        'fields' => [
+          'phone_home' => ['title' => E::ts('Applicant Home'), 'required' => TRUE, 'dbAlias' => 'home.phone'],
+          'phone_work' => ['title' => E::ts('Applicant Work'), 'required' => TRUE, 'dbAlias' => 'work.phone'],
+        ],
         'grouping' => 'contact-fields',
       ],
     ];
@@ -189,7 +202,16 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
   public function from() {
     $this->_temporaryTableName = $this->createChangeTemporaryTable();
     $this->_from = NULL;
-
+    $options = \Civi::entity('Phone')->getOptions('location_type_id');
+    $workLocationId = $homeLocationId = 0;
+    foreach ($options as $option) {
+      if ($option['name'] == 'Work') {
+        $workLocationId = $option['id'];
+      }
+      elseif ($option['name'] == 'Home') {
+        $homeLocationId = $option['id'];
+      }
+    }
     $this->_from = "
          FROM  civicrm_contact {$this->_aliases['civicrm_contact']} {$this->_aclFrom}
                INNER JOIN civicrm_participant {$this->_aliases['civicrm_participant']} ON {$this->_aliases['civicrm_participant']}.contact_id = {$this->_aliases['civicrm_contact']}.id
@@ -199,6 +221,8 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
                INNER JOIN {$this->_temporaryTableName} temp ON temp.transaction_id = {$this->_aliases['civicrm_contribution']}.id
                LEFT JOIN civicrm_loc_block clb ON clb.id = {$this->_aliases['civicrm_event']}.loc_block_id
                LEFT JOIN civicrm_address lba ON lba.id = clb.address_id
+               LEFT JOIN civicrm_phone AS home ON home.contact_id = {$this->_aliases['civicrm_contact']}.id AND home.location_type_id = {$homeLocationId}
+               LEFT JOIN civicrm_phone AS work ON work.contact_id = {$this->_aliases['civicrm_contact']}.id AND work.location_type_id = {$workLocationId}
                ";
 
 
@@ -346,20 +370,6 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
       $rows[$rowNum]['civicrm_contact_gender'] = $rows[$rowNum]['civicrm_contact_race'] = '';
       $entryFound = TRUE;
 
-      if (array_key_exists('civicrm_address_state_province_id', $row)) {
-        if ($value = $row['civicrm_address_state_province_id']) {
-          $rows[$rowNum]['civicrm_address_state_province_id'] = CRM_Core_PseudoConstant::stateProvince($value, FALSE);
-        }
-        $entryFound = TRUE;
-      }
-
-      if (array_key_exists('civicrm_address_country_id', $row)) {
-        if ($value = $row['civicrm_address_country_id']) {
-          $rows[$rowNum]['civicrm_address_country_id'] = CRM_Core_PseudoConstant::country($value, FALSE);
-        }
-        $entryFound = TRUE;
-      }
-
       if (array_key_exists('civicrm_contact_sort_name', $row) &&
         $rows[$rowNum]['civicrm_contact_sort_name'] &&
         array_key_exists('civicrm_contact_id', $row)
@@ -380,6 +390,9 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
   }
 
   private function createChangeTemporaryTable(): string {
+    $dsn = defined('CIVICRM_LOGGING_DSN') ? CRM_Utils_SQL::autoSwitchDSN(CIVICRM_LOGGING_DSN) : CRM_Utils_SQL::autoSwitchDSN(CIVICRM_DSN);
+    $dsn = DB::parseDSN($dsn);
+    $loggingDb = $dsn['database'];
     $examFormatCustomFieldsDetails = CustomField::get(FALSE)
       ->addSelect('custom_group_id.table_name', 'column_name')
       ->addWhere('name', '=', 'Exam_Format')
@@ -398,7 +411,13 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
       ->addWhere('custom_group_id.name', '=', 'Candidate_Result')
       ->execute()
       ->first();
-    $lastRunCron = Civi::settings()->get('cilb_report_mtfreport_last_run_date') ?? date('YmdHis', strtotime('-1 week'));
+    $participantTransactionIDField = CustomField::get(FALSE)
+      ->addSelect('custom_group_id.table_name', 'column_name')
+      ->addWhere('name', '=', 'Candidate_Payment')
+      ->addWhere('custom_group_id.name', '=', 'Participant_Webform')
+      ->execute()
+      ->first();
+    $lastRunCron = Civi::settings()->get('cilb_reports_mwfreport_last_run_date') ?? date('YmdHis', strtotime('-1 week'));
     $temporaryTableName = $this->createTemporaryTable('changed_records_table','id int unsigned NOT NULL AUTO_INCREMENT, transaction_id int unsigned NOT NULL, exam_date_change int DEFAULT NULL, exam_event_change int DEFAULT NULL, exam_part_change int default NULL, candidate_number_change int DEFAULT NULL, category_change int default NULL, change_type varchar(255) DEFAULT NULL, deleted int NOT NULL default 0, primary_key(id)');
     $sql = "ALTER TABLE {$temporaryTableName} ADD UNIQUE index ui_transaction_id(transaction_id)";
     $this->addToDeveloperTab($sql);
@@ -406,13 +425,13 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
     // Find all New transactions
     $sql = "INSERT INTO {$temporaryTableName},(transaction_id, change_type) SELECT c.id, 'Added'
       FROM civicrm_contribution c
-      INNER JOIN log_civicrm_contribution lc ON lc.id = c.id AND lc.log_date >= '{$lastRunCron}' AND le.log_action = 'Added'
+      INNER JOIN `{$loggingDb}`.log_civicrm_contribution lc ON lc.id = c.id AND lc.log_date >= '{$lastRunCron}' AND le.log_action = 'Added'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql);
     // Find all deleted transactions
     $sql = "INSERT INTO {$temporaryTableName},(transaction_id, deleted) SELECT id, 1
-      FROM log_civicrm_contribution lc
+      FROM `{$loggingDb}`.log_civicrm_contribution lc
       WHERE lc.log_date >= '{$lastRunCron}' AND le.log_action = 'Deleted'
     ";
     $this->addToDeveloperTab($sql);
@@ -420,22 +439,22 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
     // Find where exam date has changed
     $sql = "INSERT INTO {$temporaryTableName} (transaction_id, exam_date_change, change_type) SELECT c.id, 1, 'Change'
       FROM civicrm_contribution c
-      INNER JOIN civicrm_line_item cli ON cli.contribution_id = c.id
-      INNER JOIN civicrm_participant p ON p.id = cli.entity_id AND cli.entity_table = 'civicrm_participant'
+      INNER JOIN {$participantTransactionIDField['custom_group_id.name_name']} as ptf ON ptf.{$participantTransactionIDField['column_name']} = c.id
+      INNER JOIN civicrm_participant p ON p.id = ptf.entity_id
       INNER JOIN civicrm_event e ON e.id = p.event_id
       INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = e.id AND cv.{$examFormatCustomFieldsDetails['column_name']} = 'paper'
-      INNER JOIN log_civicrm_event le ON le.id = e.id WHERE le.log_date >= '{$lastRunCron}' AND le.log_action = 'Update' AND (le.start_date != e.start_date OR le.end_date != e.end_date) AND le.event_id = e.id
+      INNER JOIN `{$loggingDb}`.log_civicrm_event le ON le.id = e.id WHERE le.log_date >= '{$lastRunCron}' AND le.log_action = 'Update' AND (le.start_date != e.start_date OR le.end_date != e.end_date) AND le.event_id = e.id
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql);
     // Find where the exam has changed but the exam part is still the same
     $sql = "INSERT INTO {$temporaryTableName} (transaction_id, exam_event_change, change_type) SELECT c.id, 1, 'Change',
       FROM civicrm_contribution c
-      INNER JOIN civicrm_line_item cli ON cli.contribution_id = c.id
-      INNER JOIN civicrm_participant p ON p.id = cli.entity_id AND cli.entity_table = 'civicrm_participant'
+      INNER JOIN {$participantTransactionIDField['custom_group_id.name_name']} as ptf ON ptf.{$participantTransactionIDField['column_name']} = c.id
+      INNER JOIN civicrm_participant p ON p.id = ptf.entity_id
       INNER JOIN civicrm_event e ON e.id = p.event_id
       INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = e.id AND cv.{$examFormatCustomFieldsDetails['column_name']} = 'paper'
-      INNER JOIN log_civicrm_participant lcp ON lcp.id = p.id
+      INNER JOIN `{$loggingDb}`.log_civicrm_participant lcp ON lcp.id = p.id
       INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as lcv ON lcv.entity_id = lcp.event_id
       WHERE lcp.log_date >= '{$lastRunCron}' AND lcp.log_action = 'Update' AND lcp.event_id != e.id AND cv.{$examPartCustomFieldsDetails['column_name']} = lcv.{$examPartCustomFieldsDetails['column_name']}
       ON DUPLICATE KEY UPDATE exam_event_change=1,change_type='Change'
@@ -445,25 +464,23 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
     // Find where the exam has changed and the exam part has changed
     $sql = "INSERT INTO {$temporaryTableName} (transaction_id, exam_part_change, change_type) SELECT c.id, 1, 'Change',
       FROM civicrm_contribution c
-      INNER JOIN civicrm_line_item cli ON cli.contribution_id = c.id
-      INNER JOIN civicrm_participant p ON p.id = cli.entity_id AND cli.entity_table = 'civicrm_participant'
+      INNER JOIN {$participantTransactionIDField['custom_group_id.name_name']} as ptf ON ptf.{$participantTransactionIDField['column_name']} = c.id
+      INNER JOIN civicrm_participant p ON p.id = ptf.entity_id
       INNER JOIN civicrm_event e ON e.id = p.event_id
       INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = e.id
-      INNER JOIN log_civicrm_participant lcp ON lcp.id = p.id
+      INNER JOIN `{$loggingDb}`.log_civicrm_participant lcp ON lcp.id = p.id
       INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as lcv ON lcv.entity_id = lcp.event_id
       WHERE lcp.log_date >= '{$lastRunCron}' AND lcp.log_action = 'Update' AND lcp.event_id != e.id AND cv.{$examPartCustomFieldsDetails['column_name']} != lcv.{$examPartCustomFieldsDetails['column_name']}
       ON DUPLICATE KEY UPDATE exam_part_change=1,change_type='Change'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql);
-    // Find cases where the line item has been removed and flag as exam part changed
+    // Find cases where an examp part has been removed and flag as exam part changed
     $sql = "INSERT INTO {$temporaryTableName} (transaction_id, exam_part_change, change_type) SELECT c.id, 1, 'Change',
       FROM civicrm_contribution c
-      INNER JOIN log_civicrm_line_item cli ON cli.contribution_id = c.id
-      INNER JOIN log_civicrm_participant p ON p.id = cli.entity_id AND cli.entity_table = 'civicrm_participant'
-      INNER JOIN log_civicrm_event e ON e.id = p.event_id
-      INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = e.id
-      WHERE cli.log_date >= '{$lastRunCron}' AND cli.log_action = 'Deleted'
+      INNER JOIN `{$loggingDb}`.{$participantTransactionIDField['custom_group_id.name_name']} as ptf ON ptf.{$participantTransactionIDField['column_name']} = c.id
+      INNER JOIN `{$loggingDb}`.log_civicrm_participant p ON p.id = ptf.entity_id
+      WHERE ptf.log_date >= '{$lastRunCron}' AND ptf.log_action = 'Delete'
       ON DUPLICATE KEY UPDATE exam_part_change=1,change_type='Change'
     ";
     $this->addToDeveloperTab($sql);
@@ -474,15 +491,15 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
       INNER JOIN civicrm_line_item cli ON cli.contribution_id = c.id
       INNER JOIN civicrm_participant p ON p.id = cli.entity_id AND cli.entity_table = 'civicrm_participant'
       INNER JOIN civicrm_event e ON e.id = p.event_id
-      INNER JOIN log_civicrm_participant lcp ON lcp.id = p.id
-      INNER JOIN log_civicrm_event lce On lce.id = lcp.event_id
-      INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as lcv ON lcv.entity_id = lcp.event_id
+      INNER JOIN `{$loggingDb}`.log_civicrm_participant lcp ON lcp.id = p.id
+      INNER JOIN `{$loggingDb}`.log_civicrm_event lce ON lce.id = lcp.event_id
+      INNER JOIN `{$loggingDb}`.{$examPartCustomFieldsDetails['custom_group_id.table_name']} as lcv ON lcv.entity_id = lcp.event_id
       WHERE lcp.log_date >= '{$lastRunCron}' AND lcp.log_action = 'Update' AND lcp.event_id != e.id AND lce.event_type_id != e.event_type_id
       ON DUPLICATE KEY UPDATE category_change=1,change_type='Change'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql);
-    // Find where the candidate number has changed
+    // Find where the candidate number has changed and we have the same exam.
     $sql = "INSERT INTO {$temporaryTableName} (transaction_id, candidate_number_change, change_type) SELECT c.id, 1, 'Change',
       FROM civicrm_contribution c
       INNER JOIN civicrm_line_item cli ON cli.contribution_id = c.id
@@ -490,9 +507,9 @@ class CRM_CilbReports_Form_Report_MTFReport extends CRM_Report_Form {
       INNER JOIN civicrm_event e ON e.id = p.event_id
       INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = e.id AND cv.{$examFormatCustomFieldsDetails['column_name']} = 'paper'
       INNER JOIN {$participantCustomFieldDetails['custom_group_id.table_name']} as pcv On pcv.entity_id = p.id
-      INNER JOIN log_civicrm_participant lcp ON lcp.id = p.id
-      INNER JOIN log_civicrm_event lce On lce.id = lcp.event_id
-      INNER JOIN {$participantCustomFieldDetails['custom_group_id.table_name']} as lcv ON lcv.entity_id = lcp.event_id
+      INNER JOIN `{$loggingDb}`.log_civicrm_participant lcp ON lcp.id = p.id
+      INNER JOIN `{$loggingDb}`.log_civicrm_event lce On lce.id = lcp.event_id
+      INNER JOIN `{$loggingDb}`.{$participantCustomFieldDetails['custom_group_id.table_name']} as lcv ON lcv.entity_id = lcp.id
       WHERE lcp.log_date >= '{$lastRunCron}' AND lcp.log_action = 'Update' AND lcp.event_id = e.id AND lce.event_type_id = e.event_type_id AND pcv.{$participantCustomFieldDetails['column_name']} != lcv.{$participantCustomFieldDetails['column_name']}
       ON DUPLICATE KEY UPDATE candidate_number_change=1,change_type='Change'
     ";

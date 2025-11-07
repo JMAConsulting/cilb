@@ -6,14 +6,14 @@
 // https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_managed
 return [
   [
-    'name' => 'CRM_CilbReports_Form_Report_MTFReport',
+    'name' => 'CRM_CilbReports_Form_Report_MWFReport',
     'entity' => 'ReportTemplate',
     'params' => [
       'version' => 3,
-      'label' => 'MTFReport',
-      'description' => 'MTFReport (cilb_reports)',
-      'class_name' => 'CRM_CilbReports_Form_Report_MTFReport',
-      'report_url' => 'cilb_reports/mtfreport',
+      'label' => 'MWFReport',
+      'description' => 'MWFReport (cilb_reports)',
+      'class_name' => 'CRM_CilbReports_Form_Report_MWFReport',
+      'report_url' => 'cilb_reports/mwfreport',
       'component' => 'CiviEvent',
     ],
   ],
