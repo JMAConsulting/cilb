@@ -297,12 +297,17 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         ->addWhere('custom_group_id.name', '=', 'Exam_Details')
         ->execute()
         ->first();
-
+      $participantTransactionIDField = CustomField::get(FALSE)
+        ->addSelect('custom_group_id.table_name', 'column_name')
+        ->addWhere('name', '=', 'Candidate_Payment')
+        ->addWhere('custom_group_id.name', '=', 'Participant_Webform')
+        ->execute()
+        ->first();
       $partRecords = CRM_Core_DAO::executeQuery("SELECT group_concat(cv.{$examPartCustomFieldsDetails['column_name']}) AS parts
         FROM civicrm_participant cp
-        INNER JOIN civicrm_line_item cli ON cli.entity_id = cp.id AND cli.entity_table = 'civicrm_participant'
+        INNER JOIN {$participantTransactionIDField['custom_group_id.name_name']} as ptf ON ptf.entity_id = cp.id
         INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = cp.id
-        WHERE cli.contribution_id = %1
+        WHERE ptf.{$participantTransactionIDField['column_name']} = %1
       ", [
         1 => [$row['civicrm_contribution_id'], 'Positive']
       ]);
@@ -314,11 +319,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         if (str_contains($partRecords->parts, 'TK')) {
           $paperCheck = CRM_Core_DAO::singleValueQuery("SELECT ev.{$examFormatCustomFieldsDetails['column_name']} as exam_format
             FROM civicrm_participant cp
-            INNER JOIN civicrm_line_item cli ON cli.entity_id = cp.id AND cli.entity_table = 'civicrm_participant'
+            INNER JOIN {$participantTransactionIDField['custom_group_id.name_name']} as ptf ON ptf.entity_id = cp.id
             INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = cp.id
             INNER JOIN civicrm_event ce ON ce.id = cp.event_id
             INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} AS ev ON ev.entity_id = ce.id
-            WHERE cli.contribution_id = %1
+            WHERE ptf.{$participantTransactionIDField['column_name']} = %1
             AND cv.{$examPartCustomFieldsDetails['column_name']} = 'TK'");
           if (empty($part1)) {
             if ($paperCheck == 'paper') {
