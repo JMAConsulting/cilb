@@ -33,7 +33,7 @@ elements: |-
     '#title': 'First Name'
   middle_name:
     '#type': textfield
-    '#title': 'MIddle Name'
+    '#title': 'Middle Name'
   last_name:
     '#type': textfield
     '#title': 'Last Name'
@@ -92,7 +92,7 @@ elements: |-
             filled: true
     '#states_clear': false
     '#form_key': civicrm_1_activity_1_fieldset_fieldset
-css: ''
+css: ".webform-submission-request-information-change-add-form .form-submit::before {\r\n  background-image: url('data:image/svg+xml,<svg class=\"bi bi-check\" width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\" fill=\"black\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z\" clip-rule=\"evenodd\"/></svg>');\r\n}\r\n\r\n.ui-dialog .ui-dialog-titlebar-close,\r\n.ui-dialog {\r\n  border: unset;\r\n}\r\n\r\n.ui-dialog .ui-dialog-titlebar-close::before {\r\n  content: \"x\";\r\n  position: relative;\r\n  top: -12px;\r\n  font-size: 1.8rem;\r\n  padding: 0;\r\n  margin: 0;\r\n  line-height: normal;\r\n}"
 javascript: ''
 settings:
   ajax: false

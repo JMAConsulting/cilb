@@ -44,3 +44,4 @@ permissions:
   - 'view event info'
   - 'view event participants'
   - 'view media'
+  - 'view public CiviMail content'

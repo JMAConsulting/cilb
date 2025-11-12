@@ -1,7 +1,7 @@
 links:
   -
-    title: 'Search for candidates'
-    url: '/civicrm/contact/search/advanced?reset=1'
+    title: 'Find/Manage candidates'
+    url: /civicrm/candidate-management
   -
     title: 'Add new registration'
     url: /form/backoffice-registration/
@@ -12,8 +12,8 @@ links:
     title: 'Import Paper-based exam scores'
     url: '/civicrm/advimport?reset=1'
   -
-    title: 'Manage users'
-    url: /civicrm/candidate-management
-  -
     title: 'View public registration page'
     url: /exam-registration
+  -
+    title: 'Update public registration screen text'
+    url: /admin/content/block/1/translations

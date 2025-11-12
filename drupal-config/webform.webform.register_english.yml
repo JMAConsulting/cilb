@@ -206,7 +206,7 @@ elements: |-
         civicrm_1_contact_1_cg1_custom_5:
           '#type': textfield
           '#title': SSN
-          '#description': '<p><a class="webform-dialog webform-dialog-normal" href="https://cilb.jmaconsulting.biz/form/request-information-change">Request a Social Security Number (SSN) Change</a></p>'
+          '#description': '<p><a class="webform-dialog webform-dialog-normal" href="/form/request-information-change">Request a Social Security Number (SSN) Change</a></p>'
           '#description_display': after
           '#input_mask': 999-99-9999
           '#required': true
@@ -937,7 +937,7 @@ settings:
   form_prepopulate_source_entity: false
   form_prepopulate_source_entity_required: false
   form_prepopulate_source_entity_type: ''
-  form_unsaved: false
+  form_unsaved: true
   form_disable_back: false
   form_submit_back: false
   form_disable_autocomplete: false
@@ -946,7 +946,7 @@ settings:
   form_required: false
   form_autofocus: false
   form_details_toggle: false
-  form_reset: false
+  form_reset: true
   form_access_denied: default
   form_access_denied_title: ''
   form_access_denied_message: ''
@@ -1018,7 +1018,7 @@ settings:
   confirmation_type: page
   confirmation_url: ''
   confirmation_title: ''
-  confirmation_message: '<p>Your registration for the Florida State Construction Examination was completed.</p>'
+  confirmation_message: '<p>You have successfully registered for the Florida State Construction Examination. You should receive two email messages. One will contain your receipt for payment. The other will contain a link that allows you to create a password on this web site to see your registration and payment information, including your receipt. Once logged in, you can also request changes to your registration if necessary.</p>'
   confirmation_attributes: {  }
   confirmation_back: true
   confirmation_back_label: ''

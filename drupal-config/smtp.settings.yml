@@ -7,8 +7,8 @@ smtp_port: '465'
 smtp_protocol: tls
 smtp_autotls: true
 smtp_timeout: 30
-smtp_username: <blanked out>
-smtp_password: <blanked out>
+smtp_username: '<blanked out>'
+smtp_password: '<blanked out>'
 smtp_from: info@jmaconsulting.biz
 smtp_fromname: CILB
 smtp_client_hostname: ''

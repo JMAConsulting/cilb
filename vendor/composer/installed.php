@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'drupal/recommended-project',
-        'pretty_version' => 'dev-main',
-        'version' => 'dev-main',
-        'reference' => '73f4f512e728e5edae6960aefce02602dbddae5f',
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
+        'reference' => 'a32d58bd8cabf61c941b3505d6823719e485ff4a',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -370,6 +370,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'drupal/config_ignore' => array(
+            'pretty_version' => '3.3.0',
+            'version' => '3.3.0.0',
+            'reference' => '8.x-3.3',
+            'type' => 'drupal-module',
+            'install_path' => __DIR__ . '/../../web/modules/contrib/config_ignore',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'drupal/core' => array(
             'pretty_version' => '10.3.14',
             'version' => '10.3.14.0',
@@ -614,9 +623,9 @@
             'dev_requirement' => false,
         ),
         'drupal/recommended-project' => array(
-            'pretty_version' => 'dev-main',
-            'version' => 'dev-main',
-            'reference' => '73f4f512e728e5edae6960aefce02602dbddae5f',
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'reference' => 'a32d58bd8cabf61c941b3505d6823719e485ff4a',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
