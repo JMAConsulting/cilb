@@ -152,7 +152,7 @@ return [
         ],
         'match' => [
           'name',
-          'extends',
+          'custom_group_id',
         ],
       ],
     ],
