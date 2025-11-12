@@ -10,7 +10,6 @@ jQuery(document).ready(function ($) {
   var isCandidate = $("input[name='candidate_representative']");
   var cancelReg = $("#cancel-reg");
   var existingContactField = $("input[name='civicrm_1_contact_1_contact_existing']");
-
   // Move button to before on behalf of field.
   // TODO: why not have this done in the webform interface
   $('button[value="I am the Candidate"]').insertBefore('#behalf-of');
@@ -21,11 +20,13 @@ jQuery(document).ready(function ($) {
   const currentUrl = window.location.href;
   const lang = (currentUrl.indexOf("/es/") !== -1) ? 'es_MX' : 'en_US';
 
-  // If registration is being completed on behalf of candidate
+ // If registration is being completed on behalf of candidate
   // show and hide various fields and set isCandidate
   if (behalfOf.length) {
     candidateRepField.hide();
     behalfOf.on("click", function () {
+    $('button[value="I am the Candidate"]').text('I affirm this is my own full name');
+    $('button[value="Yo soy el candidato"]').text('Afirmo que este es mi nombre completo');
       behalfOf.hide();
       cancelReg.hide();
 
@@ -38,11 +39,11 @@ jQuery(document).ready(function ($) {
 
       var originalNextLabel = next.val();
       next.val((lang === 'es_MX') ? "Siguiente > " : "Next >");
-
       returnPrev.off("click").on("click", function (event) {
+        $('button[value="I am the Candidate"]').text('I am the Candidate');
+        $('button[value="Yo soy el candidato"]').text('Yo soy el candidato');
         event.preventDefault();
         returnPrev.attr("href", originalhref);
-
         behalfOf.show();
         cancelReg.show();
         next.parent().insertBefore(behalfOf);
