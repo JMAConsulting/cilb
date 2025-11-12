@@ -21,3 +21,7 @@ Apply patch to trim entity ID search values
 Source: patches/civicrm_trim_entity_id_search_value.patch
 
 
+Apply patch to fix issue with non admins accessing the civicrm user dashboard
+Source: patches/civicrm_allow_non_admins_user_dashboard_access.patch
+
+

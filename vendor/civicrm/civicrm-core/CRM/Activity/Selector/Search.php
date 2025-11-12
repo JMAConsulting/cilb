@@ -222,7 +222,12 @@ class CRM_Activity_Selector_Search extends CRM_Core_Selector_Base implements CRM
       $this->_activityClause
     );
     $rows = [];
-    $mailingIDs = CRM_Mailing_BAO_Mailing::mailingACLIDs();
+    try {
+      $mailingIDs = CRM_Mailing_BAO_Mailing::mailingACLIDs();
+    }
+    catch (\CRM_Core_Exception $e) {
+      $mailingIDs = [];
+    }
     $accessCiviMail = CRM_Core_Permission::check('access CiviMail');
 
     // Get all campaigns.
