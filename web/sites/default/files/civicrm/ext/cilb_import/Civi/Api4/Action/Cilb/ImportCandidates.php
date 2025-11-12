@@ -53,6 +53,9 @@ class ImportCandidates extends ImportBase {
           ->execute();
       }
       }
+      else {
+        $contact['Suffix'] = NULL;
+      }
 
       if (!empty($contact['Prefix'])) {
       $prefix = \Civi\Api4\OptionValue::get(FALSE)
@@ -67,6 +70,9 @@ class ImportCandidates extends ImportBase {
           ->execute();
       }
       }
+      else {
+        $contact['Prefix'] = NULL;
+      }
       
       \Civi\Api4\Contact::save(FALSE)
         ->addRecord([
@@ -76,8 +82,12 @@ class ImportCandidates extends ImportBase {
           'first_name' => $contact['First_Name'],
           'middle_name' => $contact['Middle_Name'],
           'last_name' => $contact['Last_Name'],
-          //'suffix_id:label' => $contact['Suffix'] ?? NULL,
-          //'prefix_id:label' => $contact['Prefix'] ?? NULL,
+          'contact_type' => 'Individual',
+          'contact_sub_type' => [
+            'Candidate',
+          ],
+          'suffix_id:label' => $contact['Suffix'],
+          'prefix_id:label' => $contact['Prefix'],
         ])
         ->setMatch(['external_identifier'])
         ->execute();
