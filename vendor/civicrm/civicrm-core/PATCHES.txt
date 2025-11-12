@@ -17,3 +17,7 @@ Fix boot seqeunce
 Source: ./patches/fix_boot_sequence.patch
 
 
+Apply patch to trim entity ID search values
+Source: patches/civicrm_trim_entity_id_search_value.patch
+
+

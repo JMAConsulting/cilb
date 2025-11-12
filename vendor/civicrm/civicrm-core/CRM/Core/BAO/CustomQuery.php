@@ -189,7 +189,13 @@ class CRM_Core_BAO_CustomQuery {
         $fieldName = "{$field['table_name']}.{$field['column_name']}";
 
         $isSerialized = CRM_Core_BAO_CustomField::isSerialized($field);
-
+        // Trim value of the Entity ID cusotm field value
+        $entityIDField = \Civi\Api4\CustomField::get(FALSE)->addWhere('name', '=', 'Entity_ID_imported_')->addWhere('custom_group_id.name', '=', 'cilb_candidate_entity')->execute()->first();
+        if ((int) $field['id'] === $entityIDField['id']) {
+          if (!is_array($value)) {
+            $value = ltrim($value, '0');
+          }
+        }
         // fix $value here to escape sql injection attacks
         $qillValue = NULL;
         if (!is_array($value)) {
