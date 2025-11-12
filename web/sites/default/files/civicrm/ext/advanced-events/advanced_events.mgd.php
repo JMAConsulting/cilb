@@ -166,7 +166,7 @@ return [
     'params' => [
       'version' => 4,
       'values' => [
-        'custom_group_id.name' => 'Event_options',
+        'custom_group_id.name' => 'Advanced_Event_Settings',
         'name' => 'Participant_Visibility',
         'label' => E::ts('Participant Visibility'),
         'html_type' => 'Select',
