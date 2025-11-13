@@ -16,7 +16,6 @@ use Drupal\user\Entity\User;
  * JSON:API integration test for the "Media" content entity type.
  *
  * @group jsonapi
- * @group #slow
  */
 class MediaTest extends ResourceTestBase {
 
@@ -324,7 +323,7 @@ class MediaTest extends ResourceTestBase {
    */
   protected function getExpectedUnauthorizedAccessMessage($method) {
     switch ($method) {
-      case 'GET';
+      case 'GET':
         return "The 'view media' permission is required when the media item is published.";
 
       case 'POST':
