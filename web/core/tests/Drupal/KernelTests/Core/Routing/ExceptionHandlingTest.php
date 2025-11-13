@@ -132,7 +132,7 @@ class ExceptionHandlingTest extends KernelTestBase {
 
     // Test with 404 path pointing to a route that uses '_form'.
     $response = $this->doTest404Route('/router_test/test26');
-    $this->assertStringContainsString('<form class="system-logging-settings"', $response->getContent());
+    $this->assertStringContainsString('<form class="router-test-form"', $response->getContent());
 
     // Test with 404 path pointing to a route that uses '_entity_form'.
     $response = $this->doTest404Route('/router_test/test27');
@@ -215,8 +215,7 @@ class ExceptionHandlingTest extends KernelTestBase {
     // final exception subscriber, it is printed as partial HTML, and hence
     // escaped.
     $this->assertEquals('text/plain; charset=UTF-8', $response->headers->get('Content-type'));
-    // cspell:ignore jsonalert
-    $this->assertStringStartsWith('Not acceptable format: jsonalert(123);', $response->getContent());
+    $this->assertEquals('A route that returns a rendered array as its response only supports the HTML format.', $response->getContent());
   }
 
 }

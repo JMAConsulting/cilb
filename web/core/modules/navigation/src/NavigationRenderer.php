@@ -3,6 +3,7 @@
 namespace Drupal\navigation;
 
 use Drupal\Component\Utility\NestedArray;
+use Drupal\Component\Utility\SortArray;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -17,8 +18,8 @@ use Drupal\Core\Image\ImageFactory;
 use Drupal\Core\Menu\LocalTaskManagerInterface;
 use Drupal\Core\Plugin\Context\Context;
 use Drupal\Core\Plugin\Context\ContextDefinition;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\file\Entity\File;
 use Drupal\layout_builder\SectionStorage\SectionStorageManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -100,7 +101,7 @@ final class NavigationRenderer {
    */
   public function buildNavigation(array &$page_top): void {
     $logo_settings = $this->configFactory->get('navigation.settings');
-    $logo_provider = $logo_settings->get('logo_provider');
+    $logo_provider = $logo_settings->get('logo.provider');
 
     $cacheability = new CacheableMetadata();
     $contexts = [
@@ -112,6 +113,7 @@ final class NavigationRenderer {
     if ($storage) {
       foreach ($storage->getSections() as $delta => $section) {
         $build[$delta] = $section->toRenderArray([]);
+        $build[$delta]['#cache']['contexts'] = ['user.permissions', 'theme', 'languages:language_interface'];
       }
     }
     // The render array is built based on decisions made by SectionStorage
@@ -125,7 +127,7 @@ final class NavigationRenderer {
     $asset_url = $module_path . '/assets/fonts/inter-var.woff2';
 
     $defaults = [
-      '#hide_logo' => $logo_provider === self::LOGO_PROVIDER_HIDE,
+      '#settings' => ['hide_logo' => $logo_provider === self::LOGO_PROVIDER_HIDE],
       '#attached' => [
         'html_head_link' => [
           [
@@ -140,24 +142,49 @@ final class NavigationRenderer {
       ],
     ];
     $build[0] = NestedArray::mergeDeepArray([$build[0], $defaults]);
+    $build[0]['content_top'] = $this->getContentTop();
+
     $page_top['navigation'] = $build;
 
     if ($logo_provider === self::LOGO_PROVIDER_CUSTOM) {
-      $logo_managed_fid = $logo_settings->get('logo_managed');
-      if (isset($logo_managed_fid[0]) && $logo_managed_fid[0] > 0) {
-        $logo_managed = File::load($logo_managed_fid[0]);
-        if ($logo_managed instanceof File) {
-          $logo_managed_uri = $logo_managed->getFileUri();
-          $logo_managed_url = $this->fileUrlGenerator->generateAbsoluteString($logo_managed_uri);
-          $page_top['navigation']['#logo_path'] = $logo_managed_url;
-          $image = $this->imageFactory->get($logo_managed_uri);
-          if ($image->isValid()) {
-            $page_top['navigation']['#logo_width'] = $image->getWidth();
-            $page_top['navigation']['#logo_height'] = $image->getHeight();
-          }
+      $logo_path = $logo_settings->get('logo.path');
+      if (!empty($logo_path) && is_file($logo_path)) {
+        $logo_managed_url = $this->fileUrlGenerator->generateAbsoluteString($logo_path);
+        $image = $this->imageFactory->get($logo_path);
+        $page_top['navigation'][0]['#settings']['logo_path'] = $logo_managed_url;
+        if ($image->isValid()) {
+          $page_top['navigation'][0]['#settings']['logo_width'] = $image->getWidth();
+          $page_top['navigation'][0]['#settings']['logo_height'] = $image->getHeight();
         }
       }
     }
+  }
+
+  /**
+   * Gets the content for content_top section.
+   *
+   * @return array
+   *   The content_top section content.
+   */
+  protected function getContentTop(): array {
+    $content_top = [
+      '#theme' => 'navigation_content_top',
+    ];
+    $content_top_items = $this->moduleHandler->invokeAll('navigation_content_top');
+    $this->moduleHandler->alter('navigation_content_top', $content_top_items);
+    uasort($content_top_items, [SortArray::class, 'sortByWeightElement']);
+    // Filter out empty items, taking care to merge any cacheability metadata.
+    $cacheability = new CacheableMetadata();
+    $content_top_items = array_filter($content_top_items, function ($item) use (&$cacheability) {
+      if (Element::isEmpty($item)) {
+        $cacheability = $cacheability->merge(CacheableMetadata::createFromRenderArray($item));
+        return FALSE;
+      }
+      return TRUE;
+    });
+    $cacheability->applyTo($content_top);
+    $content_top['#items'] = $content_top_items;
+    return $content_top;
   }
 
   /**

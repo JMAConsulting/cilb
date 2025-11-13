@@ -33,8 +33,6 @@
     <!-- Sniff for these errors: ArrayClosingIndentation, ArrayIndentation, CommaLastItem -->
     <exclude name="Drupal.Arrays.Array.LongLineDeclaration"/>
   </rule>
-  <rule ref="Drupal.CSS.ClassDefinitionNameSpacing"/>
-  <rule ref="Drupal.CSS.ColourDefinition"/>
   <rule ref="Drupal.Classes.ClassCreateInstance"/>
   <rule ref="Drupal.Classes.ClassDeclaration"/>
   <rule ref="Drupal.Classes.ClassFileName"/>
@@ -63,6 +61,7 @@
     <exclude name="Drupal.Commenting.DocComment.SpacingBeforeTags"/>
   </rule>
   <rule ref="Drupal.Commenting.DocCommentAlignment"/>
+  <rule ref="Drupal.Commenting.DocCommentLongArraySyntax"/>
   <rule ref="Drupal.Commenting.DocCommentStar"/>
   <rule ref="Drupal.Commenting.FileComment"/>
   <rule ref="Drupal.Commenting.FunctionComment">
@@ -168,6 +167,7 @@
   <rule ref="DrupalPractice.InfoFiles.NamespacedDependency"/>
   <rule ref="DrupalPractice.Objects.GlobalFunction">
     <include-pattern>*/Plugin/*</include-pattern>
+    <include-pattern>*/ListBuilder/*</include-pattern>
   </rule>
 
   <!-- Generic sniffs -->
@@ -185,15 +185,13 @@
   <rule ref="Generic.PHP.LowerCaseKeyword"/>
   <rule ref="Generic.PHP.UpperCaseConstant"/>
   <rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
+  <rule ref="Generic.WhiteSpace.LanguageConstructSpacing"/>
 
   <!-- Internal sniffs -->
   <rule ref="Internal.NoCodeFound">
     <!-- No PHP code in *.yml -->
     <exclude-pattern>*.yml</exclude-pattern>
   </rule>
-
-  <!-- MySource sniffs -->
-  <rule ref="MySource.Debug.DebugCode"/>
 
   <!-- PEAR sniffs -->
   <rule ref="PEAR.Files.IncludingFile"/>
@@ -277,8 +275,6 @@
     <include-pattern>./modules/system/src/Tests/Routing/*</include-pattern>
     <exclude-pattern>./tests/Drupal/Tests/*/Fixture/*</exclude-pattern>
     <exclude-pattern>./tests/Drupal/Tests/*/fixtures/*</exclude-pattern>
-    <!-- @todo remove this in https://www.drupal.org/project/drupal/issues/3402707 -->
-    <exclude-pattern>./tests/Drupal/KernelTests/AssertContentTrait.php</exclude-pattern>
   </rule>
   <rule ref="SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue"/>
 
@@ -397,7 +393,6 @@
       <property name="spacing" value="1"/>
     </properties>
   </rule>
-  <rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
   <rule ref="Squiz.WhiteSpace.OperatorSpacing">
     <properties>
       <property name="ignoreNewlines" value="true"/>
