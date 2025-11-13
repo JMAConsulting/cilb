@@ -61,6 +61,19 @@ function user_email_verification_entity_extra_field_info() {
 }
 
 /**
+ * Implements hook_condition_info_alter().
+ */
+function user_email_verification_condition_info_alter(array &$definitions) {
+  if (!\Drupal::moduleHandler()->moduleExists('rules')) {
+    unset(
+      $definitions['user_email_verification_extended_period_exceeded'],
+      $definitions['user_email_verification_period_exceeded'],
+      $definitions['user_email_verification_user_email_verified'],
+    );
+  }
+}
+
+/**
  * Implements hook_ENTITY_TYPE_view().
  */
 function user_email_verification_user_view(array &$build, EntityInterface $user, EntityViewDisplayInterface $display, $view_mode) {

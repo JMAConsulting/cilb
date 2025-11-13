@@ -1,0 +1,91 @@
+<div class="crm-container">
+  <h1 crm-page-title>{{ts('Advanced Import')}}</h1>
+
+  <div class="help" style="display: none; /* FIXME */">
+    <p>{{ ts('Add a short help text here?') }}</p>
+  </div>
+
+  <div ng-if="$ctrl.advimportDetails.id">
+    <div id="crm-advimport-actions" style="max-width: 1200px;">
+      <div id="crm-advimport-import">
+        <a href="#" ng-click="runimport($event)" class="button"><span><i class="crm-i fa-check-circle"></i> {{ ts('Process all items') }}</span></a>
+      </div>
+      <div id="crm-advimport-newrow">
+        <a href="#" ng-click="newrow($event)" class="button"><span><i class="crm-i fa-plus-circle"></i> {{ ts('Add new row') }}</span></a>
+      </div>
+      <div id="crm-advimport-download" ng-if="$ctrl.crmExportUrl">
+        <a id="crm-advimport-download-link" class="button" href="{{ $ctrl.crmExportUrl }}"><i class="crm-i fa-download"></i> {{ ts('Download') }}</a>
+      </div>
+    </div>
+    <form id="crm-advimport-explorer" style="max-width: 1200px;" ng-submit="search()">
+      <div class="crm-section">
+        <div class="label">{{ ts('Import:') }}</div>
+        <div class="content">{{ $ctrl.advimportDetails.id }} @ {{ $ctrl.advimportDetails.start_date }} ({{ $ctrl.advimportDetails.classname }})</div>
+      </div>
+      <div class="crm-section">
+        <div class="label">{{ ts('Display:') }}</div>
+        <div class="content">
+          <select class="crm-form-select big" id="crm-advimport-status" name="crm-advimport-status" ng-model="$ctrl.advimport_status" ng-change="search()">
+            <option value="">{{ ts('All') }}</option>
+            <option value="1">{{ ts('OK') }}</option>
+            <option value="2">{{ ts('Errors') }}</option>
+            <option value="3">{{ ts('Warnings') }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="crm-section">
+        <div class="label">{{ ts('Filter:') }}</div>
+        <div class="content">
+          <select class="crm-form-select big"
+            id="crm-advimport-filter"
+            name="crm-advimport-filter"
+            ng-model="$ctrl.filter_field"
+            ng-options="field.key as field.label for field in fields.values track by field.key"
+            >
+          </select>
+          <span ng-show="$ctrl.filter_field">
+            = <input type="text" id="crm-advimport-filter-value" name="crm-advimport-filter-value" ng-model="$ctrl.filter_value">
+          </span>
+        </div>
+      </div>
+    </form>
+    <form id="crm-advimport-explorer" style="max-width: 1200px;" ng-submit="bulkupdate()" ng-show="$ctrl.bulkupdate_possible">
+      <div class="crm-section">
+        <div class="label">{{ ts('Bulk Update:') }}</div>
+        <div class="content">
+          <select class="crm-form-select big"
+            id="crm-advimport-bulkupdate-field"
+            name="crm-advimport-bulkupdate-field"
+            ng-model="$ctrl.bulkupdate_field"
+            ng-options="field.key as field.label for (key, field) in $ctrl.bulkupdate_fields track by field.key"
+            ng-change="$ctrl.bulkupdate_value = ''"
+            >
+          </select>
+          <span ng-show="$ctrl.bulkupdate_field">
+            =
+            <input type="{{ $ctrl.bulkupdate_fields[$ctrl.bulkupdate_field].html_type ? $ctrl.bulkupdate_fields[$ctrl.bulkupdate_field].html_type : 'text' }}" id="crm-advimport-bulkupdate-value" name="crm-advimport-bulkupdate-value"
+              ng-model="$ctrl.bulkupdate_value"
+              ng-show="$ctrl.bulkupdate_field_options[$ctrl.bulkupdate_field].length == 0"
+            >
+            <select name="crm-advimport-bulkupdate-value-select"
+              ng-model="$ctrl.bulkupdate_value"
+              ng-show="$ctrl.bulkupdate_field_options[$ctrl.bulkupdate_field].length != 0"
+              ng-options="v as v for (k,v) in $ctrl.bulkupdate_field_options[$ctrl.bulkupdate_field]"
+            >
+            </select>
+          </span>
+          <button name="crm-advimport-bulkupdate-submit" ng-show="$ctrl.bulkupdate_value">{{ ts('Update') }}</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div ng-if="!$ctrl.advimportDetails.id">
+    <p>{{ ts('Not data, or access denied.') }}</p>
+  </div>
+
+  <div id="crm-advimport-searchresults" class="blockUI" style="min-height: 300px; width: 100%;">
+    <table id="crm-advimport-searchresults-table" class="display" width="100%"></table>
+  </div>
+
+  <div crm-ui-debug="$ctrl"></div>
+</div>

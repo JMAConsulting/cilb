@@ -1,0 +1,11 @@
+uuid: a79fad96-5fe3-48d8-aab0-f5e1c1331cff
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_state_province.token
+label: Token
+description: ''
+targetEntityType: civicrm_state_province
+cache: true

@@ -107,7 +107,7 @@ class CRM_Utils_System_UnitTests extends CRM_Utils_System_Base {
    */
   public function mapConfigToSSL() {
     global $base_url;
-    $base_url = str_replace('http://', 'https://', $base_url);
+    $base_url = str_replace('http://', 'https://', (string) $base_url);
   }
 
   /**
@@ -211,6 +211,11 @@ class CRM_Utils_System_UnitTests extends CRM_Utils_System_Base {
   public function mailingWorkflowIsEnabled():bool {
     $enableWorkflow = Civi::settings()->get('civimail_workflow');
     return (bool) $enableWorkflow;
+  }
+
+  public function ipAddress(): ?string {
+    // Placeholder address for unit testing
+    return '127.0.0.1';
   }
 
 }

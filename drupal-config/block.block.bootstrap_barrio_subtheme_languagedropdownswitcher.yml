@@ -1,0 +1,45 @@
+uuid: d373e570-2580-4f3e-b7a7-6eb328b42726
+langcode: en
+status: true
+dependencies:
+  module:
+    - lang_dropdown
+  theme:
+    - bootstrap_barrio_subtheme
+id: bootstrap_barrio_subtheme_languagedropdownswitcher
+theme: bootstrap_barrio_subtheme
+region: primary_menu
+weight: -4
+provider: null
+plugin: 'language_dropdown_block:language_interface'
+settings:
+  id: 'language_dropdown_block:language_interface'
+  label: 'Language dropdown switcher'
+  label_display: '0'
+  provider: lang_dropdown
+  showall: false
+  hide_only_one: true
+  tohome: false
+  width: 165
+  display: 1
+  widget: 0
+  msdropdown:
+    visible_rows: 5
+    rounded: true
+    animation: slideDown
+    event: click
+    skin: ldsSkin
+    custom_skin: ''
+  chosen:
+    disable_search: true
+    no_results_text: 'No language match'
+  ddslick:
+    ddslick_height: 0
+    showSelectedHTML: true
+    imagePosition: left
+    skin: ddsDefault
+    custom_skin: ''
+  languageicons:
+    flag_position: 1
+  hidden_languages: {  }
+visibility: {  }

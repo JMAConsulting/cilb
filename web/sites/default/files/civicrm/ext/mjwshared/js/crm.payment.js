@@ -12,7 +12,13 @@
      */
     getTotalAmount: function() {
       var totalAmount = 0.0;
-      if (this.getIsDrupalWebform()) {
+
+      if (document.getElementById('totalAmount') && document.getElementById('totalAmount').getAttribute('data-totalAmount')) {
+        // See https://github.com/civicrm/civicrm-core/pull/32574 / https://lab.civicrm.org/extensions/stripe/-/issues/348
+        // Get the total amount from the lineItems list
+        totalAmount = parseFloat(document.getElementById('totalAmount').getAttribute('data-totalAmount'));
+      }
+      else if (this.getIsDrupalWebform()) {
         // This is how webform civicrm calculates the amount in webform_civicrm_payment.js
         $('.line-item:visible', '#wf-crm-billing-items').each(function() {
           totalAmount += parseFloat($(this).data('amount'));
@@ -218,17 +224,16 @@
       // This gets messy quickly!
       // input[name="auto_renew"] : set to 1 when there is a force-renew membership with no priceset.
       else if ($('input[name="auto_renew"]').length !== 0) {
-        if ($('input[name="auto_renew"]').prop('checked')) {
-          isRecur = true;
-        }
-        else if ($('input[name="auto_renew"]').attr('type') == 'hidden') {
+        if ($('input[name="auto_renew"]').attr('type') == 'hidden' ||
+          $('input[name="auto_renew"]').is(":hidden")) {
           // If the auto_renew field exists as a hidden field, then we force a
-          // recurring contribution (the value isn't useful since it depends on
-          // the locale - e.g.  "Please renew my membership")
+          // recurring contribution - since it won't be checked but it signals
+          // a autorenew.
           isRecur = true;
         }
         else {
-          isRecur = Boolean($('input[name="auto_renew"]').checked);
+          // Otherwise, see if it's checked indicating auto renew is selected.
+          isRecur = Boolean($('input[name="auto_renew"]').prop('checked'));
         }
       }
       if (!isRecur) {
@@ -373,8 +378,13 @@
       // Most checkboxes get names like: "custom_63[1]" but "onbehalf" checkboxes get "onbehalf[custom_63][1]". We change them to "custom_63" and "onbehalf[custom_63]".
       $('div#priceset input[type="checkbox"], fieldset.crm-profile input[type="checkbox"], #on-behalf-block input[type="checkbox"]').each(function() {
         var name = $(this).attr('name');
-        $(this).attr('data-name', name);
-        $(this).attr('name', name.replace('[' + name.split('[').pop(), ''));
+        if (name !== undefined) {
+          $(this).attr('data-name', name);
+          $(this).attr('name', name.replace('[' + name.split('[').pop(), ''));
+          $(this).removeAttr('required');
+          $(this).removeClass('required');
+          $(this).removeAttr('aria-required');
+        }
       });
 
       // Default email validator accepts test@example but on test@example.org is valid (https://jqueryvalidation.org/jQuery.validator.methods/)

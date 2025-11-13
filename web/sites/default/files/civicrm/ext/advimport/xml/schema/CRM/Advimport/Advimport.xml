@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<table>
+  <base>CRM/Advimport</base>
+  <class>Advimport</class>
+  <name>civicrm_advimport</name>
+  <comment>Advimport Job</comment>
+  <log>true</log>
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique Advimport ID</comment>
+    <html>
+      <type>Number</type>
+    </html>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>contact_id</name>
+    <title>Contact</title>
+    <type>int unsigned</type>
+    <comment>FK to Contact, import author</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>classname</name>
+    <title>Class Name</title>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Mapping helper class name</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>start_date</name>
+    <title>Start Date</title>
+    <type>timestamp</type>
+    <comment>Import start</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>end_date</name>
+    <title>End Date</title>
+    <type>timestamp</type>
+    <comment>Import end</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>filename</name>
+    <title>Filename</title>
+    <type>varchar</type>
+    <length>255</length>
+    <comment>Name of the file uploaded</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>table_name</name>
+    <title>Table Name</title>
+    <type>varchar</type>
+    <length>128</length>
+    <comment>SQL table where the data is staged before being processed</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>total_count</name>
+    <title>Total Count</title>
+    <type>int unsigned</type>
+    <comment>Total number of rows</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>success_count</name>
+    <title>Success Count</title>
+    <type>int unsigned</type>
+    <comment>Number of rows imported successful</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>warning_count</name>
+    <title>Warning Count</title>
+    <type>int unsigned</type>
+    <comment>Number of rows imported with warnings</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>error_count</name>
+    <title>Error Count</title>
+    <type>int unsigned</type>
+    <comment>Number of rows that failed to import because of errors</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>track_entity_type</name>
+    <title>Track Entity Type</title>
+    <type>varchar</type>
+    <length>128</length>
+    <comment>Ex: group or tag used to track contacts imported</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>track_entity_id</name>
+    <title>Track Entity ID</title>
+    <type>int unsigned</type>
+    <comment>ID of the group or tag used to track contacts imported</comment>
+    <add>1.0</add>
+  </field>
+  <field>
+    <name>mapping</name>
+    <title>Mapping</title>
+    <type>text</type>
+    <comment>Field mapping</comment>
+    <add>1.0</add>
+  </field>
+  <foreignKey>
+    <name>contact_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <onDelete>SET NULL</onDelete>
+  </foreignKey>
+</table>

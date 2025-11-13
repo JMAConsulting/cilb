@@ -1,0 +1,28 @@
+<div af-fieldset="">
+  <div class="af-container af-layout-cols">
+    <div class="af-container" af-title="Candidate">
+      <af-field name="id" defn="{label: 'Candidate', input_attrs: {}}" />
+      <af-field name="contact_id.display_name" defn="{label: 'Name or email', input_attrs: {}}" />
+      <af-field name="status_id" defn="{input_attrs: {multiple: true}}" />
+    </div>
+    <div class="af-container" af-title="Exam">
+      <af-field name="event_id" />
+      <af-field name="Participant_Event_event_id_01.event_type_id" defn="{input_attrs: {multiple: true}}" />
+      <af-field name="Participant_Event_event_id_01.Exam_Details.Exam_Part" defn="{input_attrs: {multiple: true}, label: 'Exam Part'}" />
+    </div>
+    <div class="af-container" af-title="Registration">
+      <af-field name="register_date" defn="{input_type: 'Select', search_range: true, input_attrs: {}}" />
+      <af-field name="Participant_Contribution_Candidate_Payment_01.trxn_id" />
+      <af-field name="Participant_Contribution_Candidate_Payment_01.contribution_status_id" defn="{input_attrs: {multiple: true}}" />
+    </div>
+  </div>
+  <details class="af-container" af-title="More filters">
+    <div class="af-container">
+      <af-field name="Participant_Event_event_id_01.Exam_Details.Exam_Format" defn="{input_attrs: {multiple: true}, label: 'Exam Format'}" />
+      <af-field name="Participant_Webform.Candidate_Representative_Name" defn="{label: 'Candidate Representative Name', input_attrs: {}}" />
+      <af-field name="Candidate_Result.Candidate_Score" defn="{label: 'Candidate Score', input_attrs: {}}" />
+      <af-field name="Candidate_Result.Date_Exam_Taken" defn="{label: 'Date Exam Taken', input_attrs: {}}" />
+    </div>
+  </details>
+  <crm-search-display-table search-name="Find_Candidates" display-name="Find_Candidates"></crm-search-display-table>
+</div>

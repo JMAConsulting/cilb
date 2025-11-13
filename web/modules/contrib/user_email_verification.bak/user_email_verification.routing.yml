@@ -1,0 +1,38 @@
+user_email_verification.settings_form:
+  path: '/admin/config/people/user-email-verification'
+  defaults:
+    _form: '\Drupal\user_email_verification\Form\UserEmailVerificationSettingsForm'
+    _title: 'User email verification settings'
+  requirements:
+    _permission: 'manage user email verification settings'
+
+user_email_verification.request:
+  path: '/user/user-email-verification'
+  defaults:
+    _form: '\Drupal\user_email_verification\Form\UserEmailVerificationRequestForm'
+    _title: 'Request new Email verification'
+  requirements:
+    # Needs to be accessed by an anonymous user.
+    _access: 'TRUE'
+
+user_email_verification.verify:
+  path: '/user/user-email-verification/{uid}/{timestamp}/{hashed_pass}'
+  defaults:
+    _title: 'Verify user Email'
+    _controller: '\Drupal\user_email_verification\Controller\UserEmailVerificationVerify::verify'
+  requirements:
+    uid: \d+
+    timestamp: \d+
+    # Needs to be accessed by an anonymous user.
+    _access: 'TRUE'
+
+user_email_verification.verify_extended:
+  path: '/user/user-email-verification-extended/{uid}/{timestamp}/{hashed_pass}'
+  defaults:
+    _title: 'Verify user Email'
+    _controller: '\Drupal\user_email_verification\Controller\UserEmailVerificationVerifyExtended::verify'
+  requirements:
+    uid: \d+
+    timestamp: \d+
+    # Needs to be accessed by an anonymous user.
+    _access: 'TRUE'

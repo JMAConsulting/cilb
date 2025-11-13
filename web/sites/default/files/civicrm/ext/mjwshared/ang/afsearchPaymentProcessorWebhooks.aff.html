@@ -1,0 +1,13 @@
+<div af-fieldset="">
+  <div class="af-container af-layout-inline">
+    <af-field name="status" />
+    <af-field name="payment_processor_id" defn="{input_attrs: {multiple: true}}" />
+    <af-field name="event_id" />
+    <af-field name="identifier" />
+    <af-field name="message" />
+    <af-field name="data" />
+    <af-field name="created_date" defn="{input_type: 'Select', search_range: true, input_attrs: {}}" />
+    <af-field name="processed_date" defn="{input_type: 'Select', search_range: true, input_attrs: {}}" />
+  </div>
+  <crm-search-display-table search-name="Paymentprocessor_Webhook_Search" display-name="Paymentprocessor_Webhook_Search"></crm-search-display-table>
+</div>

@@ -62,7 +62,7 @@ class EntityPrintPluginManagerTest extends KernelTestBase {
   /**
    * Data provider for isPrintEngineEnabled test.
    */
-  public function isPrintEngineEnabledDataProvider() {
+  public static function isPrintEngineEnabledDataProvider() {
     return [
       'Non-existent plugin ID' => ['abc123', FALSE],
       'Empty plugin ID' => ['', FALSE],
@@ -87,7 +87,7 @@ class EntityPrintPluginManagerTest extends KernelTestBase {
   /**
    * Data provider for getDisabledDefinitions test.
    */
-  public function getDisabledDefinitionsDataProvider() {
+  public static function getDisabledDefinitionsDataProvider() {
     return [
       'Filter by pdf' => [
         'pdf',

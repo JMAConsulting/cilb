@@ -1,0 +1,8 @@
+<div af-fieldset="">
+  <div class="af-container af-layout-inline" af-title="Filters">
+    <af-field name="title" />
+    <af-field name="start_date" defn="{input_type: 'Select', search_range: true, input_attrs: {}}" />
+    <af-field name="COUNT_Event_Participant_event_id_01_contact_id" defn="{label: 'Participants', input_attrs: {}, search_range: true}" />
+  </div>
+  <crm-search-display-table search-name="AdvancedEvents_Linked_Events" display-name="Linked_Events" filters="{'Event_EventTemplate_event_id_01.template_id': options.template_id}"></crm-search-display-table>
+</div>

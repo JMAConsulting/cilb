@@ -22,7 +22,7 @@ third_party_settings:
 weight: 0
 open: null
 close: null
-uid: 6
+uid: null
 template: false
 archive: false
 id: register_english
@@ -30,20 +30,6 @@ title: 'Register for a Florida State Construction Examination'
 description: '<p>Register for a Florida State Construction Examination</p>'
 categories: {  }
 elements: |-
-  civicrm_1_contact_1_contact_existing:
-    '#type': civicrm_contact
-    '#title': 'Existing Contact'
-    '#widget': hidden
-    '#none_prompt': '+ Create new +'
-    '#results_display':
-      display_name: display_name
-    '#states_clear': false
-    '#default': user
-    '#allow_create': 1
-    '#contact_type': individual
-    '#form_key': civicrm_1_contact_1_contact_existing
-    '#parent': civicrm_1_contact_1_fieldset_fieldset
-    '#extra': {  }
   user_identification:
     '#type': webform_wizard_page
     '#title': 'User Identification'
@@ -61,7 +47,7 @@ elements: |-
         '#title': 'Candidate Representative'
         '#default_value': '0'
         '#states_clear': 0
-      civicrm_1_contact_1_cg1_custom_7:
+      candidate_representative_name:
         '#type': textfield
         '#title': '<strong>If you are completing this registration on behalf of a candidate, please enter your own full name. </strong>'
         '#counter_type': character
@@ -69,7 +55,6 @@ elements: |-
         '#counter_maximum_message': ' '
         '#data_type': String
         '#nid': register_english
-        '#form_key': civicrm_1_contact_1_cg1_custom_7
         '#extra':
           width: 20
           description: ''
@@ -78,7 +63,7 @@ elements: |-
       user_identification_markup:
         '#type': webform_markup
         '#display_on': both
-        '#markup': '<p><a class="button" id="behalf-of">I am Completing Registration on Behalf of the Candidate</a><br><a class="button" href="https://cilb.jmaconsulting.biz/register-notification" id="return-prev">Return to Previous Page</a><br><a class="button button--secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancel this Registration and Return to the Home Page</a><br>&nbsp;</p>'
+        '#markup': '<p><a class="button btn btn-primary" id="behalf-of">I am Completing Registration on Behalf of the Candidate</a><br><br><a class="button btn btn-primary" href="https://cilb.jmaconsulting.biz/register-notification" id="return-prev">Return to Previous Page</a><br><br><a class="button button--secondary btn btn-secondary" href="https://cilb.jmaconsulting.biz" id="cancel-reg">Cancel this Registration and Return to the Home Page</a><br>&nbsp;</p>'
   registration_info:
     '#type': webform_wizard_page
     '#title': 'Steps for Licensure'
@@ -100,13 +85,42 @@ elements: |-
       registration_info_2:
         '#type': webform_markup
         '#markup': '<p><b style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><strong>Step 3</strong></b><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"> - Apply for the examination through Professional Testing on this website or via </span><a style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 107);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;padding:1px;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;" href="https://www.floridaexam.com/PDFs/exam_instructions.pdf" target="window">Paper Application</a><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">. Please be advised that examination application fees are non-refundable and non-transferable. If you fail to appear for your scheduled examination, you will forfeit your examination fee.</span><br><br><b style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><strong>Step 4</strong></b><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"> – Obtain materials related to the examination such as the </span><a style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 107);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;padding:1px;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;" href="http://www.myfloridalicense.com/DBPR/examination-information/candidate-information-booklets/#1507054722120-16a8fe5a-8cc0" target="window">Candidate Information Brochure</a><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">, </span><a style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 107);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;padding:1px;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;" href="https://www.floridaexam.com/help_popup.aspx?ID=10014" target="window">Reference Lists</a><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">, </span><a style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 107);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;padding:1px;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;" href="https://www.floridaexam.com/help_popup.aspx?ID=10013" target="window">Examination Content Information</a><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">. You may request forms and informational booklets and brochures to be mailed by calling the Department of Business and Professional Regulation Customer Contact Center at 850.487.1395 during normal business operating hours.</span><br><br><b style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><strong>Step 5</strong></b><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"> – Pass all parts of the examination within four years of the first attempt. Your four year examination period begins with your first scheduled examination date. If you fail to appear for your scheduled examination, you will be considered a ''No Show'' and your exam status will be a ''Fail''.</span><br><br><b style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><strong>Step 6</strong></b><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"> – Obtain and complete a State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) application for license. Be sure you meet all the requirements for a license. You will not be granted a license if you do not meet all the qualifications, even if you pass the examination. License application forms and instructions are available online at </span><a style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 107);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;padding:1px;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;" href="http://myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">http://myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml</a><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">. For questions related to a license, you must contact the Department of Business and Professional Regulation Customer Contact Center at 850.487.1395 or email to </span><a style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 107);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;padding:1px;text-align:start;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;" href="mailto:Call.Center@dbpr.state.fl.us">Call.Center@dbpr.state.fl.us</a>.</p>'
+  payment_options:
+    '#type': webform_wizard_page
+    '#title': 'Payment options'
+    payment_options_fs:
+      '#type': fieldset
+      '#title': 'Payment options'
+      please_select_mode_of_payment:
+        '#type': radios
+        '#title': 'Please select mode of payment'
+        '#options':
+          1: 'Pay by card'
+          2: 'Pay by check'
+        '#required': true
   registrant_personal_info:
     '#type': webform_wizard_page
     '#title': 'Candidate Information'
     '#open': true
     candidate_informtaion:
       '#type': fieldset
-      '#title': 'Candidate Informtaion'
+      '#title': 'Candidate Information'
+      civicrm_1_contact_1_contact_existing:
+        '#type': civicrm_contact
+        '#title': 'Existing Contact'
+        '#widget': hidden
+        '#none_prompt': '+ Create new +'
+        '#results_display':
+          display_name: display_name
+        '#states_clear': false
+        '#format_attributes':
+          style: 'display: none;'
+        '#default': user
+        '#allow_create': 1
+        '#contact_type': individual
+        '#form_key': civicrm_1_contact_1_contact_existing
+        '#parent': civicrm_1_contact_1_fieldset_fieldset
+        '#extra': {  }
       personal_info_markup:
         '#type': webform_markup
         '#markup': '<p><span id="lblInstructions">* Under the Federal Privacy Act, disclosure of Social Security numbers is voluntary unless specifically required by Federal statute. In this instance, Social Security numbers are mandatory pursuant to Title 42 United States Code, Sections 653 and 654: and Sections 455.203(9), Florida Statues. Social Security numbers are used to allow efficient screening of applicants and licensees by Title IV‐D child support agency to assure compliance with child support obligations. Social Security numbers must also be recorded on all professional and occupational license applications and will be used for licensee identification pursuant to the Personal Responsibility and Work Opportunity Reconciliation Act of 1996 (Welfare Reform Act), 104 Pub. L. 193, Sec.317</span><br><br><span id="lblInstructions">Enter your legal name as it would appear on a certificate or license. Avoid using all capital letters, use mixed case. (i.e John William Smith)</span></p>'
@@ -177,6 +191,8 @@ elements: |-
         civicrm_1_contact_1_contact_birth_date:
           '#type': date
           '#title': 'Birth Date'
+          '#description': '<p><a class="webform-dialog webform-dialog-normal" href="https://cilb.jmaconsulting.biz/form/request-information-change">Request a Date of Birth Change</a></p>'
+          '#description_display': after
           '#required': true
           '#date_date_max': '0 days'
           '#extra':
@@ -190,15 +206,13 @@ elements: |-
         civicrm_1_contact_1_cg1_custom_5:
           '#type': textfield
           '#title': SSN
+          '#description': '<p><a class="webform-dialog webform-dialog-normal" href="/form/request-information-change">Request a Social Security Number (SSN) Change</a></p>'
+          '#description_display': after
           '#input_mask': 999-99-9999
           '#required': true
           '#counter_type': character
           '#counter_maximum': 255
           '#counter_maximum_message': ' '
-          '#states':
-            readonly:
-              ':input[name="civicrm_1_contact_1_contact_existing"]':
-                filled: true
           '#data_type': String
           '#nid': register_english
           '#form_key': civicrm_1_contact_1_cg1_custom_5
@@ -216,29 +230,14 @@ elements: |-
             invisible:
               ':input[name="civicrm_1_contact_1_contact_existing"]':
                 filled: true
-      request_ssn_change:
-        '#type': webform_markup
-        '#states':
-          invisible:
-            ':input[name="civicrm_1_contact_1_contact_existing"]':
-              empty: true
-        '#markup': '<p><a href="https://cilb.jmaconsulting.biz/form/request-information-change" target="_blank">Request a Social Security Number (SSN) Change</a></p>'
   registrant_contact_info:
     '#type': webform_wizard_page
     '#title': 'Candidate Contact Information'
     '#open': true
-    '#states':
-      invisible:
-        ':input[name="civicrm_1_contact_1_contact_existing"]':
-          filled: true
     '#states_clear': false
     candidate_contact_information:
       '#type': fieldset
       '#title': 'Candidate Contact Information'
-      '#states':
-        invisible:
-          ':input[name="civicrm_1_contact_1_contact_existing"]':
-            filled: true
       '#states_clear': false
       mailing_address:
         '#type': fieldset
@@ -316,12 +315,13 @@ elements: |-
         '#states_clear': false
         civicrm_1_contact_1_email_email:
           '#type': email
+          '#title': Email
+          '#required': true
+          '#states_clear': false
           '#form_key': civicrm_1_contact_1_email_email
           '#extra':
             width: 20
           '#parent': civicrm_1_contact_1_fieldset_fieldset
-          '#title': Email
-          '#required': true
         civicrm_1_contact_1_phone_phone:
           '#type': textfield
           '#title': 'Daytime Phone'
@@ -330,6 +330,7 @@ elements: |-
           '#counter_type': character
           '#counter_maximum': 32
           '#counter_maximum_message': ' '
+          '#states_clear': false
           '#form_key': civicrm_1_contact_1_phone_phone
           '#extra':
             width: 20
@@ -408,46 +409,25 @@ elements: |-
         '#data_type': Boolean
         '#form_key': civicrm_1_contact_1_cg1_custom_4
         '#parent': civicrm_1_contact_1_cg1_fieldset
-        '#default_option': ''
-        '#default_value': ''
-  select_exam_page:
+        '#default_option': '0'
+        '#default_value': '0'
+  candidate_has_degree:
+    '#type': number
+    '#title': 'Candidate has degree'
+    '#readonly': true
+    '#wrapper_attributes':
+      style: 'display: none;'
+  select_category_page:
     '#type': webform_wizard_page
-    '#title': 'Select Examination'
-    '#open': true
-    select_exam:
+    '#title': 'Select Contractor Category'
+    select_category:
       '#type': fieldset
-      '#title': 'Select Examination'
-      category_info:
-        '#type': webform_markup
-        '#markup': '<p>Specialty Contractors must pass the same General category examination of three parts, Contract Administration, Project Management and Business and Finance<br><br>After reviewing the license category information, if you still have questions, you may refer to the <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a> and/or contact the Department of Business and Professional Regulation''s Customer Contact Center at 850.487.1395</p>'
-      select_exam_category:
-        '#type': webform_entity_select
+      '#title': 'Select Contractor Category'
+      select_category_id:
+        '#type': select
         '#title': 'Select contractor category:'
         '#empty_option': '- Select Category -'
         '#required': true
-        '#target_type': civicrm_option_value
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exam_type
-            display_name: entity_reference_1
-            arguments: {  }
-      select_exam_parts:
-        '#type': webform_entity_select
-        '#title': 'Select examination part(s):'
-        '#multiple': true
-        '#required': true
-        '#states':
-          visible:
-            ':input[name="select_exam_category"]':
-              filled: true
-        '#target_type': civicrm_event
-        '#selection_handler': views
-        '#selection_settings':
-          view:
-            view_name: exams
-            display_name: entity_reference_1
-            arguments: {  }
   definition_scope_of_practice:
     '#type': webform_wizard_page
     '#title': 'Scope of Practice'
@@ -459,6 +439,25 @@ elements: |-
       scope_markup:
         '#type': webform_markup
         '#markup': '<p>*</p>'
+  select_exam_page:
+    '#type': webform_wizard_page
+    '#title': 'Select Examination'
+    '#open': true
+    select_exam:
+      '#type': fieldset
+      '#title': 'Select Examination'
+      category_info:
+        '#type': webform_markup
+        '#markup': '<p>Specialty Contractors must pass the same General category examination of three parts, Contract Administration, Project Management and Business and Finance<br><br>After reviewing the license category information, if you still have questions, you may refer to the <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a> and/or contact the Department of Business and Professional Regulation''s Customer Contact Center at 850.487.1395</p>'
+      select_exam_ids:
+        '#type': select
+        '#title': 'Select examination part(s):'
+        '#multiple': true
+        '#select2': true
+        '#required': true
+      location_detail:
+        '#type': webform_markup
+        '#markup': '<h5>Location:</h5><div id="location_detail">&nbsp;</div>'
   exam_fee_page:
     '#type': webform_wizard_page
     '#title': 'Exam Fee'
@@ -467,37 +466,22 @@ elements: |-
     exam_fee:
       '#type': fieldset
       '#title': 'Exam Fee'
+      exam_fee_intro:
+        '#type': webform_markup
+        '#markup': '<p><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">Please be advised that all examination application fees are non-refundable and non-transferable. If you fail to appear for your scheduled examination, you will forfeit your fees.</span></p>'
       exam_fee_markup:
         '#type': webform_markup
         '#display_on': both
         '#markup': '<p>*</p>'
-      exam_fee_intro:
-        '#type': webform_markup
-        '#markup': '<p><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">Please be advised that all examination application fees are non-refundable and non-transferable. If you fail to appear for your scheduled examination, you will forfeit your fees.</span></p>'
-      civicrm_1_participant_1_participant_fee_amount:
-        '#type': civicrm_number
-        '#title': 'Registration Fee'
-        '#readonly': true
-        '#states_clear': false
-        '#default_value': '135'
-        '#data_type': Money
-        '#extra':
-          field_prefix: $
-          point: .
-          separator: ','
-          decimals: 2
-          min: 0
-        '#form_key': civicrm_1_participant_1_participant_fee_amount
-        '#parent': civicrm_1_contact_1_fieldset_fieldset
       civicrm_1_contribution_1_contribution_total_amount:
         '#type': civicrm_number
-        '#title': 'Examination Fee'
+        '#title': 'Total Payable Now'
         '#readonly': true
+        '#required': true
+        '#states_clear': false
         '#default_value': '0'
-        '#states':
-          invisible:
-            ':input[name="civicrm_1_contribution_1_contribution_total_amount"]':
-              value: '0'
+        '#wrapper_attributes':
+          style: 'display: none;'
         '#parent': contribution_pagebreak
         '#data_type': Money
         '#extra':
@@ -516,14 +500,22 @@ elements: |-
       '#title': 'Billing Address'
       '#form_key': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
       '#parent': contribution_pagebreak
+      billing_address_is_different:
+        '#type': checkbox
+        '#title': 'I need to enter a different billing address'
       civicrm_1_contribution_1_contribution_billing_address_first_name:
         '#type': textfield
+        '#title': 'Billing First Name'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
         '#extra':
           width: 60
         '#set': billing_1_number_of_billing
         '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
         '#form_key': civicrm_1_contribution_1_contribution_billing_address_first_name
-        '#title': 'Billing First Name'
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_last_name:
         '#type': textfield
         '#extra':
@@ -532,6 +524,24 @@ elements: |-
         '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
         '#form_key': civicrm_1_contribution_1_contribution_billing_address_last_name
         '#title': 'Billing Last Name'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#required': true
+      civicrm_1_contact_2_email_email:
+        '#type': email
+        '#title': 'Billing Email'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#states_clear': false
+        '#form_key': civicrm_1_contact_2_email_email
+        '#extra':
+          width: 20
+        '#parent': civicrm_1_contact_1_fieldset_fieldset
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_street_address:
         '#type': textfield
         '#extra':
@@ -540,6 +550,11 @@ elements: |-
         '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
         '#form_key': civicrm_1_contribution_1_contribution_billing_address_street_address
         '#title': 'Street Address'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_postal_code:
         '#type': textfield
         '#extra':
@@ -548,6 +563,11 @@ elements: |-
         '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
         '#form_key': civicrm_1_contribution_1_contribution_billing_address_postal_code
         '#title': 'Postal Code'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_city:
         '#type': textfield
         '#extra':
@@ -556,265 +576,14 @@ elements: |-
         '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
         '#form_key': civicrm_1_contribution_1_contribution_billing_address_city
         '#title': City
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#required': true
       civicrm_1_contribution_1_contribution_billing_address_country_id:
         '#type': civicrm_options
-        '#extra':
-          aslist: 1
-          items: |-
-            1001|Afghanistan
-            1241|Åland Islands
-            1002|Albania
-            1003|Algeria
-            1004|American Samoa
-            1005|Andorra
-            1006|Angola
-            1007|Anguilla
-            1008|Antarctica
-            1009|Antigua and Barbuda
-            1010|Argentina
-            1011|Armenia
-            1012|Aruba
-            1013|Australia
-            1014|Austria
-            1015|Azerbaijan
-            1212|Bahamas
-            1016|Bahrain
-            1017|Bangladesh
-            1018|Barbados
-            1019|Belarus
-            1020|Belgium
-            1021|Belize
-            1022|Benin
-            1023|Bermuda
-            1024|Bhutan
-            1025|Bolivia
-            1250|Bonaire, Saint Eustatius and Saba
-            1026|Bosnia and Herzegovina
-            1027|Botswana
-            1028|Bouvet Island
-            1029|Brazil
-            1030|British Indian Ocean Territory
-            1032|Brunei Darussalam
-            1033|Bulgaria
-            1034|Burkina Faso
-            1036|Burundi
-            1037|Cambodia
-            1038|Cameroon
-            1039|Canada
-            1040|Cape Verde
-            1041|Cayman Islands
-            1042|Central African Republic
-            1043|Chad
-            1044|Chile
-            1045|China
-            1046|Christmas Island
-            1047|Cocos (Keeling) Islands
-            1048|Colombia
-            1049|Comoros
-            1051|Congo, Republic of the
-            1050|Congo, The Democratic Republic of the
-            1052|Cook Islands
-            1053|Costa Rica
-            1054|Côte d’Ivoire
-            1055|Croatia
-            1056|Cuba
-            1248|Curaçao
-            1057|Cyprus
-            1058|Czech Republic
-            1059|Denmark
-            1060|Djibouti
-            1061|Dominica
-            1062|Dominican Republic
-            1064|Ecuador
-            1065|Egypt
-            1066|El Salvador
-            1067|Equatorial Guinea
-            1068|Eritrea
-            1069|Estonia
-            1203|Eswatini
-            1070|Ethiopia
-            1072|Falkland Islands (Malvinas)
-            1073|Faroe Islands
-            1074|Fiji
-            1075|Finland
-            1076|France
-            1077|French Guiana
-            1078|French Polynesia
-            1079|French Southern Territories
-            1080|Gabon
-            1213|Gambia
-            1081|Georgia
-            1082|Germany
-            1083|Ghana
-            1084|Gibraltar
-            1085|Greece
-            1086|Greenland
-            1087|Grenada
-            1088|Guadeloupe
-            1089|Guam
-            1090|Guatemala
-            1245|Guernsey
-            1091|Guinea
-            1092|Guinea-Bissau
-            1093|Guyana
-            1094|Haiti
-            1095|Heard Island and McDonald Islands
-            1096|Holy See (Vatican City State)
-            1097|Honduras
-            1098|Hong Kong
-            1099|Hungary
-            1100|Iceland
-            1101|India
-            1102|Indonesia
-            1103|Iran, Islamic Republic of
-            1104|Iraq
-            1105|Ireland
-            1246|Isle of Man
-            1106|Israel
-            1107|Italy
-            1108|Jamaica
-            1109|Japan
-            1244|Jersey
-            1110|Jordan
-            1111|Kazakhstan
-            1112|Kenya
-            1113|Kiribati
-            1114|Korea, Democratic People's Republic of
-            1115|Korea, Republic of
-            1251|Kosovo
-            1116|Kuwait
-            1117|Kyrgyzstan
-            1118|Lao People's Democratic Republic
-            1119|Latvia
-            1120|Lebanon
-            1121|Lesotho
-            1122|Liberia
-            1123|Libya
-            1124|Liechtenstein
-            1125|Lithuania
-            1126|Luxembourg
-            1127|Macao
-            1129|Madagascar
-            1130|Malawi
-            1131|Malaysia
-            1132|Maldives
-            1133|Mali
-            1134|Malta
-            1135|Marshall Islands
-            1136|Martinique
-            1137|Mauritania
-            1138|Mauritius
-            1139|Mayotte
-            1140|Mexico
-            1141|Micronesia, Federated States of
-            1142|Moldova
-            1143|Monaco
-            1144|Mongolia
-            1243|Montenegro
-            1145|Montserrat
-            1146|Morocco
-            1147|Mozambique
-            1035|Myanmar
-            1148|Namibia
-            1149|Nauru
-            1150|Nepal
-            1152|Netherlands
-            1153|New Caledonia
-            1154|New Zealand
-            1155|Nicaragua
-            1156|Niger
-            1157|Nigeria
-            1158|Niue
-            1159|Norfolk Island
-            1128|North Macedonia
-            1160|Northern Mariana Islands
-            1161|Norway
-            1162|Oman
-            1163|Pakistan
-            1164|Palau
-            1165|Palestine, State of
-            1166|Panama
-            1167|Papua New Guinea
-            1168|Paraguay
-            1169|Peru
-            1170|Philippines
-            1171|Pitcairn
-            1172|Poland
-            1173|Portugal
-            1174|Puerto Rico
-            1175|Qatar
-            1179|Reunion
-            1176|Romania
-            1177|Russian Federation
-            1178|Rwanda
-            1252|Saint Barthélemy
-            1180|Saint Helena
-            1181|Saint Kitts and Nevis
-            1182|Saint Lucia
-            1253|Saint Martin (French part)
-            1183|Saint Pierre and Miquelon
-            1184|Saint Vincent and the Grenadines
-            1185|Samoa
-            1186|San Marino
-            1207|Sao Tome and Principe
-            1187|Saudi Arabia
-            1188|Senegal
-            1242|Serbia
-            1189|Seychelles
-            1190|Sierra Leone
-            1191|Singapore
-            1249|Sint Maarten (Dutch Part)
-            1192|Slovakia
-            1193|Slovenia
-            1194|Solomon Islands
-            1195|Somalia
-            1196|South Africa
-            1197|South Georgia and the South Sandwich Islands
-            1247|South Sudan
-            1198|Spain
-            1199|Sri Lanka
-            1200|Sudan
-            1201|Suriname
-            1202|Svalbard and Jan Mayen
-            1204|Sweden
-            1205|Switzerland
-            1206|Syrian Arab Republic
-            1208|Taiwan
-            1209|Tajikistan
-            1210|Tanzania, United Republic of
-            1211|Thailand
-            1063|Timor-Leste
-            1214|Togo
-            1215|Tokelau
-            1216|Tonga
-            1217|Trinidad and Tobago
-            1218|Tunisia
-            1219|Turkey
-            1220|Turkmenistan
-            1221|Turks and Caicos Islands
-            1222|Tuvalu
-            1223|Uganda
-            1224|Ukraine
-            1225|United Arab Emirates
-            1226|United Kingdom
-            1228|United States
-            1227|United States Minor Outlying Islands
-            1229|Uruguay
-            1230|Uzbekistan
-            1231|Vanuatu
-            1232|Venezuela
-            1233|Viet Nam
-            1031|Virgin Islands, British
-            1234|Virgin Islands, U.S.
-            1235|Wallis and Futuna
-            1236|Western Sahara
-            1237|Yemen
-            1239|Zambia
-            1240|Zimbabwe
-        '#default_value': 1228
-        '#set': billing_1_number_of_billing
-        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
-        '#form_key': civicrm_1_contribution_1_contribution_billing_address_country_id
+        '#title': Country
         '#options':
           1001: Afghanistan
           1241: 'Åland Islands'
@@ -1066,23 +835,45 @@ elements: |-
           1237: Yemen
           1239: Zambia
           1240: Zimbabwe
-        '#title': Country
-        '#civicrm_live_options': 1
-      civicrm_1_contribution_1_contribution_billing_address_state_province_id:
-        '#type': civicrm_options
+        '#states':
+          invisible:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#states_clear': false
+        '#default_value': '1228'
         '#extra':
           aslist: 1
+          multiple: 0
+        '#set': billing_1_number_of_billing
+        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+        '#form_key': civicrm_1_contribution_1_contribution_billing_address_country_id
+        '#default_option': ''
+        '#civicrm_live_options': '1'
+        '#required': true
+      civicrm_1_contribution_1_contribution_billing_address_state_province_id:
+        '#type': civicrm_options
+        '#title': State/Province
+        '#empty_option': '- None -'
+        '#civicrm_live_options': 0
+        '#states':
+          invisible:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#states_clear': false
+        '#extra':
+          aslist: 1
+          multiple: 0
         '#data_type': state_province_abbr
         '#set': billing_1_number_of_billing
         '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
-        '#empty_option': '- None -'
         '#form_key': civicrm_1_contribution_1_contribution_billing_address_state_province_id
-        '#title': State/Province
-        '#civicrm_live_options': 0
+        '#default_option': null
+        '#default_value': null
         '#options': {  }
+        '#required': true
     credit_card_auth:
       '#type': checkbox
-      '#title': 'I authorize Professional Testing to process the $80 registration fee to the above credit card.'
+      '#title': 'I authorize Professional Testing to process the registration fee(s) to the credit card I provide during the completion of this application.'
       '#title_display': inline
       '#required': true
     online_exam_auth:
@@ -1111,52 +902,11 @@ elements: |-
     civicrm_1_contribution_1_contribution_is_test:
       '#type': hidden
       '#expose_list': true
-      '#value': '1'
+      '#value': '0'
       '#form_key': civicrm_1_contribution_1_contribution_is_test
       '#extra': {  }
       '#parent': contribution_pagebreak
       '#title': 'Payment Processor Mode'
-    civicrm_1_contribution_1_contribution_payment_processor_id:
-      '#type': civicrm_options
-      '#title': 'Payment Method'
-      '#civicrm_live_options': 0
-      '#options':
-        3: 'Credit Card'
-        0: 'Pay by Check'
-      '#required': true
-      '#default_value': '3'
-      '#exposed_empty_option': 'Pay Later'
-      '#form_key': civicrm_1_contribution_1_contribution_payment_processor_id
-      '#parent': contribution_pagebreak
-      '#default_option': '3'
-  civicrm_1_contact_1_cg1_custom_22:
-    '#nid': register_english
-    '#form_key': civicrm_1_contact_1_cg1_custom_22
-    '#parent': civicrm_1_contact_1_cg1_fieldset
-    '#extra': {  }
-    '#title': ''
-  civicrm_1_contact_1_cg1_custom_23:
-    '#nid': register_english
-    '#form_key': civicrm_1_contact_1_cg1_custom_23
-    '#parent': civicrm_1_contact_1_cg1_fieldset
-    '#extra': {  }
-    '#title': ''
-  civicrm_1_participant_1_participant_event_id:
-    '#type': civicrm_number
-    '#title': 'Event ID'
-    '#readonly': true
-    '#states':
-      visible:
-        ':input[name="select_exam_category"]':
-          filled: true
-    '#states_clear': false
-    '#extra':
-      multiple: 1
-      items: {  }
-      aslist: true
-    '#form_key': civicrm_1_participant_1_participant_event_id
-    '#options': {  }
-    '#parent': civicrm_1_contact_1_fieldset_fieldset
   actions:
     '#type': webform_actions
     '#title': 'Submit button(s)'
@@ -1187,7 +937,7 @@ settings:
   form_prepopulate_source_entity: false
   form_prepopulate_source_entity_required: false
   form_prepopulate_source_entity_type: ''
-  form_unsaved: false
+  form_unsaved: true
   form_disable_back: false
   form_submit_back: false
   form_disable_autocomplete: false
@@ -1196,7 +946,7 @@ settings:
   form_required: false
   form_autofocus: false
   form_details_toggle: false
-  form_reset: false
+  form_reset: true
   form_access_denied: default
   form_access_denied_title: ''
   form_access_denied_message: ''
@@ -1268,7 +1018,7 @@ settings:
   confirmation_type: page
   confirmation_url: ''
   confirmation_title: ''
-  confirmation_message: '<p>Your registration for the Florida State Construction Examination was completed.</p>'
+  confirmation_message: '<p>You have successfully registered for the Florida State Construction Examination. You should receive two email messages. One will contain your receipt for payment. The other will contain a link that allows you to create a password on this web site to see your registration and payment information, including your receipt. Once logged in, you can also request changes to your registration if necessary.</p>'
   confirmation_attributes: {  }
   confirmation_back: true
   confirmation_back_label: ''
@@ -1374,6 +1124,7 @@ handlers:
       civicrm_1_contact_1_contact_privacy: 0
       civicrm_1_contact_1_contact_preferred_language: 0
       civicrm_1_contact_1_contact_communication_style_id: 0
+      civicrm_1_contact_1_contact_image_url: 0
       civicrm_1_contact_1_contact_contact_id: 0
       civicrm_1_contact_1_contact_user_id: 0
       civicrm_1_contact_1_contact_external_identifier: 0
@@ -1384,14 +1135,13 @@ handlers:
       civicrm_1_contact_1_contact_deceased_date: 0
       contact_1_settings_matching_rule: Unsupervised
       contact_1_number_of_cg1: '1'
-      contact_1_settings_dynamic_custom_cg1: 1
+      contact_1_settings_dynamic_custom_cg1: 0
       civicrm_1_contact_1_cg1_custom_5: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_2: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_3: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_4: create_civicrm_webform_element
-      civicrm_1_contact_1_cg1_custom_7: create_civicrm_webform_element
-      civicrm_1_contact_1_cg1_custom_22: create_civicrm_webform_element
-      civicrm_1_contact_1_cg1_custom_23: create_civicrm_webform_element
+      civicrm_1_contact_1_cg1_custom_22: 0
+      civicrm_1_contact_1_cg1_custom_23: 0
       contact_1_number_of_other: '0'
       contact_1_number_of_address: '1'
       civicrm_1_contact_1_address_street_address: create_civicrm_webform_element
@@ -1420,10 +1170,12 @@ handlers:
       civicrm_1_contact_2_phone_phone_ext: 0
       civicrm_1_contact_2_phone_phone_type_id: '1'
       civicrm_1_contact_2_phone_location_type_id: '4'
-      contact_1_number_of_email: '1'
+      contact_1_number_of_email: '2'
       civicrm_1_contact_1_email_email: create_civicrm_webform_element
       civicrm_1_contact_1_email_location_type_id: '3'
       civicrm_1_contact_1_email_is_primary: '1'
+      civicrm_1_contact_2_email_email: create_civicrm_webform_element
+      civicrm_1_contact_2_email_location_type_id: '5'
       contact_1_number_of_website: '0'
       contact_1_number_of_im: '0'
       contact_1_number_of_cg7: '0'
@@ -1432,7 +1184,7 @@ handlers:
       toggle_message: 0
       message: ''
       activity_number_of_activity: '0'
-      participant_reg_type: separate
+      participant_reg_type: '0'
       reg_options:
         event_type:
           any: any
@@ -1448,29 +1200,19 @@ handlers:
         disable_unregister: 0
         allow_url_load: 0
         disable_primary_participant: 0
-      participant_1_number_of_participant: '1'
-      civicrm_1_participant_1_participant_event_id:
-        create_civicrm_webform_element: create_civicrm_webform_element
-      civicrm_1_participant_1_participant_role_id:
-        1: '1'
-      civicrm_1_participant_1_participant_status_id: '0'
-      civicrm_1_participant_1_participant_note: 0
-      civicrm_1_participant_1_participant_fee_amount: create_civicrm_webform_element
-      civicrm_1_participant_1_cg3_custom_6: 0
       membership_1_number_of_membership: '0'
       civicrm_1_contribution_1_contribution_enable_contribution: '1'
       civicrm_1_contribution_1_contribution_contact_id: '1'
       civicrm_1_contribution_1_contribution_total_amount: create_civicrm_webform_element
-      civicrm_1_contribution_1_contribution_payment_processor_id: create_civicrm_webform_element
-      civicrm_1_contribution_1_contribution_is_test: '1'
+      civicrm_1_contribution_1_contribution_payment_processor_id: '4'
+      civicrm_1_contribution_1_contribution_is_test: '0'
       civicrm_1_contribution_1_contribution_note: 0
-      civicrm_1_contribution_1_contribution_soft:
-        '': ''
-      civicrm_1_contribution_1_contribution_honor_contact_id: 0
-      civicrm_1_contribution_1_contribution_honor_type_id: '1'
       civicrm_1_contribution_1_contribution_source: 0
       civicrm_1_contribution_1_contribution_financial_type_id: '4'
       contribution_1_settings_currency: USD
+      civicrm_1_contribution_1_contribution_soft:
+        '': ''
+      civicrm_1_contribution_1_contribution_soft_credit_type_id: 0
       civicrm_1_contribution_1_contribution_frequency_unit: '0'
       civicrm_1_contribution_1_contribution_installments: 0
       civicrm_1_contribution_1_contribution_frequency_interval: 0
@@ -1510,11 +1252,11 @@ handlers:
                 webform_label: 'Contact 1'
             matching_rule: Unsupervised
             number_of_cg1: '1'
-            dynamic_custom_cg1: 1
+            dynamic_custom_cg1: 0
             number_of_other: '0'
             number_of_address: '1'
             number_of_phone: '2'
-            number_of_email: '1'
+            number_of_email: '2'
             number_of_website: '0'
             number_of_im: '0'
             number_of_cg7: '0'
@@ -1534,15 +1276,10 @@ handlers:
               1:
                 location_type_id: '3'
                 is_primary: '1'
+              2:
+                location_type_id: '5'
         activity:
           number_of_activity: '0'
-        participant:
-          1:
-            number_of_participant: '1'
-            participant:
-              1:
-                role_id:
-                  1: '1'
         membership:
           1:
             number_of_membership: '0'
@@ -1553,9 +1290,8 @@ handlers:
               1:
                 enable_contribution: '1'
                 contact_id: '1'
-                payment_processor_id: ''
-                is_test: '1'
-                honor_type_id: '1'
+                payment_processor_id: 4
+                is_test: '0'
                 financial_type_id: '4'
         billing:
           number_number_of_billing: '1'
@@ -1569,7 +1305,7 @@ handlers:
           number_number_of_receipt_bcc_receipt: ''
           number_number_of_receipt_pay_later_receipt: 'Mail your check to [] within [].'
           number_number_of_receipt_receipt_text: ''
-        participant_reg_type: separate
+        participant_reg_type: '0'
         reg_options:
           event_type:
             any: any

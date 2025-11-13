@@ -1,5 +1,6 @@
 {
     "name": "civicrm/mjwshared",
+    "type": "civicrm-ext",
     "description": "Extension containing shared code used by payment processors and other extensions by MJW"
 }
 

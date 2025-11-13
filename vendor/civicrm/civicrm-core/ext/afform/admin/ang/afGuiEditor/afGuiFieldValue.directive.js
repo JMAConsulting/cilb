@@ -6,30 +6,59 @@
   angular.module('afGuiEditor').directive('afGuiFieldValue', function(afGui) {
     return {
       bindToController: {
+        op: '<?',
         field: '<afGuiFieldValue'
       },
       require: {
         ngModel: 'ngModel',
         editor: '?^^afGuiEditor'
       },
+      link: {
+        post: function ngOptionsPreLink(scope, element, attr, ctrls) {
+
+          // Formatter for ngModel to convert value to a string for select2
+          // AngularJS provides its own formatter (`stringBasedInputType`) which simply casts the value to a string
+          // Formatters are applied in reverse-order so using postLink ensures this one comes last in the array & gets applied first
+          function formatViewValue(value) {
+            if (Array.isArray(value)) {
+              return value.join("\u0001");
+            }
+            if (typeof value === 'boolean') {
+              return value ? '1' : '0';
+            }
+            return '' + value;
+          }
+          ctrls.ngModel.$formatters.push(formatViewValue);
+        }
+      },
       controller: function ($element, $timeout) {
         var ts = CRM.ts('org.civicrm.afform_admin'),
           ctrl = this,
+          dataType,
           multi;
 
         function makeWidget(field) {
           var options,
             filters,
             $el = $($element),
-            inputType = field.input_type,
-            dataType = field.data_type;
-          multi = field.serialize || dataType === 'Array';
+            inputType = field.input_type;
+
+          getDataType();
+
+          // Decide whether the input should be multivalued
+          if (ctrl.op) {
+            multi = ['IN', 'NOT IN'].includes(ctrl.op);
+          } else if (inputType && dataType !== 'Boolean') {
+            multi = (inputType === 'CheckBox' || (field.input_attrs && field.input_attrs.multiple));
+            // Hidden fields are multi-select if the original input type is.
+            if (inputType === 'Hidden' || inputType === 'DisplayOnly') {
+              multi = _.contains(['CheckBox', 'Radio', 'Select'], field.original_input_type);
+            }
+          } else {
+            multi = field.serialize || dataType === 'Array';
+          }
           $el.crmAutocomplete('destroy').crmDatepicker('destroy');
           // Allow input_type to override dataType
-          if (inputType) {
-            multi = (dataType !== 'Boolean' &&
-              (inputType === 'CheckBox' || (field.input_attrs && field.input_attrs.multiple)));
-          }
           if (inputType === 'Date') {
             $el.crmDatepicker({time: (field.input_attrs && field.input_attrs.time) || false});
           }
@@ -66,7 +95,7 @@
               }, []);
               $el.select2({data: options, multiple: multi, separator: '\u0001'});
             } else if (dataType === 'Boolean') {
-              $el.attr('placeholder', ts('- select -')).crmSelect2({allowClear: false, multiple: multi, separator: '\u0001', placeholder: ts('- select -'), data: [
+              $el.attr('placeholder', ts('- select -')).crmSelect2({allowClear: false, separator: '\u0001', placeholder: ts('- select -'), data: [
                   {id: '1', text: ts('Yes')},
                   {id: '0', text: ts('No')}
                 ]});
@@ -80,6 +109,31 @@
           return $element.is('.select2-container + input');
         }
 
+        function getDataType() {
+          if (ctrl.field) {
+            dataType = ctrl.field.data_type;
+          }
+          else {
+            dataType = null;
+          }
+        }
+
+        function convertDataType(val) {
+          // A regex is always a string
+          if (ctrl.op && ctrl.op.includes('REGEXP')) {
+            dataType = 'String';
+          }
+          else if (dataType === 'Integer' || dataType === 'Float') {
+            let newVal = Number(val);
+            // FK Entities can use a mix of numeric & string values (see `"static": options` above)
+            if (ctrl.field.fk_entity && ('' + newVal) !== val) {
+              return val;
+            }
+            return newVal;
+          }
+          return val;
+        }
+
         // Copied from ng-list but applied conditionally if field is multi-valued
         var parseFieldInput = function(viewValue) {
           // If the viewValue is invalid (say required but empty) it will be `undefined`
@@ -90,34 +144,24 @@
           }
 
           if (!multi || !isSelect2()) {
-            return viewValue;
+            return convertDataType(viewValue);
           }
 
           var list = [];
 
           if (viewValue) {
             _.each(viewValue.split("\u0001"), function(value) {
-              if (value) list.push(_.trim(value));
+              list.push(convertDataType(value));
             });
           }
 
           return list;
         };
 
-        var formatViewValue = function(value) {
-          if (Array.isArray(value)) {
-            return value.join(',');
-          }
-          if (typeof value === 'boolean') {
-            return value ? '1' : '0';
-          }
-          return value;
-        };
-
         this.$onInit = function() {
+          getDataType();
           // Copied from ng-list
           ctrl.ngModel.$parsers.push(parseFieldInput);
-          ctrl.ngModel.$formatters.push(formatViewValue);
 
           // Copied from ng-list
           ctrl.ngModel.$isEmpty = function(value) {

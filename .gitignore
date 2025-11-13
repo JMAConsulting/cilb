@@ -29,6 +29,7 @@ web/sites/default/files/civicrm/*
 !web/sites/default/files/civicrm/ext
 web/sites/*/private
 private/
+backup/
 
 # Ignore SimpleTest multi-site environment.
 sites/simpletest

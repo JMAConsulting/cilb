@@ -9,6 +9,7 @@ dependencies:
     - comment
     - contact
     - filter
+    - media
     - search
     - system
 _core:
@@ -34,3 +35,5 @@ permissions:
   - 'use text format restricted_html'
   - 'view event info'
   - 'view event participants'
+  - 'view media'
+  - 'view public CiviMail content'

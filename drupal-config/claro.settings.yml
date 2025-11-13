@@ -1,3 +1,13 @@
+favicon:
+  use_default: true
+features:
+  comment_user_picture: false
+  comment_user_verification: false
+  favicon: false
+  node_user_picture: false
+logo:
+  path: 'public://logo_0.gif'
+  use_default: false
 third_party_settings:
   shortcut:
     module_link: true

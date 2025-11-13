@@ -65,8 +65,8 @@ Your payment processor will have a subclass of `CRM_Core_Payment` with all its s
 
 5. Create a suitable http response. Typically a blank response with a suitable `http_response_code()`.
 
- ```php
- <?php
+```php
+<?php
 public function handlePaymentNotification() {
 
   try {
@@ -167,6 +167,7 @@ intention is to support `Ipn` API for any supported processor.
 
 This is the paymentprocessor function that receives the webhook:
 ```php
+<?php
   public function handlePaymentNotification() {
     $rawData = file_get_contents("php://input");
     $ipnClass = new CRM_Core_Payment_StripeIPN($rawData);
@@ -177,7 +178,8 @@ This is the paymentprocessor function that receives the webhook:
 ```
 
 This is the paymentprocessor function that is used to manually process a webhook and is called from API3 `Stripe.Ipn`:
-```
+```php
+<?php
   public static function processPaymentNotification($paymentProcessorID, $rawData, $verifyRequest = TRUE, $emailReceipt = NULL) {
     $_GET['processor_id'] = $paymentProcessorID;
     $ipnClass = new CRM_Core_Payment_StripeIPN($rawData, $verifyRequest);
@@ -195,6 +197,7 @@ In your IPN code instead of using a `main()` method create two functions:
 * `processWebhook()`: This is the method that actually processes the webhook and may be called immediately or via the scheduled job.
 
 ```php
+<?php
   /**
    * Get a unique identifier string based on webhook data.
    *
@@ -269,7 +272,7 @@ In your IPN code instead of using a `main()` method create two functions:
    * Process the given webhook
    *
    * @return bool
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function processWebhook() {

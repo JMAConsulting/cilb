@@ -1,0 +1,9 @@
+services:
+  user_email_verification.service:
+    class: Drupal\user_email_verification\UserEmailVerification
+    arguments: ['@entity_type.manager', '@database', '@config.factory', '@datetime.time', '@queue', '@plugin.manager.mail', '@token', '@current_user', '@language_manager', '@event_dispatcher']
+  cache_context.user_email_verification_needed:
+    class: Drupal\user_email_verification\Cache\Context\UserEmailVerificationNeeded
+    arguments: ['@user_email_verification.service', '@current_user']
+    tags:
+      - { name: cache.context }

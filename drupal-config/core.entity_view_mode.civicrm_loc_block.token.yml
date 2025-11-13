@@ -1,0 +1,11 @@
+uuid: 26214ad2-40c2-4a5c-8a65-9aac9ecc1e44
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_loc_block.token
+label: Token
+description: ''
+targetEntityType: civicrm_loc_block
+cache: true

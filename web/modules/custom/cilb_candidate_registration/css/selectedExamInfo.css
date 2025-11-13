@@ -1,0 +1,36 @@
+.loader {
+    margin: auto;
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 10rem;
+    height: 10rem;
+    animation: spin 2s linear infinite;
+  }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+.candidate-fee-table .candidate-fee-title {
+    text-align: left;
+}
+.candidate-fee-table .candidate-fee-amount {
+    text-align: right;
+}
+.candidate-fee-table .candidate-fee-payable {
+    text-align: center;
+}
+.candidate-fee-table .total-fee .candidate-fee-title {
+    font-weight: bold;
+}
+.candidate-fee-table .total-payable-now .candidate-fee-title {
+    font-weight: bold;
+    font-style: italic;
+}
+
+.select2-container--default .select2-results__option[aria-disabled=true] {
+    display: none;
+}

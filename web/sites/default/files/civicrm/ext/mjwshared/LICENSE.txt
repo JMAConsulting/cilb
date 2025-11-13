@@ -1,5 +1,5 @@
 Package: mjwshared
-Copyright (C) 2024, Matthew Wire (MJW Consulting) <mjw@mjwconsult.co.uk>
+Copyright (C) 2025, Matthew Wire (MJW Consulting) <mjw@mjwconsult.co.uk>
 Licensed under the GNU Affero Public License 3.0 (below).
 
 -------------------------------------------------------------------------------

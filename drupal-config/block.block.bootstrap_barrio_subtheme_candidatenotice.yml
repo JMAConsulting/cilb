@@ -1,0 +1,30 @@
+uuid: 9406b4f8-2e77-49ae-a0da-fff58a31b0f9
+langcode: en
+status: true
+dependencies:
+  content:
+    - 'block_content:registration_notification:c66882a9-b12f-488f-b122-67c1443cca27'
+  module:
+    - block_content
+    - system
+  theme:
+    - bootstrap_barrio_subtheme
+id: bootstrap_barrio_subtheme_candidatenotice
+theme: bootstrap_barrio_subtheme
+region: content
+weight: 0
+provider: null
+plugin: 'block_content:c66882a9-b12f-488f-b122-67c1443cca27'
+settings:
+  id: 'block_content:c66882a9-b12f-488f-b122-67c1443cca27'
+  label: 'Candidate Notice:'
+  label_display: '0'
+  provider: block_content
+  status: true
+  info: ''
+  view_mode: full
+visibility:
+  request_path:
+    id: request_path
+    negate: false
+    pages: /register-notification

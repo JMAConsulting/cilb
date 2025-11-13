@@ -1,0 +1,11 @@
+uuid: d677eae5-d915-4886-9737-f2b80a3f938e
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_pledge.token
+label: Token
+description: ''
+targetEntityType: civicrm_pledge
+cache: true

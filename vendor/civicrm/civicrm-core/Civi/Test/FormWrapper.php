@@ -240,6 +240,7 @@ class FormWrapper {
     $this->form = new $class();
     $_SERVER['REQUEST_METHOD'] = 'GET';
     $_REQUEST = array_merge($_REQUEST, $urlParameters);
+    $_GET = array_merge($_GET, $urlParameters);
     switch ($class) {
       case 'CRM_Event_Cart_Form_Checkout_Payment':
       case 'CRM_Event_Cart_Form_Checkout_ParticipantsAndPrices':
@@ -356,14 +357,14 @@ class FormWrapper {
         $this->form->setAction(\CRM_Core_Action::BASIC);
         break;
 
-      case strpos($class, 'Search') !== FALSE:
+      case str_contains($class, 'Search'):
         $this->form->controller = new \CRM_Contact_Controller_Search();
         if ($class === 'CRM_Contact_Form_Search_Basic') {
           $this->form->setAction(\CRM_Core_Action::BASIC);
         }
         break;
 
-      case strpos($class, '_Form_') !== FALSE:
+      case str_contains($class, '_Form_'):
         $this->form->controller = new \CRM_Core_Controller_Simple($class, $this->form->getName());
         break;
 
@@ -432,8 +433,18 @@ class FormWrapper {
    * @throws \CRM_Core_Exception
    */
   public function checkTemplateVariable(string $name, $value): void {
+    $actual = $this->templateVariables[$name];
     if ($this->templateVariables[$name] !== $value) {
-      throw new \CRM_Core_Exception("Template variable $name not set to " . print_r($value, TRUE) . ' actual value: ' . print_r($this->templateVariables[$name], TRUE));
+      $differences = [];
+      if (is_array($value)) {
+        foreach ($value as $key => $expectedItem) {
+          $actualItem = $this->templateVariables[$name][$key];
+          if ($expectedItem !== $actualItem) {
+            $differences[] = $key;
+          }
+        }
+      }
+      throw new \CRM_Core_Exception("Template variable $name expected " . print_r($value, TRUE) . ' actual value: ' . print_r($this->templateVariables[$name], TRUE) . ($differences ? 'differences in ' . implode(',', $differences) : ''));
     }
   }
 

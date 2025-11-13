@@ -1,7 +1,7 @@
 _core:
   default_config_hash: Y6N99PUFkBRgLVuhmXA_GaMNQgM4AacxEwZjw5x07Ss
-filter_format: ''
+filter_format: plain_text
 enabled_entity_types: {  }
-disable_hooks: false
-disable_links: false
+disable_hooks: true
 enable_links_per_type: {  }
+disable_links: false

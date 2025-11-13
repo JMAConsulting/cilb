@@ -22,13 +22,8 @@ use Civi\Api4\Utils\FormattingUtil;
  * * negated: ['NOT', $node]
  * * branch: ['OR|NOT', [$node, $node, ...]]
  *
- * Leaf operators are one of:
- *
- * * '=', '<=', '>=', '>', '<', 'LIKE', "<>", "!=",
- * * 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN',
- * * 'IS NOT NULL', 'IS NULL', 'CONTAINS', 'NOT CONTAINS',
- * * 'IS EMPTY', 'IS NOT EMPTY', 'REGEXP', 'NOT REGEXP'
- * * 'REGEXP BINARY', 'NOT REGEXP BINARY'
+ * For leaf operators,
+ * @see CoreUtil::getOperators()
  */
 abstract class Api4Query {
 
@@ -211,6 +206,54 @@ abstract class Api4Query {
         return 'NOT (' . $this->treeWalkClauses($clause[1], $type, $depth + 1) . ')';
 
       default:
+        if ($clause[1] === 'CONTAINS' || $clause[1] === 'NOT CONTAINS' || $clause[1] === 'CONTAINS ONE OF' || $clause[1] === 'NOT CONTAINS ONE OF') {
+          if ($clause[1] === 'CONTAINS ONE OF') {
+            $clause[1] = 'CONTAINS';
+            $binding = ' OR ';
+          }
+          elseif ($clause[1] === 'NOT CONTAINS ONE OF') {
+            $clause[1] = 'NOT CONTAINS';
+            $binding = ' OR ';
+          }
+          else {
+            $binding = ' AND ';
+          }
+
+          if (is_array($clause[2])) {
+            // Not should be applied to the entire clause instead of each piece
+            $not = '';
+            if (str_starts_with($clause[1], 'NOT')) {
+              $not = 'NOT';
+              $clause[1] = substr($clause[1], 4);
+            }
+            $queryString = '';
+
+            foreach ($clause[2] as $value) {
+              $subclauses = $clause;
+              // Strings must be quoted in ON clause
+              if ($type === 'ON' && is_string($value)) {
+                $value = "'$value'";
+              }
+
+              $subclauses[2] = $value;
+
+              if ($queryString !== '') {
+                $queryString .= $binding;
+              }
+
+              try {
+                $queryString .= $this->composeClause($subclauses, $type, $depth);
+              }
+              // Silently ignore fields the user lacks permission to see
+              catch (UnauthorizedException $e) {
+                return '';
+              }
+            }
+
+            return "$not($queryString)";
+          }
+        }
+
         try {
           return $this->composeClause($clause, $type, $depth);
         }
@@ -286,6 +329,20 @@ abstract class Api4Query {
           }
         }
       }
+      // Format a function in the HAVING clause
+      if (isset($fieldAlias) && !isset($field)) {
+        try {
+          $expr = $this->getExpression($this->selectAliases[$fieldAlias], ['SqlFunction']);
+          $fauxField = [
+            'name' => NULL,
+            'data_type' => $expr->getRenderedDataType($this->apiFieldSpec),
+          ];
+          FormattingUtil::formatInputValue($value, NULL, $fauxField, $this->entityValues, $operator);
+        }
+        catch (\CRM_Core_Exception $e) {
+          // Not a function
+        }
+      }
       if (!isset($fieldAlias)) {
         if (in_array($expr, $this->getSelect())) {
           throw new UnauthorizedException("Unauthorized field '$expr'");
@@ -295,6 +352,7 @@ abstract class Api4Query {
         }
       }
       $fieldAlias = '`' . $fieldAlias . '`';
+      // Comparing two fields in the HAVING clause
       if ($isExpression) {
         $targetField = isset($this->selectAliases[$value]) ? $value : array_search($value, $this->selectAliases);
         if (!$targetField) {

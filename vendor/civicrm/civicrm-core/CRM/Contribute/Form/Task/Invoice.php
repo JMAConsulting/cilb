@@ -131,6 +131,13 @@ class CRM_Contribute_Form_Task_Invoice extends CRM_Contribute_Form_Task {
     }
   }
 
+  protected function getFieldsToExcludeFromPurification(): array {
+    return [
+      // Because value contains <angle brackets>
+      'from_email_address',
+    ];
+  }
+
   /**
    * Build the form object.
    */
@@ -597,8 +604,7 @@ class CRM_Contribute_Form_Task_Invoice extends CRM_Contribute_Form_Task {
    *
    */
   public static function addActivities($subject, $contactIds, $fileName, $params, $contributionId = NULL) {
-    $session = CRM_Core_Session::singleton();
-    $userID = $session->get('userID');
+    $sourceContactId = \CRM_Core_Session::getLoggedInContactID() ?: 1;
     $config = CRM_Core_Config::singleton();
     $config->doNotAttachPDFReceipt = 1;
 
@@ -611,7 +617,7 @@ class CRM_Contribute_Form_Task_Invoice extends CRM_Contribute_Form_Task {
 
     $activityParams = [
       'subject' => $subject,
-      'source_contact_id' => $userID,
+      'source_contact_id' => $sourceContactId,
       'target_contact_id' => $contactIds,
       'activity_type_id' => $activityType,
       'activity_date_time' => date('YmdHis'),

@@ -1,0 +1,1303 @@
+uuid: e46e4395-5bab-4cde-ab37-4400ab00be84
+langcode: en
+status: open
+dependencies:
+  module:
+    - cilb_candidate_registration
+    - cilb_chargeback_links
+    - webform_authorizenet
+    - webform_civicrm
+    - webform_entity_print
+third_party_settings:
+  webform_entity_print:
+    template:
+      header: ''
+      footer: ''
+      css: ''
+    export_types:
+      pdf:
+        enabled: true
+        link_text: ''
+        link_attributes: {  }
+weight: 0
+open: null
+close: null
+uid: 136
+template: false
+archive: false
+id: backoffice_registration
+title: 'Backoffice Exam Registration'
+description: '<p>Register for a Florida State Construction Examination</p>'
+categories: {  }
+elements: |-
+  registrant_personal_info:
+    '#type': webform_wizard_page
+    '#title': 'Candidate Information'
+    '#open': true
+    candidate_informtaion:
+      '#type': fieldset
+      '#title': 'Candidate Information'
+      civicrm_1_contact_1_contact_existing:
+        '#type': civicrm_contact
+        '#title': 'Existing Contact'
+        '#description': '<p>Start typing to find the contact</p>'
+        '#widget': autocomplete
+        '#search_prompt': '- Choose existing -'
+        '#none_prompt': '+ Create new +'
+        '#show_hidden_contact': 1
+        '#results_display':
+          display_name: display_name
+        '#states_clear': false
+        '#format_attributes':
+          style: 'display: none;'
+        '#allow_create': 1
+        '#contact_type': individual
+        '#form_key': civicrm_1_contact_1_contact_existing
+        '#parent': civicrm_1_contact_1_fieldset_fieldset
+        '#extra': {  }
+      flexbox:
+        '#type': webform_flexbox
+        civicrm_1_contact_1_contact_first_name:
+          '#type': textfield
+          '#title': 'First Name'
+          '#required': true
+          '#counter_type': character
+          '#counter_maximum': 64
+          '#counter_maximum_message': ' '
+          '#flex': 2
+          '#contact_type': individual
+          '#form_key': civicrm_1_contact_1_contact_first_name
+          '#extra':
+            width: 20
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+        civicrm_1_contact_1_contact_middle_name:
+          '#type': textfield
+          '#title': 'Middle Name'
+          '#counter_type': character
+          '#counter_maximum': 64
+          '#counter_maximum_message': ' '
+          '#flex': 2
+          '#contact_type': individual
+          '#form_key': civicrm_1_contact_1_contact_middle_name
+          '#extra':
+            width: 20
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+        civicrm_1_contact_1_contact_last_name:
+          '#type': textfield
+          '#title': 'Last Name'
+          '#required': true
+          '#counter_type': character
+          '#counter_maximum': 64
+          '#counter_maximum_message': ' '
+          '#flex': 2
+          '#contact_type': individual
+          '#form_key': civicrm_1_contact_1_contact_last_name
+          '#extra':
+            width: 20
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+      flexbox_03:
+        '#type': webform_flexbox
+        civicrm_1_contact_1_contact_suffix_id:
+          '#type': civicrm_options
+          '#title': 'Name Suffix'
+          '#empty_option': '- Select -'
+          '#civicrm_live_options': 0
+          '#options':
+            1: Jr.
+            2: Sr.
+            3: II
+            4: III
+            5: IV
+            6: V
+            7: VI
+            8: VII
+          '#extra':
+            aslist: 1
+            multiple: 0
+          '#contact_type': individual
+          '#form_key': civicrm_1_contact_1_contact_suffix_id
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+          '#default_option': ''
+          '#default_value': ''
+        civicrm_1_contact_1_contact_birth_date:
+          '#type': date
+          '#title': 'Birth Date'
+          '#description_display': after
+          '#required': true
+          '#date_date_max': '0 days'
+          '#extra':
+            start_date: '-100 years'
+            end_date: now
+          '#contact_type': individual
+          '#form_key': civicrm_1_contact_1_contact_birth_date
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+      flexbox_01:
+        '#type': webform_flexbox
+        civicrm_1_contact_1_cg1_custom_5:
+          '#type': textfield
+          '#title': SSN
+          '#description_display': after
+          '#input_mask': 999-99-9999
+          '#required': true
+          '#counter_type': character
+          '#counter_maximum': 255
+          '#counter_maximum_message': ' '
+          '#data_type': String
+          '#nid': register_english
+          '#form_key': civicrm_1_contact_1_cg1_custom_5
+          '#extra':
+            width: 20
+            description: ''
+            description_above: null
+          '#parent': civicrm_1_contact_1_cg1_fieldset
+        verify_ssn:
+          '#type': textfield
+          '#title': 'Verify SSN'
+          '#input_mask': 999-99-9999
+          '#required': true
+          '#states':
+            visible:
+              ':input[name="civicrm_1_contact_1_contact_existing"]':
+                value:
+                  pattern: \D
+    candidate_contact_information:
+      '#type': fieldset
+      '#title': 'Candidate Contact Information'
+      '#states_clear': false
+      mailing_address:
+        '#type': fieldset
+        '#title': 'Mailing Address'
+        '#open': true
+        civicrm_1_contact_1_address_street_address:
+          '#type': textfield
+          '#title': 'Street Address'
+          '#counter_type': character
+          '#counter_maximum': 96
+          '#counter_maximum_message': ' '
+          '#states':
+            required:
+              - ':input[name="civicrm_1_contact_1_address_city"]':
+                  filled: true
+              - or
+              - ':input[name="civicrm_1_contact_1_address_state_province_id"]':
+                  filled: true
+              - or
+              - ':input[name="civicrm_1_contact_1_address_postal_code"]':
+                  filled: true
+          '#extra':
+            width: 60
+          '#form_key': civicrm_1_contact_1_address_street_address
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+        civicrm_1_contact_1_address_supplemental_address_1:
+          '#type': textfield
+          '#counter_type': character
+          '#counter_maximum': 96
+          '#counter_maximum_message': ' '
+          '#extra':
+            width: 60
+          '#form_key': civicrm_1_contact_1_address_supplemental_address_1
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+          '#title': 'Street Address Line 2'
+        flexbox_02:
+          '#type': webform_flexbox
+          civicrm_1_contact_1_address_city:
+            '#type': textfield
+            '#title': City
+            '#counter_type': character
+            '#counter_maximum': 64
+            '#counter_maximum_message': ' '
+            '#states':
+              required:
+                - ':input[name="civicrm_1_contact_1_address_street_address"]':
+                    filled: true
+                - or
+                - ':input[name="civicrm_1_contact_1_address_state_province_id"]':
+                    filled: true
+                - or
+                - ':input[name="civicrm_1_contact_1_address_postal_code"]':
+                    filled: true
+            '#extra':
+              width: 20
+            '#form_key': civicrm_1_contact_1_address_city
+            '#parent': civicrm_1_contact_1_fieldset_fieldset
+          civicrm_1_contact_1_address_state_province_id:
+            '#type': civicrm_options
+            '#title': State
+            '#empty_option': '- None -'
+            '#civicrm_live_options': 0
+            '#states':
+              required:
+                - ':input[name="civicrm_1_contact_1_address_city"]':
+                    filled: true
+                - or
+                - ':input[name="civicrm_1_contact_1_address_street_address"]':
+                    filled: true
+                - or
+                - ':input[name="civicrm_1_contact_1_address_postal_code"]':
+                    filled: true
+            '#extra':
+              aslist: 1
+              multiple: 0
+            '#data_type': state_province_abbr
+            '#form_key': civicrm_1_contact_1_address_state_province_id
+            '#parent': civicrm_1_contact_1_fieldset_fieldset
+            '#default_option': null
+            '#default_value': null
+            '#options': {  }
+        civicrm_1_contact_1_address_postal_code:
+          '#type': textfield
+          '#title': 'Zip Code'
+          '#input_mask': '99999[-9999]'
+          '#counter_type': character
+          '#counter_maximum': 64
+          '#counter_maximum_message': ' '
+          '#states':
+            required:
+              - ':input[name="civicrm_1_contact_1_address_city"]':
+                  filled: true
+              - or
+              - ':input[name="civicrm_1_contact_1_address_state_province_id"]':
+                  filled: true
+              - or
+              - ':input[name="civicrm_1_contact_1_address_street_address"]':
+                  filled: true
+          '#extra':
+            width: 7
+          '#form_key': civicrm_1_contact_1_address_postal_code
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+      phones:
+        '#type': webform_section
+        '#title': Section
+        '#title_display': invisible
+        '#states_clear': false
+        civicrm_1_contact_1_email_email:
+          '#type': email
+          '#title': Email
+          '#required': true
+          '#states_clear': false
+          '#form_key': civicrm_1_contact_1_email_email
+          '#extra':
+            width: 20
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+        civicrm_1_contact_1_phone_phone:
+          '#type': textfield
+          '#title': 'Daytime Phone'
+          '#input_mask': '(999) 999-9999'
+          '#counter_type': character
+          '#counter_maximum': 32
+          '#counter_maximum_message': ' '
+          '#states_clear': false
+          '#form_key': civicrm_1_contact_1_phone_phone
+          '#extra':
+            width: 20
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+        civicrm_1_contact_2_phone_phone:
+          '#type': textfield
+          '#title': 'Secondary Phone'
+          '#input_mask': '(999) 999-9999'
+          '#counter_type': character
+          '#counter_maximum': 32
+          '#counter_maximum_message': ' '
+          '#form_key': civicrm_1_contact_2_phone_phone
+          '#extra':
+            width: 20
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+  exam_information:
+    '#type': webform_wizard_page
+    '#title': 'Exam Information'
+    additional_registrant_information:
+      '#type': fieldset
+      '#title': 'Additional Registrant Information'
+      exam_language_preference:
+        '#type': fieldset
+        '#title': 'Exam Language Preference'
+        '#required': true
+        civicrm_1_contact_1_cg1_custom_3:
+          '#type': civicrm_options
+          '#title': 'Select if the candidate would prefer an English or Spanish Exam'
+          '#description': '<p><label style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;" for="chkSpanish">INDIQUE AQUÍ SI DESEA TOMAR EL EXAMEN EN ESPAÑOL</label></p>'
+          '#description_display': before
+          '#empty_option': '- Select -'
+          '#options':
+            1: English
+            2: Español
+          '#required': true
+          '#extra':
+            aslist: 1
+            multiple: 0
+          '#data_type': String
+          '#form_key': civicrm_1_contact_1_cg1_custom_3
+          '#parent': civicrm_1_contact_1_cg1_fieldset
+          '#default_option': ''
+          '#default_value': ''
+          '#civicrm_live_options': '1'
+      civicrm_1_contact_1_cg1_custom_2:
+        '#type': civicrm_options
+        '#title': 'Degree in Building Construction'
+        '#description': '<p><strong>Has the candidate received a baccalaureate degree in building construction from an accredited 4-year college and obtained a GPA of 3.0 or higher?</strong></p>'
+        '#description_display': before
+        '#civicrm_live_options': 0
+        '#options':
+          1: 'Yes'
+          0: 'No'
+        '#required': true
+        '#wrapper_attributes':
+          class:
+            - 'container-inline clearfix'
+        '#data_type': Boolean
+        '#form_key': civicrm_1_contact_1_cg1_custom_2
+        '#parent': civicrm_1_contact_1_cg1_fieldset
+        '#default_option': ''
+        '#default_value': ''
+      civicrm_1_contact_1_cg1_custom_4:
+        '#type': civicrm_options
+        '#title': 'ADA Accommodation'
+        '#description': '<p><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;"><strong>I qualify for special accommodations according to the Americans with Disabilities Act.&nbsp;</strong></span></p><p><span style="-webkit-text-stroke-width:0px;background-color:rgb(255, 255, 255);color:rgb(0, 0, 0);display:inline !important;float:none;font-family:verdana;font-size:10.6667px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;">(Selecting "yes" does not guarantee that an ADA disability accommodation will be granted. Please contact DBPR at (850) 487-9755 for further instructions.)</span></p>'
+        '#description_display': before
+        '#civicrm_live_options': 0
+        '#options':
+          1: 'Yes'
+          0: 'No'
+        '#required': true
+        '#wrapper_attributes':
+          class:
+            - 'container-inline clearfix'
+        '#data_type': Boolean
+        '#form_key': civicrm_1_contact_1_cg1_custom_4
+        '#parent': civicrm_1_contact_1_cg1_fieldset
+        '#default_option': ''
+        '#default_value': ''
+    select_category:
+      '#type': fieldset
+      '#title': 'Select Contractor Category'
+      select_category_id:
+        '#type': select
+        '#title': 'Select contractor category:'
+        '#empty_option': '- Select Category -'
+        '#required': true
+    candidate_has_degree:
+      '#type': number
+      '#title': 'Candidate has degree'
+      '#readonly': true
+      '#wrapper_attributes':
+        style: 'display: none;'
+    select_exam:
+      '#type': fieldset
+      '#title': 'Select Examination'
+      select_exam_ids:
+        '#type': select
+        '#title': 'Select examination part(s):'
+        '#multiple': true
+        '#select2': true
+        '#required': true
+  exam_fee_page:
+    '#type': webform_wizard_page
+    '#title': 'Exam Fee'
+    exam_fee:
+      '#type': fieldset
+      '#title': 'Exam Fee'
+      exam_fee_markup:
+        '#type': webform_markup
+        '#display_on': both
+        '#markup': '<p>*</p>'
+    civicrm_1_contribution_1_contribution_total_amount:
+      '#type': civicrm_number
+      '#title': 'Total Payable Now'
+      '#required': true
+      '#states_clear': false
+      '#default_value': '0'
+      '#parent': contribution_pagebreak
+      '#data_type': Money
+      '#extra':
+        field_prefix: $
+        point: .
+        separator: ','
+        decimals: 2
+        min: 0
+      '#form_key': civicrm_1_contribution_1_contribution_total_amount
+      '#wrapper_attributes':
+        style: 'display: none;'
+  contribution_pagebreak:
+    '#type': webform_wizard_page
+    '#form_key': contribution_pagebreak
+    '#title': Payment
+    civicrm_1_contribution_1_contribution_payment_processor_id:
+      '#type': civicrm_options
+      '#title': 'Please select mode of payment'
+      '#civicrm_live_options': 0
+      '#options':
+        3: 'Pay by Card'
+        0: 'Pay by Check'
+      '#required': true
+      '#default_value': '3'
+      '#exposed_empty_option': 'Pay Later'
+      '#form_key': civicrm_1_contribution_1_contribution_payment_processor_id
+      '#parent': contribution_pagebreak
+      '#default_option': '3'
+    civicrm_1_contribution_1_contribution_is_test:
+      '#type': hidden
+      '#expose_list': true
+      '#value': '1'
+      '#form_key': civicrm_1_contribution_1_contribution_is_test
+      '#extra': {  }
+      '#parent': contribution_pagebreak
+      '#title': 'Payment Processor Mode'
+    civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset:
+      '#type': fieldset
+      '#title': 'Billing Address'
+      '#states':
+        invisible:
+          ':input[name="civicrm_1_contribution_1_contribution_payment_processor_id"]':
+            '!value': '3'
+      '#states_clear': false
+      '#form_key': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+      '#parent': contribution_pagebreak
+      billing_address_is_different:
+        '#type': checkbox
+        '#title': 'I need to enter a different billing address'
+      civicrm_1_contact_2_email_email:
+        '#type': email
+        '#title': 'Billing Email'
+        '#required': true
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#form_key': civicrm_1_contact_2_email_email
+        '#extra':
+          width: 20
+        '#parent': civicrm_1_contact_1_fieldset_fieldset
+      civicrm_1_contribution_1_contribution_billing_address_first_name:
+        '#type': textfield
+        '#title': 'Billing First Name'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#extra':
+          width: 60
+        '#set': billing_1_number_of_billing
+        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+        '#form_key': civicrm_1_contribution_1_contribution_billing_address_first_name
+        '#required': true
+      civicrm_1_contribution_1_contribution_billing_address_last_name:
+        '#type': textfield
+        '#title': 'Billing Last Name'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#extra':
+          width: 60
+        '#set': billing_1_number_of_billing
+        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+        '#form_key': civicrm_1_contribution_1_contribution_billing_address_last_name
+        '#required': true
+      civicrm_1_contribution_1_contribution_billing_address_street_address:
+        '#type': textfield
+        '#title': 'Street Address'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#extra':
+          width: 60
+        '#set': billing_1_number_of_billing
+        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+        '#form_key': civicrm_1_contribution_1_contribution_billing_address_street_address
+        '#required': true
+      civicrm_1_contribution_1_contribution_billing_address_postal_code:
+        '#type': textfield
+        '#title': 'Postal Code'
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#extra':
+          width: 7
+        '#set': billing_1_number_of_billing
+        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+        '#form_key': civicrm_1_contribution_1_contribution_billing_address_postal_code
+        '#required': true
+      civicrm_1_contribution_1_contribution_billing_address_city:
+        '#type': textfield
+        '#title': City
+        '#states':
+          readonly:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#extra':
+          width: 20
+        '#set': billing_1_number_of_billing
+        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+        '#form_key': civicrm_1_contribution_1_contribution_billing_address_city
+        '#required': true
+      civicrm_1_contribution_1_contribution_billing_address_country_id:
+        '#type': civicrm_options
+        '#title': Country
+        '#options':
+          1228: 'United States'
+          1001: Afghanistan
+          1241: 'Åland Islands'
+          1002: Albania
+          1003: Algeria
+          1004: 'American Samoa'
+          1005: Andorra
+          1006: Angola
+          1007: Anguilla
+          1008: Antarctica
+          1009: 'Antigua and Barbuda'
+          1010: Argentina
+          1011: Armenia
+          1012: Aruba
+          1013: Australia
+          1014: Austria
+          1015: Azerbaijan
+          1212: Bahamas
+          1016: Bahrain
+          1017: Bangladesh
+          1018: Barbados
+          1019: Belarus
+          1020: Belgium
+          1021: Belize
+          1022: Benin
+          1023: Bermuda
+          1024: Bhutan
+          1025: Bolivia
+          1250: 'Bonaire, Saint Eustatius and Saba'
+          1026: 'Bosnia and Herzegovina'
+          1027: Botswana
+          1028: 'Bouvet Island'
+          1029: Brazil
+          1030: 'British Indian Ocean Territory'
+          1032: 'Brunei Darussalam'
+          1033: Bulgaria
+          1034: 'Burkina Faso'
+          1036: Burundi
+          1037: Cambodia
+          1038: Cameroon
+          1039: Canada
+          1040: 'Cape Verde'
+          1041: 'Cayman Islands'
+          1042: 'Central African Republic'
+          1043: Chad
+          1044: Chile
+          1045: China
+          1046: 'Christmas Island'
+          1047: 'Cocos (Keeling) Islands'
+          1048: Colombia
+          1049: Comoros
+          1051: 'Congo, Republic of the'
+          1050: 'Congo, The Democratic Republic of the'
+          1052: 'Cook Islands'
+          1053: 'Costa Rica'
+          1054: 'Côte d’Ivoire'
+          1055: Croatia
+          1056: Cuba
+          1248: Curaçao
+          1057: Cyprus
+          1058: 'Czech Republic'
+          1059: Denmark
+          1060: Djibouti
+          1061: Dominica
+          1062: 'Dominican Republic'
+          1064: Ecuador
+          1065: Egypt
+          1066: 'El Salvador'
+          1067: 'Equatorial Guinea'
+          1068: Eritrea
+          1069: Estonia
+          1203: Eswatini
+          1070: Ethiopia
+          1072: 'Falkland Islands (Malvinas)'
+          1073: 'Faroe Islands'
+          1074: Fiji
+          1075: Finland
+          1076: France
+          1077: 'French Guiana'
+          1078: 'French Polynesia'
+          1079: 'French Southern Territories'
+          1080: Gabon
+          1213: Gambia
+          1081: Georgia
+          1082: Germany
+          1083: Ghana
+          1084: Gibraltar
+          1085: Greece
+          1086: Greenland
+          1087: Grenada
+          1088: Guadeloupe
+          1089: Guam
+          1090: Guatemala
+          1245: Guernsey
+          1091: Guinea
+          1092: Guinea-Bissau
+          1093: Guyana
+          1094: Haiti
+          1095: 'Heard Island and McDonald Islands'
+          1096: 'Holy See (Vatican City State)'
+          1097: Honduras
+          1098: 'Hong Kong'
+          1099: Hungary
+          1100: Iceland
+          1101: India
+          1102: Indonesia
+          1103: 'Iran, Islamic Republic of'
+          1104: Iraq
+          1105: Ireland
+          1246: 'Isle of Man'
+          1106: Israel
+          1107: Italy
+          1108: Jamaica
+          1109: Japan
+          1244: Jersey
+          1110: Jordan
+          1111: Kazakhstan
+          1112: Kenya
+          1113: Kiribati
+          1114: "Korea, Democratic People's Republic of"
+          1115: 'Korea, Republic of'
+          1251: Kosovo
+          1116: Kuwait
+          1117: Kyrgyzstan
+          1118: "Lao People's Democratic Republic"
+          1119: Latvia
+          1120: Lebanon
+          1121: Lesotho
+          1122: Liberia
+          1123: Libya
+          1124: Liechtenstein
+          1125: Lithuania
+          1126: Luxembourg
+          1127: Macao
+          1129: Madagascar
+          1130: Malawi
+          1131: Malaysia
+          1132: Maldives
+          1133: Mali
+          1134: Malta
+          1135: 'Marshall Islands'
+          1136: Martinique
+          1137: Mauritania
+          1138: Mauritius
+          1139: Mayotte
+          1140: Mexico
+          1141: 'Micronesia, Federated States of'
+          1142: Moldova
+          1143: Monaco
+          1144: Mongolia
+          1243: Montenegro
+          1145: Montserrat
+          1146: Morocco
+          1147: Mozambique
+          1035: Myanmar
+          1148: Namibia
+          1149: Nauru
+          1150: Nepal
+          1152: Netherlands
+          1153: 'New Caledonia'
+          1154: 'New Zealand'
+          1155: Nicaragua
+          1156: Niger
+          1157: Nigeria
+          1158: Niue
+          1159: 'Norfolk Island'
+          1128: 'North Macedonia'
+          1160: 'Northern Mariana Islands'
+          1161: Norway
+          1162: Oman
+          1163: Pakistan
+          1164: Palau
+          1165: 'Palestine, State of'
+          1166: Panama
+          1167: 'Papua New Guinea'
+          1168: Paraguay
+          1169: Peru
+          1170: Philippines
+          1171: Pitcairn
+          1172: Poland
+          1173: Portugal
+          1174: 'Puerto Rico'
+          1175: Qatar
+          1179: Reunion
+          1176: Romania
+          1177: 'Russian Federation'
+          1178: Rwanda
+          1252: 'Saint Barthélemy'
+          1180: 'Saint Helena'
+          1181: 'Saint Kitts and Nevis'
+          1182: 'Saint Lucia'
+          1253: 'Saint Martin (French part)'
+          1183: 'Saint Pierre and Miquelon'
+          1184: 'Saint Vincent and the Grenadines'
+          1185: Samoa
+          1186: 'San Marino'
+          1207: 'Sao Tome and Principe'
+          1187: 'Saudi Arabia'
+          1188: Senegal
+          1242: Serbia
+          1189: Seychelles
+          1190: 'Sierra Leone'
+          1191: Singapore
+          1249: 'Sint Maarten (Dutch Part)'
+          1192: Slovakia
+          1193: Slovenia
+          1194: 'Solomon Islands'
+          1195: Somalia
+          1196: 'South Africa'
+          1197: 'South Georgia and the South Sandwich Islands'
+          1247: 'South Sudan'
+          1198: Spain
+          1199: 'Sri Lanka'
+          1200: Sudan
+          1201: Suriname
+          1202: 'Svalbard and Jan Mayen'
+          1204: Sweden
+          1205: Switzerland
+          1206: 'Syrian Arab Republic'
+          1208: Taiwan
+          1209: Tajikistan
+          1210: 'Tanzania, United Republic of'
+          1211: Thailand
+          1063: Timor-Leste
+          1214: Togo
+          1215: Tokelau
+          1216: Tonga
+          1217: 'Trinidad and Tobago'
+          1218: Tunisia
+          1219: Turkey
+          1220: Turkmenistan
+          1221: 'Turks and Caicos Islands'
+          1222: Tuvalu
+          1223: Uganda
+          1224: Ukraine
+          1225: 'United Arab Emirates'
+          1226: 'United Kingdom'
+          1227: 'United States Minor Outlying Islands'
+          1229: Uruguay
+          1230: Uzbekistan
+          1231: Vanuatu
+          1232: Venezuela
+          1233: 'Viet Nam'
+          1031: 'Virgin Islands, British'
+          1234: 'Virgin Islands, U.S.'
+          1235: 'Wallis and Futuna'
+          1236: 'Western Sahara'
+          1237: Yemen
+          1239: Zambia
+          1240: Zimbabwe
+        '#states':
+          invisible:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#default_value': '1228'
+        '#extra':
+          aslist: 1
+          multiple: 0
+        '#set': billing_1_number_of_billing
+        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+        '#form_key': civicrm_1_contribution_1_contribution_billing_address_country_id
+        '#default_option': ''
+        '#civicrm_live_options': '1'
+        '#required': true
+      civicrm_1_contribution_1_contribution_billing_address_state_province_id:
+        '#type': civicrm_options
+        '#title': State/Province
+        '#empty_option': '- None -'
+        '#civicrm_live_options': 0
+        '#states':
+          invisible:
+            ':input[name="billing_address_is_different"]':
+              unchecked: true
+        '#default_value': '1008'
+        '#extra':
+          aslist: 1
+          multiple: 0
+        '#data_type': state_province_abbr
+        '#set': billing_1_number_of_billing
+        '#parent': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
+        '#form_key': civicrm_1_contribution_1_contribution_billing_address_state_province_id
+        '#default_option': null
+        '#options': {  }
+        '#required': true
+    check_information:
+      '#type': fieldset
+      '#title': 'Check Information'
+      '#states':
+        invisible:
+          ':input[name="civicrm_1_contribution_1_contribution_payment_processor_id"]':
+            '!value': '0'
+      check_number:
+        '#type': textfield
+        '#title': 'Check Number'
+        '#required': true
+  actions:
+    '#type': webform_actions
+    '#title': 'Submit button(s)'
+    '#submit__label': 'Register >'
+css: |-
+  .select2-container--default .select2-results__option[aria-disabled=true] {
+      display: none;
+  }
+javascript: ''
+settings:
+  ajax: false
+  ajax_scroll_top: form
+  ajax_progress_type: ''
+  ajax_effect: ''
+  ajax_speed: null
+  page: true
+  page_submit_path: ''
+  page_confirm_path: ''
+  page_theme_name: ''
+  form_title: source_entity_webform
+  form_submit_once: false
+  form_open_message: ''
+  form_close_message: ''
+  form_exception_message: ''
+  form_previous_submissions: false
+  form_confidential: false
+  form_confidential_message: ''
+  form_disable_remote_addr: false
+  form_convert_anonymous: false
+  form_prepopulate: false
+  form_prepopulate_source_entity: false
+  form_prepopulate_source_entity_required: false
+  form_prepopulate_source_entity_type: ''
+  form_unsaved: false
+  form_disable_back: false
+  form_submit_back: false
+  form_disable_autocomplete: false
+  form_novalidate: false
+  form_disable_inline_errors: false
+  form_required: false
+  form_autofocus: false
+  form_details_toggle: false
+  form_reset: false
+  form_access_denied: default
+  form_access_denied_title: ''
+  form_access_denied_message: ''
+  form_access_denied_attributes: {  }
+  form_file_limit: ''
+  form_attributes: {  }
+  form_method: ''
+  form_action: ''
+  share: false
+  share_node: false
+  share_theme_name: ''
+  share_title: true
+  share_page_body_attributes: {  }
+  submission_label: ''
+  submission_exception_message: ''
+  submission_locked_message: ''
+  submission_log: false
+  submission_excluded_elements: {  }
+  submission_exclude_empty: false
+  submission_exclude_empty_checkbox: false
+  submission_views: {  }
+  submission_views_replace: {  }
+  submission_user_columns: {  }
+  submission_user_duplicate: false
+  submission_access_denied: default
+  submission_access_denied_title: ''
+  submission_access_denied_message: ''
+  submission_access_denied_attributes: {  }
+  previous_submission_message: ''
+  previous_submissions_message: ''
+  autofill: false
+  autofill_message: ''
+  autofill_excluded_elements: {  }
+  wizard_progress_bar: true
+  wizard_progress_pages: false
+  wizard_progress_percentage: false
+  wizard_progress_link: true
+  wizard_progress_states: true
+  wizard_start_label: ''
+  wizard_preview_link: false
+  wizard_confirmation: true
+  wizard_confirmation_label: ''
+  wizard_auto_forward: true
+  wizard_auto_forward_hide_next_button: false
+  wizard_keyboard: true
+  wizard_track: index
+  wizard_prev_button_label: ''
+  wizard_next_button_label: ''
+  wizard_toggle: false
+  wizard_toggle_show_label: ''
+  wizard_toggle_hide_label: ''
+  wizard_page_type: container
+  wizard_page_title_tag: h2
+  preview: 0
+  preview_label: ''
+  preview_title: ''
+  preview_message: ''
+  preview_attributes: {  }
+  preview_excluded_elements: {  }
+  preview_exclude_empty: true
+  preview_exclude_empty_checkbox: false
+  draft: none
+  draft_multiple: false
+  draft_auto_save: false
+  draft_saved_message: ''
+  draft_loaded_message: ''
+  draft_pending_single_message: ''
+  draft_pending_multiple_message: ''
+  confirmation_type: page
+  confirmation_url: ''
+  confirmation_title: ''
+  confirmation_message: '<p>You have successfully registered the candidate.</p><ul><li><a class="ql-link" href="/form/backoffice-registration/" rel="noopener noreferrer" target="_blank">Register another candidate</a></li><li><a class="ql-link" href="[webform_submission:contact-link:1]" rel="noopener noreferrer" target="_blank">Go to the registered candidate''s profile</a></li><li><a class="ql-link" href="/admin/config/cilb-admin-dashboard" rel="noopener noreferrer" target="_blank">Go to the Admin Dashboard</a></li></ul>'
+  confirmation_attributes: {  }
+  confirmation_back: true
+  confirmation_back_label: ''
+  confirmation_back_attributes: {  }
+  confirmation_exclude_query: false
+  confirmation_exclude_token: false
+  confirmation_update: false
+  limit_total: null
+  limit_total_interval: null
+  limit_total_message: ''
+  limit_total_unique: false
+  limit_user: null
+  limit_user_interval: null
+  limit_user_message: ''
+  limit_user_unique: false
+  entity_limit_total: null
+  entity_limit_total_interval: null
+  entity_limit_user: null
+  entity_limit_user_interval: null
+  purge: none
+  purge_days: null
+  results_disabled: false
+  results_disabled_ignore: false
+  results_customize: false
+  token_view: false
+  token_update: false
+  token_delete: false
+  serial_disabled: false
+access:
+  create:
+    roles:
+      - administrator
+      - staff
+    users: {  }
+    permissions: {  }
+  view_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  update_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  delete_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  purge_any:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  view_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  update_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  delete_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  administer:
+    roles:
+      - administrator
+      - staff
+    users: {  }
+    permissions: {  }
+  test:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  configuration:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+handlers:
+  webform_civicrm:
+    id: webform_civicrm
+    handler_id: webform_civicrm
+    label: CiviCRM
+    notes: ''
+    status: true
+    conditions: {  }
+    weight: -50
+    settings:
+      nid: 1
+      number_of_contacts: '1'
+      1_contact_type: individual
+      1_webform_label: 'Contact 1'
+      civicrm_1_contact_1_contact_contact_sub_type:
+        Candidate: Candidate
+      civicrm_1_contact_1_contact_existing: create_civicrm_webform_element
+      civicrm_1_contact_1_contact_prefix_id: 0
+      civicrm_1_contact_1_contact_first_name: create_civicrm_webform_element
+      civicrm_1_contact_1_contact_middle_name: create_civicrm_webform_element
+      civicrm_1_contact_1_contact_last_name: create_civicrm_webform_element
+      civicrm_1_contact_1_contact_suffix_id: create_civicrm_webform_element
+      civicrm_1_contact_1_contact_nick_name: 0
+      civicrm_1_contact_1_contact_gender_id: 0
+      civicrm_1_contact_1_contact_job_title: 0
+      civicrm_1_contact_1_contact_birth_date: create_civicrm_webform_element
+      civicrm_1_contact_1_contact_preferred_communication_method: 0
+      civicrm_1_contact_1_contact_privacy: 0
+      civicrm_1_contact_1_contact_preferred_language: 0
+      civicrm_1_contact_1_contact_communication_style_id: 0
+      civicrm_1_contact_1_contact_contact_id: 0
+      civicrm_1_contact_1_contact_user_id: 0
+      civicrm_1_contact_1_contact_external_identifier: 0
+      civicrm_1_contact_1_contact_source: 0
+      civicrm_1_contact_1_contact_cs: 0
+      civicrm_1_contact_1_contact_employer_id: 0
+      civicrm_1_contact_1_contact_is_deceased: 0
+      civicrm_1_contact_1_contact_deceased_date: 0
+      contact_1_settings_matching_rule: Unsupervised
+      contact_1_number_of_cg1: '1'
+      contact_1_settings_dynamic_custom_cg1: 0
+      civicrm_1_contact_1_cg1_custom_5: create_civicrm_webform_element
+      civicrm_1_contact_1_cg1_custom_2: create_civicrm_webform_element
+      civicrm_1_contact_1_cg1_custom_3: create_civicrm_webform_element
+      civicrm_1_contact_1_cg1_custom_4: create_civicrm_webform_element
+      civicrm_1_contact_1_cg1_custom_7: 0
+      civicrm_1_contact_1_cg1_custom_22: 0
+      civicrm_1_contact_1_cg1_custom_23: 0
+      contact_1_number_of_other: '0'
+      contact_1_number_of_address: '1'
+      civicrm_1_contact_1_address_street_address: create_civicrm_webform_element
+      civicrm_1_contact_1_address_street_name: 0
+      civicrm_1_contact_1_address_street_number: 0
+      civicrm_1_contact_1_address_street_unit: 0
+      civicrm_1_contact_1_address_name: 0
+      civicrm_1_contact_1_address_supplemental_address_1: create_civicrm_webform_element
+      civicrm_1_contact_1_address_supplemental_address_2: 0
+      civicrm_1_contact_1_address_supplemental_address_3: 0
+      civicrm_1_contact_1_address_city: create_civicrm_webform_element
+      civicrm_1_contact_1_address_postal_code: create_civicrm_webform_element
+      civicrm_1_contact_1_address_postal_code_suffix: 0
+      civicrm_1_contact_1_address_country_id: 0
+      civicrm_1_contact_1_address_state_province_id: create_civicrm_webform_element
+      civicrm_1_contact_1_address_county_id: 0
+      civicrm_1_contact_1_address_location_type_id: '1'
+      civicrm_1_contact_1_address_is_primary: '1'
+      contact_1_number_of_phone: '2'
+      civicrm_1_contact_1_phone_phone: create_civicrm_webform_element
+      civicrm_1_contact_1_phone_phone_ext: 0
+      civicrm_1_contact_1_phone_phone_type_id: '1'
+      civicrm_1_contact_1_phone_location_type_id: '3'
+      civicrm_1_contact_1_phone_is_primary: '1'
+      civicrm_1_contact_2_phone_phone: create_civicrm_webform_element
+      civicrm_1_contact_2_phone_phone_ext: 0
+      civicrm_1_contact_2_phone_phone_type_id: '1'
+      civicrm_1_contact_2_phone_location_type_id: '4'
+      contact_1_number_of_email: '2'
+      civicrm_1_contact_1_email_email: create_civicrm_webform_element
+      civicrm_1_contact_1_email_location_type_id: '3'
+      civicrm_1_contact_1_email_is_primary: '1'
+      civicrm_1_contact_2_email_email: create_civicrm_webform_element
+      civicrm_1_contact_2_email_location_type_id: '5'
+      contact_1_number_of_website: '0'
+      contact_1_number_of_im: '0'
+      contact_1_number_of_cg11: '0'
+      prefix_known: ''
+      prefix_unknown: ''
+      toggle_message: 0
+      message: ''
+      activity_number_of_activity: '0'
+      participant_reg_type: '0'
+      reg_options:
+        event_type:
+          any: any
+        show_past_events: now
+        show_future_events: '1'
+        show_public_events: all
+        title_display: title
+        show_full_events: 1
+        event_sort_field: start_date
+        show_remaining: '0'
+        validate: 1
+        block_form: 0
+        disable_unregister: 0
+        allow_url_load: 0
+        disable_primary_participant: 0
+      membership_1_number_of_membership: '0'
+      civicrm_1_contribution_1_contribution_enable_contribution: '1'
+      civicrm_1_contribution_1_contribution_contact_id: '1'
+      civicrm_1_contribution_1_contribution_total_amount: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_payment_processor_id: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_is_test: '1'
+      civicrm_1_contribution_1_contribution_note: 0
+      civicrm_1_contribution_1_contribution_source: 0
+      civicrm_1_contribution_1_contribution_receive_date: 0
+      civicrm_1_contribution_1_contribution_financial_type_id: '4'
+      contribution_1_settings_currency: USD
+      civicrm_1_contribution_1_contribution_soft:
+        '': ''
+      civicrm_1_contribution_1_contribution_soft_credit_type_id: 0
+      civicrm_1_contribution_1_contribution_frequency_unit: '0'
+      civicrm_1_contribution_1_contribution_installments: 0
+      civicrm_1_contribution_1_contribution_frequency_interval: 0
+      billing_1_number_of_billing: '1'
+      civicrm_1_contribution_1_contribution_billing_address_same_as: 0
+      civicrm_1_contribution_1_contribution_billing_address_first_name: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_billing_address_middle_name: 0
+      civicrm_1_contribution_1_contribution_billing_address_last_name: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_billing_address_street_address: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_billing_address_postal_code: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_billing_address_city: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_billing_address_country_id: create_civicrm_webform_element
+      civicrm_1_contribution_1_contribution_billing_address_state_province_id: create_civicrm_webform_element
+      lineitem_1_number_of_lineitem: '0'
+      receipt_1_number_of_receipt: '1'
+      receipt_1_number_of_receipt_receipt_from_name: 'Florida Construction Industry Licensing Board (CILB) Exam Registration Portal'
+      receipt_1_number_of_receipt_receipt_from_email: cilb@jmaconsulting.biz
+      receipt_1_number_of_receipt_cc_receipt: ''
+      receipt_1_number_of_receipt_bcc_receipt: ''
+      receipt_1_number_of_receipt_pay_later_receipt: 'Mail your check to [] within [].'
+      receipt_1_number_of_receipt_receipt_text: ''
+      checksum_text: ''
+      create_fieldsets: 1
+      confirm_subscription: 1
+      block_unknown_users: 0
+      create_new_relationship: 0
+      disable_contact_paging: 0
+      new_contact_source: 'Register English'
+      data:
+        contact:
+          1:
+            contact:
+              1:
+                contact_type: individual
+                contact_sub_type:
+                  Candidate: Candidate
+                webform_label: 'Contact 1'
+            matching_rule: Unsupervised
+            number_of_cg1: '1'
+            dynamic_custom_cg1: 0
+            number_of_other: '0'
+            number_of_address: '1'
+            number_of_phone: '2'
+            number_of_email: '2'
+            number_of_website: '0'
+            number_of_im: '0'
+            number_of_cg11: '0'
+            address:
+              1:
+                location_type_id: '1'
+                is_primary: '1'
+            phone:
+              1:
+                phone_type_id: '1'
+                location_type_id: '3'
+                is_primary: '1'
+              2:
+                phone_type_id: '1'
+                location_type_id: '4'
+            email:
+              1:
+                location_type_id: '3'
+                is_primary: '1'
+              2:
+                location_type_id: '5'
+        activity:
+          number_of_activity: '0'
+        membership:
+          1:
+            number_of_membership: '0'
+        contribution:
+          1:
+            currency: USD
+            contribution:
+              1:
+                enable_contribution: '1'
+                contact_id: '1'
+                payment_processor_id: ''
+                is_test: '1'
+                financial_type_id: '4'
+        billing:
+          number_number_of_billing: '1'
+        lineitem:
+          number_number_of_lineitem: '0'
+        receipt:
+          number_number_of_receipt: '1'
+          number_number_of_receipt_receipt_from_name: 'Florida Construction Industry Licensing Board (CILB) Exam Registration Portal'
+          number_number_of_receipt_receipt_from_email: cilb@jmaconsulting.biz
+          number_number_of_receipt_cc_receipt: ''
+          number_number_of_receipt_bcc_receipt: ''
+          number_number_of_receipt_pay_later_receipt: 'Mail your check to [] within [].'
+          number_number_of_receipt_receipt_text: ''
+        participant_reg_type: '0'
+        reg_options:
+          event_type:
+            any: any
+          show_past_events: now
+          show_future_events: '1'
+          show_public_events: all
+          title_display: title
+          show_full_events: 1
+          event_sort_field: start_date
+          show_remaining: '0'
+          validate: 1
+          block_form: 0
+          disable_unregister: 0
+          allow_url_load: 0
+          disable_primary_participant: 0
+  cilb_candidate_registration_handler:
+    id: cilb_candidate_registration_handler
+    handler_id: cilb_candidate_registration_handler
+    label: 'Cilb Candidate Registration Handler'
+    notes: ''
+    status: true
+    conditions: {  }
+    weight: 0
+    settings: {  }
+  webform_authorize_net_handler:
+    id: webform_authorizenet
+    handler_id: webform_authorize_net_handler
+    label: 'Webform Authorize.Net Handler'
+    notes: ''
+    status: false
+    conditions: {  }
+    weight: 0
+    settings:
+      api_login_id: 55K68VFuCfUD
+      auth_key: 8bj9Vhd669C7vV3y
+      payment_mode: sandbox
+      transaction_type: auth_only
+      item_price: 80
+      number_of_items: ''
+      customer_email: '[webform_submission:values:civicrm_1_contact_1_contact_existing:raw]'
+      bill_to_first_name: '[webform_submission:values:civicrm_1_contact_1_contact_first_name:raw]'
+      bill_to_last_name: '[webform_submission:values:civicrm_1_contact_1_contact_last_name:raw]'
+      bill_to_address: '[webform_submission:values:civicrm_1_contact_1_address_street_address:raw]'
+      bill_to_city: '[webform_submission:values:civicrm_1_contact_1_address_city:raw]'
+      bill_to_state: '[webform_submission:values:civicrm_1_contact_1_address_state_province_id:raw]'
+      bill_to_zip: '[webform_submission:values:civicrm_1_contact_1_address_postal_code:raw]'
+      bill_to_phone: '[webform_submission:values:civicrm_1_contact_1_phone_phone:raw]'
+      checkout_form_title: 'Almost there'
+      checkout_form_content:
+        value: '<p>Your total amount is <strong>[webform_submission:webform_authorizenet_total_amount] USD</strong>.</p><p>Upon clicking "Pay" you will be securely redirected to our trusted payment partner, Authorize.net, to complete your transaction.</p>'
+        format: full_html
+      checkout_form_submit_label: Pay
+      payment_done_message:
+        value: '<p>Congratulations! Your payment was successful.</p>'
+        format: full_html
+  chargeback_links:
+    id: chargeback_links
+    handler_id: chargeback_links
+    label: 'Chargeback Links'
+    notes: 'Used to generate chargeback links on created participant records'
+    status: true
+    conditions: {  }
+    weight: 0
+    settings: {  }
+variants: {  }

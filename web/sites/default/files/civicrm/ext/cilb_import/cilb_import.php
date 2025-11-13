@@ -30,3 +30,13 @@ function cilb_import_civicrm_install(): void {
 function cilb_import_civicrm_enable(): void {
   _cilb_import_civix_civicrm_enable();
 }
+
+/**
+ * Implements hook_civicrm_advimport_helpers()
+ */
+function cilb_import_civicrm_advimport_helpers(&$helpers) {
+  $helpers[] = [
+    'class' => 'CRM_Cilb_Advimport_EventTypeUpdate',
+    'label' => E::ts('Update Event Type label and description'),
+  ];
+}

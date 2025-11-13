@@ -1,0 +1,11 @@
+uuid: e3b86215-9338-4233-ab11-0b2c3355dd41
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_survey_en_US.token
+label: Token
+description: ''
+targetEntityType: civicrm_survey_en_US
+cache: true

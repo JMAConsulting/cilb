@@ -1,0 +1,11 @@
+uuid: 67f3c3cd-c067-43cd-83bd-c4f4ee6c5056
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_event_es_MX.token
+label: Token
+description: ''
+targetEntityType: civicrm_event_es_MX
+cache: true

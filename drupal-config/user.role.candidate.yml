@@ -11,3 +11,4 @@ is_admin: null
 permissions:
   - 'access Contact Dashboard'
   - 'view my contact'
+  - 'view public CiviMail content'

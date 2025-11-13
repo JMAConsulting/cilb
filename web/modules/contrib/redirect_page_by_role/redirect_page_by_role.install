@@ -1,0 +1,99 @@
+<?php
+
+/**
+ * @file
+ * Update hooks and schema definition for the redirect_page_by_role module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function redirect_page_by_role_schema() {
+  $schema['redirect_page_by_role_node'] = [
+    'description' => 'Stores redirection rules by node.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'nid' => [
+        'description' => 'The node id for apply the rules.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'role' => [
+        'description' => 'The role that should be redirect.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'redirect_to' => [
+        'description' => 'The path to redirect  the user.',
+        'type' => 'varchar',
+        'length' => 254,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'status_code' => [
+        'description' => 'The redirection status code.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => 302,
+      ],
+      'weight' => [
+        'description' => 'The redirection weight.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => [
+      'id',
+    ],
+    'indexes' => [
+      'node' => [
+        'nid',
+      ],
+    ],
+  ];
+
+  $schema['redirect_page_by_role_enabled'] = [
+    'description' => 'Tracks whether Redirect Page By Node is enabled for a node.',
+    'fields' => [
+      'nid' => [
+        'description' => 'The node that has Redirect Page By Node enabled.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['nid'],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Add new column weight to redirect_page_by_role_node table.
+ */
+function redirect_page_by_role_update_9001() {
+  $schema = \Drupal::service('database')->schema();
+
+  // Check if the field already exists.
+  if ($schema->fieldExists('redirect_page_by_role_node', 'weight')) {
+    return;
+  }
+
+  $spec = [
+    'description' => 'The redirection weight.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  ];
+  $schema->addField('redirect_page_by_role_node', 'weight', $spec);
+}

@@ -1,0 +1,11 @@
+uuid: aa11625c-894b-4909-bde7-a8c230d0fbbb
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_payment_processor.token
+label: Token
+description: ''
+targetEntityType: civicrm_payment_processor
+cache: true

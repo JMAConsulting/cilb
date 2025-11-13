@@ -1241,10 +1241,9 @@ class Smarty
      */
     function fetch($resource_name, $cache_id = null, $compile_id = null, $display = false)
     {
-      // Do we need this forked? Seems like recipe for confusion.
-      $useSecurityPolicy = preg_match('/^(\s+)?string:/', $resource_name) && empty($smarty->security);
-      if ($useSecurityPolicy) {
-        Civi::service('civi.smarty.userContent')->enable();
+      if (preg_match('/^(\s+)?string:/', $resource_name)) {
+        $old_security = $this->security;
+        $this->security = TRUE;
       }
       try {
         static $_cache_info = [];
@@ -1358,8 +1357,8 @@ class Smarty
               error_reporting($_smarty_old_error_level);
               // restore initial cache_info
               $this->_cache_info = array_pop($_cache_info);
-              if ($useSecurityPolicy) {
-                Civi::service('civi.smarty.userContent')->disable();
+              if (isset($old_security)) {
+                $this->security = $old_security;
               }
               return TRUE;
             }
@@ -1452,24 +1451,24 @@ class Smarty
             echo smarty_core_display_debug_console($_params, $this);
           }
           error_reporting($_smarty_old_error_level);
-          if ($useSecurityPolicy) {
-            Civi::service('civi.smarty.userContent')->disable();
+          if (isset($old_security)) {
+            $this->security = $old_security;
           }
           return;
         }
         else {
           error_reporting($_smarty_old_error_level);
           if (isset($_smarty_results)) {
-            if ($useSecurityPolicy) {
-              Civi::service('civi.smarty.userContent')->disable();
+            if (isset($old_security)) {
+              $this->security = $old_security;
             }
             return $_smarty_results;
           }
         }
       }
       finally {
-        if ($useSecurityPolicy) {
-          Civi::service('civi.smarty.userContent')->disable();
+        if (isset($old_security)) {
+          $this->security = $old_security;
         }
       }
     }
@@ -1879,6 +1878,15 @@ class Smarty
         [$_modifier_name, $_map_array] = array_splice($_args, 0, 2);
         [$_func_name, $_tpl_file, $_tpl_line] =
             $this->_plugins['modifier'][$_modifier_name];
+
+        // Patch so we can use join without deprecations in smarty5 while still
+        // supporting smarty2.
+        // Note that smarty2 only officially accepts the "backwards" (by smarty5
+        // standards) order, and so if it's already backwards, then we never
+        // even get here since it's handled elsewhere.
+        if ($_func_name === 'join' && is_string($_args[1])) {
+          return join($_args[1], $_args[0]);
+        }
 
         $_var = $_args[0];
         foreach ($_var as $_key => $_val) {

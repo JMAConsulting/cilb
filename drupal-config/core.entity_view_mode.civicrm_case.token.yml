@@ -1,0 +1,11 @@
+uuid: aecc268c-53cd-4bc5-bf90-00fbec9e541a
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_case.token
+label: Token
+description: ''
+targetEntityType: civicrm_case
+cache: true

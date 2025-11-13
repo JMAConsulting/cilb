@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/admin/advancedevents/recurringentity/preview</path>
+    <page_callback>CRM_AdvancedEvents_Page_RecurringEntityPreview</page_callback>
+    <access_arguments>access CiviCRM,access CiviEvent</access_arguments>
+    <title>Confirm dates</title>
+  </item>
+  <item>
+    <path>civicrm/admin/eventTemplate/copy</path>
+    <page_callback>CRM_AdvancedEvents_Page_CopyEventTemplate</page_callback>
+    <access_arguments>edit own event templates;edit all event templates</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/admin/advancedevents/linked</path>
+    <title>Manage Linked Events</title>
+    <page_callback>CRM_AdvancedEvents_Form_ManageEvent_Linked</page_callback>
+    <access_arguments>access CiviEvent</access_arguments>
+    <page_type>1</page_type>
+    <weight>810</weight>
+  </item>
+  <item>
+    <path>civicrm/task/event-copy-participants</path>
+    <page_callback>CRM_AdvancedEvents_Form_Task_CopyParticipants</page_callback>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/admin/advancedevents/repeat</path>
+    <title>Repeat</title>
+    <page_callback>CRM_AdvancedEvents_Form_ManageEvent_Repeat</page_callback>
+    <access_arguments>access CiviEvent</access_arguments>
+  </item>
+</menu>

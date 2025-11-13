@@ -152,6 +152,7 @@ entity.webform.assets.css:
   path: '/webform/css/{webform}/custom.css'
   defaults:
     _controller: '\Drupal\webform\Controller\WebformEntityController::css'
+    _disable_route_normalizer: TRUE
   requirements:
     _entity_access: 'webform.view'
 

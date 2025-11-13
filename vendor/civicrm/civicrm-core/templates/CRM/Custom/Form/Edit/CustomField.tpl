@@ -20,32 +20,28 @@
     <td>{$formElement.html}</td>
   </tr>
 {elseif $element.options_per_line}
-  <tr class="custom_field-row {$element.element_name}-row">
-    <td class="label">{$formElement.label}{if $element.help_post}{help id=$element.id file="CRM/Custom/Form/CustomField.hlp" title=$element.label}{/if}</td>
+  <tr class="custom_field-row {$element.element_name}-row" {if $element.html_type === "Radio"}role="radiogroup" aria-labelledby="{$element.element_name}_group"{/if}>
+    <td class="label"{if $element.html_type === "Radio"} id="{$element.element_name}_group">{$formElement.label|regex_replace:"/\<(\/|)label\>/":""}{else}>{$formElement.label}{/if}{if $element.help_post}{help id=$element.id file="CRM/Custom/Form/CustomField.hlp" title=$element.label}{/if}</td>
     <td class="html-adjust">
-      {assign var="count" value=1}
-      {foreach name=outer key=key item=item from=$formElement}
-        {if is_array($item) && array_key_exists('html', $item)}
-          {$item.html}
-          {if $count == $element.options_per_line}
-            <br />
-            {assign var="count" value=1}
-          {else}
-            {assign var="count" value=$count+1}
-          {/if}
-        {else}
-          {* Skip because this isn't one of the numeric keyed elements that are the options to display, it's non-numeric keys like the field label and metadata. *}
-        {/if}
-      {/foreach}
 
-      {if $element.html_type == 'Radio' and $element.is_required == 0}
-        <a href="#" class="crm-hover-button crm-clear-link" title="{ts}Clear{/ts}"><i class="crm-i fa-times" aria-hidden="true"></i></a>
+      <div class="crm-multiple-checkbox-radio-options crm-options-per-line" style="--crm-opts-per-line:{$element.options_per_line};">
+        {foreach name=outer key=key item=item from=$formElement}
+          {if is_array($item) && array_key_exists('html', $item)}
+            <div class="crm-option-label-pair" >{$formElement.$key.html}</div>
+          {/if}
+        {/foreach}
+      </div>
+
+      {* Include the edit options list for admins *}
+      {if $formElement.html|strstr:"crm-option-edit-link"}
+        {$formElement.html|regex_replace:"@^.*(<a href=.*? class=.crm-option-edit-link.*?</a>)$@":"$1"}
       {/if}
+
     </td>
   </tr>
 {else}
-  <tr class="custom_field-row {$element.element_name}-row">
-    <td class="label">{$formElement.label}
+  <tr class="custom_field-row {$element.element_name}-row" {if $element.html_type === "Radio"}role="radiogroup" aria-labelledby="{$element.element_name}_group"{/if}>
+    <td class="label"{if $element.html_type === "Radio"} id="{$element.element_name}_group">{$formElement.label|regex_replace:"/\<(\/|)label\>/":""}{else}>{$formElement.label}{/if}
       {if $element.help_post}{help id=$element.id file="CRM/Custom/Form/CustomField.hlp" title=$element.label}{/if}
     </td>
     <td class="html-adjust">
@@ -66,7 +62,7 @@
               {if $element.element_value.deleteURL}
                 <a href="#" class="crm-hover-button delete-attachment"
                    data-filename="{$element.element_value.fileName}"
-                   data-args="{$element.element_value.deleteURLArgs}" title="{ts}Delete File{/ts}">
+                   data-args="{$element.element_value.deleteURLArgs}" title="{ts escape='htmlattribute'}Delete File{/ts}">
                   <span class="icon delete-icon"></span>
                 </a>
               {/if}

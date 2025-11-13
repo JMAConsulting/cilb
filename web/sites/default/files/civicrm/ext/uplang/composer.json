@@ -1,0 +1,5 @@
+{
+    "name": "civicrm/uplang",
+    "type": "civicrm-extension",
+    "description": "Update CiviCRM core and extension language files"
+}

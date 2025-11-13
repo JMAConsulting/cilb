@@ -1,0 +1,11 @@
+uuid: bfa59f34-78dc-44ab-a2fb-ac982c3127f5
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_recurring_entity.token
+label: Token
+description: ''
+targetEntityType: civicrm_recurring_entity
+cache: true

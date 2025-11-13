@@ -1,0 +1,41 @@
+<div class="crm-container" xmlns="http://www.w3.org/1999/html">
+
+  <form name="myForm" crm-ui-id-scope>
+
+    <h3>Resolving {{ accountContacts.length }} out of {{ totalCount }} of unmatched contacts in your accounting system</h3>
+    <table>
+
+      <tr ng-repeat="accountContact in accountContacts" ng-class-even="'crm-entity even-row even'" ng-class-odd="'crm-entity odd-row odd'">
+        <td>
+          <p ng-show="accountContact.accounts_display_name">{{ accountContact.accounts_display_name }}</p>
+          <p ng-show="accountContact.accounts_data.civicrm_formatted.email">({{ accountContact.accounts_data.civicrm_formatted.email }})</p>
+          <p ng-show="accountContact.accounts_contact_id">{{ accountContact.accounts_contact_id }}</p>
+          <p ng-show="!accountContact.accounts_display_name">{{ ts('Name not provided.') }}</p>
+        </td>
+        <td>
+          <div class="crm-group">
+            <label>
+              <input type="radio" ng-model="accountContact.suggestion" value="do_not_sync"/>
+              {{ ts('Exclude')}}
+            </label>
+            <label>
+              <input type="radio" ng-model="accountContact.suggestion" value="create_contact"/>
+              {{ ts('Create: ') }} <input crm-entityref="{entity: 'ContactType', select: {allowClear:true}}" ng-model="accountContact.suggested_contact_type" />
+            </label>
+            <label>
+              <input type="radio" ng-model="accountContact.suggestion" value="link_contact"/>
+              {{ ts('Match') }} <input crm-entityref="{entity: 'Contact', select: {allowClear:true}}" ng-model="accountContact.suggested_contact_id" />
+            </label>
+          </div>
+        </td>
+        <td>
+          <div>
+            <button ng-click="save(accountContact)" class="crm-button">{{ts('Save')}}</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+  </form>
+
+</div>

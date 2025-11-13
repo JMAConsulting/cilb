@@ -1,0 +1,37 @@
+/**
+ * Avoid inline edit fields from being too big (for HTML fields).
+ */
+.crm-container #crm-advimport-searchresults .crm-editable-enabled {
+  max-width: 500px;
+  white-space: inherit;
+}
+
+.crm-container #crm-advimport-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/**
+ * Tweaks for displaying the import popup from the review screen.
+ */
+.crm-container.ui-dialog .advimport-upload-form-wrapper .crm-submit-buttons {
+  display: inherit !important;
+  display: inherit;
+  float: right;
+  padding: 0;
+}
+.crm-container.ui-dialog .advimport-upload-form-wrapper .crm-accordion-header,
+.crm-container.ui-dialog .advimport-upload-form-wrapper .crm-submit-buttons .crm-button-type-back,
+.crm-container.ui-dialog .advimport-upload-form-wrapper .crm-submit-buttons .crm-button-type-done {
+  display: none;
+}
+
+/**
+ * Tweak the widgest on the review screen
+ */
+.crm-container #crm-advimport-searchresults .crm-entity select {
+  min-width: 140px;
+}
+.crm-container #crm-advimport-searchresults .crm-entity input {
+  min-width: 80px;
+}

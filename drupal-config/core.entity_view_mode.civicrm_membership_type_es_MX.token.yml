@@ -1,0 +1,11 @@
+uuid: 2746fd2d-4626-40bd-aa81-625de809e4a5
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_membership_type_es_MX.token
+label: Token
+description: ''
+targetEntityType: civicrm_membership_type_es_MX
+cache: true

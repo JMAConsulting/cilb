@@ -1,0 +1,11 @@
+uuid: 352dd1a0-669f-478f-a3ec-4c8cd7de3e68
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_price_set.token
+label: Token
+description: ''
+targetEntityType: civicrm_price_set
+cache: true

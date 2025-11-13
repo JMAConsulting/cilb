@@ -89,4 +89,12 @@ class NodePreviewTest extends KernelTestBase {
     $this->errors[] = compact('errno', 'errstr', 'errfile', 'errline');
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function tearDown(): void {
+    parent::tearDown();
+    restore_error_handler();
+  }
+
 }

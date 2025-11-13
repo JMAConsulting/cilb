@@ -8,14 +8,17 @@ module:
   block_content: 0
   breakpoint: 0
   candidate_change_request: 0
+  cilb_admin_dashboard: 0
   cilb_candidate_registration: 0
   cilb_chargeback_links: 0
   cilb_reschedule_exam: 0
+  cilb_user_management: 0
   civicrm: 0
   civicrmtheme: 0
   ckeditor5: 0
   comment: 0
   config: 0
+  config_ignore: 0
   config_translation: 0
   contact: 0
   contextual: 0
@@ -31,10 +34,17 @@ module:
   help: 0
   history: 0
   image: 0
+  jquery_ui: 0
+  jquery_ui_draggable: 0
+  jquery_ui_resizable: 0
+  lang_dropdown: 0
   language: 0
   link: 0
   locale: 0
+  mail_login: 0
+  media: 0
   menu_link_content: 0
+  menu_per_role: 0
   menu_ui: 0
   mysql: 0
   node: 0
@@ -45,11 +55,12 @@ module:
   redirect_after_login: 0
   search: 0
   shortcut: 0
+  smtp: 0
   system: 0
   taxonomy: 0
   text: 0
+  token: 0
   toolbar: 0
-  update: 0
   user: 0
   user_email_verification: 0
   views_ui: 0
@@ -59,10 +70,14 @@ module:
   webform_entity_print: 0
   webform_ui: 0
   civicrm_entity: 1
+  webform_bootstrap: 1
   content_translation: 10
   views: 10
   standard: 1000
 theme:
   olivero: 0
   claro: 0
+  bootstrap_barrio: 0
+  bootstrap: 0
+  bootstrap_barrio_subtheme: 0
 profile: standard

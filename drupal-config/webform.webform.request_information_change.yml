@@ -33,7 +33,7 @@ elements: |-
     '#title': 'First Name'
   middle_name:
     '#type': textfield
-    '#title': 'MIddle Name'
+    '#title': 'Middle Name'
   last_name:
     '#type': textfield
     '#title': 'Last Name'
@@ -92,7 +92,7 @@ elements: |-
             filled: true
     '#states_clear': false
     '#form_key': civicrm_1_activity_1_fieldset_fieldset
-css: ''
+css: ".webform-submission-request-information-change-add-form .form-submit::before {\r\n  background-image: url('data:image/svg+xml,<svg class=\"bi bi-check\" width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\" fill=\"black\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z\" clip-rule=\"evenodd\"/></svg>');\r\n}\r\n\r\n.ui-dialog .ui-dialog-titlebar-close,\r\n.ui-dialog {\r\n  border: unset;\r\n}\r\n\r\n.ui-dialog .ui-dialog-titlebar-close::before {\r\n  content: \"x\";\r\n  position: relative;\r\n  top: -12px;\r\n  font-size: 1.8rem;\r\n  padding: 0;\r\n  margin: 0;\r\n  line-height: normal;\r\n}"
 javascript: ''
 settings:
   ajax: false
@@ -196,12 +196,12 @@ settings:
   draft_loaded_message: ''
   draft_pending_single_message: ''
   draft_pending_multiple_message: ''
-  confirmation_type: page
+  confirmation_type: inline
   confirmation_url: ''
-  confirmation_title: ''
-  confirmation_message: ''
+  confirmation_title: 'Request submitted'
+  confirmation_message: '<p>Thank you for your information change request. We will review and get back to you if necessary.</p>'
   confirmation_attributes: {  }
-  confirmation_back: true
+  confirmation_back: false
   confirmation_back_label: ''
   confirmation_back_attributes: {  }
   confirmation_exclude_query: false
@@ -285,7 +285,6 @@ handlers:
     conditions: {  }
     weight: -50
     settings:
-      disable: 'Leave Fields and Save Settings'
       nid: 1
       number_of_contacts: '1'
       1_contact_type: individual
@@ -323,6 +322,7 @@ handlers:
       contact_1_number_of_email: '0'
       contact_1_number_of_website: '0'
       contact_1_number_of_im: '0'
+      contact_1_number_of_cg7: '0'
       prefix_known: ''
       prefix_unknown: ''
       toggle_message: 0
@@ -331,8 +331,8 @@ handlers:
       activity_1_settings_existing_activity_status:
         '': ''
       activity_1_settings_details:
+        entire_result: entire_result
         view_link: view_link
-        entire_result: 0
         edit_link: 0
         view_link_secure: 0
         update_existing: 0
@@ -354,8 +354,6 @@ handlers:
       civicrm_1_activity_1_activityupload_file_1: create_civicrm_webform_element
       civicrm_1_activity_1_activityupload_file_2: 0
       civicrm_1_activity_1_activityupload_file_3: 0
-      activity_1_settings_dynamic_custom_cg4: 0
-      civicrm_1_activity_1_cg4_custom_8: 0
       participant_reg_type: '0'
       reg_options:
         event_type:
@@ -372,7 +370,6 @@ handlers:
         disable_unregister: 0
         allow_url_load: 0
         disable_primary_participant: 0
-      membership_1_number_of_membership: '0'
       civicrm_1_contribution_1_contribution_enable_contribution: '0'
       checksum_text: ''
       create_fieldsets: 1
@@ -398,22 +395,20 @@ handlers:
             number_of_email: '0'
             number_of_website: '0'
             number_of_im: '0'
+            number_of_cg7: '0'
         activity:
           number_of_activity: '1'
           1:
             existing_activity_status: {  }
             details:
+              entire_result: entire_result
               view_link: view_link
-            dynamic_custom_cg4: 0
             activity:
               1:
                 activity_type_id: '56'
                 target_contact_id:
                   1: '1'
                 status_id: '1'
-        membership:
-          1:
-            number_of_membership: '0'
         participant_reg_type: '0'
         reg_options:
           event_type:

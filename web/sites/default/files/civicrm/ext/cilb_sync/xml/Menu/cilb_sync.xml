@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/admin/setting/sftp</path>
+    <page_callback>CRM_CILB_Sync_Form_Settings</page_callback>
+    <title>sFTP Settings</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+</menu>
+

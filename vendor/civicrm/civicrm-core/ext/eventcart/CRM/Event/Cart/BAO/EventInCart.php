@@ -12,6 +12,8 @@ class CRM_Event_Cart_BAO_EventInCart extends CRM_Event_Cart_DAO_EventInCart impl
   public $location = NULL;
   public $participants = [];
 
+  private $main_conference_event_id;
+
   /**
    * Add participant to cart.
    *
@@ -180,8 +182,7 @@ class CRM_Event_Cart_BAO_EventInCart extends CRM_Event_Cart_DAO_EventInCart impl
 
   public function load_location() {
     if ($this->location == NULL) {
-      $location_params = ['entity_id' => $this->event_id, 'entity_table' => 'civicrm_event'];
-      $this->location = CRM_Core_BAO_Location::getValues($location_params, TRUE);
+      $this->location['address'] = CRM_Core_BAO_Address::getValues(['entity_id' => $this->event_id, 'entity_table' => 'civicrm_event'], TRUE);
     }
   }
 

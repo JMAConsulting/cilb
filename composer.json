@@ -15,17 +15,27 @@
         }
     ],
     "require": {
-        "civicrm/civicrm-core": "^5.75",
-        "civicrm/civicrm-drupal-8": "^5.75",
-        "civicrm/civicrm-packages": "^5.75",
+        "civicrm/civicrm-core": "6.4.0",
+        "civicrm/civicrm-drupal-8": "6.4.*",
+        "civicrm/civicrm-packages": "6.4.*",
         "composer/installers": "^2.0",
+        "drupal/bootstrap": "^3.35",
+        "drupal/bootstrap_barrio": "^5.5",
         "drupal/civicrm_entity": "^4.0@beta",
+        "drupal/config_ignore": "^3.3",
         "drupal/core": "10.5.6",
         "drupal/core-composer-scaffold": "10.5.6",
         "drupal/core-project-message": "10.5.6",
         "drupal/core-recommended": "10.5.6",
         "drupal/entity_print": "^2.14",
+        "drupal/lang_dropdown": "^2.1",
+        "drupal/mail_login": "^4.0",
+        "drupal/menu_per_role": "^1.8",
         "drupal/redirect_after_login": "^3.0",
+        "drupal/redirect_page_by_role": "^3.2",
+        "drupal/skinr": "^2.0@alpha",
+        "drupal/smtp": "^1.4",
+        "drupal/token": "^1.16",
         "drupal/user_email_verification": "^1.2",
         "drupal/webform": "^6.2",
         "drupal/webform_authorizenet": "^1.0",
@@ -55,11 +65,29 @@
     },
     "extra": {
   	"patches": {
-            "drupal/entity_print": {
-                "Issue #3063998: mPDF Plugin": "https://www.drupal.org/files/issues/2022-12-01/3063998-18.patch"
-            }
+        "civicrm/civicrm-core": {
+            "Use Short date in find payments search": "./patches/search_ui_use_short_date_on_find_contribution.patch",
+            "Allow for sending invoice when not logged in": "./patches/sending_invoice_when_not_logged_in.patch",
+            "Use short date on manage exams screen": "./patches/manage_event_listing_short_date.patch",
+            "Fix boot seqeunce": "./patches/fix_boot_sequence.patch",
+            "Apply patch to trim entity ID search values": "patches/civicrm_trim_entity_id_search_value.patch",
+            "Apply patch to fix issue with non admins accessing the civicrm user dashboard": "patches/civicrm_allow_non_admins_user_dashboard_access.patch"
         },
-	"drupal-scaffold": {
+        "drupal/entity_print": {
+            "Issue #3063998: mPDF Plugin": "https://www.drupal.org/files/issues/2022-12-01/3063998-18.patch"
+        },
+        "drupal/user_email_verification": {
+	        "Issue #3376165: Fatal error when 'rules' module is missing": "https://www.drupal.org/files/issues/2023-07-21/user_email_verification-rules_conditions-3376165-2.patch"
+        },
+        "drupal/webform_civicrm": {
+            "Expose contribution ID for further post processing": "patches/webform_civicrm_expose_contribution_id.patch",
+            "Delay contribution receipt send": "patches/webform_civicrm_delay_send_receipt.patch"
+        },
+        "drupal/civicrm_entity": {
+            "Fix civicrm_event_en_MX crash": "patches/civicrm_entity_497.patch"
+        }
+    },
+  	"drupal-scaffold": {
             "locations": {
                 "web-root": "web/"
             }

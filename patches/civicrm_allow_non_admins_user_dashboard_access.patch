@@ -1,0 +1,18 @@
+diff --git a/vendor/civicrm/civicrm-core/CRM/Activity/Selector/Search.php b/vendor/civicrm/civicrm-core/CRM/Activity/Selector/Search.php
+index 6076e405a..fd9904f5d 100644
+--- a/vendor/civicrm/civicrm-core/CRM/Activity/Selector/Search.php
++++ b/vendor/civicrm/civicrm-core/CRM/Activity/Selector/Search.php
+@@ -222,7 +222,12 @@ public function &getRows($action, $offset, $rowCount, $sort, $output = NULL) {
+       $this->_activityClause
+     );
+     $rows = [];
+-    $mailingIDs = CRM_Mailing_BAO_Mailing::mailingACLIDs();
++    try {
++      $mailingIDs = CRM_Mailing_BAO_Mailing::mailingACLIDs();
++    }
++    catch (\CRM_Core_Exception $e) {
++      $mailingIDs = [];
++    }
+     $accessCiviMail = CRM_Core_Permission::check('access CiviMail');
+ 
+     // Get all campaigns.

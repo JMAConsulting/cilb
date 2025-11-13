@@ -1,10 +1,10 @@
 <?php
 
 use Drupal\webform\Utility\WebformFormHelper;
-use Drupal\webform\Entity\Webform;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\block\Entity\Block;
+use Drupal\cilb_candidate_registration\Plugin\WebformHandler\CilbCandidateRegistrationWebformHandler;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 
@@ -15,37 +15,37 @@ use Drupal\views\Plugin\views\query\QueryPluginBase;
  * @param $form_id
  */
 function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
-  if ($form_id == "webform_submission_register_english_add_form") {
-    // Attach library
-    $form['#attached']['library'][] = 'cilb_candidate_registration/candidate_registration';
-    $form['#attached']['library'][] = 'cilb_candidate_registration/exam_selection';
-    $form['#attached']['library'][] = 'cilb_candidate_registration/selected_exam_info';
+  if (
+    $form_id == "webform_submission_register_english_add_form"
+    || $form_id == "webform_submission_backoffice_registration_add_form"
+  ) {
 
+    if ($form_id == "webform_submission_register_english_add_form") {
+      // Redirect to /register if notification block is disabled
+      $elements = WebformFormHelper::flattenElements($form);
+      $original_markup = $elements['user_identification_markup']['#markup'];
 
-    // Redirect to /register if notification block is disabled
-    $elements = WebformFormHelper::flattenElements($form);
-    $original_markup = $elements['user_identification_markup']['#markup'];
-
-    if(! _is_block_active('olivero_candidatenotice')) {
-      $updated_markup = preg_replace(
-        '/https:\/\/cilb\.jmaconsulting\.biz\/(es\/)?register-notification/',
-        'https://cilb.jmaconsulting.biz/register',
-        $original_markup
-      );
-      $elements['user_identification_markup']['#markup'] = $updated_markup;
+      if (!_is_block_active('bootstrap_barrio_subtheme_candidatenotice')) {
+        $updated_markup = preg_replace(
+          '/https:\/\/cilb\.jmaconsulting\.biz\/(es\/)?register-notification/',
+          'https://cilb.jmaconsulting.biz/register',
+          $original_markup
+        );
+        $elements['user_identification_markup']['#markup'] = $updated_markup;
+      }
     }
   }
 }
 
 function cilb_candidate_registration_preprocess_page(&$variables) {
   $node = \Drupal::routeMatch()->getParameter('node');
-  if ($node instanceof \Drupal\node\NodeInterface && $node->id() == 4) {
+  if ($node instanceof \Drupal\node\NodeInterface && $node->id() == 6) {
     $current_language = \Drupal::languageManager()->getCurrentLanguage()->getId();
-    $block_id = 'olivero_candidatenotice';
+    $block_id = 'bootstrap_barrio_subtheme_candidatenotice';
 
     // Redirect to webform if notification block is disabled
-    if (! _is_block_active($block_id)) {
-      if($current_language == 'es') {
+    if (!_is_block_active($block_id)) {
+      if ($current_language == 'es') {
         $redirect_url = Url::fromUri('internal:/es/exam-registration');
       } else {
         $redirect_url = Url::fromUri('internal:/exam-registration');
@@ -73,8 +73,8 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
       ->addSelect('option_value.id')
       ->addJoin('OptionValue AS option_value', 'LEFT', ['event_type_id', '=', 'option_value.value'])
       ->addWhere('is_active', '=', TRUE)
-      //->addWhere('start_date', '>', 'now')
-      ->addWhere('is_online_registration', '=', TRUE)
+      //  ->addWhere('start_date', '>', 'now')
+      //   ->addWhere('is_online_registration', '=', TRUE)
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
       ->addWhere('option_value.option_group_id', '=', 15)
       ->addGroupBy('event_type_id')
@@ -90,28 +90,6 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
       $query->addWhere('AND', 'civicrm_option_value.id', $valid_option_ids, 'IN');
     } else {
       $query->addWhere('AND', 'civicrm_option_value.id', '0', '=');
-    }
-
-  } elseif ($view->id() == 'exams' && $view->current_display == 'entity_reference_1') {
-
-    // Check to make sure exams are not full
-    $events = \Civi\Api4\Event::get(FALSE)
-      ->addSelect('id')
-      ->addWhere('is_active', '=', TRUE)
-      //->addWhere('start_date', '>', 'now')
-      ->addWhere('is_online_registration', '=', TRUE)
-      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
-      ->execute();
-
-    $valid_events = [];
-    foreach ($events as $event) {
-      $valid_events[] = $event['id'];
-    }
-
-    if (!empty($valid_events)) {
-      $query->addWhere('AND', 'civicrm_event.id', $valid_events, 'IN');
-    } else {
-      $query->addWhere('AND', 'civicrm_event.id', '0', '=');
     }
   }
 }

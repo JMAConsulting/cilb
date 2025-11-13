@@ -1,0 +1,13 @@
+redirect_page_by_role.admin_settings:
+  path: '/admin/config/redirect-page-by-role'
+  defaults:
+    _form: '\Drupal\redirect_page_by_role\Form\RedirectPageByRoleSettingsForm'
+    _title: 'Redirect Page By Role'
+  requirements:
+    _permission: 'administer redirect page by role'
+
+redirect_page_by_role.list:
+  path: '/admin/config/redirect-page-by-role/list'
+  defaults:
+    _entity_list: 'redirect_page_by_role.list'
+    _title: 'List of Nodes with rules'

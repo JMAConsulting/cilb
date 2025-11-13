@@ -6,7 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    $vendorDir . '/civicrm/civicrm-core/vendor/tecnickcom',
     $vendorDir . '/pear/archive_tar',
     $vendorDir . '/pear/auth_sasl',
     $vendorDir . '/pear/console_getopt',

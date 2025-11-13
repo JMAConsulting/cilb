@@ -1,0 +1,11 @@
+uuid: c18c78c8-589b-43d0-8fa9-d60caaf0b821
+langcode: en
+status: true
+dependencies:
+  module:
+    - civicrm_entity
+id: civicrm_contribution_page_es_MX.token
+label: Token
+description: ''
+targetEntityType: civicrm_contribution_page_es_MX
+cache: true

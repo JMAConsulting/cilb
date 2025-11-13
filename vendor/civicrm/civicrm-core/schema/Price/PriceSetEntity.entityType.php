@@ -7,7 +7,7 @@ return [
   'getInfo' => fn() => [
     'title' => ts('Price Set Entity'),
     'title_plural' => ts('Price Set Entities'),
-    'description' => ts('FIXME'),
+    'description' => ts('Price Set Entities'),
     'log' => TRUE,
     'add' => '1.8',
   ],
@@ -35,10 +35,13 @@ return [
     'entity_table' => [
       'title' => ts('Entity Table'),
       'sql_type' => 'varchar(64)',
-      'input_type' => 'Text',
+      'input_type' => 'Select',
       'required' => TRUE,
       'description' => ts('Table which uses this price set'),
       'add' => '1.8',
+      'pseudoconstant' => [
+        'callback' => ['CRM_Price_BAO_PriceSet', 'entityTables'],
+      ],
     ],
     'entity_id' => [
       'title' => ts('Entity ID'),

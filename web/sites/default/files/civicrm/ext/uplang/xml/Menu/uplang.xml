@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/admin/setting/uplang</path>
+    <title>Update Languages Settings</title>
+    <page_callback>CRM_Admin_Form_Generic</page_callback>
+    <access_arguments>administer CiviCRM system</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/test</path>
+    <page_callback>CRM_Uplang_Form_Test</page_callback>
+    <title>Test</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>
