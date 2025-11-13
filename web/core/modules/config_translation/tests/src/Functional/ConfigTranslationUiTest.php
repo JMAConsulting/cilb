@@ -13,7 +13,6 @@ use Drupal\Core\Language\LanguageInterface;
  * Translate settings and entities to various languages.
  *
  * @group config_translation
- * @group #slow
  */
 class ConfigTranslationUiTest extends ConfigTranslationUiTestBase {
 
@@ -163,7 +162,7 @@ class ConfigTranslationUiTest extends ConfigTranslationUiTestBase {
 
     // Translate the files view, as this one uses numeric formatters.
     $description = 'Singular form';
-    $field_value = '1 place';
+    $field_value = '@count place';
     $field_value_plural = '@count places';
     $translation_url = 'admin/structure/views/view/files/translate/sl/add';
     $this->drupalGet($translation_url);
@@ -331,6 +330,26 @@ class ConfigTranslationUiTest extends ConfigTranslationUiTestBase {
       ->get('config_translation_test.content')
       ->get('animals');
     $this->assertEquals($expected, $actual);
+  }
+
+  /**
+   * Tests escaping of source configuration label.
+   */
+  public function testLabelEscaping(): void {
+    $this->drupalLogin($this->adminUser);
+
+    // Testing via translating a role configuration.
+    $role_id = $this->randomMachineName(16);
+    $malicious_role_name = '">\'><img src="http://127.0.0.1/evil">';
+    $this->drupalCreateRole([], $role_id, $malicious_role_name);
+
+    // Visit the form that adds the translation of this label.
+    $translate_link = 'admin/people/roles/manage/' . $role_id . '/translate/fr/add';
+    $this->drupalGet($translate_link);
+
+    // Ensure that the displayed label is escaped.
+    $this->assertSession()->responseNotContains('<img src="http://127.0.0.1/evil">');
+    $this->assertSession()->responseContains('<span lang="en">&quot;&gt;&#039;&gt;&lt;img src=&quot;http://127.0.0.1/evil&quot;&gt;</span>');
   }
 
 }
