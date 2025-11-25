@@ -41,6 +41,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
     $examStatus     = ucfirst($params['examgrade']) ?? NULL;
     $examTitle      = $params['examtitle'] ?? '';
     $examNoShow     = $params['noshow'] ?? FALSE;
+    $examClass      = NULL;
 
     // No Shows
     if ($examNoShow) {
@@ -77,7 +78,6 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
       CRM_Advimport_Utils::logImportWarning($params, "Exam - {$examSeriesCode} was not found"); // Exam was not found
       return;
     }
-    $examID = $exam['id'];
     $examClass = $exam['event_type.Exam_Type_Details.DBPR_Code'];
 
     // Candidate Info
@@ -88,7 +88,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
 
     // Exam Registration
     $contactID = $candidate['entity_id'];
-    $participantResults = EU::getExamRegistrationWithoutScore($contactID, $examID);
+    $participantResults = EU::getExamRegistrationWithoutScore($contactID, $exam);
     if ( $participantResults->count() == 0 ) {
       // @TODO: log as skipped (warning) ?
       throw new CRM_Core_Exception("No registration found that doesn't have a score already.");
