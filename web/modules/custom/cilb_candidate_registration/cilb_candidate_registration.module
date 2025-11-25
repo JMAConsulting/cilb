@@ -19,7 +19,10 @@ function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormSt
     $form_id == "webform_submission_register_english_add_form"
     || $form_id == "webform_submission_backoffice_registration_add_form"
   ) {
-
+    if ($form_id == 'webform_submission_register_english_add_form' && isset($form['actions']['reset'])) {
+      $form['actions']['reset']['#value'] = t('Cancel');
+      $form['actions']['reset']['#attributes']['class'][] = 'btn-danger';
+    }
     if ($form_id == "webform_submission_register_english_add_form") {
       // Redirect to /register if notification block is disabled
       $elements = WebformFormHelper::flattenElements($form);
