@@ -405,6 +405,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $lastName = $webform_submission_data['civicrm_1_contact_1_contact_last_name'];
     $baseUsername = $firstName . $lastName;
     $username = $baseUsername;
+    $langcode = $webform_submission_data['civicrm_1_contact_1_cg1_custom_3'] == 2 ? 'es' : 'en';
 
     // Check if a user with the given email already exists
     //
@@ -453,6 +454,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     $user->activate();
     $user->enforceIsNew();
+    $user->set('preferred_langcode', $langcode);
     $user->save();
 
     // Send the email verification email
@@ -501,6 +503,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // need to know the webform contribution ID
     $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
     $contributionId = $webformCivicrmPostProcess->getContributionId();
+    $webform_submission->setData(['contribution_id' => $contributionId]);
     $contribution = \Civi\Api4\Contribution::get(FALSE)
       ->addWhere('id', '=', $contributionId)
       ->addSelect('payment_instrument_id:name')
