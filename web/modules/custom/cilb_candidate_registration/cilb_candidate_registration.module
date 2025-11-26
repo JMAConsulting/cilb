@@ -96,3 +96,26 @@ function cilb_candidate_registration_views_query_alter(ViewExecutable $view, Que
     }
   }
 }
+
+function cilb_candidate_registration_token_info() {
+  $info = [];
+  $info['contribution-id'] = [
+    'name' => t('Webform CiviCRM Contribution ID'),
+    'description' => t('The ID of Contribution that got created after submitting the webform. Replace the "?" with the contribution number starting from 1'),
+    'dynamic' => TRUE,
+  ];
+
+  return ['tokens' => ['webform_submission' => $info]];
+}
+
+function cilb_candidate_registration_tokens($type, $tokens = '', array $data = [], array $options = []) {
+  if (!($type === 'webform_submission' && !empty($data['webform_submission']))) {
+    return;
+  }
+  $contributionId = \Drupal::service('webform_civicrm.postprocess')->getContributionId() ?? $data['webform_submission']->getData()['civicrm']['contribution'][1]['id'];
+  if ($contributionId) {
+    return ['[webform_submission:contribution-id:1]' => $contributionId];
+  }
+}
+
+
