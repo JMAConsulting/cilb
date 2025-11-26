@@ -86,6 +86,7 @@
             cj(".crm-dashboard-notes").append(cj("<td>").append(cj(".notes").html()));
             cj(".personalinfo").remove();
             cj(".notes").remove();
+            cj(".crm-dashboard-civievent .columnheader th:eq(3)").after('<th>Score</th>');
             {/literal}
             {foreach from=$event_rows item=row}
                 cj(".crm-participant-event-id_{$row.event_id}").parent().append(
@@ -94,6 +95,7 @@
                         .append("<a href=\"/form/reschedule-exam?id={$row.event_id}\">Reschedule Exam</a>")
                     {/if}
                 );
+                cj(".crm-participant-event-id_{$row.event_id}").parent().append(cj("<td>").append("{$row.score}"));
             {/foreach}
             {literal}
             cj(".crm-dashboard-civievent .description").remove();

@@ -49,6 +49,16 @@ function candidatedashboard_civicrm_pageRun( &$page) {
       });"
     );
 
+    $participantRecords = $page->get_template_vars('event_rows');
+    foreach ($participantRecords as $k => $record) {
+       $participantRecords[$k]['score'] = \Civi\Api4\Participant::get(FALSE)
+          ->addSelect('Candidate_Result.Candidate_Score')
+          ->addWhere('id', '=', $record['id'])
+          ->execute()
+          ->first()['Candidate_Result.Candidate_Score'];
+    }
+    $page->assign('event_rows', $participantRecords);
+
     // Personal info
     $contactId = CRM_Core_Session::singleton()->getLoggedInContactID();
     $contact = \Civi\Api4\Contact::get(FALSE)
