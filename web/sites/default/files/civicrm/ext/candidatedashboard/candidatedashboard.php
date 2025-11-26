@@ -38,6 +38,17 @@ function candidatedashboard_civicrm_enable(): void {
  */
 function candidatedashboard_civicrm_pageRun( &$page) {
   if ($page->getVar('_name') === 'CRM_Contact_Page_View_UserDashBoard') {
+    Civi::service('angularjs.loader')->addModules('afsearchFindActivities');
+    $html = '<crm-angular-js modules="afsearchFindActivities"><form id="bootstrap-theme"><afsearch-find-activities></afsearch-find-activities></form></crm-angular-js>';
+    CRM_Core_Region::instance('crm-activity-userdashboard-post')->add([
+     'markup' => $html, 'weight' => 10
+    ]);
+    CRM_Core_Resources::singleton()->addScript(
+      "CRM.$(function($) {
+        $('.crm-dashboard-assignedActivities table').hide();
+      });"
+    );
+
     // Personal info
     $contactId = CRM_Core_Session::singleton()->getLoggedInContactID();
     $contact = \Civi\Api4\Contact::get(FALSE)
