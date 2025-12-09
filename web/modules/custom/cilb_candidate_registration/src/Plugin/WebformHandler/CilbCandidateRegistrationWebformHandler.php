@@ -502,7 +502,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // when registering events, we add event payments to the webform contribution
     // need to know the webform contribution ID
     $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
-    $contributionId = $webformCivicrmPostProcess->getContributionId();
+    $contributionId = $webform_submission_data['existing_payment'] ?? $webformCivicrmPostProcess->getContributionId();
     $webform_submission->setData(['contribution_id' => $contributionId]);
     $contribution = \Civi\Api4\Contribution::get(FALSE)
       ->addWhere('id', '=', $contributionId)
@@ -645,6 +645,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateSSNMatch($form_state);
       $this->validateUniqueUser($form_state, $webform_submission);
     } elseif ($current_page == 'exam_fee_page') {
+      if ($form_state->getValue('existing_payment')) {
+        $form_state->setValue('civicrm_1_contribution_1_contribution_payment_processor_id', 0);
+        $form_state->set('current_page', 'webform_confirmation');
+      }
       $this->validateContributionAmount($form_state);
     } elseif ($current_page == 'user_identification') {
       $this->validateCandidateRep($form_state);
