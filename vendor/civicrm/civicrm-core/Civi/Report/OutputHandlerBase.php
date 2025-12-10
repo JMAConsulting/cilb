@@ -143,4 +143,8 @@ class OutputHandlerBase implements OutputHandlerInterface {
     return TRUE;
   }
 
+  public function saveOutput(): bool {
+    return TRUE;
+  }
+
 }

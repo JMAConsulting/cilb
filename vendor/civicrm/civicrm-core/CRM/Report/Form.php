@@ -6093,7 +6093,9 @@ LEFT JOIN civicrm_contact {$field['alias']} ON {$field['alias']}.id = {$this->_a
     // output ends up in $mailBody above.
     if ($attachmentFileName) {
       $fullFilename = CRM_Core_Config::singleton()->templateCompileDir . CRM_Utils_File::makeFileName($attachmentFileName);
-      file_put_contents($fullFilename, $this->outputHandler->getOutputString());
+      if ($this->outputHandler->saveOutput()) {
+        file_put_contents($fullFilename, $this->outputHandler->getOutputString());
+      }
       $attachments[] = [
         'fullPath' => $fullFilename,
         'mime_type' => $this->outputHandler->getMimeType(),

@@ -20,7 +20,22 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
   public function getOutputString(): string {
     $rows = $this->getForm()->getTemplate()->getTemplateVars('rows');
     $form = $this->getForm();
-    return \CRM_Report_Utils_Report::makeCsv($form, $rows);
+    $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+    $csv = \CRM_Report_Utils_Report::makeCsv($form, $rows);
+    // Note that this is the same as in CRM_Report_Form::sendEmail
+    $fullFileName = CRM_Core_Config::singleton()->templateCompileDir . CRM_Utils_File::makeFileName($this->getFileName());
+    file_put_contents('/tmp/' . $temporaryFileName, $csv);
+    $random_password = \Drupal::service('password_generator')->generate('12');
+    \Civi::settings()->set('cilb_reports_mtw_password', $random_password);
+    $zip = new \ZipArchive();
+    if ($zip->open($fullFileName, \ZipArchive::CREATE) === TRUE) {
+      $zip->setPassword($random_password);
+      $zip->addFile('/tmp/' . $temporaryFileName, $temporaryFileName);
+      $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_AES_256);
+      $zip->close();
+    }
+    \unlink('/tmp/' . $temporaryFileName);
+    return $csv;
   }
 
   public function download() {
@@ -36,11 +51,16 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
       $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_AES_256);
       $zip->close();
     }
+    \unlink('/tmp/' . $temporaryFileName);
     return $zip;
   }
 
   public function getMimeType(): string {
     return 'application/zip';
+  }
+
+  public function saveOutput(): bool {
+    return FALSE;
   }
 
 }
