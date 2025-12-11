@@ -73,10 +73,36 @@ jQuery(document).ready(function ($) {
 
   setReadonly();
 
+  if (isExistingContact()) {
+    if ($('#edit-civicrm-1-contact-1-email-email').val() == '') {
+      CRM.api4('Email', 'get', {
+        where: [["location_type_id:name", "=", "Work"], ["contact_id", "=", $('#edit-civicrm-1-contact-1-contact-existing').val()]]
+      }).then(function(batch) {
+        if (batch.length > 0) {
+          $('#edit-civicrm-1-contact-1-email-email').val(batch[0]['email']);
+        }
+      }, function(failure) {
+        // handle failure
+        console.log("API Call Failed:", failure);
+      });
+    }
+  }
   // Clear DOB, birth date, name suffix when the user selects a new contact
   existingContactField.on("change", function () {
     if (isExistingContact()) {
-      return;
+      if ($('#edit-civicrm-1-contact-1-email-email').val() == '') {
+        CRM.api4('Email', 'get', {
+          where: [["location_type_id:name", "=", "Work"], ["contact_id", "=", $(this).val()]]
+        }).then(function(batch) {
+          if (batch.length > 0) {
+            $('#edit-civicrm-1-contact-1-email-email').val(batch[0]['email']);
+          }
+        }, function(failure) {
+          // handle failure
+          console.log("API Call Failed:", failure);
+        });
+        return;
+      }
     }
     var fieldsToReset = candidateContactInfoFields.add(nameSuffix).add(nameSuffix).add(birthDate).add(ssn);
     fieldsToReset.each(function (index) {
