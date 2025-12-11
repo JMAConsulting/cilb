@@ -6,8 +6,19 @@ use CRM_Report_Form;
 
 class EncryptedZipOutputFormat extends OutputHandlerBase {
 
+  private $zipFileName;
+
+  public function getZipFileName(): string {
+    return $this->zipFileName;
+  }
+
+  public function setZipFileName(string $fileName): \Civi\Report\EncryptedZipOutputFormat {
+    $this->zipFileName = $fileName;
+    return $this;
+  }
+
   public function isOutputHandlerFor(CRM_Report_Form $form): bool {
-    if (\get_class($form) === 'CRM_CilbReports_Form_Report_MTFReport' && $form->getOutputMode() === 'zip') {
+    if (\get_class($form) === 'CRM_CilbReports_Form_Report_MWFReport' && $form->getOutputMode() === 'zip') {
       return TRUE;
     }
     return FALSE;
@@ -23,7 +34,7 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
     $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
     $csv = \CRM_Report_Utils_Report::makeCsv($form, $rows);
     // Note that this is the same as in CRM_Report_Form::sendEmail
-    $fullFileName = CRM_Core_Config::singleton()->templateCompileDir . CRM_Utils_File::makeFileName($this->getFileName());
+    $fullFileName = $this->getZipFileName();
     file_put_contents('/tmp/' . $temporaryFileName, $csv);
     $random_password = \Drupal::service('password_generator')->generate('12');
     \Civi::settings()->set('cilb_reports_mtw_password', $random_password);
@@ -44,8 +55,9 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
     $csv = \CRM_Report_Utils_Report::makeCsv($form, $rows);
     $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
     file_put_contents('/tmp/' . $temporaryFileName, $csv);
+    $fullFileName = CRM_Core_Config::singleton()->templateCompileDir . CRM_Utils_File::makeFileName($this->getFileName());
     $zip = new \ZipArchive();
-    if ($zip->open($this->getFileName(), \ZipArchive::CREATE) === TRUE) {
+    if ($zip->open($fullFileName, \ZipArchive::CREATE) === TRUE) {
       $zip->setPassword('Test Password');
       $zip->addFile('/tmp/' . $temporaryFileName, $temporaryFileName);
       $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_AES_256);
@@ -61,6 +73,25 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
 
   public function saveOutput(): bool {
     return FALSE;
+  }
+
+  public function getCharset(): string {
+    return 'utf8';
+  }
+
+  /**
+   * Return the html body of the email.
+   *
+   * @return string
+   */
+  public function getMailBody():string {
+    // @todo It would be nice if this was more end-user configurable, but
+    // keeping it the same as it was before for now.
+    $url = \CRM_Utils_System::url('civicrm/report/instance/' . $this->getForm()->getID(), 'reset=1', TRUE);
+    return $this->getForm()->getReportHeader() . '<p>' . \ts('Report URL') .
+      ": {$url}</p>" . '<p>' .
+      \ts('The report is attached as a CSV file in the zip file.') . '</p>' .
+      $this->getForm()->getReportFooter();
   }
 
 }

@@ -71,7 +71,8 @@
             "Use short date on manage exams screen": "./patches/manage_event_listing_short_date.patch",
             "Fix boot seqeunce": "./patches/fix_boot_sequence.patch",
             "Apply patch to trim entity ID search values": "patches/civicrm_trim_entity_id_search_value.patch",
-            "Apply patch to fix issue with non admins accessing the civicrm user dashboard": "patches/civicrm_allow_non_admins_user_dashboard_access.patch"
+            "Apply patch to fix issue with non admins accessing the civicrm user dashboard": "patches/civicrm_allow_non_admins_user_dashboard_access.patch",
+            "Apply patches to core to support Monday, Wednesday, Friday Report": "patches/civicrm_report_fixes.patch"
         },
         "drupal/entity_print": {
             "Issue #3063998: mPDF Plugin": "https://www.drupal.org/files/issues/2022-12-01/3063998-18.patch"

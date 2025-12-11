@@ -136,3 +136,12 @@ function cilb_reports_civicrm_alterMailParams(&$params, $context) {
     }
   }
 }
+
+/**
+ * Implements hook_civicrm_alterReportVar().
+ */
+function cilb_reports_civicrm_alterReportVar($varType, &$var, $form): void {
+  if ($varType === 'outputhandlers') {
+    $var['\Civi\Report\EncryptedZipOutputFormat'] = '\Civi\Report\EncryptedZipOutputFormat';
+  }
+}

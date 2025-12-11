@@ -25,3 +25,7 @@ Apply patch to fix issue with non admins accessing the civicrm user dashboard
 Source: patches/civicrm_allow_non_admins_user_dashboard_access.patch
 
 
+Apply patches to core to support Monday, Wednesday, Friday Report
+Source: patches/civicrm_report_fixes.patch
+
+

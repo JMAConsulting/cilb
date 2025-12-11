@@ -6096,6 +6096,12 @@ LEFT JOIN civicrm_contact {$field['alias']} ON {$field['alias']}.id = {$this->_a
       if ($this->outputHandler->saveOutput()) {
         file_put_contents($fullFilename, $this->outputHandler->getOutputString());
       }
+      else {
+        if (is_callable([$this->outputHandler, 'setZipFileName'])) {
+          $this->outputHandler->setZipFileName($fullFilename);
+        }
+        $this->outputHandler->getOutputString();
+      }
       $attachments[] = [
         'fullPath' => $fullFilename,
         'mime_type' => $this->outputHandler->getMimeType(),

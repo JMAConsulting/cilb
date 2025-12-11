@@ -24,18 +24,18 @@ class GenerateMWFReport extends AbstractAction {
   protected $instanceID;
 
   public function _run(Result $result) {
+    \ob_start();
     $reportResult = \CRM_Report_Utils_Report::processReport([
       'instanceID' => $this->instanceID,
       'sendmail' => true,
       'output' => 'zip',
     ]);
+    \ob_clean();
     if ($reportResult['is_error']) {
-      throw new \Exception($result['messages']);
+      throw new \CRM_Core_Exception($reportResult['messages']);
     }
-    $result[] = $reportResult['messages'];
+    $result[] = ['messages'  => $reportResult['messages']];
     \Civi::settings()->set('cilb_reports_mwfreport_last_run_date', date('Y-m-d'));
-    // Remove the generated zip file from the server
-    \unlink(CRM_Core_Config::singleton()->templateCompileDir . CRM_Utils_File::makeFileName('cilbChangeReport.zip'));
   }
 
 }
