@@ -26,7 +26,7 @@ class GenerateMWFReport extends AbstractAction {
   public function _run(Result $result) {
     \ob_start();
     $reportResult = \CRM_Report_Utils_Report::processReport([
-      'instanceID' => $this->instanceID,
+      'instanceId' => $this->instanceID,
       'sendmail' => true,
       'output' => 'zip',
     ]);
@@ -34,7 +34,7 @@ class GenerateMWFReport extends AbstractAction {
     if ($reportResult['is_error']) {
       throw new \CRM_Core_Exception($reportResult['messages']);
     }
-    $result[] = ['messages'  => $reportResult['messages']];
+    $result[] = ['messages' => $reportResult['messages']];
     \Civi::settings()->set('cilb_reports_mwfreport_last_run_date', date('Y-m-d'));
   }
 
