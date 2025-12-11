@@ -504,6 +504,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
     $contributionId = $webform_submission_data['existing_payment'] ?? $webformCivicrmPostProcess->getContributionId();
     $webform_submission->setData(['contribution_id' => $contributionId]);
+    if (empty($webform_submission_data['existing_payment'])) {
     $contribution = \Civi\Api4\Contribution::get(FALSE)
       ->addWhere('id', '=', $contributionId)
       ->addSelect('payment_instrument_id:name')
@@ -552,7 +553,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         `price_field_value_id` = {$formFeePriceFieldValueId}
       WHERE `id` = {$defaultLineItem['id']}
     SQL);
-
+    }
     foreach ($eventIds as $eventId) {
       try {
         $participantId = \Civi\Api4\Participant::create(FALSE)
