@@ -51,17 +51,6 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
     $this->import();
   }
 
-  /*protected function getRows(string $query) {
-    // add limit clause if set
-    $query .= $this->recordLimit ? " LIMIT {$this->recordLimit}" : "";
-
-    $results = $this->conn->query($query);
-    print_R($query);
-    while ($row = $results->fetchRow(DB_FETCHMODE_ASSOC)) {
-      yield $row;
-    }
-  }*/
-
   protected function getRows(string $query, array $params = []) {
     // Add limit clause if set
     $query .= $this->recordLimit ? " LIMIT {$this->recordLimit}" : "";

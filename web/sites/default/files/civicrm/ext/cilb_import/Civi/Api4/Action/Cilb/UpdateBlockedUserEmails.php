@@ -46,6 +46,7 @@ class UpdateBlockedUserEmails extends ImportBase {
       ON
         pti_Candidates.SSN = pti_Restricted_Candidates.SSN
     ") as $blocked) {
+      $contact = [];
 
       // next check by SSN. based on review this would be a contact
       // created during the previous BlockedUsers import
@@ -64,25 +65,17 @@ class UpdateBlockedUserEmails extends ImportBase {
         else {
           [$firstName, $lastName] = array_map('trim', explode(' ', $blocked['Candidate_Name'], 2));
         }
-        /*foreach ($this->getRows("
-          SELECT PK_Account_ID, Account_Name, SSN FROM System_Accounts
+	      foreach ($this->getRows("
+          SELECT PK_Account_ID, Account_Name, SSN
+          FROM System_Accounts
           LEFT JOIN pti_Candidates
           ON pti_Candidates.FK_Account_ID = System_Accounts.PK_Account_ID
-          WHERE Last_Name LIKE '%{$lastName}%' 
-          AND First_Name LIKE '%{$firstName}%'
-	  ") as $matchingContact) {*/
-	foreach ($this->getRows("
-    SELECT PK_Account_ID, Account_Name, SSN
-    FROM System_Accounts
-    LEFT JOIN pti_Candidates
-    ON pti_Candidates.FK_Account_ID = System_Accounts.PK_Account_ID
-    WHERE Last_Name LIKE ?
-    AND First_Name LIKE ?
-", [
-    "%{$lastName}%",
-    "%{$firstName}%"
-]) as $matchingContact) {
-
+          WHERE Last_Name LIKE ?
+          AND First_Name LIKE ?
+        ", [
+        "%{$lastName}%",
+        "%{$firstName}%"
+        ]) as $matchingContact) {
           if (!empty($matchingContact['PK_Account_ID'])) {
             $findContact = \Civi\Api4\Contact::get(FALSE)
               ->addWhere('external_identifier', '=', $matchingContact['PK_Account_ID'])
@@ -97,23 +90,15 @@ class UpdateBlockedUserEmails extends ImportBase {
         }
       }
       if (empty($blocked['Email'])) {
-        $blocked['Email'] = $firstName.$lastName.'@blocked.local';
+        // create a dummy email to use for blocked user with lowercase first/last name without spaces
+        $firstNameClean = strtolower(preg_replace('/\s+/', '', explode(',', $blocked['Candidate_Name'])[1] ?? 'blocked'));
+        $lastNameClean = strtolower(preg_replace('/\s+/', '', explode(',', $blocked['Candidate_Name'])[0] ?? 'user'));
+        $blocked['Email'] = $firstNameClean.$lastNameClean.'@blocked.local';
       }
-      /*if (empty($findContact)) {
-	      print_R($blocked);
-      }
-      
-      if (count($findContact) > 1) {
-        // unexpected, log and skip
-        $contactIds = implode(', ', $findContact->column('id'));
-        $this->warning("Could not determine unique contact for SSN {$blocked['SSN']} - found {$contactIds}");
-        continue;
-      }*/
 
       if (!empty($findContact)) {
         $contact = $findContact->first();
       }
-
 
       if (empty($contact)) {
         // no contact found - create a new one
@@ -124,7 +109,7 @@ class UpdateBlockedUserEmails extends ImportBase {
         // add restriction info to activity contact
         \Civi\Api4\Contact::update(FALSE)
           ->addWhere('id', '=', $contact['id'])
-          ->addValue('Registrant_Info.Is_Restricted', TRUE)
+          ->addValue('Registrant_Info.Is_Restricted', [TRUE])
           ->addValue('Registrant_Info.Restriction_Reason', $blocked['Restriction_Reason'] ?? NULL)
           ->addValue('Registrant_Info.SSN', $blocked['SSN'] ?? NULL)
           ->addValue('email', $blocked['Email'])
@@ -144,8 +129,8 @@ class UpdateBlockedUserEmails extends ImportBase {
         $cmsUserId = \CRM_Core_BAO_CMSUser::create($userParams, 'email');
       }
       else {
-	$user = reset($user);
-	$cmsUserId = $user->id();
+	      $user = reset($user);
+	      $cmsUserId = $user->id();
       }
       $user = \Drupal\user\Entity\User::load($cmsUserId);
       if (!$user) {
@@ -157,7 +142,7 @@ class UpdateBlockedUserEmails extends ImportBase {
 
       // Create the activity log entry as well.
       if (!empty($blocked['FK_Account_ID'])) {
-	$this->importActivityLog($contact['id'], $blocked);
+	      $this->importActivityLog($contact['id'], $blocked);
       }
     }
   }
