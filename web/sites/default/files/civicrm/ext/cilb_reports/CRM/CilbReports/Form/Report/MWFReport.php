@@ -12,7 +12,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
 
   private $_temporaryTableName = NULL;
 
-  protected $_customGroupExtends = ['Participant', 'Contacts', 'Individual', 'Event'];
+  protected $_customGroupExtends = ['Participant', 'Contact', 'Individual', 'Event'];
   protected $_customGroupGroupBy = FALSE;
   public function __construct() {
     $this->_columns = [
@@ -287,6 +287,9 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     foreach (array_keys($this->_columnHeaders) as $key) {
       if ($key === 'civicrm_value_registrant_in_1_custom_2') {
         $this->_columnHeaders[$key]['title'] = E::ts('Exempt');
+      }
+      if ($key === 'civicrm_value_cilb_candidat_7_custom_31') {
+        $this->_columnHeaders[$key]['title'] = E::ts('Entity ID');
       }
     }
     foreach ($rows as $rowNum => $row) {
