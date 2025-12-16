@@ -12,7 +12,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
 
   private $_temporaryTableName = NULL;
 
-  protected $_customGroupExtends = ['Participant', 'Contacts', 'Individual'];
+  protected $_customGroupExtends = ['Participant', 'Contacts', 'Individual', 'Event'];
   protected $_customGroupGroupBy = FALSE;
   public function __construct() {
     $this->_columns = [
@@ -64,7 +64,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'required' => TRUE,
           ],
           'birth_date' => [
-            'title' => E::ts('Applicatant BirthDate'),
+            'title' => E::ts('Applicatant Birthdate'),
             'required' => TRUE,
             'default' => TRUE,
           ]
@@ -85,6 +85,14 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         'fields' => [
           'id' => [
             'title' => E::ts('Contribution ID'),
+            'required' => TRUE,
+          ],
+          'receive_date' => [
+            'title' => E::ts('Trans Date'),
+            'required' => TRUE,
+          ],
+          'trxn_id' => [
+            'title' => E::ts('Trans#'),
             'required' => TRUE,
           ],
         ],
@@ -265,6 +273,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     // custom code to alter rows
     $entryFound = FALSE;
     $checkList = [];
+    $eventTypes = [];
+    $event_types = Civi::entity('Event')->getOptions('event_type_id', [], TRUE);
+    foreach ($event_types as $event_type) {
+      $eventTypes[$event_type['id']] = $event_type['label'];
+    }
     foreach ($rows as $rowNum => $row) {
 
       if (!empty($this->_noRepeats) && $this->_outputMode != 'csv') {
@@ -385,6 +398,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         );
         $rows[$rowNum]['civicrm_contact_sort_name_link'] = $url;
         $rows[$rowNum]['civicrm_contact_sort_name_hover'] = E::ts("View Contact Summary for this Contact.");
+        $entryFound = TRUE;
+      }
+
+      if (array_key_exists('civicrm_event_event_type_id', $row) && $rows[$rowNum]['civicrm_event_event_type_id']) {
+        $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$row['civicrm_event_event_type_id']];
         $entryFound = TRUE;
       }
 
