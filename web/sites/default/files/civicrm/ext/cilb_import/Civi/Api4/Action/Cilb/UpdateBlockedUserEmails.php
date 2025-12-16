@@ -64,13 +64,25 @@ class UpdateBlockedUserEmails extends ImportBase {
         else {
           [$firstName, $lastName] = array_map('trim', explode(' ', $blocked['Candidate_Name'], 2));
         }
-        foreach ($this->getRows("
+        /*foreach ($this->getRows("
           SELECT PK_Account_ID, Account_Name, SSN FROM System_Accounts
           LEFT JOIN pti_Candidates
           ON pti_Candidates.FK_Account_ID = System_Accounts.PK_Account_ID
           WHERE Last_Name LIKE '%{$lastName}%' 
           AND First_Name LIKE '%{$firstName}%'
-        ") as $matchingContact) {
+	  ") as $matchingContact) {*/
+	foreach ($this->getRows("
+    SELECT PK_Account_ID, Account_Name, SSN
+    FROM System_Accounts
+    LEFT JOIN pti_Candidates
+    ON pti_Candidates.FK_Account_ID = System_Accounts.PK_Account_ID
+    WHERE Last_Name LIKE ?
+    AND First_Name LIKE ?
+", [
+    "%{$lastName}%",
+    "%{$firstName}%"
+]) as $matchingContact) {
+
           if (!empty($matchingContact['PK_Account_ID'])) {
             $findContact = \Civi\Api4\Contact::get(FALSE)
               ->addWhere('external_identifier', '=', $matchingContact['PK_Account_ID'])
@@ -84,17 +96,26 @@ class UpdateBlockedUserEmails extends ImportBase {
           }
         }
       }
+      if (empty($blocked['Email'])) {
+        $blocked['Email'] = $firstName.$lastName.'@blocked.local';
+      }
+      /*if (empty($findContact)) {
+	      print_R($blocked);
+      }
       
       if (count($findContact) > 1) {
         // unexpected, log and skip
         $contactIds = implode(', ', $findContact->column('id'));
         $this->warning("Could not determine unique contact for SSN {$blocked['SSN']} - found {$contactIds}");
         continue;
+      }*/
+
+      if (!empty($findContact)) {
+        $contact = $findContact->first();
       }
 
-      $contact = $findContact->first();
 
-      if (!$contact) {
+      if (empty($contact)) {
         // no contact found - create a new one
         $contact = $this->createNewContact($blocked);
       }
@@ -116,8 +137,16 @@ class UpdateBlockedUserEmails extends ImportBase {
         'email' => $blocked['Email'],
       ];
 
-      $cmsUserId = \CRM_Core_BAO_CMSUser::create($userParams, 'email');
-
+      $user = \Drupal::entityTypeManager()
+        ->getStorage('user')
+        ->loadByProperties(['mail' => $blocked['Email']]);
+      if (empty($user)) {
+        $cmsUserId = \CRM_Core_BAO_CMSUser::create($userParams, 'email');
+      }
+      else {
+	$user = reset($user);
+	$cmsUserId = $user->id();
+      }
       $user = \Drupal\user\Entity\User::load($cmsUserId);
       if (!$user) {
         $this->warning("No CMS user could be created for contact id {$contact['id']} email {$blocked['Email']}");
@@ -127,7 +156,9 @@ class UpdateBlockedUserEmails extends ImportBase {
       $user->save();
 
       // Create the activity log entry as well.
-      $this->importActivityLog($contact['id'], $blocked);
+      if (!empty($blocked['FK_Account_ID'])) {
+	$this->importActivityLog($contact['id'], $blocked);
+      }
     }
   }
 

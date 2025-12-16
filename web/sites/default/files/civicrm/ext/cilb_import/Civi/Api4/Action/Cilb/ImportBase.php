@@ -51,13 +51,34 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
     $this->import();
   }
 
-  protected function getRows(string $query) {
+  /*protected function getRows(string $query) {
     // add limit clause if set
     $query .= $this->recordLimit ? " LIMIT {$this->recordLimit}" : "";
 
     $results = $this->conn->query($query);
+    print_R($query);
     while ($row = $results->fetchRow(DB_FETCHMODE_ASSOC)) {
       yield $row;
+    }
+  }*/
+
+  protected function getRows(string $query, array $params = []) {
+    // Add limit clause if set
+    $query .= $this->recordLimit ? " LIMIT {$this->recordLimit}" : "";
+
+    print_r($query); // Debug query
+    
+    if (!empty($params)) {
+        // PEAR DB prepared statement with positional ?
+        $result = $this->conn->getAll($query, $params);
+        foreach ($result as $row) {
+            yield $row;
+        }
+    } else {
+        $results = $this->conn->query($query);
+        while ($row = $results->fetchRow(DB_FETCHMODE_ASSOC)) {
+            yield $row;
+        }
     }
   }
 
