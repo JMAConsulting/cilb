@@ -67,7 +67,12 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'title' => E::ts('Applicatant Birthdate'),
             'required' => TRUE,
             'default' => TRUE,
-          ]
+          ],
+          'external_identifier' => [
+            'title' => E::ts('PTI Acct ID'),
+            'required' => TRUE,
+            'default' => TRUE,
+          ],
         ],
         'filters' => [
           'sort_name' => [
