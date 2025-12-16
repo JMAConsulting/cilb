@@ -274,6 +274,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     $entryFound = FALSE;
     $checkList = [];
     $eventTypes = [];
+    $stateProvinceIDs = [];
     $event_types = Civi::entity('Event')->getOptions('event_type_id', [], TRUE);
     foreach ($event_types as $event_type) {
       $eventTypes[$event_type['id']] = $event_type['label'];
@@ -432,6 +433,13 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       if (array_key_exists('civicrm_participant_deleted', $row) && $rows[$rowNum]['civicrm_participant_deleted']) {
         $rows[$rowNum]['civicrm_participant_deleted'] = 'Yes';
         $entryFound = TRUE;
+      }
+
+      if (array_key_exists('civicrm_address_state_province_id', $row) && $rows[$rowNum]['civicrm_address_state_province_id']) {
+        if (!array_key_exists($rows[$rowNum]['civicrm_address_state_province_id'], $stateProvinceIDs)) {
+          $stateProvinceIDs[$rows[$rowNum]['civicrm_address_state_province_id']] = CRM_Core_DAO::singleValueQuery("SELECT abbreviation FROM civicrm_state_province WHERE id = %1", [1 => [$rows[$rowNum]['civicrm_address_state_province_id'], 'Positive']]);
+        }
+        $rows[$rowNum]['civicrm_address_state_province_id'] = $stateProvinceIDs[$rows[$rowNum]['civicrm_address_state_province_id']];
       }
 
       if (!$entryFound) {
