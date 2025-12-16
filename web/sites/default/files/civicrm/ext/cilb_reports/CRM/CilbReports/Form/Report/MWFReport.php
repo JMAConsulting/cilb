@@ -434,12 +434,17 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $rows[$rowNum]['civicrm_participant_deleted'] = 'Yes';
         $entryFound = TRUE;
       }
+      else {
+        $rows[$rowNum]['civicrm_participant_deleted'] = '';
+        $entryFound = TRUE;
+      }
 
       if (array_key_exists('civicrm_address_state_province_id', $row) && $rows[$rowNum]['civicrm_address_state_province_id']) {
         if (!array_key_exists($rows[$rowNum]['civicrm_address_state_province_id'], $stateProvinceIDs)) {
           $stateProvinceIDs[$rows[$rowNum]['civicrm_address_state_province_id']] = CRM_Core_DAO::singleValueQuery("SELECT abbreviation FROM civicrm_state_province WHERE id = %1", [1 => [$rows[$rowNum]['civicrm_address_state_province_id'], 'Positive']]);
         }
         $rows[$rowNum]['civicrm_address_state_province_id'] = $stateProvinceIDs[$rows[$rowNum]['civicrm_address_state_province_id']];
+        $entryFound = TRUE;
       }
 
       if (!$entryFound) {
