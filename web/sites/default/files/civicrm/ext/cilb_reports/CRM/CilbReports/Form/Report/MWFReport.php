@@ -278,6 +278,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     foreach ($event_types as $event_type) {
       $eventTypes[$event_type['id']] = $event_type['label'];
     }
+    foreach (array_keys($this->_columnHeaders) as $key) {
+      if ($key === 'civicrm_value_registrant_in_1_custom_2') {
+        $this->_columnHeaders[$key]['title'] = E::ts('Exempt');
+      }
+    }
     foreach ($rows as $rowNum => $row) {
 
       if (!empty($this->_noRepeats) && $this->_outputMode != 'csv') {
@@ -403,6 +408,29 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
 
       if (array_key_exists('civicrm_event_event_type_id', $row) && $rows[$rowNum]['civicrm_event_event_type_id']) {
         $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$row['civicrm_event_event_type_id']];
+        $entryFound = TRUE;
+      }
+
+      if (array_key_exists('civicrm_value_registrant_in_1_custom_2', $row)) {
+        $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'True' : 'False');
+        $entryFound = TRUE;
+      }
+      $change_columns = [
+        'civicrm_participant_exam_date_change',
+        'civicrm_participant_exam_part_change',
+        'civicrm_participant_candidate_number_change',
+        'civicrm_participant_category_change',
+        'civicrm_participant_exam_event_change',
+      ];
+      foreach ($change_columns as $change_column) {
+        if (array_key_exists($change_column, $row) && $rows[$rowNum][$change_column]) {
+          $rows[$rowNum][$change_column] = 'Y';
+          $entryFound = TRUE;
+        }
+      }
+
+      if (array_key_exists('civicrm_participant_deleted', $row) && $rows[$rowNum]['civicrm_participant_deleted']) {
+        $rows[$rowNum]['civicrm_participant_deleted'] = 'Yes';
         $entryFound = TRUE;
       }
 
