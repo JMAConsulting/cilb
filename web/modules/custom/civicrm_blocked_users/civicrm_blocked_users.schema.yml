@@ -1,0 +1,7 @@
+civicrm_blocked_users.settings:
+  type: config_object
+  label: 'CiviCRM Blocked Users settings'
+  mapping:
+    group_id:
+      type: integer
+      label: 'Blocked Users Group ID'

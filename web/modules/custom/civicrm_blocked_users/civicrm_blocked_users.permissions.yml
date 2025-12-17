@@ -1,0 +1,3 @@
+administer civicrm_blocked_users:
+  title: 'Administer CiviCRM Blocked Users'
+  description: 'Configure blocked users sync settings'

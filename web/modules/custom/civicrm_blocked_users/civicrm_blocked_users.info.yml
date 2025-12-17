@@ -1,0 +1,7 @@
+name: 'CiviCRM Blocked Users'
+type: module
+description: 'Syncs Drupal blocked users with CiviCRM Blocked Users group'
+core_version_requirement: ^10
+package: CiviCRM
+dependencies:
+  - civicrm (>= 6.0)
