@@ -1,0 +1,8 @@
+civicrm_blocked_users.settings:
+  path: '/admin/config/services/civicrm-blocked-users'
+  defaults:
+    _form: '\Drupal\civicrm_blocked_users\Form\SettingsForm'
+    _title: 'CiviCRM Blocked Users'
+  requirements:
+    _permission: 'administer civicrm_blocked_users'
+
