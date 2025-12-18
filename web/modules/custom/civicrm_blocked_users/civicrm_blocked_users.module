@@ -127,6 +127,13 @@ function civicrm_blocked_users_civicrm_post($op, $objectName, $objectId, &$objec
   if ($objectName !== 'GroupContact') {
     return;
   }
+  if (in_array($op, ['create', 'edit'])) {
+    $groupContact = \Civi\Api4\GroupContact::get(FALSE)
+      ->addWhere('id', '=', $objectId)
+      ->execute()->first();
+  }
+  if ($op == 'delete') {
+  }
 
   $group_id = \Drupal::config('civicrm_blocked_users.settings')->get('group_id');
   if (!$group_id) {
