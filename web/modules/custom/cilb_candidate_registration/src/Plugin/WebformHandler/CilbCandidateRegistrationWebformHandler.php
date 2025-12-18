@@ -791,10 +791,20 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
       if (!$matchingContact) {
         // no existing record matching this SSN.
-        // => the user can continue as anonymous
-        // and a new contact/user will be created in
-        // postSave
-        return;
+        // Check email address uniqueness is handled
+        $email = $formState->getValue('civicrm_1_contact_1_email');
+        $matchingContact = \Civi\Api4\Contact::get(FALSE)
+          ->addSelect('id')
+          ->addWhere('email', '=', $email)
+          ->execute()
+          ->first();
+
+        if (!$matchingContact) {
+          // => the user can continue as anonymous
+          // and a new contact/user will be created in
+          // postSave
+          return;
+        }
       }
 
       // if we have matching contacts, we need to check
@@ -812,12 +822,12 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
         if (!$user || $user->isBlocked()) {
           // user account exists but is blocked
-          $error_message = $this->t('A user account already exists with this Social Security Number. Please contact %adminEmail for assistance.', [
+          $error_message = $this->t('A user account already exists with this Social Security Number or email. Please contact %adminEmail for assistance.', [
             '%adminEmail' => \Drupal::config('system.site')->get('mail'),
           ]);
           $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
           // given we are directing the user to the admin, leave a log message to help the admin diagnose
-          $logMessage = "New user registration error: a site visitor tried to register with SSN {$ssn}, but this matched existing CiviCRM Contact {$matchingContact['id']}, which is linked to Drupal User ID {$matchingUser['uf_id']}, but the Drupal User is missing or blocked. The visitor was directed to contact the site admin.";
+          $logMessage = "New user registration error: a site visitor tried to register with SSN {$ssn} and email {$email}, but this matched existing CiviCRM Contact {$matchingContact['id']}, which is linked to Drupal User ID {$matchingUser['uf_id']}, but the Drupal User is missing or blocked. The visitor was directed to contact the site admin.";
           \Drupal::logger('candidate_reg')->notice($logMessage);
           return;
         }
