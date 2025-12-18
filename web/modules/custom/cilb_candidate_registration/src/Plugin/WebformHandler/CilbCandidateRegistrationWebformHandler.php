@@ -13,7 +13,7 @@ use Drupal\webform\Utility\WebformFormHelper;
 use Civi\Api4\OptionValue;
 
 /**
- * Sace CiviCRM Activity Update Handler.
+ * CILB Candidate Registration Webform Handler.
  *
  * @WebformHandler(
  *   id = "cilb_candidate_registration_handler",
@@ -644,6 +644,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($current_page == 'registrant_personal_info') {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
+      $this->validateBlockedUser($form_state);
       $this->validateUniqueUser($form_state, $webform_submission);
     } elseif ($current_page == 'exam_fee_page') {
       if ($form_state->getValue('existing_payment')) {
@@ -664,12 +665,34 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($current_page == 'candidate_information') {
       $this->validateAgeReq($form_state);
       $this->validateSSNMatch($form_state);
+      $this->validateBlockedUser($form_state);
       $this->validateUniqueUser($form_state, $webform_submission);
     } elseif ($current_page == 'exam_information') {
       $this->validateParticipantStatus($form_state);
       $this->validateExamSelection($form_state);
     } elseif ($current_page == 'payment_information') {
       $this->validateContributionAmount($form_state);
+    }
+  }
+
+  private function validateBlockedUser(FormStateInterface $formState) {
+    // Get contact ID
+    $contactID = $formState->getValue('civicrm_1_contact_1_contact_existing');
+    // Check to see if contact is added to the blocked users list
+    $group_id = \Drupal::config('civicrm_blocked_users.settings')->get('group_id');
+    if (!$group_id) {
+        return;
+    }
+    $is_blocked = \Civi\Api4\GroupContact::get(FALSE)
+      ->addWhere('group_id', '=', $group_id)
+      ->addWhere('contact_id', '=', $contactID)
+      ->addWhere('status', '=', 'Added')
+      ->execute()
+      ->first();
+    if ($is_blocked) {
+      $formState->setErrorByName('civicrm_1_contact_1_contact_existing', $this->t('You are currently restricted from registering for an exam. Please contact @adminEmail for assistance.', [
+        '@adminEmail' => \Drupal::config('system.site')->get('mail'),
+      ]));
     }
   }
 
