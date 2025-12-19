@@ -110,6 +110,8 @@
                 cj(this).children().eq(4).remove();
                 cj(this).children().eq(1).remove();
             });
+            cj(".crm-dashboard-civievent").insertAfter('.crm-dashboard-personalinfo');
+            cj(".crm-dashboard-civicontribute").insertAfter('.crm-dashboard-civievent');
         });
     </script>
 {/literal}
