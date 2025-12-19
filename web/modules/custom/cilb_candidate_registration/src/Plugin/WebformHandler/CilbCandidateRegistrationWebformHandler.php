@@ -778,6 +778,8 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       // No existing contact found
       $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
 
+        $email = $formState->getValue('civicrm_1_contact_1_email');
+
       $this->civicrm->initialize();
 
       // note we use ->first - presuming that SSNs
