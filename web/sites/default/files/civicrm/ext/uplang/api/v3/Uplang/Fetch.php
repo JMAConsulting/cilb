@@ -20,7 +20,7 @@ function _civicrm_api3_uplang_fetch_spec(&$params) {
  * @return array API result descriptor
  * @see civicrm_api3_create_success
  * @see civicrm_api3_create_error
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function civicrm_api3_uplang_fetch($params) {
   $downloaded = CRM_Uplang_Utils::updateAllFiles($params['locales'] ?? NULL);

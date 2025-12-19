@@ -46,10 +46,18 @@ class CRM_Uplang_Utils {
     throw new Exception(E::ts('Only en_US was found. Nothing to update.'));
   }
 
+  public static function getLocaleFilePath($locale, $module = 'civicrm') {
+    return implode(DIRECTORY_SEPARATOR, [
+      rtrim(self::getDownloadDir(), DIRECTORY_SEPARATOR),
+      $locale,
+      'LC_MESSAGES',
+      "{$module}.mo",
+    ]);
+  }
+
   public static function getLastUpdateTime() {
-    $l10n = CRM_Uplang_Utils::getDownloadDir();
     $locale = self::getNonUSLocale();
-    $localFile = "$l10n/$locale/LC_MESSAGES/civicrm.mo";
+    $localFile = self::getLocaleFilePath($locale);
     $mtime = filemtime($localFile);
     return $mtime;
   }
@@ -66,8 +74,6 @@ class CRM_Uplang_Utils {
    * @throws \Exception
    */
   public static function updateAllFiles($locales = '') {
-    $l10n = CRM_Uplang_Utils::getDownloadDir();
-
     // Get the list of locales we need to download
     // If no locale was specified (ex: api params), we update all enabled locales
     $locales = ($locales ? explode(',', $locales) : []);
@@ -92,8 +98,11 @@ class CRM_Uplang_Utils {
       try {
         // Download core translation files
         $remoteURL = "https://download.civicrm.org/civicrm-l10n-core/mo/$locale/civicrm.mo";
-        $localFile = "$l10n/$locale/LC_MESSAGES/civicrm.mo";
-        if (CRM_Uplang_Utils::downloadFile($remoteURL, $localFile)) {
+        $localFile = self::getLocaleFilePath($locale);
+        if (self::downloadFile($remoteURL, $localFile)) {
+          if (!isset($downloaded['core'])) {
+            $downloaded['core'] = 0;
+          }
           $downloaded['core']++;
         }
 
@@ -101,8 +110,8 @@ class CRM_Uplang_Utils {
         foreach (CRM_Core_PseudoConstant::getModuleExtensions() as $module) {
           $extname = $module['prefix'];
           $remoteURL = "https://download.civicrm.org/civicrm-l10n-extensions/mo/$extname/$locale/$extname.mo";
-          $localFile = "$l10n/$locale/LC_MESSAGES/$extname.mo";
-          if (CRM_Uplang_Utils::downloadFile($remoteURL, $localFile)) {
+          $localFile = self::getLocaleFilePath($locale, $extname);
+          if (self::downloadFile($remoteURL, $localFile)) {
             if (!isset($downloaded[$extname])) {
               $downloaded[$extname] = 0;
             }
