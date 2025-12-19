@@ -1,6 +1,13 @@
 # CiviCRM Authorize.Net Payment processor
 
-CiviCRM Extension that integrates with the Authorize.Net payment provider using Credit Card and echeck (ACH/EFT).
+CiviCRM Extension that provides full support for Authorize.Net payments using Credit Card, echeck (EFT) and Accept.js.
+
+It provides support for the following Authorize.net products:
+- Credit Card
+- echeck (EFT)
+- Accept.js (PCI compliant solution that accepts all Authorize.net payment types).
+
+Recurring payments and notifications are supported.
 
 #### Authorize.net CreditCard/eCheck
 
@@ -22,7 +29,7 @@ CiviCRM Extension that integrates with the Authorize.Net payment provider using 
 
 ## Installation
 
-**The [mjwshared](https://lab.civicrm.org/extensions/mjwshared) extension is required and MUST be installed.**
+**The [Payment Shared](https://lab.civicrm.org/extensions/mjwshared) extension is required and MUST be installed.**
 
 ## Setup
 
@@ -38,8 +45,7 @@ A System Check message will identify problems and help set them up if required.
 * Webhooks based on stymiee/authnetjson library - http://www.johnconde.net/blog/handling-authorize-net-webhooks-with-php/
 
 ## Support and Maintenance
-This extension is supported and maintained with the help and support of the CiviCRM community by:
 
-[![MJW Consulting](images/mjwconsulting.jpg)](https://www.mjwconsult.co.uk)
+This extension is supported and maintained with the help and support of the CiviCRM community by [MJW](https://www.mjwconsult.co.uk).
 
 We offer paid [support and development](https://mjw.pt/support) as well as a [troubleshooting/investigation service](https://mjw.pt/investigation).

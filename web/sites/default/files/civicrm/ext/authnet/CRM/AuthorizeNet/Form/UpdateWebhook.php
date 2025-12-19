@@ -62,7 +62,7 @@ class CRM_AuthorizeNet_Form_UpdateWebhook extends CRM_Core_Form {
       $this->assign('isAllOk', 1);
       $this->assign('shouldOfferToFix', 0);
       $this->assign('isStillBad', 0);
-      $this->assign('intro', E::ts('All webhooks update successfully.'));
+      $this->assign('intro', E::ts('All webhooks updated successfully.'));
     }
 
     parent::postProcess();

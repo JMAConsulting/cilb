@@ -153,7 +153,7 @@ class AuthorizeNetTD_Test extends PHPUnit_Framework_TestCase
         }
     }
 
-
+    
     public function testGetBatchStatistics()
     {
         $this->markTestSkipped('Ignoring for Travis. Will fix after release.'); //TODO

@@ -134,7 +134,7 @@ class CRM_Core_Payment_AuthNetIPN {
    * @param array $webhookEvent
    *
    * @return bool TRUE on success.
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function processQueuedWebhookEvent(array $webhookEvent) :bool {
@@ -157,7 +157,7 @@ class CRM_Core_Payment_AuthNetIPN {
    *
    * @return \StdClass
    *
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public function processWebhookEvent(array $webhookEvent) :StdClass {
@@ -325,7 +325,7 @@ class CRM_Core_Payment_AuthNetIPN {
 
       case 'net.authorize.payment.refund.created':
         // Notifies you that a successfully settled transaction was refunded.
-        $contribution = $this->getContributionFromTrxnInfo($this->getParamFromResponse($response, 'invoice_id'));
+        $contribution = $this->getContributionFromTrxnInfo($this->getParamFromResponse($response, 'ref_trans_id'));
         if (!$contribution) {
           $return->ok = FALSE;
           $return->message = 'No matching contribution';
@@ -487,6 +487,8 @@ class CRM_Core_Payment_AuthNetIPN {
         //   We were using submitTimeLocal but changed to submitTimeUTC to see if time offset problem is fixed.
         return date('YmdHis', strtotime($response->transaction->submitTimeUTC));
 
+      case 'ref_trans_id':
+        return $response->transaction->refTransId;
     }
   }
 

@@ -1,11 +1,10 @@
 # Authorize.Net PHP SDK
 
-[![Travis CI Status](https://travis-ci.org/AuthorizeNet/sdk-php.svg?branch=master)](https://travis-ci.org/AuthorizeNet/sdk-php)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/AuthorizeNet/sdk-php/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/AuthorizeNet/sdk-php/?branch=master)
+[![Authorize.net PHP CI](https://github.com/AuthorizeNet/sdk-php/actions/workflows/php-workflow.yml/badge.svg?branch=master)](https://github.com/AuthorizeNet/sdk-php/actions/workflows/php-workflow.yml)
 [![Packagist Stable Version](https://poser.pugx.org/authorizenet/authorizenet/v/stable.svg)](https://packagist.org/packages/authorizenet/authorizenet)
 
 ## Requirements
-* PHP 5.6+
+* PHP 5.6 to 8.x.x
 * cURL PHP Extension
 * JSON PHP Extension
 * An Authorize.Net account (see _Registration & Configuration_ section below)
@@ -56,7 +55,7 @@ override the new secure-http default setting)*.
 {
   "require": {
   "php": ">=5.6",
-  "authorizenet/authorizenet": "2.0.2"
+  "authorizenet/authorizenet": "2.0.3"
   }
 }
 ```

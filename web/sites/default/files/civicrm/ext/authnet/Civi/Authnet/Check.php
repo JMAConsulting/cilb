@@ -9,17 +9,26 @@
  +--------------------------------------------------------------------+
  */
 
-use CRM_AuthNetEcheck_ExtensionUtil as E;
+namespace Civi\Authnet;
 
-/**
- * Class CRM_AuthorizeNet_Check
- */
-class CRM_AuthorizeNet_Check {
+use Civi\Core\Service\AutoSubscriber;
+use \CRM_AuthNetEcheck_ExtensionUtil as E;
+
+class Check extends AutoSubscriber {
+
+  /**
+   * @inheritDoc
+   */
+  public static function getSubscribedEvents(): array {
+    return [
+      '&hook_civicrm_check' => 'checkRequirements',
+    ];
+  }
 
   /**
    * @var string
    */
-  const MIN_VERSION_MJWSHARED = '1.2.22';
+  const MIN_VERSION_MJWSHARED = '1.5.0';
 
   /**
    * @var array
@@ -27,62 +36,21 @@ class CRM_AuthorizeNet_Check {
   private array $messages;
 
   /**
-   * constructor.
+   * Implements hook_civicrm_check()
    *
-   * @param $messages
-   */
-  public function __construct($messages) {
-    $this->messages = $messages;
-  }
-
-  /**
-   * @return array
-   * @throws \CRM_Core_Exception
-   */
-  public function checkRequirements() {
-    $this->checkExtensionMjwshared();
-    return $this->messages;
-  }
-
-  /**
    * @param array $messages
    *
+   * @return void
+   * @throws \Authnetjson\Exception\AuthnetInvalidJsonException
    * @throws \CRM_Core_Exception
    */
-  /**
-   * @throws \CRM_Core_Exception
-   */
-  private function checkExtensionMjwshared() {
-    // mjwshared: required. Requires min version
-    $extensionName = 'mjwshared';
-    $extensions = civicrm_api3('Extension', 'get', [
-      'full_name' => $extensionName,
-    ]);
-
-    if (empty($extensions['count']) || ($extensions['values'][$extensions['id']]['status'] !== 'installed')) {
-      $message = new CRM_Utils_Check_Message(
-        __FUNCTION__ . E::SHORT_NAME . '_requirements',
-        E::ts('The <em>%1</em> extension requires the <em>Payment Shared</em> extension which is not installed. See <a href="%2" target="_blank">details</a> for more information.',
-          [
-            1 => ucfirst(E::SHORT_NAME),
-            2 => 'https://civicrm.org/extensions/mjwshared',
-          ]
-        ),
-        E::ts('%1: Missing Requirements', [1 => ucfirst(E::SHORT_NAME)]),
-        \Psr\Log\LogLevel::ERROR,
-        'fa-money'
-      );
-      $message->addAction(
-        E::ts('Install now'),
-        NULL,
-        'href',
-        ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionName, 'key' => $extensionName]]
-      );
-      $this->messages[] = $message;
-      return;
-    }
-    if ($extensions['values'][$extensions['id']]['status'] === 'installed') {
-      $this->requireExtensionMinVersion($extensionName, self::MIN_VERSION_MJWSHARED, $extensions['values'][$extensions['id']]['version']);
+  public function checkRequirements(array &$messages): void {
+    $this->messages = $messages;
+    $this->checkExtensionMjwshared();
+    $messages = $this->messages;
+    // If we didn't install mjwshared yet check requirements but don't crash when checking webhooks
+    if (method_exists('CRM_Mjwshared_Webhook', 'getWebhookPath')) {
+      \CRM_AuthorizeNet_Webhook::check($messages);
     }
   }
 
@@ -130,12 +98,51 @@ class CRM_AuthorizeNet_Check {
         'fa-exclamation-triangle'
       );
       $message->addAction(
-        E::ts('Upgrade now'),
+        E::ts('Upgrade %1 now', [1 => $extensionName]),
         NULL,
         'href',
         ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionName, 'key' => $extensionName]]
       );
       $this->messages[] = $message;
+    }
+  }
+
+  /**
+   * @throws \CRM_Core_Exception
+   */
+  private function checkExtensionMjwshared(): void {
+    // mjwshared: required. Requires min version
+    $extensionKey = 'mjwshared';
+    $extensionName = 'Payment Shared (MJWshared)';
+    $extension = \Civi\Api4\Extension::get(FALSE)
+      ->addSelect('status', 'version')
+      ->addWhere('key', '=', $extensionKey)
+      ->execute()
+      ->first();
+
+    if (empty($extension) || ($extension['status'] !== 'installed')) {
+      $message = new \CRM_Utils_Check_Message(
+        __FUNCTION__ . E::SHORT_NAME . '_requirements',
+        E::ts('The <em>%1</em> extension requires the <em>Payment Shared</em> extension which is not installed. See <a href="%2" target="_blank">details</a> for more information.',
+          [
+            1 => ucfirst(E::SHORT_NAME),
+            2 => 'https://civicrm.org/extensions/mjwshared',
+          ]
+        ),
+        E::ts('%1: Missing Requirements', [1 => ucfirst(E::SHORT_NAME)]),
+        \Psr\Log\LogLevel::ERROR,
+        'fa-money'
+      );
+      $message->addAction(
+        E::ts('Install now'),
+        NULL,
+        'href',
+        ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionKey, 'key' => $extensionKey]]
+      );
+      $this->messages[] = $message;
+    }
+    else {
+      $this->requireExtensionMinVersion($extensionName, self::MIN_VERSION_MJWSHARED, $extension['version']);
     }
   }
 

@@ -20,6 +20,16 @@ use net\authorize\api\constants\ANetEnvironment as AnetEnvironment;
 use Authnetjson\AuthnetJsonResponse as AuthnetJsonResponse;
 use \Civi\MJW\Logger;
 
+/*
+ * @fixme: Deprecated function: Creation of dynamic property
+ *   CRM_Core_Payment_AuthNetCreditcard::$logger is deprecated
+ *
+ * Added flag to allow dynamic properties to clear the debug warnings
+ * as this only deals with log, but a better solution should be created
+ * or this note should be removed if this is the correct solution.
+ */
+#[AllowDynamicProperties]
+
 abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
 
   use CRM_Core_Payment_MJWTrait;

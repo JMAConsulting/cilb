@@ -46,18 +46,6 @@ function authnetecheck_civicrm_enable() {
 }
 
 /**
- * Implements hook_civicrm_check().
- */
-function authnetecheck_civicrm_check(&$messages) {
-  $checks = new CRM_AuthorizeNet_Check($messages);
-  $messages = $checks->checkRequirements();
-  // If we didn't install mjwshared yet check requirements but don't crash when checking webhooks
-  if (trait_exists('CRM_Mjwshared_WebhookTrait')) {
-    CRM_AuthorizeNet_Webhook::check($messages);
-  }
-}
-
-/**
  * Implements hook_civicrm_validateForm().
  */
 function authnetecheck_civicrm_validateForm($formName, $fields, $files, $form, &$errors) {

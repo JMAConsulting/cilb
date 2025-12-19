@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "authorizenet/authorizenet",
-            "version": "2.0.2",
+            "version": "2.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/AuthorizeNet/sdk-php.git",
-                "reference": "a3e76f96f674d16e892f87c58bedb99dada4b067"
+                "reference": "8555cc245953dd0ac57f7ea424a5572eae4c7191"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/AuthorizeNet/sdk-php/zipball/a3e76f96f674d16e892f87c58bedb99dada4b067",
-                "reference": "a3e76f96f674d16e892f87c58bedb99dada4b067",
+                "url": "https://api.github.com/repos/AuthorizeNet/sdk-php/zipball/8555cc245953dd0ac57f7ea424a5572eae4c7191",
+                "reference": "8555cc245953dd0ac57f7ea424a5572eae4c7191",
                 "shasum": ""
             },
             "require": {
@@ -45,9 +45,9 @@
             ],
             "support": {
                 "issues": "https://github.com/AuthorizeNet/sdk-php/issues",
-                "source": "https://github.com/AuthorizeNet/sdk-php/tree/2.0.2"
+                "source": "https://github.com/AuthorizeNet/sdk-php/tree/2.0.4"
             },
-            "time": "2021-03-31T18:22:14+00:00"
+            "time": "2024-09-18T06:23:52+00:00"
         },
         {
             "name": "curl/curl",
@@ -179,10 +179,10 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }

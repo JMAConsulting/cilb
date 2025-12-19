@@ -9,6 +9,23 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 2.8.1 (2025-12-05)
+
+* Fix resources now we've removed assetbuilder support from MJWShared.
+
+## 2.8.0 (2025-12-04)
+
+**Requires Payment Shared (MJWShared) 1.5.0.**
+
+* [!37](https://lab.civicrm.org/extensions/authnet/-/merge_requests/37) Adding utilities to assist with retrying notifications.
+* [!38](https://lab.civicrm.org/extensions/authnet/-/merge_requests/38) Replace reference to deprecated exception class.
+
+## 2.7.0 (2025-07-31)
+
+* [!33](https://lab.civicrm.org/extensions/authnet/-/merge_requests/33) Updated authorizenet/authorizenet from 2.0.2 to 2.0.4 which elminates a number of erros on PHP 8+.
+* [!33](https://lab.civicrm.org/extensions/authnet/-/merge_requests/33) Logger is a dynamic property and as such now creates debug notices, added flag to allow dynamic properties.
+* [!34](https://lab.civicrm.org/extensions/authnet/-/merge_requests/34) Fix refund webhook processing.
+
 ## 2.6.1 (2025-02-26)
 
 *  [!30](https://lab.civicrm.org/extensions/authnet/-/merge_requests/27) Fix processQueuedWebhookEvent fatal error for recurring payments.

@@ -29,6 +29,7 @@ define("ANET_LOG_LEVEL",ANET_LOG_DEBUG);
 class Log
 {
     private $sensitiveXmlTags = NULL;
+    private $sensitiveStringRegexes = NULL;
     private $logFile = '';
     private $logLevel = ANET_LOG_LEVEL;
 	
@@ -159,7 +160,7 @@ class Log
 			
 			if(strcmp($prop->getName(),$sensitiveField->tagName)==0)
 			{
-				$prop->setValue($obj,preg_replace($inputPattern,$inputReplacement,$prop->getValue($obj)));
+				$prop->setValue($obj,preg_replace($inputPattern,$inputReplacement,$prop->getValue($obj) ? $prop->getValue($obj) : ""));
 				return $prop->getValue($obj);
 			}
 		}

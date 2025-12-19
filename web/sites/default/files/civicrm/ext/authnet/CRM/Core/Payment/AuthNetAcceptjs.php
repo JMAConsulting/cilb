@@ -109,13 +109,7 @@ class CRM_Core_Payment_AuthNetAcceptjs extends CRM_Core_Payment_AuthorizeNetComm
     CRM_Core_Region::instance('billing-block')->addScriptUrl($anetJS);
 
     CRM_Core_Region::instance('billing-block')->add([
-      'scriptUrl' => \Civi::service('asset_builder')->getUrl(
-        'civicrmAuthNet.js',
-        [
-          'path' => \Civi::resources()->getPath(E::LONG_NAME, 'js/civicrmAuthNetAccept.js'),
-          'mimetype' => 'application/javascript',
-        ]
-      ),
+      'scriptUrl' => \Civi::resources()->getUrl(E::LONG_NAME, 'js/civicrmAuthNetAccept.js'),
       // Load after other scripts on form (default = 1)
       'weight' => 100,
     ]);

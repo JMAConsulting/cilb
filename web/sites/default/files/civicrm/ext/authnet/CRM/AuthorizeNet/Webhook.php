@@ -11,20 +11,25 @@
 
 use Civi\Api4\PaymentProcessor;
 use CRM_AuthNetEcheck_ExtensionUtil as E;
-use \Authnetjson\AuthnetWebhook as AuthnetWebhook;
 use \Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
 
 class CRM_AuthorizeNet_Webhook {
 
-  use CRM_Mjwshared_WebhookTrait;
   use CRM_Core_Payment_MJWTrait;
+
+  /**
+   * Payment processor
+   *
+   * @var array
+   */
+  private array $_paymentProcessor;
 
   /**
    * CRM_AuthorizeNet_Webhook constructor.
    *
    * @param array $paymentProcessor
    */
-  function __construct($paymentProcessor) {
+  function __construct(array $paymentProcessor) {
     $this->_paymentProcessor = $paymentProcessor;
   }
 
@@ -32,11 +37,10 @@ class CRM_AuthorizeNet_Webhook {
    * Get a request handler for authnet webhooks
    *
    * @return \Authnetjson\AuthnetWebhooksRequest
-   * @throws \ErrorException
    * @throws \Authnetjson\Exception\AuthnetInvalidCredentialsException
    * @throws \Authnetjson\Exception\AuthnetInvalidServerException
    */
-  public function getRequest() {
+  public function getRequest(): \Authnetjson\AuthnetWebhooksRequest {
     return AuthnetApiFactory::getWebhooksHandler(
       CRM_Core_Payment_AuthorizeNetCommon::getApiLoginId($this->_paymentProcessor),
       CRM_Core_Payment_AuthorizeNetCommon::getTransactionKey($this->_paymentProcessor),
@@ -47,13 +51,12 @@ class CRM_AuthorizeNet_Webhook {
    * Get a list of configured webhooks
    *
    * @return \Authnetjson\AuthnetWebhooksResponse
-   * @throws \ErrorException
    * @throws \Authnetjson\Exception\AuthnetCurlException
    * @throws \Authnetjson\Exception\AuthnetInvalidCredentialsException
    * @throws \Authnetjson\Exception\AuthnetInvalidJsonException
    * @throws \Authnetjson\Exception\AuthnetInvalidServerException
    */
-  public function getWebhooks() {
+  public function getWebhooks(): \Authnetjson\AuthnetWebhooksResponse {
     $request = $this->getRequest();
     return $request->getWebhooks();
   }
@@ -67,9 +70,9 @@ class CRM_AuthorizeNet_Webhook {
    * @throws \Authnetjson\Exception\AuthnetInvalidJsonException
    * @throws \Authnetjson\Exception\AuthnetInvalidServerException
    */
-  public function createWebhook() {
+  public function createWebhook(): void {
     $request = $this->getRequest();
-    $request->createWebhooks(self::getDefaultEnabledEvents(), self::getWebhookPath($this->_paymentProcessor['id']), 'active');
+    $request->createWebhooks(self::getDefaultEnabledEvents(), CRM_Mjwshared_Webhook::getWebhookPath($this->_paymentProcessor['id']), 'active');
   }
 
   /**
@@ -80,13 +83,12 @@ class CRM_AuthorizeNet_Webhook {
   /**
    * @param \Authnetjson\AuthnetWebhooksResponse $webhook
    *
-   * @throws \ErrorException
    * @throws \Authnetjson\Exception\AuthnetCurlException
    * @throws \Authnetjson\Exception\AuthnetInvalidCredentialsException
    * @throws \Authnetjson\Exception\AuthnetInvalidJsonException
    * @throws \Authnetjson\Exception\AuthnetInvalidServerException
    */
-  public function checkAndUpdateWebhook($webhook) {
+  public function checkAndUpdateWebhook(\Authnetjson\AuthnetWebhooksResponse $webhook): void {
     $update = FALSE;
     if ($webhook->getStatus() !== 'active') {
       $update = TRUE;
@@ -96,7 +98,7 @@ class CRM_AuthorizeNet_Webhook {
     }
     if ($update) {
       $request = $this->getRequest();
-      $request->updateWebhook($webhook->getWebhooksId(), self::getWebhookPath($this->_paymentProcessor['id']), self::getDefaultEnabledEvents(),'active');
+      $request->updateWebhook($webhook->getWebhooksId(), CRM_Mjwshared_Webhook::getWebhookPath($this->_paymentProcessor['id']), self::getDefaultEnabledEvents(),'active');
     }
   }
 
@@ -108,15 +110,15 @@ class CRM_AuthorizeNet_Webhook {
    * @see hook_civicrm_check()
    *
    * @param array $messages
+   * @param bool $attemptFix
    *
-   * @return array
    * @throws \CRM_Core_Exception
    * @throws \Authnetjson\Exception\AuthnetInvalidJsonException
    */
-  public static function check(&$messages, $attemptFix = FALSE) {
+  public static function check(array &$messages, bool $attemptFix = FALSE): void {
     $env = Civi::settings()->get('environment');
     if ($env && $env !== 'Production') {
-      return [];
+      return;
     }
     $checkMessage = [
       'name' => 'authnet_webhook',
@@ -132,7 +134,7 @@ class CRM_AuthorizeNet_Webhook {
       if (empty($paymentProcessor['user_name']) || $paymentProcessor['user_name'] == CRM_Core_Payment_AuthorizeNetCommon::AUTHNETECHECK_SKIP_WEBHOOK_CHECKS) {
         continue;
       }
-      $webhook_path = self::getWebhookPath($paymentProcessor['id']);
+      $webhook_path = CRM_Mjwshared_Webhook::getWebhookPath($paymentProcessor['id']);
 
       try {
         $webhookHandler = new CRM_AuthorizeNet_Webhook($paymentProcessor);
@@ -234,11 +236,12 @@ class CRM_AuthorizeNet_Webhook {
 
   /**
    * Get the error message title for the system check
+   *
    * @param array $paymentProcessor
    *
    * @return string
    */
-  private static function getTitle($paymentProcessor) {
+  private static function getTitle(array $paymentProcessor): string {
     if (!empty($paymentProcessor['is_test'])) {
       $paymentProcessor['name'] .= ' (test)';
     }
@@ -252,7 +255,7 @@ class CRM_AuthorizeNet_Webhook {
    * List of webhooks we currently handle
    * @return array
    */
-  public static function getDefaultEnabledEvents() {
+  public static function getDefaultEnabledEvents(): array {
     // See https://developer.authorize.net/api/reference/features/webhooks.html#Event_Types_and_Payloads
     return [
       'net.authorize.payment.authcapture.created', // Notifies you that an authorization and capture transaction was created.
