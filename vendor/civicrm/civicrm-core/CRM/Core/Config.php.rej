@@ -1,0 +1,14 @@
+--- CRM/Core/Config.php
++++ CRM/Core/Config.php
+@@ -90,10 +90,10 @@ public static function &singleton($loadFromDB = TRUE, $force = FALSE) {
+       if ($loadFromDB && self::$_singleton->dsn) {
+         self::$_singleton->userSystem->postContainerBoot();
+ 
+-        Civi::service('settings_manager')->bootComplete();
+ 
+         $domain = \CRM_Core_BAO_Domain::getDomain();
+         \CRM_Core_BAO_ConfigSetting::applyLocale(\Civi::settings($domain->id), $domain->locales);
++        Civi::service('settings_manager')->bootComplete();
+ 
+         unset($errorScope);
+ 

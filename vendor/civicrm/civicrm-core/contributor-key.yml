@@ -21,27 +21,27 @@
 
 - github      : agileware
   name        : Agileware Team
-  organization: Agileware
+  organization: Agileware Pty Ltd
 
 - github      : agileware-dev
   name        : Agileware Team
-  organization: Agileware
+  organization: Agileware Pty Ltd
 
 - github      : agileware-fj
   name        : Francis Whittle
-  organization: Agileware
+  organization: Agileware Pty Ltd
 
 - github      : agileware-iris
   name        : Iris
-  organization: Agileware
+  organization: Agileware Pty Ltd
 
 - github      : agileware-justin
   name        : Justin Freeman
-  organization: Agileware
+  organization: Agileware Pty Ltd
 
 - github      : agileware-pengyi
   name        : Pengyi Zhang
-  organization: Agileware
+  organization: Agileware Pty Ltd
 
 - github      : ahed-compucorp
   name        : Ahed Eid
@@ -65,6 +65,8 @@
 - github      : akosgarai
   name        : Akos Garai
 
+- github      : akwizgran
+
 - github      : AlainBenbassat
   name        : Alain Benbassat
   organization: Business & Code
@@ -83,6 +85,10 @@
 
 - github      : alexymik
   name        : Alexy Mikhailichenko
+
+- github      : alietz
+  name        : Andreas Lietz
+  organization: OrtmannTeam GmbH
 
 - github      : alifrumin
   name        : Alice Frumin
@@ -258,6 +264,14 @@
 - github      : brianPHM
   name        : Brian Matemachani
 
+- github      : briangflett
+  name        : Brian Flett
+  organization: Non Profit Tech Advisor
+
+- github      : briennek
+  organization: Civil Justice, Inc.
+  name        : Brienne K.
+
 - github      : briennekordis
   name        : Brienne Kordis
   organization: Megaphone Technology Consulting
@@ -354,6 +368,9 @@
   name        : Dan Cruson
   organization: CrusonWeb
 
+- github      : cs-bennwas
+  organization: civiservice.de
+
 - github      : CsarRamos
   name        : César Ramos
   organization: iXiam
@@ -446,7 +463,7 @@
   organization: Giant Rabbit
 
 - github      : djnatedagreat
-  name        : Nate Harris
+  name        : Nate Frank
   organization: New York State Senate
 
 - github      : dkguru
@@ -459,6 +476,9 @@
 
 - github      : dptarrant
   name        : Dave T
+
+- github      : duncan-s-white
+  name        : Duncan Stanley White
 
 - github      : dwoods-encircle
   organization: enCircle Solutions Ltd.
@@ -574,6 +594,9 @@
 
 - name        : Fernando Rodríguez
   organization: Amnistía Internacional España
+
+- github      : fhs2qqp9ws-ux
+  name        : Nadaillac
 
 - github      : fkohrt
   name        : Florian Kohrt
@@ -762,6 +785,8 @@
 - github      : jackrabbithanna
   name        : Mark Hanna
   organization: Skvare
+
+- github      : JacquesVanH
 
 - github      : JadeGaunt
   name        : Jade Gaunt
@@ -952,6 +977,9 @@
 
 - name        : Kristine Chan
 
+- github      : krisztin
+  name        : Christina
+
 - github      : kryptothesuperdog
   name        : Andrew West
   organization: British Humanist Association
@@ -969,7 +997,7 @@
 
 - github      : larssandergreen
   name        : Lars Sander-Green
-  organization: Wildsight
+  organization: Wikimedia Foundation
 
 - github      : laryn
   name        : Laryn Kragt Bakker
@@ -1240,6 +1268,10 @@
 
 - github      : netzih
 
+- github      : nfreesto
+  name        : Nathan Freestone
+  organization: Giant Rabbit
+
 - github      : nganivet
   name        : Nicolas Ganivet
   organization: CiviDesk
@@ -1303,10 +1335,6 @@
   name        : Phil Morice Brubaker
   organization: Just Hope
 
-- github      : pminf
-  name        : Philipp Michael
-  organization: Parlamentwatch e.V.
-
 - github      : pnbpss
   name        : Panu Boonpromsook
 
@@ -1369,6 +1397,10 @@
 
 - name        : Peter Davis
   organization: Fuzion
+
+- github      : pminf
+  name        : Philipp Michael
+  organization: Parlamentwatch e.V.
 
 - github      : powdevel
   name        : Beto Aveiga
@@ -1440,6 +1472,10 @@
 
 - name        : Lutz Frommberger
 
+- github      : RhiCircle
+  name        : Rhiannon Davies
+  organization: Circle Interactive
+
 - github      : rgilman
   name        : Robert Gilman
   organization: Context Institute
@@ -1480,6 +1516,9 @@
 - github      : sadashivdalvi
   name        : Sadashiv
   organization: Gokhalemethod
+
+- github      : SarahFG
+  name        : Sarah Farrell-Graham
 
 - github      : savionlee
   name        : Savion Lee
@@ -1532,6 +1571,10 @@
 - github      : scardinius
   name        : Tomasz Pietrzkowski
   organization: Caltha
+
+- github      : sdoijad
+  name        : Sachin Doijad
+  organization: Skvare
 
 - github      : seamuslee001
   name        : Seamus Lee
@@ -1924,3 +1967,10 @@
 - github      : shahrukh-compuco
   name        : Muhammad Shahrukh
   organization: CompuCo
+
+- github      : rafe-murray
+  name        : Rafe Murray
+  organization: JMA Consulting
+
+- github      : MundMBo
+  name        : Marvin Müller

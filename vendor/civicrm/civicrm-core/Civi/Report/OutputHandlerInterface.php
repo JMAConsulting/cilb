@@ -118,4 +118,6 @@ interface OutputHandlerInterface {
    */
   public function isAbsoluteUrl():bool;
 
+  public function saveOutput():bool;
+
 }

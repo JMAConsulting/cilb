@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.3](https://github.com/brick/money/releases/tag/0.10.3) - 2025-09-03
+
+👌 **Improvements**
+
+- Compatibility with `brick/math` version `0.14` (#101 by @markwalet)
+
+## [0.10.2](https://github.com/brick/money/releases/tag/0.10.2) - 2025-08-05
+
+✨ **New features**
+
+- Add possibility to pass previous exception in `CurrencyConversionException` (#99 by @arokettu)
+
 ## [0.10.1](https://github.com/brick/money/releases/tag/0.10.1) - 2025-03-05
 
 👌 **Improvements**
