@@ -41,7 +41,7 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Import_Parser {
   }
 
   /**
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public function setFieldMetadata(): void {
     $this->importableFieldsMetadata = array_merge(
@@ -312,7 +312,7 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Import_Parser {
     $values = array_values($values);
     try {
       $params = $this->getMappedRow($values);
-      foreach ($params[$this->getEntity()] as $key => $value) {
+      foreach ($params as $key => $value) {
         $fieldMetadata = $this->getFieldMetadata($key);
         if ($fieldMetadata['referenced_field'] ?? NULL) {
           $refEntity = $fieldMetadata['entity_name'];
@@ -323,7 +323,7 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Import_Parser {
           try {
             $params['contact_id'] = (int) civicrm_api3($refEntity, 'getsingle', [$fieldMetadata['entity_field_name'] => $value])['id'];
           }
-          catch (CiviCRM_API3_Exception $e) {
+          catch (CRM_Core_Exception $e) {
             throw new CRM_Core_Exception('Failed to find referenced entity');
           }
         }
@@ -354,7 +354,7 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Import_Parser {
       }
       $params['skipRecentView'] = TRUE;
       $params['check_permissions'] = TRUE;
-      $result = civicrm_api3($entity, 'create', $params[$this->getEntity()]);
+      $result = civicrm_api3($entity, 'create', $params);
     }
     catch (Exception $e) {
       $this->setImportStatus($rowNumber, 'ERROR', $e->getMessage());
@@ -383,7 +383,7 @@ class CRM_Csvimport_Import_Parser_Api extends CRM_Import_Parser {
   }
 
   public function getBaseEntity(): string {
-    if ($this->baseEntity === NULL) {
+    if (!$this->baseEntity) {
       $this->baseEntity = $this->getSubmittedValue('entity');
     }
     return $this->baseEntity;
