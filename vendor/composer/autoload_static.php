@@ -134,7 +134,6 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
             'Psr\\Http\\Client\\' => 16,
             'Psr\\EventDispatcher\\' => 20,
             'Psr\\Container\\' => 14,
-            'Psr\\Cache\\' => 10,
             'Pontedilana\\PhpWeasyPrint\\' => 26,
             'Phrity\\Util\\' => 12,
             'Phrity\\Net\\' => 11,
@@ -199,7 +198,6 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
             'Dompdf\\' => 7,
             'Doctrine\\Deprecations\\' => 22,
             'Doctrine\\Common\\Lexer\\' => 22,
-            'Doctrine\\Common\\Annotations\\' => 28,
             'Dflydev\\DotAccessData\\' => 22,
             'DeepCopy\\' => 9,
             'DMore\\ChromeDriver\\' => 19,
@@ -480,10 +478,6 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
-        'Psr\\Cache\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/cache/src',
-        ),
         'Pontedilana\\PhpWeasyPrint\\' => 
         array (
             0 => __DIR__ . '/..' . '/pontedilana/php-weasyprint/src',
@@ -657,10 +651,6 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'Doctrine\\Common\\Lexer\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/lexer/src',
-        ),
-        'Doctrine\\Common\\Annotations\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/doctrine/annotations/lib/Doctrine/Common/Annotations',
         ),
         'Dflydev\\DotAccessData\\' => 
         array (
