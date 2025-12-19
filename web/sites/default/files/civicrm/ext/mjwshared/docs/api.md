@@ -54,6 +54,10 @@ that type will be returned as an array:
 Use like API3 Payment.create. This should not yet be used in production code as it is still subject to change
 and does not yet have test coverage.
 
+## PaymentMJW.refund
+
+Calls PaymentProcessor.refund and records a refund in CiviCRM
+
 # API3 (Deprecated)
 
 This extension comes with several APIs to help you troubleshoot problems. These can be run via /civicrm/api or via drush if you are using Drupal (drush cvapi Mjwpayment.XXX).

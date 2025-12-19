@@ -27,8 +27,6 @@ This job processes new webhook events in the `civicrm_paymentprocessor_webhook` 
 
 ## Support and Maintenance
 
-This extension is supported and maintained by:
-
-[![MJW Consulting](images/mjwconsulting.jpg)](https://www.mjwconsult.co.uk)
+This extension is supported and maintained with the help and support of the CiviCRM community by [MJW](https://www.mjwconsult.co.uk).
 
 We offer paid [support and development](https://mjw.pt/support) as well as a [troubleshooting/investigation service](https://mjw.pt/investigation).

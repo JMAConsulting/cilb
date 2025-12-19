@@ -33,7 +33,7 @@ return [
     'name' => 'mjwshared_disablerecordrefund',
     'type' => 'Boolean',
     'html_type' => 'checkbox',
-    'default' => FALSE,
+    'default' => TRUE,
     'is_domain' => 1,
     'is_contact' => 0,
     'title' => E::ts('Disable the "Record Refund" link on edit contribution'),

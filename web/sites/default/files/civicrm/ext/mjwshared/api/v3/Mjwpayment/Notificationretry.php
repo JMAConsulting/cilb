@@ -19,8 +19,10 @@ function _civicrm_api3_mjwpayment_notificationretry_spec(&$params) {
  * @param array $params
  *
  * @return array
+ * @deprecated Use PaymentprocessorWebhook queue
  */
 function civicrm_api3_mjwpayment_notificationretry($params) {
+  CRM_Core_Error::deprecatedWarning('Use PaymentprocessorWebhook queue');
   if (!empty($params['system_log_id'])) {
     // let's replace params with this rather than allow altering
     $logEntry = civicrm_api3('system_log', 'getsingle', ['id' => $params['system_log_id'], 'return' => ['context', 'message']]);

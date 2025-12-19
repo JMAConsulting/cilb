@@ -21,25 +21,17 @@ use Civi\Api4\PaymentprocessorWebhook;
  * @throws CRM_Core_Exception
  */
 function civicrm_api3_job_process_paymentprocessor_webhooks($params) {
-  // @fixme: remove when minversion = 5.38
-  // API4 changed autoJoinFK format in 5.38
-  // See https://github.com/civicrm/civicrm-core/pull/20130
-  $joinKey = 'payment_processor_id';
-  if (version_compare(\CRM_Utils_System::version(), '5.38', '<')) {
-    $joinKey = 'payment_processor';
-  }
-
   if ($params['delete_old'] !== 0 && !empty($params['delete_old'])) {
     // Delete all locally recorded webhooks that are older than 3 months
     $oldWebhooksCount = PaymentprocessorWebhook::get(FALSE)
       ->selectRowCount()
-      ->addWhere("{$joinKey}.domain_id", '=', CRM_Core_Config::domainID())
+      ->addWhere('payment_processor_id.domain_id', '=', CRM_Core_Config::domainID())
       ->addWhere('created_date', '<', $params['delete_old'])
       ->execute()
       ->count();
     if (!empty($oldWebhooksCount)) {
       PaymentprocessorWebhook::delete(FALSE)
-        ->addWhere("{$joinKey}.domain_id", '=', CRM_Core_Config::domainID())
+        ->addWhere('payment_processor_id.domain_id', '=', CRM_Core_Config::domainID())
         ->addWhere('created_date', '<', $params['delete_old'])
         ->execute();
     }
@@ -48,7 +40,7 @@ function civicrm_api3_job_process_paymentprocessor_webhooks($params) {
   // Get the Webhook Events to process
   // This is domain specific (as entities such as membershipType are domain-specific we must process per-domain).
   $paymentProcessorWebhooks = PaymentprocessorWebhook::get(FALSE)
-    ->addWhere("{$joinKey}.domain_id", '=', CRM_Core_Config::domainID());
+    ->addWhere('payment_processor_id.domain_id', '=', CRM_Core_Config::domainID());
 
   if (!empty($params['id'])) {
     // Allow to force processing of a single record

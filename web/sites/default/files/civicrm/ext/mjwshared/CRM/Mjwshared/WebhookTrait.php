@@ -1,31 +1,22 @@
 <?php
-/*
- +--------------------------------------------------------------------+
- | Copyright CiviCRM LLC. All rights reserved.                        |
- |                                                                    |
- | This work is published under the GNU AGPLv3 license with some      |
- | permitted exceptions and without any warranty. For full license    |
- | and copyright information, see https://civicrm.org/licensing       |
- +--------------------------------------------------------------------+
- */
 
+/**
+ * This is kept for now to prevent crashes when updating mjwshared to 1.5+ before updating extensions
+ *   that depend on this and use the WebhookTrait
+ *
+ * @deprecated
+ */
 trait CRM_Mjwshared_WebhookTrait {
 
   /**
-   * @var array Payment processor
-   */
-  private $_paymentProcessor;
-
-  /**
-   * Get the path of the webhook depending on the UF (eg Drupal, Joomla, Wordpress)
-   *
-   * @param string $paymentProcessorId
+   * @param $paymentProcessorId
    *
    * @return string
+   * @deprecated
    */
   public static function getWebhookPath($paymentProcessorId) {
-    $UFWebhookPath = CRM_Utils_System::url('civicrm/payment/ipn/' . $paymentProcessorId, NULL, TRUE, NULL, FALSE, TRUE);
-    return $UFWebhookPath;
+    return '';
   }
 
 }
+

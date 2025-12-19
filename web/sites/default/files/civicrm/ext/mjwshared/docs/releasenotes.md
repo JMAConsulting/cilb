@@ -9,6 +9,41 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.5.2 (2025-12-15)
+
+* [!58](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/58) Fix crash on Drupal 7.
+
+## Release 1.5.1 (2025-12-11)
+
+*  Add WebhookTrait back in as deprecated to avoid crashes if mjwshared is upgraded to 1.5+ before related extensions.
+
+## Release 1.5.0 (2025-12-04)
+
+**Requires CiviCRM 6.9.0 because it depends on https://github.com/civicrm/civicrm-core/pull/33694**
+
+**This release contains breaking changes and will require updating extensions that depend on MJWShared.**
+
+* Allow refunding manual payments. Add 'Record Refund' link to contributions. Use 'Refund contribution' permission.
+* Use AbstractBatchAction instead of AbstractUpdateAction for UpdateRecurOnRecurMJW.
+* Update deprecated php type casts.
+* Move system checks to a different class.
+* Remove WebhookTrait (use CRM_Mjwshared_Webhook::getWebhookPath() directly instead).
+* Drop support for minifier extension.
+
+## Release 1.4.4 (2025-10-15)
+
+* Deprecate most of our custom API3 functions.
+* Remove use of mjwpayment.get_contribution from mjwshared (use API4 Payment.Get instead).
+
+## Release 1.4.3 (2025-08-27)
+
+* Additional fix for webhook check if payment_processor_id is NULL.
+
+## Release 1.4.2 (2025-08-26)
+
+* [!53](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/53) Modify webhook check to work with Only Full Group By SQL Mode.
+* [!52](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/52) Fix detection of recurring for memberships on contribution pages.
+
 ## Release 1.4.1 (2025-07-07)
 
 * Regenerate code (civix upgrade). Min version CiviCRM 6.0.

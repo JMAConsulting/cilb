@@ -89,6 +89,7 @@ class CRM_Mjwshared_ExtensionUtil {
 
 use CRM_Mjwshared_ExtensionUtil as E;
 
+pathload()->addSearchDir(__DIR__ . '/mixin/lib');
 spl_autoload_register('_mjwshared_civix_class_loader', TRUE, TRUE);
 
 function _mjwshared_civix_class_loader($class) {

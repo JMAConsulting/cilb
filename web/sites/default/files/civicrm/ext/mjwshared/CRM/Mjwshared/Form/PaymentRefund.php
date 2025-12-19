@@ -1,8 +1,10 @@
 <?php
 
+use Civi\Api4\Contribution;
 use Civi\Api4\LineItem;
 use Civi\Api4\Membership;
 use Civi\Api4\Participant;
+use Civi\Api4\Payment;
 use Civi\Api4\PaymentProcessor;
 use Civi\Payment\Exception\PaymentProcessorException;
 use CRM_Mjwshared_ExtensionUtil as E;
@@ -33,9 +35,16 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
    */
   private $financialTrxn;
 
+  /**
+   * The total amount paid on the Contribution
+   *
+   * @var float
+   */
+  private $paidAmount;
+
   public function buildQuickForm() {
-    if (!CRM_Core_Permission::check('edit contributions')) {
-      CRM_Core_Error::statusBounce(ts('You do not have permission to access this page.'));
+    if (!CRM_Core_Permission::check('refund contributions')) {
+      CRM_Core_Error::statusBounce(E::ts('You do not have permission to issue refunds.'));
     }
 
     $this->addFormRule(['CRM_Mjwshared_Form_PaymentRefund', 'formRule'], $this);
@@ -43,19 +52,43 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
     $this->setTitle('Refund payment');
 
     $this->paymentID = CRM_Utils_Request::retrieveValue('payment_id', 'Positive', NULL, FALSE, 'REQUEST');
-    if (!$this->paymentID) {
-      CRM_Core_Error::statusBounce('Payment not found!');
+    if ($this->paymentID) {
+      $financialTrxns = Payment::get(FALSE)
+        ->addWhere('id', '=', $this->paymentID)
+        ->execute();
     }
-
-    $this->contributionID = CRM_Utils_Request::retrieveValue('contribution_id', 'Positive', NULL, FALSE, 'REQUEST');
-    if (!$this->contributionID) {
-      CRM_Core_Error::statusBounce('Contribution not found!');
+    if (empty($financialTrxns)) {
+      $this->contributionID = CRM_Utils_Request::retrieveValue('contribution_id', 'Positive', NULL, FALSE, 'REQUEST');
+      if ($this->contributionID) {
+        // We can't use API4 Payment::get with contribution_id until https://github.com/civicrm/civicrm-core/pull/33695
+        //   is merged because it crashes otherwise
+        // $financialTrxns = Payment::get(FALSE)
+        //  ->addWhere('contribution_id', '=', $this->contributionID)
+        //  ->addWhere('status_id:name', '=', 'Completed')
+        // ->execute();
+        // Uncomment above and remove below once merged:
+        $contribution = civicrm_api3('Mjwpayment', 'get_contribution', [
+          'contribution_id' => $this->contributionID,
+          'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_DAO_Contribution', 'contribution_status_id', 'Completed'),
+        ]);
+        $financialTrxnsAPI3 = $contribution['values'][$contribution['id']]['payments'] ?? NULL;
+        $financialTrxns = Payment::get(FALSE)
+          ->addWhere('id', 'IN', array_keys($financialTrxnsAPI3) ?? [])
+          ->execute();
+        // Remove above until here once merged!
+        if ($financialTrxns->count() > 1) {
+          CRM_Core_Error::statusBounce(E::ts('There is more than one payment for this Contribution. You need to select a specific payment to refund.'));
+        }
+      }
     }
+    if ($financialTrxns->count() === 0) {
+      CRM_Core_Error::statusBounce(E::ts('No Payment found. Make sure you specified a valid Payment or Contribution.'));
+    }
+    $financialTrxn = $financialTrxns->first();
+    $this->paymentID = $financialTrxn['id'];
+    $this->contributionID = $financialTrxn['contribution_id'];
 
-    $financialTrxn = reset(civicrm_api3('Mjwpayment', 'get_payment', [
-      'financial_trxn_id' => $this->paymentID,
-    ])['values']);
-    if ((int)$financialTrxn['contribution_id'] !== $this->contributionID) {
+    if ($financialTrxn['contribution_id'] !== $this->contributionID) {
       CRM_Core_Error::statusBounce('Contribution / Payment does not match');
     }
     $financialTrxn['order_reference'] = $financialTrxn['order_reference'] ?? NULL;
@@ -64,9 +97,23 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
       ->addWhere('id', '=', $financialTrxn['payment_processor_id'])
       ->execute()
       ->first();
-    $financialTrxn['payment_processor_title'] = $paymentProcessor['title'] ?? $paymentProcessor['name'];
 
-    $this->assign('paymentInfo', $financialTrxn);
+    $this->paidAmount = Contribution::get(FALSE)
+      ->addSelect('paid_amount')
+      ->addWhere('id', '=', $this->contributionID)
+      ->execute()
+      ->first()['paid_amount'];
+
+    $paymentDisplayInfo = [
+      'total_amount' => $financialTrxn['total_amount'],
+      'paid_amount' => $this->paidAmount,
+      'currency' => $financialTrxn['currency'],
+      'trxn_date' => $financialTrxn['trxn_date'],
+      'trxn_id' => $financialTrxn['trxn_id'],
+      'order_reference' => $financialTrxn['order_reference'],
+      'payment_processor_title' => $paymentProcessor['title'] ?? $paymentProcessor['name'],
+    ];
+    $this->assign('paymentInfo', $paymentDisplayInfo);
     $this->financialTrxn = $financialTrxn;
 
     $this->add('hidden', 'payment_id');
@@ -91,7 +138,7 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
     if (!empty($participantIDs)) {
       $participantsForAssign = [];
       $this->set('participant_ids', $participantIDs);
-      $participants = Participant::get()
+      $participants = Participant::get(FALSE)
         ->addSelect('*', 'event_id.title', 'status_id:label', 'contact_id.display_name')
         ->addWhere('id', 'IN', $participantIDs)
         ->execute();
@@ -123,7 +170,7 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
     $this->assign('memberships', $membershipsForAssign ?? NULL);
 
     $this->addMoney('refund_amount',
-      ts('Refund Amount'),
+      E::ts('Amount to Refund'),
       TRUE,
       [],
       TRUE, 'currency', $financialTrxn['currency'], TRUE
@@ -132,25 +179,31 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
     $this->addButtons([
       [
         'type' => 'submit',
-        'name' => ts('Refund'),
+        'icon' => 'fa-money-check-dollar',
+        'name' => E::ts('Process Refund'),
         'isDefault' => TRUE,
       ],
       [
         'type' => 'cancel',
-        'name' => ts('Cancel'),
+        'name' => E::ts('Cancel'),
       ],
     ]);
   }
 
   public function setDefaultValues() {
     if ($this->paymentID) {
-      $this->_defaults['payment_id'] = $this->paymentID;
+      $defaults['payment_id'] = $this->paymentID;
       $this->set('payment_id', $this->paymentID);
-      $this->_defaults['contribution_id'] = $this->contributionID;
+      $defaults['contribution_id'] = $this->contributionID;
       $this->set('contribution_id', $this->contributionID);
-      $this->_defaults['refund_amount'] = $this->financialTrxn['total_amount'];
+      // If we have one payment and one refund the paid amount will be less.
+      // Ideally we match the refund to the original payment but this is a simpler way that will work
+      // in most cases. It is modifiable by the user and the paymentprocessor won't usually allow
+      // refunding more than the original amount so it should be fine.
+      $defaults['refund_amount'] = min($this->paidAmount, $this->financialTrxn['total_amount']);
     }
-    return $this->_defaults;
+
+    return $defaults ?? [];
   }
 
   /**
@@ -171,7 +224,10 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
     $formValues = $form->getSubmitValues();
     $paymentID = $form->get('payment_id');
 
-    $payment = reset(civicrm_api3('Mjwpayment', 'get_payment', ['id' => $paymentID])['values']);
+    $payment = Payment::get(FALSE)
+      ->addWhere('id', '=', $paymentID)
+      ->execute()
+      ->first();
 
     // Check refund amount
     $refundAmount = Money::of($formValues['refund_amount'], $payment['currency'], new DefaultContext(), RoundingMode::CEILING);
@@ -190,84 +246,21 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
   public function postProcess() {
     $formValues = $this->getSubmitValues();
     $paymentID = $this->get('payment_id');
-    $participantIDs = $this->get('participant_ids');
-    $cancelParticipants = $formValues['cancel_participants'] ?? FALSE;
-    $membershipIDs = $this->get('membership_ids');
-    $cancelMemberships = $formValues['cancel_memberships'] ?? FALSE;
+    $participantIDs = ($formValues['cancel_participants'] ?? FALSE) ? $this->get('participant_ids') : [];
+    $membershipIDs = ($formValues['cancel_memberships'] ?? FALSE) ? $this->get('membership_ids') : [];
 
     try {
-      $payment = reset(civicrm_api3('Mjwpayment', 'get_payment', ['id' => $paymentID])['values']);
-
-      // Check refund amount
-      $refundAmount = Money::of($formValues['refund_amount'], $payment['currency'], new DefaultContext(), RoundingMode::CEILING);
-      $paymentAmount = Money::of($payment['total_amount'], $payment['currency'], new DefaultContext(), RoundingMode::CEILING);
-
-      if ($refundAmount->isGreaterThan($paymentAmount)) {
-        throw new PaymentProcessorException('Cannot refund more than the original amount');
-      }
-      if ($refundAmount->isNegativeOrZero()) {
-        throw new PaymentProcessorException('Cannot refund zero or negative amount');
-      }
-
-      $refundParams = [
-        'payment_processor_id' => $payment['payment_processor_id'],
-        'amount' => $refundAmount->getAmount()->toFloat(),
-        'currency' => $payment['currency'],
-        'trxn_id' => $payment['trxn_id'],
-      ];
-      $refund = reset(civicrm_api3('PaymentProcessor', 'Refund', $refundParams)['values']);
-      if ($refund['refund_status'] === 'Completed') {
-        $refundPaymentParams = [
-          'contribution_id' => $payment['contribution_id'],
-          'trxn_id' => $refund['refund_trxn_id'],
-          'order_reference' => $payment['order_reference'] ?? NULL,
-          'total_amount' => 0 - abs($refundAmount->getAmount()->toFloat()),
-          'fee_amount' => 0 - abs($refund['fee_amount']),
-          'payment_processor_id' => $payment['payment_processor_id'],
-        ];
-
-        $lock = Civi::lockManager()->acquire('data.contribute.contribution.' . $refundPaymentParams['contribution_id']);
-        if (!$lock->isAcquired()) {
-          throw new PaymentProcessorException('Could not acquire lock to record refund for contribution: ' . $refundPaymentParams['contribution_id']);
-        }
-        $refundPayment = civicrm_api3('Payment', 'get', [
-          'contribution_id' => $refundPaymentParams['contribution_id'],
-          'total_amount' => $refundPaymentParams['total_amount'],
-          'trxn_id' => $refundPaymentParams['trxn_id'],
-        ]);
-        if (empty($refundPayment['count'])) {
-          // Record the refund in CiviCRM
-          civicrm_api3('Mjwpayment', 'create_payment', $refundPaymentParams);
-        }
-        $lock->release();
-        $message = E::ts('Refund was processed successfully.');
-
-        if ($cancelParticipants && !empty($participantIDs)) {
-          foreach ($participantIDs as $participantID) {
-            civicrm_api3('Participant', 'create', [
-              'id' => $participantID,
-              'status_id' => 'Cancelled',
-            ]);
-          }
-          $message .= ' ' . E::ts('Cancelled %1 participant registration(s).', [1 => count($participantIDs)]);
-        }
-
-        if ($cancelMemberships && !empty($membershipIDs)) {
-          Membership::update(FALSE)
-            ->addValue('status_id.name', 'Cancelled')
-            ->addWhere('id', 'IN', $membershipIDs)
-            ->execute();
-          $message .= ' ' . E::ts('Cancelled %1 membership(s).', [1 => count($membershipIDs)]);
-        }
-
-        CRM_Core_Session::setStatus($message, 'Refund processed', 'success');
-      }
-      else {
-        CRM_Core_Error::statusBounce("Refund status '{$refund['refund_status']}'is not supported at this time and was not recorded in CiviCRM.");
-      }
-    } catch (Exception $e) {
-      CRM_Core_Error::statusBounce($e->getMessage(), NULL, 'Refund failed');
+      $result = \Civi\Api4\PaymentMJW::refund(FALSE)
+        ->setPaymentID($paymentID)
+        ->setRefundAmount($formValues['refund_amount'])
+        ->setParticipantIDs($participantIDs)
+        ->setMembershipIDs($membershipIDs)
+        ->execute();
     }
+    catch (\Throwable $e) {
+      CRM_Core_Error::statusBounce($e->getMessage());
+    }
+    CRM_Core_Session::setStatus($result['message'] ?? '', 'Refund processed', 'success');
   }
 
 }

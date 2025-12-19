@@ -211,30 +211,21 @@
           isRecur = true;
         }
       }
+
+      var membershipAutoRenewCheckBox = document.getElementById('auto_renew');
+      var isRecurCheckBox = document.getElementById('is_recur');
       // Auto-renew contributions
-      if (document.getElementById('is_recur') !== null) {
-        if (document.getElementById('is_recur').type == 'hidden') {
-          isRecur = (document.getElementById('is_recur').value == 1);
+      if (isRecurCheckBox !== null) {
+        if (isRecurCheckBox.type == 'hidden') {
+          isRecur = (isRecurCheckBox.value == 1);
         }
         else {
-          isRecur = Boolean(document.getElementById('is_recur').checked);
+          isRecur = Boolean(isRecurCheckBox.checked);
         }
       }
       // Auto-renew memberships
-      // This gets messy quickly!
-      // input[name="auto_renew"] : set to 1 when there is a force-renew membership with no priceset.
-      else if ($('input[name="auto_renew"]').length !== 0) {
-        if ($('input[name="auto_renew"]').attr('type') == 'hidden' ||
-          $('input[name="auto_renew"]').is(":hidden")) {
-          // If the auto_renew field exists as a hidden field, then we force a
-          // recurring contribution - since it won't be checked but it signals
-          // a autorenew.
-          isRecur = true;
-        }
-        else {
-          // Otherwise, see if it's checked indicating auto renew is selected.
-          isRecur = Boolean($('input[name="auto_renew"]').prop('checked'));
-        }
+      else if (membershipAutoRenewCheckBox !== null) {
+        isRecur = Boolean(membershipAutoRenewCheckBox.checked);
       }
       if (!isRecur) {
         // multi-installment pledges are also recurring....

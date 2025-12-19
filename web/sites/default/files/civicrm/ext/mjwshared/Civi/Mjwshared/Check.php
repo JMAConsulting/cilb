@@ -9,14 +9,32 @@
  +--------------------------------------------------------------------+
  */
 
+namespace Civi\Mjwshared;
+
+use Civi\Api4\Domain;
+use Civi\Api4\PaymentProcessor;
+use Civi\Api4\PaymentprocessorWebhook;
+use Civi\Core\Service\AutoSubscriber;
 use CRM_Mjwshared_ExtensionUtil as E;
 
 /**
  * Class CRM_Mjwshared_Check
  */
-class CRM_Mjwshared_Check {
+class Check extends AutoSubscriber {
 
-  const MIN_VERSION_SWEETALERT = '1.5';
+  /**
+   * @return string[]
+   */
+  public static function getSubscribedEvents(): array {
+    return [
+      '&hook_civicrm_check' => 'checkRequirements',
+    ];
+  }
+
+  /**
+   * @var string
+   */
+  const MIN_VERSION_SWEETALERT = '1.8';
 
   /**
    * @var array
@@ -24,29 +42,22 @@ class CRM_Mjwshared_Check {
   private array $messages;
 
   /**
-   * CRM_Mjwshared_Check constructor.
+   * Implements hook_civicrm_check()
    *
    * @param array $messages
    *
-   */
-  public function __construct($messages) {
-    $this->messages = $messages;
-  }
-
-  /**
-   * @return array
+   * @return void
    * @throws \CRM_Core_Exception
-   * @throws \Civi\API\Exception\UnauthorizedException
    */
-  public function checkRequirements() {
+  public function checkRequirements(array &$messages): void {
+    $this->messages = $messages;
     $this->checkExtensionWorldpay();
-    // $this->checkExtensionMinifier();
     $this->checkExtensionContributiontransactlegacy();
     $this->checkIfSeparateMembershipPaymentEnabled();
     $this->checkExtensionSweetalert();
     $this->checkMultidomainJobs();
     $this->checkPaymentprocessorWebhooks();
-    return $this->messages;
+    $messages = $this->messages;
   }
 
   /**
@@ -54,7 +65,7 @@ class CRM_Mjwshared_Check {
    * @param string $minVersion
    * @param string $actualVersion
    */
-  private function requireExtensionMinVersion(string $extensionName, string $minVersion, string $actualVersion) {
+  private function requireExtensionMinVersion(string $extensionName, string $minVersion, string $actualVersion): void {
     $actualVersionModified = $actualVersion;
     if (substr($actualVersion, -4) === '-dev') {
       $actualVersionModified = substr($actualVersion, 0, -4);
@@ -102,16 +113,17 @@ class CRM_Mjwshared_Check {
     }
   }
 
+
   /**
    * @throws \CRM_Core_Exception
    */
-  private function checkExtensionWorldpay() {
+  private function checkExtensionWorldpay(): void {
     $extensions = civicrm_api3('Extension', 'get', [
       'full_name' => 'uk.co.nfpservice.onlineworldpay',
     ]);
 
     if (!empty($extensions['id']) && ($extensions['values'][$extensions['id']]['status'] === 'installed')) {
-      $this->messages[] = new CRM_Utils_Check_Message(
+      $this->messages[] = new \CRM_Utils_Check_Message(
         __FUNCTION__ . 'mjwshared_incompatible',
         E::ts('You have the uk.co.nfpservice.onlineworldpay extension installed.
         There are multiple versions of this extension on various sites and the source code has not been released.
@@ -126,44 +138,16 @@ class CRM_Mjwshared_Check {
   /**
    * @throws \CRM_Core_Exception
    */
-  private function checkExtensionMinifier() {
-    $extensionName = 'minifier';
-    $extensions = civicrm_api3('Extension', 'get', [
-      'full_name' => $extensionName,
-    ]);
-
-    if (empty($extensions['count']) || ($extensions['values'][$extensions['id']]['status'] !== 'installed')) {
-      $message = new CRM_Utils_Check_Message(
-        __FUNCTION__ . 'mjwshared_recommended',
-        E::ts('It is recommended that you download and install the <strong><a href="https://civicrm.org/extensions/minifier">minifier</a></strong> extension.
-               This will improve the page-load speeds for JS/CSS assets included with extensions such as <strong><a href="https://civicrm.org/extensions/stripe-payment-processor">Stripe</a></strong>.'),
-        E::ts('Recommended Extension: minifier'),
-        \Psr\Log\LogLevel::NOTICE,
-        'fa-lightbulb-o'
-      );
-      $message->addAction(
-        E::ts('Install now'),
-        NULL,
-        'href',
-        ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionName, 'key' => $extensionName]]
-      );
-      $this->messages[] = $message;
-    }
-  }
-
-  /**
-   * @throws \CRM_Core_Exception
-   */
-  private function checkExtensionContributiontransactlegacy() {
+  private function checkExtensionContributiontransactlegacy(): void {
     $extensionName = 'contributiontransactlegacy';
     // Only on Drupal 7 (webform_civicrm 7.x-5.x) - do we have webform_civicrm installed?
-    if (function_exists('module_exists') && CRM_Core_Config::singleton()->userFramework === 'Drupal') {
+    if (function_exists('module_exists') && \CRM_Core_Config::singleton()->userFramework === 'Drupal') {
       $extensions = civicrm_api3('Extension', 'get', [
         'full_name' => $extensionName,
       ]);
 
       if (module_exists('webform_civicrm') && (empty($extensions['id']) || ($extensions['values'][$extensions['id']]['status'] !== 'installed'))) {
-        $message = new CRM_Utils_Check_Message(
+        $message = new \CRM_Utils_Check_Message(
           __FUNCTION__ . 'mjwshared_recommended',
           E::ts('If you are using Drupal webform_civicrm to accept payments you should download and install the
             <strong><a href="https://civicrm.org/extensions/contribution-transact-api">contributiontransactlegacy</a></strong> extension.
@@ -189,7 +173,7 @@ class CRM_Mjwshared_Check {
    * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
-  private function checkIfSeparateMembershipPaymentEnabled() {
+  private function checkIfSeparateMembershipPaymentEnabled(): void {
     $separateMembershipPaymentNotSupportedProcessors = ['Stripe', 'Globalpayments'];
     $membershipBlocks = civicrm_api3('MembershipBlock', 'get', [
       'is_separate_payment' => 1,
@@ -203,7 +187,7 @@ class CRM_Mjwshared_Check {
         }
         $contributionPagesToCheck[] = $blockDetails['entity_id'];
       }
-      $paymentProcessorIDs = \Civi\Api4\PaymentProcessor::get(FALSE)
+      $paymentProcessorIDs = PaymentProcessor::get(FALSE)
         ->addJoin('PaymentProcessorType AS payment_processor_type', 'INNER', ['payment_processor_type_id', '=', 'payment_processor_type.id'])
         ->addWhere('payment_processor_type.name', 'IN', $separateMembershipPaymentNotSupportedProcessors)
         ->execute()
@@ -217,10 +201,10 @@ class CRM_Mjwshared_Check {
         ]);
         foreach ($contributionPages['values'] as $contributionPage) {
           $enabledPaymentProcessors = is_array($contributionPage['payment_processor'])
-              ? $contributionPage['payment_processor'] : explode(CRM_Core_DAO::VALUE_SEPARATOR, $contributionPage['payment_processor']);
+            ? $contributionPage['payment_processor'] : explode(\CRM_Core_DAO::VALUE_SEPARATOR, $contributionPage['payment_processor']);
           foreach ($enabledPaymentProcessors as $enabledID) {
             if (in_array($enabledID, $paymentProcessorIDs)) {
-              $message = new CRM_Utils_Check_Message(
+              $message = new \CRM_Utils_Check_Message(
                 __FUNCTION__ . 'mjwshared_requirements',
                 E::ts('You need to disable "Separate Membership Payment" or disable the payment processors: %2 on contribution page %1 because it is not supported and will not work.
                 See <a href="https://lab.civicrm.org/extensions/stripe/-/issues/134">Stripe#134</a>.',
@@ -244,7 +228,7 @@ class CRM_Mjwshared_Check {
   /**
    * @throws \CRM_Core_Exception
    */
-  private function checkExtensionSweetalert() {
+  private function checkExtensionSweetalert(): void {
     // sweetalert: recommended. If installed requires min version
     $extensionName = 'sweetalert';
     $extensions = civicrm_api3('Extension', 'get', [
@@ -252,7 +236,7 @@ class CRM_Mjwshared_Check {
     ]);
 
     if (empty($extensions['count']) || ($extensions['values'][$extensions['id']]['status'] !== 'installed')) {
-      $message = new CRM_Utils_Check_Message(
+      $message = new \CRM_Utils_Check_Message(
         __FUNCTION__ . 'mjwshared_recommended',
         E::ts('It is recommended that you install the <strong><a href="https://civicrm.org/extensions/sweetalert">sweetalert</a></strong> extension.
         This allows extensions such as Stripe to show useful messages to the user when processing payment.
@@ -280,8 +264,8 @@ class CRM_Mjwshared_Check {
    * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
-  private function checkMultidomainJobs() {
-    $domains = \Civi\Api4\Domain::get(FALSE)
+  private function checkMultidomainJobs(): void {
+    $domains = Domain::get(FALSE)
       ->execute();
     if ($domains->count() <= 1) {
       return;
@@ -305,7 +289,7 @@ class CRM_Mjwshared_Check {
 
     if (!empty($domainMissingJob)) {
       $domainMessage = '<ul><li>' . implode('</li><li>', $domainMissingJob) . '</li></ul>';
-      $message = new CRM_Utils_Check_Message(
+      $message = new \CRM_Utils_Check_Message(
         __FUNCTION__ . 'mjwshared_multidomain',
         E::ts('You have multiple domains configured and some domains are missing the scheduled job "Job.process_paymentprocessor_webhooks": %1',
           [1 => $domainMessage]
@@ -322,8 +306,8 @@ class CRM_Mjwshared_Check {
    * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
-  private function checkPaymentprocessorWebhooks() {
-    $paymentprocessorWebhooksProcessingCount = \Civi\Api4\PaymentprocessorWebhook::get(FALSE)
+  private function checkPaymentprocessorWebhooks(): void {
+    $paymentprocessorWebhooksProcessingCount = PaymentprocessorWebhook::get(FALSE)
       ->addSelect('row_count')
       ->addWhere('status', '=', 'processing')
       ->addWhere('created_date', '<', 'now-1hour')
@@ -332,21 +316,23 @@ class CRM_Mjwshared_Check {
       ->countMatched();
 
     if ($paymentprocessorWebhooksProcessingCount > 0) {
-      $paymentprocessorWebhookProcessors = \Civi\Api4\PaymentprocessorWebhook::get(FALSE)
-        ->addSelect('id', 'payment_processor_id:label')
+      $paymentprocessorWebhookProcessors = PaymentprocessorWebhook::get(FALSE)
+        ->addSelect('payment_processor_id:label')
         ->addWhere('status', '=', 'processing')
         ->addWhere('created_date', '<', 'now-1hour')
-        ->addOrderBy('created_date', 'DESC')
         ->addGroupBy('payment_processor_id')
-        ->execute()
-        ->indexBy('payment_processor_id:label')
-        ->getArrayCopy();
-      $message = new CRM_Utils_Check_Message(
+        ->execute();
+      foreach ($paymentprocessorWebhookProcessors as $paymentprocessor) {
+        if (!empty($paymentprocessor['payment_processor_id:label'])) {
+          $paymentProcessorLabels[$paymentprocessor['payment_processor_id:label']] = $paymentprocessor['payment_processor_id:label'];
+        }
+      }
+      $message = new \CRM_Utils_Check_Message(
         __FUNCTION__ . 'mjwshared_paymentprocessorwebhooks',
         E::ts('You have %1 payment processor webhooks in "processing" status for %2 payment processors.
         This means that the system started processing them but something went wrong that can\'t be fixed automatically.
         Please check and identify the problem. Then you can mark them for retry.',
-          [1 => $paymentprocessorWebhooksProcessingCount, 2 => implode(',', array_keys($paymentprocessorWebhookProcessors))]
+          [1 => $paymentprocessorWebhooksProcessingCount, 2 => implode(',', $paymentProcessorLabels ?? [])]
         ),
         E::ts('Payment Processor Webhooks: Processing failed'),
         \Psr\Log\LogLevel::ERROR,

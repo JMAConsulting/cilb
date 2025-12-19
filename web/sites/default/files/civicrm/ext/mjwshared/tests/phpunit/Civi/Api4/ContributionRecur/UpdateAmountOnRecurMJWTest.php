@@ -208,7 +208,7 @@ class UpdateAmountOnRecurMJWTest extends CiviUnitTestCase implements HeadlessInt
 
     $newAmount = 1.0;
     ContributionRecur::updateAmountOnRecurMJW(FALSE)
-      ->addValue('amount', $newAmount)
+      ->setAmount($newAmount)
       ->addWhere('id', '=', $this->recurs[$this->contacts['WilmaUpgrader']])
       ->execute()
       ->first();
@@ -268,7 +268,7 @@ class UpdateAmountOnRecurMJWTest extends CiviUnitTestCase implements HeadlessInt
 
     $newAmount = 3.0;
     ContributionRecur::updateAmountOnRecurMJW(FALSE)
-      ->addValue('amount', $newAmount)
+      ->setAmount($newAmount)
       ->addWhere('id', '=', $this->recurs[$this->contacts['WilmaUpgrader']])
       ->execute()
       ->first();
@@ -296,7 +296,7 @@ class UpdateAmountOnRecurMJWTest extends CiviUnitTestCase implements HeadlessInt
   }
 
   /**
-   * Test that we can increase an amount on a recurring contribution
+   * Test that we can't set a recurring contribution to 0.0
    */
   public function testNewAmountZero(): void {
     $this->createFixture();
@@ -329,32 +329,18 @@ class UpdateAmountOnRecurMJWTest extends CiviUnitTestCase implements HeadlessInt
     $this->assertEquals($preContributionRecur['amount'], $preContribution['total_amount']);
 
     $newAmount = 0.0;
-    ContributionRecur::updateAmountOnRecurMJW(FALSE)
-      ->addValue('amount', $newAmount)
-      ->addWhere('id', '=', $this->recurs[$this->contacts['WilmaUpgrader']])
-      ->execute()
-      ->first();
-    $updatedRecur = ContributionRecur::get(FALSE)
-      ->addWhere('id', '=', $this->recurs[$this->contacts['WilmaUpgrader']])
-      ->execute()
-      ->first();
-    $templateContribution = Contribution::get(FALSE)
-      ->addSelect('*', 'line_item.*')
-      ->addJoin('LineItem AS line_item', 'LEFT')
-      ->addWhere('contribution_recur_id', '=', $this->recurs[$this->contacts['WilmaUpgrader']])
-      ->addWhere('is_template', '=', TRUE)
-      ->addOrderBy('id', 'DESC')
-      ->execute()
-      ->first();
-    $paramsToAssertEqual = [
-      $newAmount => $updatedRecur['amount'],
-      $newAmount => $templateContribution['total_amount'],
-      $newAmount => $templateContribution['line_item.line_total'],
-      0.0 => $templateContribution['fee_amount'],
-    ];
-    foreach ($paramsToAssertEqual as $expected => $actual) {
-      $this->assertEquals($expected, $actual);
+    $message = '';
+    try {
+      ContributionRecur::updateAmountOnRecurMJW(FALSE)
+        ->setAmount($newAmount)
+        ->addWhere('id', '=', $this->recurs[$this->contacts['WilmaUpgrader']])
+        ->execute()
+        ->first();
     }
+    catch (\CRM_Core_Exception $e) {
+      $message = $e->getMessage();
+    }
+    $this->assertEquals('Amount must be greater than 0.0', $message);
   }
 
 }

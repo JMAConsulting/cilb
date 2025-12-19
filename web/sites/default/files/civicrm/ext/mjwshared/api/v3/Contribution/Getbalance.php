@@ -7,8 +7,11 @@
  * @return array
  *   API result array.
  * @throws CRM_Core_Exception
+ * @deprecated Use paid_amount/balance_amount in API4
  */
 function civicrm_api3_contribution_getbalance($params) {
+  CRM_Core_Error::deprecatedWarning('Use API4 Contribution paid_amount/balance_amount fields');
+
   $result['id'] = $params['id'];
   $result['total'] = (float) CRM_Price_BAO_LineItem::getLineTotal($params['id']);
   $result['paid'] = (float) CRM_Core_BAO_FinancialTrxn::getTotalPayments($params['id'], TRUE) ?: 0;

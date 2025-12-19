@@ -16,8 +16,6 @@ require_once('api/v3/Payment.php');
  *   which support querying by contribution/payment trxn_id per https://github.com/civicrm/civicrm-core/pull/14748
  *   - These API functions should be REMOVED once core has the above PR merged and we increment the min version for the extension.
  *   - The change is small, but to re-implement them here we have to copy quite a lot over.
- * @todo mjwpayment.get_payment is a replacement for Payment.get:
- *   https://github.com/civicrm/civicrm-core/pull/16603
  */
 /**
  * Adjust Metadata for Get action.
@@ -82,6 +80,8 @@ function _civicrm_api3_mjwpayment_get_contribution_spec(&$params) {
  *
  * @return array
  *   Array of contribution, if error an array with an error id and error message
+ *
+ * @deprecated Use API4 Payment + Contribution
  */
 function civicrm_api3_mjwpayment_get_contribution($params) {
   $payments = civicrm_api3('Mjwpayment', 'get_payment', $params);
@@ -146,6 +146,7 @@ function _civicrm_api3_mjwpayment_get_payment_spec(&$params) {
  * @return array
  *   Array of financial transactions which are payments, if error an array with an error id and error message
  * @throws \CRM_Core_Exception
+ * @deprecated Use API4
  */
 function civicrm_api3_mjwpayment_get_payment($params) {
   return civicrm_api3_payment_get($params);
@@ -184,6 +185,7 @@ function _civicrm_api3_mjwpayment_create_payment_spec(&$params) {
  *
  * @throws \CRM_Core_Exception
  * @throws \CRM_Core_Exception
+ * @deprecated Use API4
  */
 function civicrm_api3_mjwpayment_create_payment($params) {
   if (empty($params['skipCleanMoney'])) {

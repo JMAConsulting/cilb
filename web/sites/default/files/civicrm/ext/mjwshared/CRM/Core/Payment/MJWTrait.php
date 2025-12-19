@@ -92,32 +92,6 @@ trait CRM_Core_Payment_MJWTrait {
   }
 
   /**
-   * Get the billing email address
-   *
-   * @deprecated This is not used anywhere and will be removed in a future version
-   *
-   * @param array $params
-   * @param int $contactID
-   *
-   * @return string|NULL
-   */
-  protected function getBillingPhone($params, $contactID) {
-    $billingLocationTypeID = CRM_Core_PseudoConstant::getKey('CRM_Core_DAO_Address', 'location_type_id', 'Billing');
-    $phoneNumber = $params["phone-{$billingLocationTypeID}"] ?? $params['phone-Primary'] ?? $params['phone'] ?? NULL;
-
-    if (empty($phoneNumber) && !empty($contactID)) {
-      // Try and retrieve a phone number from Contact ID
-      $phone = Phone::get(FALSE)
-        ->addSelect('phone')
-        ->addWhere('contact_id', '=', $contactID)
-        ->addOrderBy('is_primary', 'DESC')
-        ->execute()
-        ->first();
-    }
-    return $phone['phone'] ?? '';
-  }
-
-  /**
    * Get the contact id
    *
    * @param \Civi\Payment\PropertyBag $propertyBag
@@ -259,36 +233,6 @@ trait CRM_Core_Payment_MJWTrait {
       $paymentInstrumentId = $paymentInstrument['id'];
     }
     return $paymentInstrumentId;
-  }
-
-  /**
-   * Get the error URL to "bounce" the user back to.
-   *
-   * @param \Civi\Payment\PropertyBag $propertyBag
-   *
-   * @return string|null
-   */
-  public function generateErrorUrl($propertyBag) {
-    // Get proper entry URL for returning on error.
-    if (!$propertyBag->has('qfKey') || !$propertyBag->has('entryURL')) {
-      // Probably not called from a civicrm form (e.g. webform) -
-      // will return error object to original api caller.
-      $errorUrl = NULL;
-    }
-    else {
-      $qfKey = $propertyBag->getCustomProperty('qfKey');
-      $parsedUrl = parse_url($propertyBag->getCustomProperty('entryURL'));
-      $urlPath = trim($parsedUrl['path'], '/');
-      $query = $parsedUrl['query'];
-      if (strpos($query, '_qf_Main_display=1') === FALSE) {
-        $query .= '&_qf_Main_display=1';
-      }
-      if (strpos($query, 'qfKey=') === FALSE) {
-        $query .= "&qfKey={$qfKey}";
-      }
-      $errorUrl = CRM_Utils_System::url($urlPath, $query, FALSE, NULL, FALSE);
-    }
-    return $errorUrl;
   }
 
   /**

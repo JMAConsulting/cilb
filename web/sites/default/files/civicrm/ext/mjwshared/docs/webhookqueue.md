@@ -53,7 +53,7 @@ Use the API4 `PaymentprocessorWebhook` entity.
 
 Your payment processor will have a subclass of `CRM_Core_Payment` with all its specific code in. This is referred to as the "payment class" throughout this section of documentation.
 
-### First, edit your payment class' `handlePaymentNotification()` method. This should
+### First, edit your payment class's `handlePaymentNotification()` method. This should
 
 1. examine, unpack, verify, authenticate etc. the incoming webhook request. (We assume that you already have this code written).
 
