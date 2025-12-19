@@ -53,15 +53,15 @@ class ParticipantLinksProvider extends \Civi\Core\Service\AutoSubscriber {
           // Update add link appropriate to the context of viewing a single contact
           $links[$addLinkIndex]['icon'] = 'fa-ticket';
           $links[$addLinkIndex]['text'] = ts('Register for Event');
-          $links[$addLinkIndex]['path'] = "civicrm/contact/view/participant?reset=1&action=add&cid=$contactId&context=participant";
-          if ($request->getExpandMultiple() && \CRM_Core_Config::isEnabledBackOfficeCreditCardPayments()) {
+          $links[$addLinkIndex]['path'] = "/form/backoffice-registration?cid=$contactId";//"civicrm/contact/view/participant?reset=1&action=add&cid=$contactId&context=participant";
+          /*if ($request->getExpandMultiple() && \CRM_Core_Config::isEnabledBackOfficeCreditCardPayments()) {
             // 2nd add link for credit card registrations
             $ccLink = $links[$addLinkIndex];
             $ccLink['text'] = ts('Submit Credit Card Event Registration');
             $ccLink['icon'] = 'fa-credit-card';
             $ccLink['path'] = "civicrm/contact/view/participant?reset=1&action=add&cid=$contactId&context=participant&mode=live";
             $links[] = $ccLink;
-          }
+	  }*/
         }
       }
 
