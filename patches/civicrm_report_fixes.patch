@@ -1,0 +1,45 @@
+diff --git a/vendor/civicrm/civicrm-core/CRM/Report/Form.php b/vendor/civicrm/civicrm-core/CRM/Report/Form.php
+index 5dfd53487..9488c4bd2 100644
+--- a/CRM/Report/Form.php
++++ b/CRM/Report/Form.php
+@@ -6093,7 +6093,15 @@ public function sendEmail() {
+     // output ends up in $mailBody above.
+     if ($attachmentFileName) {
+       $fullFilename = CRM_Core_Config::singleton()->templateCompileDir . CRM_Utils_File::makeFileName($attachmentFileName);
+-      file_put_contents($fullFilename, $this->outputHandler->getOutputString());
++      if ($this->outputHandler->saveOutput()) {
++        file_put_contents($fullFilename, $this->outputHandler->getOutputString());
++      }
++      else {
++        if (is_callable([$this->outputHandler, 'setZipFileName'])) {
++          $this->outputHandler->setZipFileName($fullFilename);
++        }
++        $this->outputHandler->getOutputString();
++      }
+       $attachments[] = [
+         'fullPath' => $fullFilename,
+         'mime_type' => $this->outputHandler->getMimeType(),
+diff --git a/vendor/civicrm/civicrm-core/Civi/Report/OutputHandlerBase.php b/vendor/civicrm/civicrm-core/Civi/Report/OutputHandlerBase.php
+index 247bc45f6..cd22b29fd 100644
+--- a/Civi/Report/OutputHandlerBase.php
++++ b/Civi/Report/OutputHandlerBase.php
+@@ -143,4 +143,8 @@ public function isAbsoluteUrl():bool {
+     return TRUE;
+   }
+
++  public function saveOutput(): bool {
++    return TRUE;
++  }
++
+ }
+diff --git a/vendor/civicrm/civicrm-core/Civi/Report/OutputHandlerInterface.php b/vendor/civicrm/civicrm-core/Civi/Report/OutputHandlerInterface.php
+index bae109778..cecf22cab 100644
+--- a/Civi/Report/OutputHandlerInterface.php
++++ b/Civi/Report/OutputHandlerInterface.php
+@@ -118,4 +118,6 @@ public function isAddPaging():bool;
+    */
+   public function isAbsoluteUrl():bool;
+
++  public function saveOutput():bool;
++
+ }
