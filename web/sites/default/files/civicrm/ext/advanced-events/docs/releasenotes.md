@@ -9,6 +9,10 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 2.3.1 (2025-11-27)
+
+* Minor update. No changes.
+
 ## Release 2.3.0 (2025-03-24)
 
 * Various updates and bugfixes.

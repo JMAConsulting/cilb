@@ -236,7 +236,7 @@ class CRM_AdvancedEvents_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntit
    *   Array of all the fields & values to be copied besides the other fields.
    *
    * @return array Event.create API Result
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public static function copyCreateEntity($templateId, $newParams) {
     // We need the titles from the template

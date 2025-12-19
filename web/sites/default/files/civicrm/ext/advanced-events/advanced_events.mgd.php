@@ -49,7 +49,6 @@ return [
       ],
       'match' => [
         'name',
-        'custom_group_id',
       ],
     ],
   ],
@@ -116,7 +115,6 @@ return [
       ],
       'match' => [
         'name',
-        'option_group_id'
       ],
     ],
   ],
@@ -135,7 +133,6 @@ return [
       ],
       'match' => [
         'name',
-        'option_group_id'
       ],
     ],
   ],
@@ -154,7 +151,6 @@ return [
       ],
       'match' => [
         'name',
-        'option_group_id'
       ],
     ],
   ],
@@ -166,7 +162,7 @@ return [
     'params' => [
       'version' => 4,
       'values' => [
-        'custom_group_id.name' => 'Advanced_Event_Settings',
+        'custom_group_id.name' => 'Event_options',
         'name' => 'Participant_Visibility',
         'label' => E::ts('Participant Visibility'),
         'html_type' => 'Select',
@@ -178,7 +174,6 @@ return [
       ],
       'match' => [
         'name',
-        'custom_group_id',
       ],
     ],
   ],

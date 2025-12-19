@@ -309,7 +309,7 @@ function advanced_events_civicrm_permission(&$permissions) {
  * @param $form
  * @param $amount
  *
- * @throws \CiviCRM_API3_Exception
+ * @throws \CRM_Core_Exception
  */
 function advanced_events_civicrm_buildAmount($pageType, &$form, &$amount) {
   $formName = get_class($form);

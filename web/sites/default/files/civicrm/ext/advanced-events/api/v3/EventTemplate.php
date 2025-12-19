@@ -16,7 +16,7 @@ use CRM_AdvancedEvents_ExtensionUtil as E;
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_event_template_create($params) {
   if (!empty($params['event_id']) && empty($params['template_id'])) {
@@ -38,7 +38,7 @@ function civicrm_api3_event_template_create($params) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_event_template_delete($params) {
   /*if (empty($params['id'])) {
@@ -57,7 +57,7 @@ function _civicrm_api3_event_template_delete_spec(&$spec) {
  *
  * @param array $params
  * @return array API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_event_template_get($params) {
   return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);

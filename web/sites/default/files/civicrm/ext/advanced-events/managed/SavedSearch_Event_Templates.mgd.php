@@ -142,7 +142,6 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('Start Date'),
               'sortable' => TRUE,
-              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',
@@ -150,7 +149,6 @@ return [
               'dataType' => 'Timestamp',
               'label' => E::ts('End Date'),
               'sortable' => TRUE,
-              'format' => 'dateformatshortdate',
             ],
             [
               'type' => 'field',
@@ -219,7 +217,7 @@ return [
               'alignment' => 'text-right',
             ],
             [
-              'text' => E::ts(''),
+              'text' => '',
               'style' => 'default',
               'size' => 'btn-xs',
               'icon' => 'fa-bars',

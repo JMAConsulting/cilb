@@ -90,8 +90,7 @@ The following permissions for events are implemented for this extension:
 * CiviEvent: Delete all event templates.
 
 ## Support and Maintenance
-This extension is supported and maintained with the help and support of the CiviCRM community by:
 
-[![MJW Consulting](images/mjwconsulting.jpg)](https://www.mjwconsult.co.uk)
+This extension is supported and maintained with the help and support of the CiviCRM community by [MJW](https://www.mjwconsult.co.uk).
 
 We offer paid [support and development](https://mjw.pt/support) as well as a [troubleshooting/investigation service](https://mjw.pt/investigation).

@@ -40,7 +40,7 @@ class CRM_AdvancedEvents_AdditionalParticipant {
   /**
    * @param CRM_Core_Form $form
    *
-   * @throws \API_Exception
+   * @throws \CRM_Core_Exception
    * @throws \Civi\API\Exception\UnauthorizedException
    */
   public static function addPriceFieldValueVisibilityOption(&$form) {

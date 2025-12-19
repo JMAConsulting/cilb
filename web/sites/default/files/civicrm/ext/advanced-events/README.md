@@ -4,7 +4,7 @@
 
 ![Advanced Event Settings](docs/images/advanced_event_settings.png)
 
-This extension provides a number of useful features to complement/improve the CiviEvent component in CiviCRM.
+This extension provides a number of useful features and improvements for CiviEvent.
 
 The extension is licensed under [AGPL-3.0](LICENSE.txt).
 
@@ -14,12 +14,7 @@ The extension is licensed under [AGPL-3.0](LICENSE.txt).
 * Replace existing repeat events functionality with new based directly on Event templates.
 * Add an "Event Search/Selector" that allows "Copy Participants" and "Delete Event" actions.
 * Allow to create templates from existing events.
-* Replaces "Manage Event Templates" with a new datatables based page.
-
-## Requirements
-
-* PHP v7.2+
-* CiviCRM 5.35+
+* Replaces "Manage Event Templates" search.
 
 ## Installation
 
@@ -38,9 +33,7 @@ Navigate to Administer->CiviEvent->Advanced Events Configuration.
 For more in-depth documentation see the [published documentation guide](https://docs.civicrm.org/advancedevents/en/latest/).
 
 ## Support and Maintenance
-This extension is supported and maintained with the help and support of the CiviCRM community by:
 
-[![MJW Consulting](images/mjwconsulting.jpg)](https://www.mjwconsult.co.uk)
+This extension is supported and maintained with the help and support of the CiviCRM community by [MJW](https://www.mjwconsult.co.uk).
 
 We offer paid [support and development](https://mjw.pt/support) as well as a [troubleshooting/investigation service](https://mjw.pt/investigation).
-
