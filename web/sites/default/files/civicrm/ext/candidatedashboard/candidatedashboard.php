@@ -49,6 +49,15 @@ function candidatedashboard_civicrm_pageRun( &$page) {
       });"
     );
 
+    $dashboardElements = $page->get_template_vars('dashboardElements');
+    foreach ($dashboardElements as $key => $dashboardElement) {
+      if ($dashboardElement['class'] == 'crm-dashboard-assignedActivities') {
+        $dashboardElements[$key]['sectionTitle'] = E::ts('Your Activities');
+        break;
+      }
+    }
+    $page->assign('dashboardElements', $dashboardElements);
+
     $participantRecords = $page->get_template_vars('event_rows');
     foreach ($participantRecords as $k => $record) {
        $participantRecords[$k]['score'] = \Civi\Api4\Participant::get(FALSE)
