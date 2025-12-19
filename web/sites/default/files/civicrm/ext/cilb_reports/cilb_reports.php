@@ -117,3 +117,31 @@ function _cilb_reports_civicrm_angularModules($event) {
     $event->angularModules['afsearchFindCandidates']['js'][] = 'ext://cilb_reports/js/find_candidates_search.js';
   }
 }
+
+function cilb_reports_civicrm_alterMailParams(&$params, $context) {
+  if (array_key_exists('groupName', $params) && $params['groupName'] === 'Report Email Sender') {
+    if (!empty($params['attachments'])) {
+      foreach ($params['attachments'] as $attachment) {
+        if ($attachment['mime_type'] == 'application/zip') {
+          $subsquentEmailParams = [
+            'toName' => $params['toName'],
+            'toEmail' => $params['toEmail'],
+            'subject' => 'Report Passcode',
+            'html' => '<p>The Report Passcode for the report is:' . Civi::settings()->get('cilb_reports_mtw_password') . '</p>',
+            'from' => $params['from'],
+          ];
+          \CRM_Utils_Mail::send($subsquentEmailParams);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_alterReportVar().
+ */
+function cilb_reports_civicrm_alterReportVar($varType, &$var, $form): void {
+  if ($varType === 'outputhandlers') {
+    $var['\Civi\Report\EncryptedZipOutputFormat'] = '\Civi\Report\EncryptedZipOutputFormat';
+  }
+}

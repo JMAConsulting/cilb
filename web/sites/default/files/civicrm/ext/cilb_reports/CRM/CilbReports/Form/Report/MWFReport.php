@@ -12,7 +12,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
 
   private $_temporaryTableName = NULL;
 
-  protected $_customGroupExtends = ['Participant', 'Contacts', 'Individual'];
+  protected $_customGroupExtends = ['Participant', 'Contact', 'Individual', 'Event'];
   protected $_customGroupGroupBy = FALSE;
   public function __construct() {
     $this->_columns = [
@@ -64,10 +64,15 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'required' => TRUE,
           ],
           'birth_date' => [
-            'title' => E::ts('Applicatant BirthDate'),
+            'title' => E::ts('Applicatant Birthdate'),
             'required' => TRUE,
             'default' => TRUE,
-          ]
+          ],
+          'external_identifier' => [
+            'title' => E::ts('PTI Acct ID'),
+            'required' => TRUE,
+            'default' => TRUE,
+          ],
         ],
         'filters' => [
           'sort_name' => [
@@ -85,6 +90,14 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         'fields' => [
           'id' => [
             'title' => E::ts('Contribution ID'),
+            'required' => TRUE,
+          ],
+          'receive_date' => [
+            'title' => E::ts('Trans Date'),
+            'required' => TRUE,
+          ],
+          'trxn_id' => [
+            'title' => E::ts('Trans#'),
             'required' => TRUE,
           ],
         ],
@@ -272,6 +285,20 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     // custom code to alter rows
     $entryFound = FALSE;
     $checkList = [];
+    $eventTypes = [];
+    $stateProvinceIDs = [];
+    $event_types = Civi::entity('Event')->getOptions('event_type_id', [], TRUE);
+    foreach ($event_types as $event_type) {
+      $eventTypes[$event_type['id']] = $event_type['label'];
+    }
+    foreach (array_keys($this->_columnHeaders) as $key) {
+      if ($key === 'civicrm_value_registrant_in_1_custom_2') {
+        $this->_columnHeaders[$key]['title'] = E::ts('Exempt');
+      }
+      if ($key === 'civicrm_value_cilb_candidat_7_custom_31') {
+        $this->_columnHeaders[$key]['title'] = E::ts('Entity ID');
+      }
+    }
     foreach ($rows as $rowNum => $row) {
 
       if (!empty($this->_noRepeats) && $this->_outputMode != 'csv') {
@@ -394,6 +421,46 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         );
         $rows[$rowNum]['civicrm_contact_sort_name_link'] = $url;
         $rows[$rowNum]['civicrm_contact_sort_name_hover'] = E::ts("View Contact Summary for this Contact.");
+        $entryFound = TRUE;
+      }
+
+      if (array_key_exists('civicrm_event_event_type_id', $row) && $rows[$rowNum]['civicrm_event_event_type_id']) {
+        $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$row['civicrm_event_event_type_id']];
+        $entryFound = TRUE;
+      }
+
+      if (array_key_exists('civicrm_value_registrant_in_1_custom_2', $row)) {
+        $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'True' : 'False');
+        $entryFound = TRUE;
+      }
+      $change_columns = [
+        'civicrm_participant_exam_date_change',
+        'civicrm_participant_exam_part_change',
+        'civicrm_participant_candidate_number_change',
+        'civicrm_participant_category_change',
+        'civicrm_participant_exam_event_change',
+      ];
+      foreach ($change_columns as $change_column) {
+        if (array_key_exists($change_column, $row) && $rows[$rowNum][$change_column]) {
+          $rows[$rowNum][$change_column] = 'Y';
+          $entryFound = TRUE;
+        }
+      }
+
+      if (array_key_exists('civicrm_participant_deleted', $row) && $rows[$rowNum]['civicrm_participant_deleted']) {
+        $rows[$rowNum]['civicrm_participant_deleted'] = 'Yes';
+        $entryFound = TRUE;
+      }
+      else {
+        $rows[$rowNum]['civicrm_participant_deleted'] = '';
+        $entryFound = TRUE;
+      }
+
+      if (array_key_exists('civicrm_address_state_province_id', $row) && $rows[$rowNum]['civicrm_address_state_province_id']) {
+        if (!array_key_exists($rows[$rowNum]['civicrm_address_state_province_id'], $stateProvinceIDs)) {
+          $stateProvinceIDs[$rows[$rowNum]['civicrm_address_state_province_id']] = CRM_Core_DAO::singleValueQuery("SELECT abbreviation FROM civicrm_state_province WHERE id = %1", [1 => [$rows[$rowNum]['civicrm_address_state_province_id'], 'Positive']]);
+        }
+        $rows[$rowNum]['civicrm_address_state_province_id'] = $stateProvinceIDs[$rows[$rowNum]['civicrm_address_state_province_id']];
         $entryFound = TRUE;
       }
 

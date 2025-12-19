@@ -11,4 +11,12 @@ return [
     'type' => 'String',
     'html_type' => 'text',
   ],
+  'cilb_reports_mtw_password' => [
+    'name' => 'cilb_reports_mtw_password',
+    'title' => E::ts('MTW Zip Password'),
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'type' => 'String',
+    'html_type' => 'text',
+  ],
 ];
