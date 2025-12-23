@@ -94,7 +94,6 @@ function civicrm_blocked_users_entity_presave(Drupal\Core\Entity\EntityInterface
     $uf_match = \Civi\Api4\UFMatch::get(FALSE)
         ->addSelect('contact_id')
         ->addWhere('uf_id', '=', $uid)
-        ->addWhere('uf_name', '=', 'User')
         ->execute()
         ->first();
 
@@ -119,101 +118,125 @@ function civicrm_blocked_users_entity_presave(Drupal\Core\Entity\EntityInterface
     }
 }
 
-function getConnectedUserId($group_id, $contactIds) {
-    $group_contact = \Civi\Api4\GroupContact::get(FALSE)
-	->addWhere('group_id', '=', $group_id)
-        ->addWhere('contact_id', 'IN', $contactIds)
-        ->execute()
-        ->first();
+function civicrm_blocked_users_get_connected_user($group_id, $contactId) {
+  // Find the GroupContact row for this contact + group.
+  $group_contact = \Civi\Api4\GroupContact::get(FALSE)
+    ->addWhere('group_id', '=', $group_id)
+    ->addWhere('contact_id', '=', $contactId)
+    ->execute()
+    ->first();
 
-    // Only handle our specific blocked group
-    if ($group_contact['group_id'] != $group_id) {
-        return FALSE;
-    }
+  if (empty($group_contact) || $group_contact['group_id'] != $group_id) {
+    return FALSE;
+  }
 
+  // Find Drupal user via UFMatch.
+  $uf_match = \Civi\Api4\UFMatch::get(FALSE)
+    ->addSelect('uf_id')
+    ->addWhere('contact_id', '=', $contactId)
+    ->execute()
+    ->first();
 
-    // Find Drupal user via UF Match
-    $uf_match = \Civi\Api4\UFMatch::get(FALSE)
-        ->addSelect('uf_id')
-        ->addWhere('contact_id', 'IN', [$contactIds])
-        ->execute()
-        ->first();
+  if (empty($uf_match['uf_id'])) {
+    return FALSE;
+  }
 
-    if (empty($uf_match['uf_id'])) {
-        return FALSE;
-    }
+  $uid = $uf_match['uf_id'];
+  $user = \Civi\Api4\User::load($uid);
+  if (!$user) {
+    return FALSE;
+  }
 
-    $uid = $uf_match['uf_id'];
-    $user = \Drupal\user\Entity\User::load($uid);
-    if (!$user) {
-        return FALSE;
-    }
-
-    return [$user, $group_contact];
+  return [$user, $group_contact];
 }
 
 /**
  * Implements hook_civicrm_pre().
  */
 function civicrm_blocked_users_civicrm_pre($op, $objectName, $id, &$params) {
-    // Only handle GroupContact operations
-    if ($objectName !== 'GroupContact') {
-        return;
-    }
-    $group_id = \Drupal::config('civicrm_blocked_users.settings')->get('group_id');
-    if (!$group_id) {
-        return;
-    }
+  // Only handle GroupContact operations.
+  if ($objectName !== 'GroupContact') {
+    return;
+  }
 
-    if ($op === 'delete') {
-        list($user, $group_contact) = getConnectedUserId($group_id, $id, $contactIds);
-        if ($user) {
-            // Remove blocked status from Drupal user
-            if ($user && $user->status->value == 0) { // Only unblock if currently blocked
-                $user->set('status', 1);
-                $user->save();
-                \Drupal::logger('civicrm_blocked_users')->notice('Unblocked Drupal user @uid due to CiviCRM group contact deletion.', ['@uid' => $uid]);
-            }
-        }
+  $group_id = \Drupal::config('civicrm_blocked_users.settings')->get('group_id');
+  if (!$group_id) {
+    return;
+  }
+
+  // For GroupContact delete, $params is an array of contact IDs being removed from the group.
+  if ($op === 'delete' && !empty($params) && is_array($params)) {
+    foreach ($params as $contactId) {
+      $result = civicrm_blocked_users_get_connected_user($group_id, $contactId);
+      if (!$result) {
+        continue;
+      }
+      list($user, $group_contact) = $result;
+
+      // Remove blocked status from Drupal user.
+      if ($user->status->value == 0) { // Only unblock if currently blocked.
+        $uid = $user->id();
+        $user->set('status', 1);
+        $user->save();
+        \Drupal::logger('civicrm_blocked_users')->notice(
+          'Unblocked Drupal user @uid due to CiviCRM group contact deletion.',
+          ['@uid' => $uid]
+        );
+      }
     }
+  }
 }
 
 /**
  * Implements hook_civicrm_post().
  */
 function civicrm_blocked_users_civicrm_post($op, $objectName, $objectId, &$objectRef) {
-    // Only handle GroupContact operations
-    if ($objectName !== 'GroupContact' || $op == 'delete') {
-        return;
-    }
+  // Only handle GroupContact operations (skip delete - handled in pre).
+  if ($objectName !== 'GroupContact' || $op === 'delete') {
+    return;
+  }
 
-    $group_id = \Drupal::config('civicrm_blocked_users.settings')->get('group_id');
-    if (!$group_id) {
-        return;
-    }
+  $group_id = \Drupal::config('civicrm_blocked_users.settings')->get('group_id');
+  if (!$group_id) {
+    return;
+  }
 
-    if (in_array($op, ['create', 'edit'])) {
-        list($user, $group_contact) = getConnectedUserId($group_id, $objectRef);
-    }
+  if (empty($objectRef) || !is_array($objectRef)) {
+    return;
+  }
 
-    if (!$user) {
-        return;
+  // For GroupContact create/edit, $objectRef is an array of contact IDs being added/updated.
+  foreach ($objectRef as $contactId) {
+    $result = civicrm_blocked_users_get_connected_user($group_id, $contactId);
+    if (!$result) {
+      continue;
     }
-        
-    // Handle membership changes
-    if ($group_contact['status'] == 'Added') {
-        // Added to blocked group and block Drupal user
-        if ($user->status->value == 1) { // Only block if currently active
-            $user->set('status', 0);
-            $user->save();
-            \Drupal::logger('civicrm_blocked_users')->notice('Blocked Drupal user @uid due to CiviCRM group addition.', ['@uid' => $uid]);
-        }
-    } elseif ($group_contact['status'] == 'Removed') {
-        // Removed from blocked group and unblock Drupal user  
-        if ($user->status->value == 0) { // Only unblock if currently blocked
-            $user->set('status', 1);
-            $user->save();
-            \Drupal::logger('civicrm_blocked_users')->notice('Unblocked Drupal user @uid due to CiviCRM group removal.', ['@uid' => $uid]);
-        }
+    list($user, $group_contact) = $result;
+
+    // Handle membership changes.
+    if (!empty($group_contact['status']) && $group_contact['status'] === 'Added') {
+      // Added to blocked group – block Drupal user.
+      if ($user->status->value == 1) { // Only block if currently active.
+        $uid = $user->id();
+        $user->set('status', 0);
+        $user->save();
+        \Drupal::logger('civicrm_blocked_users')->notice(
+          'Blocked Drupal user @uid due to CiviCRM group addition.',
+          ['@uid' => $uid]
+        );
+      }
     }
+    elseif (!empty($group_contact['status']) && $group_contact['status'] === 'Removed') {
+      // Removed from blocked group – unblock Drupal user.
+      if ($user->status->value == 0) { // Only unblock if currently blocked.
+        $uid = $user->id();
+        $user->set('status', 1);
+        $user->save();
+        \Drupal::logger('civicrm_blocked_users')->notice(
+          'Unblocked Drupal user @uid due to CiviCRM group removal.',
+          ['@uid' => $uid]
+        );
+      }
+    }
+  }
 }
