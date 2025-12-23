@@ -105,9 +105,12 @@ function civicrm_blocked_users_entity_presave(Drupal\Core\Entity\EntityInterface
 
     if ($is_blocked == 0) {
         // Block user - Add to CiviCRM group
-        \Civi\Api4\GroupContact::create(FALSE)
-            ->addValue('group_id', $group_id)
-            ->addValue('contact_id', $contact_id)
+	    \Civi\Api4\GroupContact::save(FALSE)
+		    ->addRecord([
+		      'group_id' => $group_id,
+		      'contact_id' => $contact_id
+		    ])
+		    ->setMatch(['group_id', 'contact_id'])
             ->execute();
     } else {
         // Unblock user - Remove from CiviCRM group
@@ -142,7 +145,7 @@ function civicrm_blocked_users_get_connected_user($group_id, $contactId) {
   }
 
   $uid = $uf_match['uf_id'];
-  $user = \Civi\Api4\User::load($uid);
+  $user = \Drupal\user\Entity\User::load($uid);
   if (!$user) {
     return FALSE;
   }
