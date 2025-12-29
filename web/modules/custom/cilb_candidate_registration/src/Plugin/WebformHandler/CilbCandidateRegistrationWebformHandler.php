@@ -564,6 +564,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           ->addValue('Participant_Webform.Candidate_Payment', $contributionId)
           ->addValue('Candidate_Result.Exam_Language_Preference', $webform_submission_data['civicrm_1_contact_1_cg1_custom_3'] ?? NULL)
           ->addValue('Candidate_Result.ADA_Accommodations_Needed', $webform_submission_data['civicrm_1_contact_1_cg1_custom_4'] ?? FALSE)
+          ->addValue('Candidate_Result.Registration_Expiry_Date', date('Y-m-d H:i:s', strtotime('+5 years')))
           ->execute()
           ->first()['id'];
 
