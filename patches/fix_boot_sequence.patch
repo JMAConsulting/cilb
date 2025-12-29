@@ -1,18 +1,14 @@
-commit 992f9fb156b8987546fbd8de40a6ff422a7240be
-Author: Edsel Lopez <edsel.lopez@jmaconsulting.biz>
-Date:   Tue Nov 4 00:34:16 2025 -0500
-
-    Fixed boot sequence
-
 diff --git a/vendor/civicrm/civicrm-core/CRM/Core/Config.php b/vendor/civicrm/civicrm-core/CRM/Core/Config.php
-index 888bad4d9..75e326ecf 100644
+index 5ff852ec1..5498d7aaf 100644
 --- a/vendor/civicrm/civicrm-core/CRM/Core/Config.php
 +++ b/vendor/civicrm/civicrm-core/CRM/Core/Config.php
-@@ -90,10 +90,10 @@ public static function &singleton($loadFromDB = TRUE, $force = FALSE) {
-       if ($loadFromDB && self::$_singleton->dsn) {
-         self::$_singleton->userSystem->postContainerBoot();
+@@ -88,12 +88,12 @@ public static function &singleton($loadFromDB = TRUE, $force = FALSE) {
+       \Civi\Core\Container::boot($loadFromDB);
  
+       if ($loadFromDB && self::$_singleton->dsn) {
 -        Civi::service('settings_manager')->bootComplete();
+ 
+         self::$_singleton->userSystem->postContainerBoot();
  
          $domain = \CRM_Core_BAO_Domain::getDomain();
          \CRM_Core_BAO_ConfigSetting::applyLocale(\Civi::settings($domain->id), $domain->locales);
