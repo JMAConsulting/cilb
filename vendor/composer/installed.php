@@ -3,7 +3,7 @@
         'name' => 'drupal/recommended-project',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '548e74d89fabe6973d46ecefd2b6125a69d0afa6',
+        'reference' => '8c333c052e437ec7d2130f5f00d854297ac2a6d7',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -361,6 +361,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'drupal/civicrm_group_roles-civicrm_group_roles' => array(
+            'pretty_version' => '1.3.2',
+            'version' => '1.3.2.0',
+            'reference' => '1.3.2',
+            'type' => 'drupal-module',
+            'install_path' => __DIR__ . '/../../web/modules/contrib/civicrm_group_roles-civicrm_group_roles',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'drupal/config_ignore' => array(
             'pretty_version' => '3.3.0',
             'version' => '3.3.0.0',
@@ -616,7 +625,7 @@
         'drupal/recommended-project' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '548e74d89fabe6973d46ecefd2b6125a69d0afa6',
+            'reference' => '8c333c052e437ec7d2130f5f00d854297ac2a6d7',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

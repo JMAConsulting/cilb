@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    $vendorDir . '/pear/archive_tar',
     $vendorDir . '/pear/auth_sasl',
     $vendorDir . '/pear/console_getopt',
     $vendorDir . '/pear/db',
@@ -17,5 +18,4 @@ return array(
     $vendorDir . '/pear/pear-core-minimal/src',
     $vendorDir . '/pear/pear_exception',
     $vendorDir . '/pear/validate_finance_creditcard',
-    $vendorDir . '/pear/archive_tar',
 );

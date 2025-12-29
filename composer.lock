@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "714e620ae1fdb66bf75ee69eb8bbde0e",
+    "content-hash": "fc3dc832773ac6868a7f9720215387c1",
     "packages": [
         {
             "name": "adrienrn/php-mimetyper",
@@ -2770,6 +2770,59 @@
             "support": {
                 "source": "https://git.drupalcode.org/project/civicrm_entity",
                 "error": "Invalid dependency: \"civicrm\" is an unknown drupal 8 package name"
+            }
+        },
+        {
+            "name": "drupal/civicrm_group_roles-civicrm_group_roles",
+            "version": "1.3.2",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/civicrm_group_roles.git",
+                "reference": "1.3.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/civicrm_group_roles-1.3.2.zip",
+                "reference": "1.3.2",
+                "shasum": "6ec42ea4bec9c70238b264ad8c68c4527224ba72"
+            },
+            "require": {
+                "drupal/core": "^9 || ^10"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "1.3.2",
+                    "datestamp": "1698493774",
+                    "security-coverage": {
+                        "status": "not-covered",
+                        "message": "Project has not opted into security advisory coverage!"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0+"
+            ],
+            "authors": [
+                {
+                    "name": "jitendrapurohit",
+                    "homepage": "https://www.drupal.org/user/2810707"
+                },
+                {
+                    "name": "matt-trim",
+                    "homepage": "https://www.drupal.org/user/3675461"
+                }
+            ],
+            "description": "Sync Drupal Roles to CiviCRM Groups.",
+            "homepage": "https://www.drupal.org/project/civicrm_group_roles",
+            "keywords": [
+                "Drupal"
+            ],
+            "support": {
+                "source": "https://git.drupalcode.org/project/civicrm_group_roles.git",
+                "error": "Invalid dependency: \"civicrm\" is an unknown drupal 8 package name",
+                "issues": "https://www.drupal.org/project/issues/civicrm_group_roles"
             }
         },
         {

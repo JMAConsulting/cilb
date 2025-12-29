@@ -778,7 +778,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       // No existing contact found
       $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
 
-        $email = $formState->getValue('civicrm_1_contact_1_email');
+      $email = $formState->getValue('civicrm_1_contact_1_email');
 
       $this->civicrm->initialize();
 
@@ -791,23 +791,22 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->execute()
         ->first();
 
-      if (!$matchingContact) {
+      if (!$matchingContact && !empty($email)) {
         // no existing record matching this SSN.
         // Check email address uniqueness is handled
-        $email = $formState->getValue('civicrm_1_contact_1_email');
         $matchingContact = \Civi\Api4\Contact::get(FALSE)
           ->addSelect('id')
           ->addWhere('email', '=', $email)
           ->execute()
           ->first();
-
+      }
         if (!$matchingContact) {
           // => the user can continue as anonymous
           // and a new contact/user will be created in
           // postSave
           return;
         }
-      }
+      
 
       // if we have matching contacts, we need to check
       // if they have a user record or not

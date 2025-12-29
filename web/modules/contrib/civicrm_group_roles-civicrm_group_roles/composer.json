@@ -1,0 +1,13 @@
+{
+  "name": "drupal/civicrm_group_roles",
+  "type": "drupal-module",
+  "description": "Sync Drupal Roles to CiviCRM Groups.",
+  "keywords": ["Drupal"],
+  "license": "GPL-2.0+",
+  "homepage": "https://www.drupal.org/project/civicrm_group_roles",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/civicrm_group_roles",
+    "source": "https://git.drupalcode.org/project/civicrm_group_roles.git"
+  }
+}
