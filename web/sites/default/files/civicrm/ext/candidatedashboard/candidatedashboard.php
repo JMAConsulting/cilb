@@ -172,10 +172,12 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     $page->assign('activity_rows', $activityRows);
 
     // Notes
+    /*
     $notes = \Civi\Api4\Note::get(FALSE)
       ->addWhere('contact_id', '=', $contactId)
       ->execute();
-    $page->assign('notes', $notes); 
+    $page->assign('notes', $notes);
+    */ 
   }
 }
 

@@ -1,1 +1,0 @@
-Apply CiviCRM Customisations for the pear:db package

@@ -1,1 +1,0 @@
-CiviCRM Custom patch to fix a php8.1 issue found in CiviCRM unit tests

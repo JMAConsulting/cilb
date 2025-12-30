@@ -56,6 +56,7 @@
         {/if}
     </div>
 </div>
+{*
 <div class="notes">
     <div class="header-dark">Your Notes</div>
     <div class="view-content">
@@ -78,6 +79,7 @@
         {/if}
     </div>
 </div>
+*}
 {literal}
     <script type="text/javascript">
         cj(document).ready(function(){

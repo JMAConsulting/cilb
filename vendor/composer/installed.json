@@ -919,13 +919,14 @@
                     "Use Short date in find payments search": "./patches/search_ui_use_short_date_on_find_contribution.patch",
                     "Allow for sending invoice when not logged in": "./patches/sending_invoice_when_not_logged_in.patch",
                     "Use short date on manage exams screen": "./patches/manage_event_listing_short_date.patch",
+                    "Fix boot seqeunce": "./patches/fix_boot_sequence.patch",
                     "Apply patch to trim entity ID search values": "patches/civicrm_trim_entity_id_search_value.patch",
                     "Apply patch to fix issue with non admins accessing the civicrm user dashboard": "patches/civicrm_allow_non_admins_user_dashboard_access.patch",
                     "Apply patches to core to support Monday, Wednesday, Friday Report": "patches/civicrm_report_fixes.patch",
                     "Apply patches to civicrm event to support backoffice form links": "patches/civicrm_participant_links.patch"
                 }
             },
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "files": [
                     "functions.php",
@@ -3794,6 +3795,80 @@
                 "email": "mqanneh@gmail.com"
             },
             "install-path": "../../web/modules/contrib/mail_login"
+        },
+        {
+            "name": "drupal/masquerade",
+            "version": "2.0.0",
+            "version_normalized": "2.0.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/masquerade.git",
+                "reference": "8.x-2.0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/masquerade-8.x-2.0.zip",
+                "reference": "8.x-2.0",
+                "shasum": "3af711878f5f7a06a2c837440cb90fbcba8db0e1"
+            },
+            "require": {
+                "drupal/core": "^9.2 || ^10 || ^11.0"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "8.x-2.0",
+                    "datestamp": "1723165789",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "installation-source": "dist",
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Andrey Postnikov (andypost)",
+                    "homepage": "https://www.drupal.org/u/andypost",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "David Norman (deekayen)",
+                    "homepage": "https://www.drupal.org/u/deekayen",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Mark Shropshire (shrop)",
+                    "homepage": "https://www.drupal.org/u/shrop",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Daniel Kudwien (sun)",
+                    "homepage": "https://www.drupal.org/u/sun",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "Andrew Berry (deviantintegral)",
+                    "homepage": "https://www.drupal.org/u/deviantintegral",
+                    "role": "Maintainer"
+                },
+                {
+                    "name": "sun",
+                    "homepage": "https://www.drupal.org/user/54136"
+                }
+            ],
+            "description": "Allows privileged users to masquerade as another user.",
+            "homepage": "https://www.drupal.org/project/masquerade",
+            "support": {
+                "source": "https://git.drupal.org/project/masquerade.git",
+                "issues": "https://www.drupal.org/project/issues/masquerade",
+                "irc": "irc://irc.freenode.org/drupal-contribute"
+            },
+            "install-path": "../../web/modules/contrib/masquerade"
         },
         {
             "name": "drupal/menu_per_role",
