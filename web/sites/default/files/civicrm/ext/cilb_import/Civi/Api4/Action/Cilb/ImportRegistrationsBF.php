@@ -137,6 +137,7 @@ class ImportRegistrationsBF extends ImportRegistrationsBase {
       ->addValue('Candidate_Result.Candidate_Score', $registration['BF_Score'])
       ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
       ->addValue('Candidate_Result.Date_Exam_Taken', $registration['BF_Exam_Date'])
+      ->addValue('Candidate_Result.Registration_Expiry_Date', date('Y-m-d H:i:s', strtotime($registration['Transaction_Date'] . ' +5 years')))
       ->addValue('status_id:name', $status)
       ->execute()->first()['id'];
 

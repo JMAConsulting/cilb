@@ -114,6 +114,7 @@ class ImportRegistrations extends ImportRegistrationsBase {
       ->addValue('Candidate_Result.Date_Exam_Taken', $registration['CBT_Exam_Date'])
       ->addValue('source', $registration['PK_Exam_Registration_Part_ID'])
       ->addValue('Candidate_Result.Candidate_Number', $registration['Candidate_Number'])
+      ->addValue('Candidate_Result.Registration_Expiry_Date', date('Y-m-d H:i:s', strtotime($registration['Transaction_Date'] . ' +5 years')))
       ->execute()->first()['id'];
 
     // Update the exam location as well.
