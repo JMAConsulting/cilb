@@ -56,6 +56,16 @@
         {/if}
     </div>
 </div>
+<div class="exam-registration">
+    <span>
+        {if $language_preference eq 'en' || !$language_preference}
+          <a href="/exam-registration" class="btn btn-primary">Register for a Florida State Construction Examination</a>
+        {/if}
+        {if $language_preference eq 'es'}
+          <a href="/es/exam-registration" class="btn btn-primary">Matricúlese para un examen de construcción de Florida</a>
+        {/if}
+    </span>
+</div>
 {*
 <div class="notes">
     <div class="header-dark">Your Notes</div>

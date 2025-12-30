@@ -119,6 +119,23 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     $page->assign('personal_rows', $personalInfo);
     $page->assign('address_rows', $addressFields);
 
+    // Current language.
+    $lang = \Civi\Api4\Contact::get(TRUE)
+      ->addSelect('Registrant_Info.Exam_Language_Preference')
+      ->addWhere('id', '=', $contactId)
+      ->execute()->first();
+    if (!empty($lang['Registrant_Info.Exam_Language_Preference'])) {
+      if ($lang['Registrant_Info.Exam_Language_Preference'] == 1) {
+        $page->assign('language_preference', 'en');
+      }
+      elseif ($lang['Registrant_Info.Exam_Language_Preference'] == 2) {
+        $page->assign('language_preference', 'es');
+      }
+      else {
+        $page->assign('language_preference', 'en');
+      }
+    } 
+
     // Activities
     $activities = \Civi\Api4\Activity::get(FALSE)
       ->addSelect('*', 'source_contact_id', 'target_contact_id', 'assignee_contact_id', 'status_id:label')
