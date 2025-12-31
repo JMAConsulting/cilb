@@ -661,6 +661,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateParticipantStatus($form_state);
       $this->validateExamSelection($form_state);
     }
+    elseif ($current_page == 'authorize_credit_card_charge') {
+      $this->validateEmail($form_state, $webform_submission);
+    }
 
     // Backoffice registration
     if ($current_page == 'candidate_information') {
@@ -668,6 +671,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateSSNMatch($form_state);
       $this->validateBlockedUser($form_state);
       $this->validateUniqueUser($form_state, $webform_submission);
+      $this->validateEmail($form_state, $webform_submission);
     } elseif ($current_page == 'exam_information') {
       $this->validateParticipantStatus($form_state);
       $this->validateExamSelection($form_state);
@@ -694,6 +698,34 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $formState->setErrorByName('civicrm_1_contact_1_contact_existing', $this->t('You are currently restricted from registering for an exam. Please contact @adminEmail for assistance.', [
         '@adminEmail' => \Drupal::config('system.site')->get('mail'),
       ]));
+    }
+  }
+
+  private function validateEmail(FormStateInterface $formState, WebformSubmissionInterface $webform_submission) {
+    $contactId = $webform_submission->getData()['civicrm_1_contact_1_contact_existing'];
+
+    if (is_numeric($contactId)) {
+      // existing contact - no need to validate email
+      return;
+    }
+    $this->civicrm->initialize();
+    $email = $formState->getValue('civicrm_1_contact_1_email_email');
+    if (empty($email)) {
+      return;
+    }
+    $matchingContact = \Civi\Api4\Contact::get(FALSE)
+          ->addSelect('id')
+          ->addWhere('email', '=', $email)
+          ->execute()
+          ->first();
+    if ($matchingContact['id']) {
+      $error_message = $this->t('A user account already exists with this email. Please contact %adminEmail for assistance.', [
+        '%adminEmail' => \Drupal::config('system.site')->get('mail'),
+      ]);
+      $formState->setErrorByName('civicrm_1_contact_1_email_email', $error_message);
+      $logMessage = "New user registration error: a site visitor tried to register with email {$email}, but this matched existing CiviCRM Contact {$matchingContact['id']}. The visitor was directed to contact the site admin.";
+      \Drupal::logger('candidate_reg')->notice($logMessage);
+      return;
     }
   }
 
@@ -779,8 +811,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       // No existing contact found
       $ssn = $formState->getValue('civicrm_1_contact_1_cg1_custom_5');
 
-      $email = $formState->getValue('civicrm_1_contact_1_email');
-
       $this->civicrm->initialize();
 
       // note we use ->first - presuming that SSNs
@@ -792,26 +822,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         ->execute()
         ->first();
 
-      if (!$matchingContact && !empty($email)) {
-        // no existing record matching this SSN.
-        // Check email address uniqueness is handled
-        $matchingContact = \Civi\Api4\Contact::get(FALSE)
-          ->addSelect('id')
-          ->addWhere('email', '=', $email)
-          ->execute()
-          ->first();
+      if (!$matchingContact) {
+        // => the user can continue as anonymous
+        // and a new contact/user will be created in
+        // postSave
+        return;
       }
-        if (!$matchingContact) {
-          // => the user can continue as anonymous
-          // and a new contact/user will be created in
-          // postSave
-          return;
-        }
       
 
       // if we have matching contacts, we need to check
       // if they have a user record or not
-
       $matchingUser = \Civi\Api4\UFMatch::get(FALSE)
         ->addWhere('contact_id', '=', $matchingContact['id'])
         ->execute()
@@ -829,7 +849,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           ]);
           $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
           // given we are directing the user to the admin, leave a log message to help the admin diagnose
-          $logMessage = "New user registration error: a site visitor tried to register with SSN {$ssn} and email {$email}, but this matched existing CiviCRM Contact {$matchingContact['id']}, which is linked to Drupal User ID {$matchingUser['uf_id']}, but the Drupal User is missing or blocked. The visitor was directed to contact the site admin.";
+          $logMessage = "New user registration error: a site visitor tried to register with SSN {$ssn}, but this matched existing CiviCRM Contact {$matchingContact['id']}, which is linked to Drupal User ID {$matchingUser['uf_id']}, but the Drupal User is missing or blocked. The visitor was directed to contact the site admin.";
           \Drupal::logger('candidate_reg')->notice($logMessage);
           return;
         }
