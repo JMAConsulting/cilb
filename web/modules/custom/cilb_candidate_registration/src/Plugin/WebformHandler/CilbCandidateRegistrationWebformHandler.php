@@ -648,6 +648,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateBlockedUser($form_state);
       $this->validateUniqueUser($form_state, $webform_submission);
     } elseif ($current_page == 'exam_fee_page') {
+      $this->validateEmail($form_state, $webform_submission);
       if ($form_state->getValue('existing_payment')) {
         $form_state->setValue('civicrm_1_contribution_1_contribution_payment_processor_id', 0);
         $form_state->set('current_page', 'webform_confirmation');
@@ -660,9 +661,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     } elseif ($current_page == 'select_exam_page') {
       $this->validateParticipantStatus($form_state);
       $this->validateExamSelection($form_state);
-    }
-    elseif ($current_page == 'authorize_credit_card_charge') {
-      $this->validateEmail($form_state, $webform_submission);
     }
 
     // Backoffice registration
