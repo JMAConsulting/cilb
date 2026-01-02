@@ -95,6 +95,7 @@
         cj(document).ready(function(){
             cj(".dashboard-elements tbody").first().prepend("<tr class=\"crm-dashboard-notes\">").prepend("<tr class=\"crm-dashboard-personalinfo\">");
             cj(".crm-dashboard-personalinfo").append(cj("<td>").append(cj(".personalinfo").html()));
+            cj(".exam-registration").appendTo(cj("#block-bootstrap-barrio-subtheme-page-title"));
             cj(".crm-dashboard-notes").append(cj("<td>").append(cj(".notes").html()));
             cj(".personalinfo").remove();
             cj(".notes").remove();

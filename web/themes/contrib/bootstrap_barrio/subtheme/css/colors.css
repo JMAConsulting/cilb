@@ -162,3 +162,23 @@ a:active,
 #block-bootstrap-barrio-subtheme-candidatenotice {
 	padding-bottom: 2rem;
 }
+
+#block-bootstrap-barrio-subtheme-page-title {
+  display: flex;
+  align-items: center;        /* vertically align h1 and button */
+  justify-content: space-between; /* h1 left, button right */
+}
+
+#block-bootstrap-barrio-subtheme-page-title .content {
+  margin: 0;                  /* remove extra margins if needed */
+}
+
+#block-bootstrap-barrio-subtheme-page-title h1.title {
+  margin: 0;
+}
+
+/* optional: ensure exam-registration does not wrap under */
+.exam-registration {
+  white-space: nowrap;
+}
+

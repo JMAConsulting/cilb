@@ -3,6 +3,7 @@
 require_once 'candidatedashboard.civix.php';
 
 use CRM_Candidatedashboard_ExtensionUtil as E;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Implements hook_civicrm_config().
@@ -37,7 +38,17 @@ function candidatedashboard_civicrm_enable(): void {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_pagerun/
  */
 function candidatedashboard_civicrm_pageRun( &$page) {
+  if ('CRM_Contact_Page_DashBoard' === $page->getVar('_name') && in_array('candidate', \Drupal::currentUser()->getRoles())) {
+    throw new AccessDeniedHttpException('You do not have permission to access this page.');
+  }
   if ($page->getVar('_name') === 'CRM_Contact_Page_View_UserDashBoard') {
+    if (in_array('candidate', \Drupal::currentUser()->getRoles())) {
+    CRM_Core_Resources::singleton()->addScript(
+      "CRM.$(function($) {
+        $('#civicrm-menu-nav').hide();
+      });
+    ");
+    }
     Civi::service('angularjs.loader')->addModules('afsearchFindActivities');
     $html = '<crm-angular-js modules="afsearchFindActivities"><form id="bootstrap-theme"><afsearch-find-activities></afsearch-find-activities></form></crm-angular-js>';
     CRM_Core_Region::instance('crm-activity-userdashboard-post')->add([
@@ -198,4 +209,13 @@ function candidatedashboard_civicrm_pageRun( &$page) {
   }
 }
 
-
+function candidatedashboard_civicrm_coreResourceList(&$items, &$region) {
+  $roles = \Drupal::currentUser()->getRoles();
+  if (in_array('candidate', $roles)) {
+    CRM_Core_Resources::singleton()->addScript(
+      "CRM.$(function($) {
+        $('#civicrm-menu-nav').hide();
+      });
+    ");
+  }
+}
