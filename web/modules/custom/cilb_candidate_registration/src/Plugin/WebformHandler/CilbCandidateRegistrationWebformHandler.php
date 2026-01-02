@@ -647,8 +647,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $this->validateSSNMatch($form_state);
       $this->validateBlockedUser($form_state);
       $this->validateUniqueUser($form_state, $webform_submission);
-    } elseif ($current_page == 'exam_fee_page') {
+    } elseif ($current_page == 'registrant_contact_info') {
       $this->validateEmail($form_state, $webform_submission);
+    } elseif ($current_page == 'exam_fee_page') {
       if ($form_state->getValue('existing_payment')) {
         $form_state->setValue('civicrm_1_contribution_1_contribution_payment_processor_id', 0);
         $form_state->set('current_page', 'webform_confirmation');
@@ -712,10 +713,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return;
     }
     $matchingContact = \Civi\Api4\Contact::get(FALSE)
-          ->addSelect('id')
-          ->addWhere('email', '=', $email)
-          ->execute()
-          ->first();
+      ->addSelect('id')
+      ->addJoin('Email AS email', 'LEFT')
+      ->addWhere('email.email', '=', $email)
+      ->execute()
+      ->first();
     if ($matchingContact['id']) {
       $error_message = $this->t('A user account already exists with this email. Please contact %adminEmail for assistance.', [
         '%adminEmail' => \Drupal::config('system.site')->get('mail'),
