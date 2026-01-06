@@ -99,7 +99,9 @@
             cj(".crm-dashboard-notes").append(cj("<td>").append(cj(".notes").html()));
             cj(".personalinfo").remove();
             cj(".notes").remove();
+            cj(".crm-dashboard-civievent .columnheader th:eq(1)").text('Registered On');
             cj(".crm-dashboard-civievent .columnheader th:eq(3)").after('<th>Score</th>');
+            cj(".crm-dashboard-civievent .columnheader th:eq(4)").after('<th>Tested On</th>');
             {/literal}
             {foreach from=$event_rows item=row}
                 cj(".crm-participant-event-id_{$row.event_id}").parent().append(
@@ -109,6 +111,7 @@
                     {/if}
                 );
                 cj(".crm-participant-event-id_{$row.event_id}").parent().append(cj("<td>").append("{$row.score}"));
+                cj(".crm-participant-event-id_{$row.event_id}").parent().append(cj("<td>").append("{$row.date_taken}"));
             {/foreach}
             {literal}
             cj(".crm-dashboard-civievent .description").remove();

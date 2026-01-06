@@ -76,6 +76,14 @@ function candidatedashboard_civicrm_pageRun( &$page) {
           ->addWhere('id', '=', $record['id'])
           ->execute()
           ->first()['Candidate_Result.Candidate_Score'];
+       $date = \Civi\Api4\Participant::get(FALSE)
+          ->addSelect('Candidate_Result.Date_Exam_Taken')
+          ->addWhere('id', '=', $record['id'])
+          ->execute()
+	  ->first()['Candidate_Result.Date_Exam_Taken'];
+       if ($date) {
+         $participantRecords[$k]['date_taken'] = date('m/d/Y', strtotime($date));
+       }
     }
     $page->assign('event_rows', $participantRecords);
 
