@@ -322,7 +322,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'crm-report-civicrm_participant_part2',
       'crm-report-civicrm_participant_part3',
       'civicrm_address_street_address',
-      'civicrm_address_street_supplemental_1',
+      'civicrm_address_supplemental_address_1',
       'civicrm_address_city',
       'civicrm_address_state_province_id',
       'civicrm_address_postal_code',
@@ -344,6 +344,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_participant_exam_part_change',
       'civicrm_participant_candidate_number_change',
       'civicrm_participant_category_change',
+      'civicrm_value_registrant_in_1_custom_2',
     ];
     $originalColumnHeaders = $this->_columnHeaders;
     foreach ($headerOrder as $header) {
