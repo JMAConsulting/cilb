@@ -64,7 +64,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'required' => TRUE,
           ],
           'birth_date' => [
-            'title' => E::ts('Applicatant Birthdate'),
+            'title' => E::ts('Applicant BirthDate'),
             'required' => TRUE,
             'default' => TRUE,
           ],
@@ -116,12 +116,12 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'required' => TRUE,
           ],
           'exam_event_change' => [
-            'title' => E::ts('Exam event Chg'),
+            'title' => E::ts('Exam Event Chg'),
             'dbAlias' => 'temp.exam_event_change',
             'required' => TRUE,
           ],
           'candidate_number_change' => [
-            'title' => E::ts('Candidate Number Chg'),
+            'title' => E::ts('Cand Num Chg'),
             'dbAlias' => 'temp.candidate_number_change',
             'required' => TRUE,
           ],
@@ -298,7 +298,62 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       if ($key === 'civicrm_value_cilb_candidat_7_custom_31') {
         $this->_columnHeaders[$key]['title'] = E::ts('Entity ID');
       }
+      if ($key === 'civicrm_value_candidate_res_9_custom_76') {
+        $this->_columnHeaders[$key]['title'] = E::ts('Cand #');
+      }
+      if ($key === 'civicrm_value_candidate_res_9_custom_89') {
+        $this->_columnHeaders[$key]['title'] = E::ts('Language');
+      }
+      if ($key === 'civicrm_value_registrant_in_1_custom_5') {
+        $this->_columnHeaders[$key]['title'] = E::ts('SSN');
+      }
     }
+    $fixedHeaders = [];
+    $headerOrder = [
+      'civicrm_participant_test_site',
+      'civicrm_event_start_date',
+      'civicrm_value_registrant_in_1_custom_5',
+      'civicrm_contact_last_name',
+      'civicrm_contact_first_name',
+      'civicrm_contact_middle_name',
+      'civicrm_contact_suffix_id',
+      'civicrm_value_candidate_res_9_custom_76',
+      'crm-report-civicrm_participant_part1',
+      'crm-report-civicrm_participant_part2',
+      'crm-report-civicrm_participant_part3',
+      'civicrm_address_street_address',
+      'civicrm_address_street_supplemental_1',
+      'civicrm_address_city',
+      'civicrm_address_state_province_id',
+      'civicrm_address_postal_code',
+      'civicrm_phone_phone_home',
+      'civicrm_phone_phone_work',
+      'civicrm_value_candidate_res_9_custom_89',
+      'civicrm_contact_gender',
+      'civicrm_contact_race',
+      'civicrm_email_email',
+      'civicrm_contribution_receive_date',
+      'civicrm_contribution_trxn_id',
+      'civicrm_event_event_type_id',
+      'civicrm_value_cilb_candidat_7_custom_25',
+      'civicrm_value_cilb_candidat_7_custom_31',
+      'civicrm_participant_change_type',
+      'civicrm_participant_deleted',
+      'civicrm_participant_exam_date_change',
+      'civicrm_participant_exam_event_change',
+      'civicrm_participant_exam_part_change',
+      'civicrm_participant_candidate_number_change',
+      'civicrm_participant_category_change',
+    ];
+    $originalColumnHeaders = $this->_columnHeaders;
+    foreach ($headerOrder as $header) {
+      $fixedHeaders[$header] = $originalColumnHeaders[$header];
+      unset($originalColumnHeaders[$header]);
+    }
+    foreach (array_keys($originalColumnHeaders) as $header) {
+      $fixedHeaders[$header] = $originalColumnHeaders[$header];
+    }
+    $this->_columnHeaders = $fixedHeaders;
     foreach ($rows as $rowNum => $row) {
 
       if (!empty($this->_noRepeats) && $this->_outputMode != 'csv') {
