@@ -86,8 +86,8 @@ class ImportCandidates extends ImportBase {
           'contact_sub_type' => [
             'Candidate',
           ],
-          'suffix_id:label' => $contact['Suffix'],
-          'prefix_id:label' => $contact['Prefix'],
+    //      'suffix_id:label' => $contact['Suffix'],
+    //      'prefix_id:label' => $contact['Prefix'],
         ])
         ->setMatch(['external_identifier'])
         ->execute();
