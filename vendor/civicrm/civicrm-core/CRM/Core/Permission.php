@@ -1846,7 +1846,8 @@ class CRM_Core_Permission {
   public static function checkDownloadInvoice() {
     $cid = CRM_Core_Session::getLoggedInContactID();
     if (CRM_Core_Permission::check('access CiviContribute') ||
-      (CRM_Core_Permission::check('view my invoices') && $_GET['cid'] == $cid)
+	    (CRM_Core_Permission::check('view my invoices') && $_GET['cid'] == $cid) ||
+	    CRM_Core_Permission::check('make online contributions')
     ) {
       return TRUE;
     }
