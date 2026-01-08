@@ -1,0 +1,14 @@
+diff --git a/vendor/civicrm/civicrm-core/CRM/Core/Permission.php b/vendor/civicrm/civicrm-core/CRM/Core/Permission.php
+index e2e299ba6..b62a882fd 100644
+--- a/vendor/civicrm/civicrm-core/CRM/Core/Permission.php
++++ b/vendor/civicrm/civicrm-core/CRM/Core/Permission.php
+@@ -1846,7 +1846,8 @@ public static function isMultisiteEnabled() {
+   public static function checkDownloadInvoice() {
+     $cid = CRM_Core_Session::getLoggedInContactID();
+     if (CRM_Core_Permission::check('access CiviContribute') ||
+-      (CRM_Core_Permission::check('view my invoices') && $_GET['cid'] == $cid)
++	    (CRM_Core_Permission::check('view my invoices') && $_GET['cid'] == $cid) ||
++	    CRM_Core_Permission::check('make online contributions')
+     ) {
+       return TRUE;
+     }
