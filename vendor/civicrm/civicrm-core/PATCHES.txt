@@ -33,3 +33,11 @@ Apply patches to civicrm event to support backoffice form links
 Source: patches/civicrm_participant_links.patch
 
 
+Apply patch to download invoice
+Source: patches/civicrm_invoice.patch
+
+
+Apply patch to support using transaction id in a quick search
+Source: patches/civicrm_transaction_id_quicksearch.patch
+
+
