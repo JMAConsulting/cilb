@@ -719,8 +719,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->execute()
       ->first();
     if ($matchingContact['id']) {
-      $error_message = $this->t('A user account already exists with this email. Please contact %adminEmail for assistance.', [
+      $error_message = $this->t('A user account already exists with the email: %email. Click <a href="/user/login">here</a> to log in or reset your password before attempting to register again.', [
         '%adminEmail' => \Drupal::config('system.site')->get('mail'),
+	'%email' => $email,
       ]);
       $formState->setErrorByName('civicrm_1_contact_1_email_email', $error_message);
       $logMessage = "New user registration error: a site visitor tried to register with email {$email}, but this matched existing CiviCRM Contact {$matchingContact['id']}. The visitor was directed to contact the site admin.";
