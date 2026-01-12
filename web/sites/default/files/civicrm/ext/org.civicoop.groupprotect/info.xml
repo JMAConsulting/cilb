@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<extension key="org.civicoop.groupprotect" type="module">
+  <file>groupprotect</file>
+  <name>CiviCRM Group Protect</name>
+  <description>Extension prevents users removing/adding contacts to group if not permitted</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>CiviCooP</author>
+    <email>helpdesk@civicoop.org</email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">https://github.com/CiviCooP/org.civicoop.groupprotect/releases/tag/V0.2</url>
+    <url desc="Documentation">http://https://github.com/CiviCooP/org.civicoop.groupprotect</url>
+    <url desc="Support">http://www.civicoop.org</url>
+    <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+ <releaseDate>2025-08-11</releaseDate>
+  <version>2.6</version>
+  <develStage>dev</develStage>
+  <compatibility>
+    <ver>5.27</ver>
+  </compatibility>
+  <comments>Extension is being tested</comments>
+  <civix>
+    <namespace>CRM/Groupprotect</namespace>
+    <format>25.01.1</format>
+  </civix>
+  <mixins>
+    <mixin>mgd-php@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.3</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+</extension>
