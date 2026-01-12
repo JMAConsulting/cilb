@@ -58,12 +58,21 @@ class ContactAutocompleteProvider extends \Civi\Core\Service\AutoService impleme
           // If the filter is from a multi-record custom field set, add necessary join to the savedSearch query
           if (str_contains($filterField, '.')) {
             [$customGroupName, $customFieldName] = explode('.', $filterField);
-            $customGroup = \CRM_Core_BAO_CustomGroup::getGroup(['name' => $customGroupName]);
-            if (!empty($customGroup['is_multiple'])) {
+            if ($customGroupName !== 'contribution') {
+              $customGroup = \CRM_Core_BAO_CustomGroup::getGroup(['name' => $customGroupName]);
+              if (!empty($customGroup['is_multiple'])) {
+                $apiParams['join'][] = [
+                  "Custom_$customGroupName AS $customGroupName",
+                  'INNER',
+                  ['id', '=', "$customGroupName.entity_id"],
+                ];
+              }
+            }
+            else {
               $apiParams['join'][] = [
-                "Custom_$customGroupName AS $customGroupName",
-                'INNER',
-                ['id', '=', "$customGroupName.entity_id"],
+                "Contribution AS contribution",
+                "INNER",
+                ["id", "=", "contribution.contact_id"],
               ];
             }
           }
