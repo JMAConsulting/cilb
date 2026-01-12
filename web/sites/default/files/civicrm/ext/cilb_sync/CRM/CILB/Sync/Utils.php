@@ -105,7 +105,8 @@ class CRM_CILB_Sync_Utils {
       $exam = \Civi\Api4\Event::get(FALSE)
         ->addSelect('id')
         ->addWhere('event_type_id:name', 'IN', ['Business and Finance', 'Pool & Spa Servicing Business and Finance'])
-        ->execute();
+	->execute()
+        ->first();
     }
     else {
       $exam = Event::get(FALSE)
