@@ -1,0 +1,47 @@
+diff --git a/vendor/civicrm/civicrm-core/CRM/Core/SelectValues.php b/vendor/civicrm/civicrm-core/CRM/Core/SelectValues.php
+index 9f8461ee8..57bab945f 100644
+--- a/vendor/civicrm/civicrm-core/CRM/Core/SelectValues.php
++++ b/vendor/civicrm/civicrm-core/CRM/Core/SelectValues.php
+@@ -1200,6 +1200,11 @@ public static function getQuicksearchOptions(): array {
+         'key' => 'job_title',
+         'label' => ts('Job Title'),
+       ],
++      [
++
++        'key' => 'contribution.trxn_id',
++        'label' => ts('Transaction ID'),
++      ],
+     ];
+     $customGroups = CRM_Core_BAO_CustomGroup::getAll(['extends' => 'Contact', 'is_active' => TRUE], CRM_Core_Permission::VIEW);
+     foreach ($customGroups as $group) {
+diff --git a/vendor/civicrm/civicrm-core/Civi/Api4/Service/Autocomplete/ContactAutocompleteProvider.php b/vendor/civicrm/civicrm-core/Civi/Api4/Service/Autocomplete/ContactAutocompleteProvider.php
+index bcc116853..2474d950f 100644
+--- a/vendor/civicrm/civicrm-core/Civi/Api4/Service/Autocomplete/ContactAutocompleteProvider.php
++++ b/vendor/civicrm/civicrm-core/Civi/Api4/Service/Autocomplete/ContactAutocompleteProvider.php
+@@ -58,12 +58,21 @@ public static function on_civi_api_prepare(PrepareEvent $event) {
+           // If the filter is from a multi-record custom field set, add necessary join to the savedSearch query
+           if (str_contains($filterField, '.')) {
+             [$customGroupName, $customFieldName] = explode('.', $filterField);
+-            $customGroup = \CRM_Core_BAO_CustomGroup::getGroup(['name' => $customGroupName]);
+-            if (!empty($customGroup['is_multiple'])) {
++            if ($customGroupName !== 'contribution') {
++              $customGroup = \CRM_Core_BAO_CustomGroup::getGroup(['name' => $customGroupName]);
++              if (!empty($customGroup['is_multiple'])) {
++                $apiParams['join'][] = [
++                  "Custom_$customGroupName AS $customGroupName",
++                  'INNER',
++                  ['id', '=', "$customGroupName.entity_id"],
++                ];
++              }
++            }
++            else {
+               $apiParams['join'][] = [
+-                "Custom_$customGroupName AS $customGroupName",
+-                'INNER',
+-                ['id', '=', "$customGroupName.entity_id"],
++                "Contribution AS contribution",
++                "INNER",
++                ["id", "=", "contribution.contact_id"],
+               ];
+             }
+           }

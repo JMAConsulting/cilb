@@ -1200,6 +1200,11 @@ class CRM_Core_SelectValues {
         'key' => 'job_title',
         'label' => ts('Job Title'),
       ],
+      [
+
+        'key' => 'contribution.trxn_id',
+        'label' => ts('Transaction ID'),
+      ],
     ];
     $customGroups = CRM_Core_BAO_CustomGroup::getAll(['extends' => 'Contact', 'is_active' => TRUE], CRM_Core_Permission::VIEW);
     foreach ($customGroups as $group) {
