@@ -1,0 +1,4 @@
+view cilb dashboard:
+  title: 'View CILB Dashboard'
+  description: 'Allows users to view the CILB admin dashboard and settings pages.'
+
