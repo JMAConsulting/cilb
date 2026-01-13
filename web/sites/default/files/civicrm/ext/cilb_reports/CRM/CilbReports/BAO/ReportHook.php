@@ -18,7 +18,7 @@ class CRM_CilbReports_BAO_ReportHook extends CRM_Report_BAO_HookInterface {
       ];
     }
     else {
-      $logTables[] = 'civicrm_particiant';
+      $logTables[] = 'civicrm_participant';
       $logTables[] = 'civicrm_contribution';
     }
   }
