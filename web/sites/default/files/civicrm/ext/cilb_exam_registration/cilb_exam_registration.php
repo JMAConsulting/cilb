@@ -53,9 +53,42 @@ function cilb_exam_registration_civicrm_tabset($tabsetName, &$tabs, $context) {
   // Check if user has staff role.
   if ($has_staff_role) {
     foreach ($tabs as $key => $tab) {
-      if (in_array($tab['id'] ?? '', ['group', 'tag', 'rel'])) {
+      if (in_array($tab['id'] ?? '', ['group'])) {
         unset($tabs[$key]);
       }
+    }
+  }
+  foreach ($tabs as $key => $tab) {
+    if (in_array($tab['id'] ?? '', ['tag', 'rel'])) {
+      unset($tabs[$key]);
+    }
+  }
+  $desired_order = [
+    'summary',    // 1. Summary (weight 0)
+    'participant', // 2. Exams (weight 10)
+    'log',        // 3. Change Log (weight 20)
+    'payments1',  // 4. Payments (weight 30)
+    'activity',   // 5. Activities (weight 40)
+    'note',       // 6. Notes (weight 50)
+    'group'       // 7. Groups (weight 60)
+  ];
+
+  foreach ($tabs as $key => $tab) {
+    $tab_id = $tab['id'] ?? '';
+
+    // Set exact weights for desired order
+    $new_weights = [
+      'summary'    => 0,
+      'participant' => 10,
+      'log'        => 20,
+      'payments1'  => 30,
+      'activity'   => 40,
+      'note'       => 50,
+      'group'      => 60
+    ];
+
+    if (isset($new_weights[$tab_id])) {
+      $tabs[$key]['weight'] = $new_weights[$tab_id];
     }
   }
 }
