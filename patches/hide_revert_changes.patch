@@ -1,0 +1,13 @@
+diff --git a/vendor/civicrm/civicrm-core/templates/CRM/Logging/ReportDetail.tpl b/vendor/civicrm/civicrm-core/templates/CRM/Logging/ReportDetail.tpl
+index c59c0a702..2dc737a9b 100644
+--- a/vendor/civicrm/civicrm-core/templates/CRM/Logging/ReportDetail.tpl
++++ b/vendor/civicrm/civicrm-core/templates/CRM/Logging/ReportDetail.tpl
+@@ -23,7 +23,7 @@
+   {if $layout neq 'overlay'}
+   <div class="action-link">
+       <a href="{$backURL}"   class="button"><span><i class="crm-i fa-chevron-left" role="img" aria-hidden="true"></i> {ts}Back to Logging Summary{/ts}</span></a>
+-      <a href="{$revertURL}" class="button" onclick="return confirm('{$revertConfirm|escape:'javascript'}');"><span><i class="crm-i fa-undo" role="img" aria-hidden="true"></i> {ts}Revert These Changes{/ts}</span></a>
++      <!--<a href="{$revertURL}" class="button" onclick="return confirm('{$revertConfirm|escape:'javascript'}');"><span><i class="crm-i fa-undo" role="img" aria-hidden="true"></i> {ts}Revert These Changes{/ts}</span></a>-->
+   </div>
+   {/if}
+ </div>
