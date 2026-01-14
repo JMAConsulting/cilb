@@ -7,7 +7,7 @@ class CRM_CilbReports_BAO_ReportHook extends CRM_Report_BAO_HookInterface {
    * @param $logTables
    */
   public function alterLogTables(&$reportObj, &$logTables) {
-    if (get_class($reportObj) === 'CRM_Logging_ReportSummary') {
+    if (get_class($reportObj) === 'CRM_Logging_ReportSummary' || get_class($reportObj) === 'CRM_Report_Form_Contact_LoggingSummary') {
       $logTables['log_civicrm_participant'] = [
         'fk' => 'contact_id',
         'log_type' => 'Exam',
@@ -16,10 +16,6 @@ class CRM_CilbReports_BAO_ReportHook extends CRM_Report_BAO_HookInterface {
         'fk' => 'contact_id',
         'log_type' => 'Payment',
       ];
-    }
-    else {
-      $logTables[] = 'civicrm_participant';
-      $logTables[] = 'civicrm_contribution';
     }
   }
 
@@ -30,9 +26,6 @@ class CRM_CilbReports_BAO_ReportHook extends CRM_Report_BAO_HookInterface {
    * @return array
    */
   public function logDiffClause(&$reportObj, $table) {
-    if ($table === 'log_civicrm_contribution' || $table === 'log_civicrm_participant') {
-      return ['AND contact_id = %3', ''];
-    }
     return [];
   }
 
