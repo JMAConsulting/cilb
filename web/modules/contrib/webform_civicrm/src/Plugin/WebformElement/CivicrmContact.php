@@ -526,6 +526,10 @@ class CivicrmContact extends WebformElementBase {
       'street_address' => t("Street Address"),
       'phone' => t("Phone"),
     ];
+    $options += [
+      'birth_date' => t("Birth Date"),
+      'Registrant_Info.SSN' => t("SSN"),
+    ];
     return $options;
   }
 
