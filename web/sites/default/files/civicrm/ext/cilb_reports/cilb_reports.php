@@ -139,9 +139,22 @@ function cilb_reports_civicrm_alterMailParams(&$params, $context) {
 
 /**
  * Implements hook_civicrm_alterReportVar().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterReportVar
  */
 function cilb_reports_civicrm_alterReportVar($varType, &$var, $form): void {
   if ($varType === 'outputhandlers') {
     $var['\Civi\Report\EncryptedZipOutputFormat'] = '\Civi\Report\EncryptedZipOutputFormat';
+  }
+}
+
+/**
+ * Implements hook_civicrm_queryObjects().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_queryObjects
+ */
+function cilb_reports_civicrm_queryObjects(&$queryObjects, $type): void {
+  if ($type === 'Report') {
+    $queryObjects[] = new CRM_CilbReports_BAO_ReportHook();
   }
 }
