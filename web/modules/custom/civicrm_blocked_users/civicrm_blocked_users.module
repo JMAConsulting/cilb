@@ -114,10 +114,11 @@ function civicrm_blocked_users_entity_presave(Drupal\Core\Entity\EntityInterface
             ->execute();
     } else {
         // Unblock user - Remove from CiviCRM group
-        \Civi\Api4\GroupContact::delete(FALSE)
-            ->addWhere('group_id', '=', $group_id)
-            ->addWhere('contact_id', '=', $contact_id)
-            ->execute();
+        \Civi\Api4\GroupContact::update(FALSE)
+          ->addValue('status', 'Removed')
+          ->addWhere('group_id', '=', $group_id)
+          ->addWhere('contact_id', '=', $contact_id)
+          ->execute();
     }
 }
 
@@ -189,6 +190,80 @@ function civicrm_blocked_users_civicrm_pre($op, $objectName, $id, &$params) {
     }
   }
 }
+
+/**
+ * Implements hook_civicrm_custom().
+ * Sync Registrant_Info.Is_Restricted ↔ Blocked Users group ↔ Drupal block status.
+ */
+function civicrm_blocked_users_civicrm_custom($op, $groupID, $entityID, &$params) {
+  $group_id = \Drupal::config('civicrm_blocked_users.settings')->get('group_id');
+  if (!$group_id) {
+    return;
+  }
+
+  \Drupal::service('civicrm')->initialize();
+  
+  // Get contact ID from entityID
+  $contact_id = $entityID;
+  
+  list($user, $group_contact) = civicrm_blocked_users_get_connected_user($group_id, $contact_id);
+
+  $is_restricted = 0;
+  if ($op === 'create' || $op === 'edit') {
+    foreach ($params as $param) {
+      if (isset($param['name']) && strpos($param['name'], 'Is_Restricted') !== FALSE) {
+        $is_restricted = $param['value'] ?? 0;
+        break;
+      }
+    }
+  } elseif ($op === 'restore' || $op === 'delete') {
+    // Get current value for delete/restore
+    $current_value = \Civi\Api4\Contact::get(FALSE)
+      ->addSelect('Registrant_Info.Is_Restricted') 
+      ->addWhere('id', '=', $contact_id)
+      ->execute()
+      ->first();
+    $is_restricted = $current_value['Registrant_Info.Is_Restricted'] ?? 0;
+  }
+
+  // Check current group membership
+  $group_contact = \Civi\Api4\GroupContact::get(FALSE)
+    ->addWhere('group_id', '=', $group_id)
+    ->addWhere('contact_id', '=', $contact_id)
+    ->addWhere('status', '=', 'Added')
+    ->execute()
+    ->first();
+
+  $currently_blocked = !empty($group_contact);
+
+  if ($is_restricted && !$currently_blocked) {
+    // TRUE but not blocked → ADD to group + BLOCK Drupal
+    \Civi\Api4\GroupContact::create(FALSE)
+      ->addValue('group_id', $group_id)
+      ->addValue('contact_id', $contact_id)
+      ->addValue('status', 'Added')
+      ->execute();
+    
+    if ($user->status->value == 1) {
+      $user->set('status', 0);
+      $user->save();
+      \Drupal::logger('civicrm_blocked_users')->notice('Blocked @uid: Is_Restricted=TRUE', ['@uid' => $user->id()]);
+    }
+  } elseif (!$is_restricted && $currently_blocked) {
+    \Civi\Api4\GroupContact::update(FALSE)
+      ->addValue('status', 'Removed')
+      ->addWhere('group_id', '=', $group_id)
+      ->addWhere('contact_id', '=', $contact_id)
+      ->execute();
+
+    if ($user->status->value == 0) {
+      $user->set('status', 1);
+      $user->save();
+      \Drupal::logger('civicrm_blocked_users')->notice('Unblocked @uid: Is_Restricted=FALSE', ['@uid' => $user->id()]);
+    }
+  }
+}
+
 
 /**
  * Implements hook_civicrm_post().
