@@ -38,6 +38,28 @@ function cilb_exam_registration_civicrm_enable(): void {
   _cilb_exam_registration_civix_civicrm_enable();
 }
 
+function cilb_exam_registration_civicrm_tabset($tabsetName, &$tabs, $context) {
+  // Only modify contact view tabs.
+  if ($tabsetName !== 'civicrm/contact/view') {
+    return;
+  }
+
+  // Get current Drupal user.
+  $current_user = \Drupal::currentUser();
+  $roles = $current_user->getRoles();
+
+  $has_staff_role = $current_user->hasRole('staff');
+
+  // Check if user has staff role.
+  if ($has_staff_role) {
+    foreach ($tabs as $key => $tab) {
+      if (in_array($tab['id'] ?? '', ['group', 'tag', 'rel'])) {
+        unset($tabs[$key]);
+      }
+    }
+  }
+}
+
 function cilb_exam_registration_civicrm_postProcess($formName, $form) {
   if ($formName == 'CRM_Contact_Form_Inline_CustomData') {
     $params = $form->getSubmittedValues();
