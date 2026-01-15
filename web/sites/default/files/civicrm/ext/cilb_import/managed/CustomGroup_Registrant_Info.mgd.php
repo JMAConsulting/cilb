@@ -242,7 +242,6 @@ return [
         'data_type' => 'Boolean',
         'html_type' => 'CheckBox',
         'column_name' => 'is_restricted__16',
-        'serialize' => 1,
       ],
       'match' => [
         'name',
