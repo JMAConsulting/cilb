@@ -38,6 +38,87 @@ function cilb_exam_registration_civicrm_enable(): void {
   _cilb_exam_registration_civix_civicrm_enable();
 }
 
+function cilb_exam_registration_civicrm_buildForm($formName, &$form) {
+  if ($formName === 'CRM_Admin_Form_ScheduleReminders') {
+    // Add Participant custom field as trigger date option
+    $registrationExpiryField = \Civi\Api4\CustomField::get(FALSE)
+      ->addSelect('name', 'label', 'custom_group_id.extends_entity_column_id')
+      ->addWhere('name', '=', 'Registration_Expiry_Date')
+      ->addWhere('custom_group_id.name', '=', 'Candidate_Result')
+      ->execute()->first();
+    
+    if ($registrationExpiryField) {
+      $startActionDateElement = $form->getElement('start_action_date');
+      if ($startActionDateElement) {
+        // Insert as new option after standard dates
+        $currentOptions = $startActionDateElement->_options;
+        $newOptions = [];
+        
+        foreach ($currentOptions as $option) {
+          $newOptions[$option['attr']['value']] = $option['text'];
+          
+          if ($option['attr']['value'] === 'registration_end_date') {
+            $newOptions[$registrationExpiryField['name']] = $registrationExpiryField['label'] . ' (Participant)';
+          }
+        }
+        
+        $startActionDateElement->setOptions($newOptions);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_validateForm().
+ */
+function cilb_exam_registration_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
+  if ($formName === 'CRM_Admin_Form_ScheduleReminders' && $fields['mapping_id'] === 2) {
+    if ($fields['start_action_date'] === 'Candidate_Result.Registration_Expiry_Date') {
+      $customField = \Civi\Api4\CustomField::get(FALSE)
+        ->addSelect('custom_group_id.extends_entity_column_value')
+        ->addWhere('name', '=', 'Registration_Expiry_Date')
+        ->addWhere('custom_group_id.name', '=', 'Candidate_Result')
+        ->execute()->first();
+      
+      if ($customField) {
+        // Get event types that extend Candidate_Result custom group
+        $allowedEventTypes = $customField['custom_group_id.extends_entity_column_value'] ?? [];
+        
+        // Selected event types from the form
+        $selectedEventTypes = array_map('trim', explode(',', $fields['entity_value']));
+        
+        // Find event types that DON'T support this custom field
+        $invalidEventTypes = array_diff($selectedEventTypes, $allowedEventTypes);
+        
+        if (!empty($invalidEventTypes)) {
+          // Get labels for better error message
+          $invalidLabels = \Civi\Api4\Event::get(FALSE)
+            ->addSelect('event_type_id:label')
+            ->addClause('OR', [['id', 'IN', $invalidEventTypes]])
+            ->execute()
+            ->indexBy('id')
+            ->column('event_type_id:label');
+          
+          $allowedLabels = \Civi\Api4\Event::get(FALSE)
+            ->addSelect('event_type_id:label')
+            ->addClause('OR', [['id', 'IN', $allowedEventTypes]])
+            ->execute()
+            ->indexBy('id')
+            ->column('event_type_id:label');
+          
+          $errors['entity_value'] = E::ts('Selected event types %1 do not support Registration Expiry Date. Valid event types: %2', [
+            1 => implode(', ', array_intersect_key($invalidLabels, array_flip($invalidEventTypes))),
+            2 => implode(', ', array_slice($allowedLabels, 0, 5)) . (count($allowedLabels) > 5 ? '...' : '')
+          ]);
+        }
+      } else {
+        $errors['start_action_date'] = E::ts('Registration Expiry Date custom field not found');
+      }
+    }
+  }
+}
+
+
 function cilb_exam_registration_civicrm_tabset($tabsetName, &$tabs, $context) {
   // Only modify contact view tabs.
   if ($tabsetName !== 'civicrm/contact/view') {
@@ -150,7 +231,6 @@ function add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $ssnVa
     ]);
   }
 }
-
 
 function cilb_exam_registration_civicrm_postProcess($formName, $form) {
   if ($formName == 'CRM_Contact_Form_Inline_CustomData') {
