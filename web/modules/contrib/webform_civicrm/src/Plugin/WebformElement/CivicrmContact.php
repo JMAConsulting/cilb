@@ -528,7 +528,7 @@ class CivicrmContact extends WebformElementBase {
     ];
     $options += [
       'birth_date' => t("Birth Date"),
-      'Registrant_Info.SSN' => t("SSN"),
+      'Registrant_Info.SSN_Last_4' => t("SSN"),
     ];
     return $options;
   }

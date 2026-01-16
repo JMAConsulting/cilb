@@ -247,8 +247,8 @@ class ContactComponent implements ContactComponentInterface {
     $display = [];
     foreach ($display_fields as $field) {
       if ($field && !empty($contact[$field])) {
-	if ($field == 'Registrant_Info.SSN') {
-          $display[] = "XXX-XX-" . substr($contact[$field], -4);
+	if ($field == 'Registrant_Info.SSN_Last_4') {
+          $display[] = "XXX-XX-" . $contact[$field];
 	}
 	else {
           $display[] = $escape ? Html::escape($contact[$field]) : $contact[$field];
