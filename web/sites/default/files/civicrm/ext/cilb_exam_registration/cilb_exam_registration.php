@@ -93,6 +93,65 @@ function cilb_exam_registration_civicrm_tabset($tabsetName, &$tabs, $context) {
   }
 }
 
+/**
+ * Implements hook_civicrm_custom().
+ */
+function cilb_exam_registration_civicrm_custom($op, $groupID, $entityID, &$params) {
+  if (!in_array($op, ['create', 'edit'])) {
+    return;
+  }
+
+  // Only process our group (Registrant_Info = ID 1 from your debug)
+  if ($groupID != 1) {
+    return;
+  }
+
+  $ssnCol = 'ssn_5';
+  $last4Col = 'ssn_last_4_95';
+  $tableName = 'civicrm_value_registrant_in_1';
+  $ssnValue = '';
+
+  // Loop through params to find SSN field
+  foreach ($params as $field) {
+    if ($field['column_name'] === $ssnCol) {
+      $ssnValue = (string) $field['value'];
+      break;
+    }
+  }
+
+  $last4 = strlen($ssnValue) >= 4 ? substr($ssnValue, -4) : '';
+
+  // Update/create the record
+  add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $ssnValue, $last4);
+}
+
+/**
+ * Helper function to handle INSERT/UPDATE safely
+ */
+function add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $ssnValue, $last4Value) {
+  // Check if record exists
+  $existsSql = "SELECT id FROM {$tableName} WHERE entity_id = %1";
+  $existsDao = CRM_Core_DAO::executeQuery($existsSql, [1 => [$entityID, 'Integer']]);
+
+  if ($existsDao->fetch()) {
+    // UPDATE existing record
+    $sql = "UPDATE {$tableName} SET {$last4Col} = %1 WHERE entity_id = %2";
+    CRM_Core_DAO::executeQuery($sql, [
+      1 => [$last4Value, 'String'],
+      2 => [$entityID, 'Integer']
+    ]);
+  } else {
+    // INSERT new record with all required fields
+    $sql = "INSERT INTO {$tableName} (entity_id, {$ssnCol}, {$last4Col}) VALUES (%1, %2, %3)";
+    CRM_Core_DAO::executeQuery($sql, [
+      1 => [$entityID, 'Integer'],
+      2 => [$ssnValue, 'String'],
+      3 => [$last4Value, 'String']
+    ]);
+  }
+}
+
+
 function cilb_exam_registration_civicrm_postProcess($formName, $form) {
   if ($formName == 'CRM_Contact_Form_Inline_CustomData') {
     $params = $form->getSubmittedValues();
