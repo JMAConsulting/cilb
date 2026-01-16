@@ -183,7 +183,7 @@ function cilb_exam_registration_civicrm_alterMailParams(&$params, $context) {
      foreach ($participants as $participant) {
        $events[$participant['id']] = [
          'exam_part' => $participant['event_id.Exam_Details.Exam_Part:label'],
-         'exam_category' => $participant['event_id.event_type_id:label'],
+         'exam_category' => ($participant['event_id.event_type_id:label'] === 'Business and Finance') ? '' : $participant['event_id.event_type_id:label'],
        ];
      }
      $params['tplParams']['events'] = $events;
