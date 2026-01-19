@@ -1,5 +1,7 @@
 <?php
 
+use Civi\ActionSchedule\RecipientBuilder;
+
 class CRM_CilbExamRegistration_Event_ActionMapping_ByExpiryDate extends CRM_Event_ActionMapping {
 
 /**
