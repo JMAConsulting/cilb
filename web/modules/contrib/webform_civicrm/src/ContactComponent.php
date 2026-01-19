@@ -152,6 +152,17 @@ class ContactComponent implements ContactComponentInterface {
       }
       $params['where'][] = ['OR', $searchFields];
     }
+    if (in_array('birth_date', $params['select'])) {
+      if ($str) {
+	if (isset($params['where'][2][1][1]) && $params['where'][2][1][1][0] === 'birth_date') {
+          $params['where'][2][1][1] = ['OR', [
+            ['YEAR(birth_date)', 'CONTAINS', $str],
+            ['MONTH(birth_date)', 'CONTAINS', $str],
+             //    ['DAY(birth_date)', 'CONTAINS', $str]
+          ]];
+        }
+      }
+    }
     $result = $this->utils->wf_civicrm_api4('Contact', 'get', $params);
     // Autocomplete results
     if ($str) {
