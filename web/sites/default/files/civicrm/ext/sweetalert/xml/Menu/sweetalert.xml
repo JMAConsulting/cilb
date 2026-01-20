@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/civirule/form/action/sweetalert_message</path>
+    <page_callback>CRM_Sweetalert_Civirules_Form_DisplayMessage</page_callback>
+    <title>Civirules_Form_DisplayMessage</title>
+    <access_arguments>administer CiviRules</access_arguments>
+  </item>
+</menu>

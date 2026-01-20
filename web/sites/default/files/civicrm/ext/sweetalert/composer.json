@@ -1,0 +1,5 @@
+{
+    "name": "civicrm/sweetalert",
+    "type": "civicrm-ext",
+    "description": "Adds support for the Sweet Alert popup library"
+}
