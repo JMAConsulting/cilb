@@ -1,0 +1,17 @@
+repos:
+  - repo: local
+    hooks:
+      - id: run-make-on-readme-change
+        name: Run make when README.html changes
+        entry: make
+        language: system
+        files: ^README\.html$
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: run-phpcbf
+        name: Run phpcbf
+        entry: phpcbf --standard=Drupal --extensions=php,module,inc,install,test,profile,theme,css,info,txt,md,yml .
+        language: system
+        files: \.(php|module|inc|install|test|profile|theme|css|info|txt|md|yml)$
+        pass_filenames: false

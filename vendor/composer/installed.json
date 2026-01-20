@@ -3938,6 +3938,84 @@
             "install-path": "../../web/modules/contrib/menu_per_role"
         },
         {
+            "name": "drupal/nagios",
+            "version": "1.25.0",
+            "version_normalized": "1.25.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/nagios.git",
+                "reference": "8.x-1.25"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/nagios-8.x-1.25.zip",
+                "reference": "8.x-1.25",
+                "shasum": "70532b308144d5d0239bd3d23c7d35afa814c78c"
+            },
+            "require": {
+                "drupal/core": "^8 || ^9 || ^10 || ^11",
+                "php": ">=7.1.0"
+            },
+            "suggest": {
+                "drupal/qd_screenshottests": "Automated browser-based tests for development",
+                "ext-posix": "*"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "8.x-1.25",
+                    "datestamp": "1749034407",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                },
+                "drush": {
+                    "services": {
+                        "drush.services.yml": "^9 || ^10"
+                    }
+                }
+            },
+            "installation-source": "dist",
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "gogowitsch",
+                    "homepage": "https://www.drupal.org/user/99356"
+                },
+                {
+                    "name": "greg.harvey",
+                    "homepage": "https://www.drupal.org/user/130383"
+                },
+                {
+                    "name": "hoanns",
+                    "homepage": "https://www.drupal.org/user/3603496"
+                },
+                {
+                    "name": "kbahey",
+                    "homepage": "https://www.drupal.org/user/4063"
+                },
+                {
+                    "name": "mcchicken",
+                    "homepage": "https://www.drupal.org/user/3613333"
+                },
+                {
+                    "name": "tunic",
+                    "homepage": "https://www.drupal.org/user/397132"
+                }
+            ],
+            "description": "Exposes a page that Nagios or Icinga can monitor",
+            "homepage": "https://www.drupal.org/project/nagios",
+            "support": {
+                "source": "https://git.drupalcode.org/project/nagios",
+                "issues": "https://www.drupal.org/project/issues/nagios?version=8.x"
+            },
+            "install-path": "../../web/modules/contrib/nagios"
+        },
+        {
             "name": "drupal/redirect_after_login",
             "version": "3.0.0",
             "version_normalized": "3.0.0.0",
@@ -4524,7 +4602,8 @@
                 },
                 "patches_applied": {
                     "Expose contribution ID for further post processing": "patches/webform_civicrm_expose_contribution_id.patch",
-                    "Delay contribution receipt send": "patches/webform_civicrm_delay_send_receipt.patch"
+                    "Delay contribution receipt send": "patches/webform_civicrm_delay_send_receipt.patch",
+                    "Apply patch to support year": "patches/birth_date_year.patch"
                 }
             },
             "installation-source": "dist",

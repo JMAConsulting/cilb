@@ -1,7 +1,7 @@
 diff --git a/web/modules/contrib/webform_civicrm/src/ContactComponent.php b/web/modules/contrib/webform_civicrm/src/ContactComponent.php
 index 2dd9a394c..2bd3ffd92 100644
---- a/web/modules/contrib/webform_civicrm/src/ContactComponent.php
-+++ b/web/modules/contrib/webform_civicrm/src/ContactComponent.php
+--- a/src/ContactComponent.php
++++ b/src/ContactComponent.php
 @@ -152,6 +152,17 @@ function wf_crm_contact_search($node, $element, $params, $contacts, $str = NULL)
        }
        $params['where'][] = ['OR', $searchFields];
@@ -20,4 +20,32 @@ index 2dd9a394c..2bd3ffd92 100644
      $result = $this->utils->wf_civicrm_api4('Contact', 'get', $params);
      // Autocomplete results
      if ($str) {
+@@ -258,7 +258,12 @@ function wf_crm_format_contact($contact, $display_fields, $escape = TRUE) {
+     $display = [];
+     foreach ($display_fields as $field) {
+       if ($field && !empty($contact[$field])) {
++       if ($field == 'Registrant_Info.SSN_Last_4') {
++          $display[] = "XXX-XX-" . $contact[$field];
++       }
++       else {
++          $display[] = $escape ? Html::escape($contact[$field]) : $contact[$field];
++       }
+-        $display[] = $escape ? Html::escape($contact[$field]) : $contact[$field];
+       }
+     }
+     return implode(' :: ', $display);
+diff --git a/web/modules/contrib/webform_civicrm/src/Plugin/WebformElement/CivicrmContact.php b/web/modules/contrib/webform_civicrm/src/Plugin/WebformElement/CivicrmContact.php
+index a33b14444..10c6ea6c7 100644
+--- a/src/Plugin/WebformElement/CivicrmContact.php
++++ b/src/Plugin/WebformElement/CivicrmContact.php
+@@ -526,6 +526,10 @@ function wf_crm_results_display_options($contact_type) {
+       'street_address' => t("Street Address"),
+       'phone' => t("Phone"),
+     ];
++    $options += [
++      'birth_date' => t("Birth Date"),
++      'Registrant_Info.SSN_Last_4' => t("SSN"),
++    ];
+     return $options;
+   }
 

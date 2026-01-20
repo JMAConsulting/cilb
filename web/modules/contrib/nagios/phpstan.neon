@@ -1,0 +1,29 @@
+# How to run PHPStan
+#   1. $ cd your_Drupal_8_root
+#   2. $ composer require mglaman/phpstan-drupal --dev
+#   3. $ vendor/bin/phpstan analyze --level 4 -c web/modules/contrib/nagios/phpstan.neon web/modules/contrib/nagios
+parameters:
+  bootstrapFiles:
+    - tests/phpstan-bootstrap.php
+  scanFiles:
+    - ../../../core/modules/dblog/dblog.admin.inc
+    - ../../../core/modules/update/update.compare.inc
+  fileExtensions:
+    - php
+    - module
+    - inc
+    - install
+  excludePaths:
+    - *Test.php
+    - *.api.php
+    - nagios.drush.inc
+  level: 5
+
+  ignoreErrors:
+    - '#Unreachable statement - code above always terminates#'
+    - '#\Drupal calls should be avoided in classes, use dependency injection instead#'
+
+# Uncomment this if Drupal core symbols are not found.
+# See composer require --dev phpstan/extension-installer
+# includes:
+#   - ../../../../vendor/mglaman/phpstan-drupal/extension.neon

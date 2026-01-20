@@ -1,0 +1,24 @@
+{
+    "name": "drupal/nagios",
+    "type": "drupal-module",
+    "description": "Exposes a page that Nagios or Icinga can monitor",
+    "license": "GPL-2.0-or-later",
+    "authors": [],
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "suggest": {
+        "ext-posix": "*",
+        "drupal/qd_screenshottests": "Automated browser-based tests for development"
+    },
+    "extra": {
+        "drush": {
+            "services": {
+                "drush.services.yml": "^9 || ^10"
+            }
+        }
+    },
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/nagios?version=8.x"
+    }
+}

@@ -1,0 +1,5 @@
+nagios.settings:
+  title: 'Nagios Monitoring'
+  description: 'Settings for the Nagios Monitoring module'
+  parent: system.admin_config_system
+  route_name: nagios.settings

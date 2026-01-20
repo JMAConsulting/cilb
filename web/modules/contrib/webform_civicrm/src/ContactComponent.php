@@ -154,7 +154,7 @@ class ContactComponent implements ContactComponentInterface {
     }
     if (in_array('birth_date', $params['select'])) {
       if ($str) {
-	if (isset($params['where'][2][1][1]) && $params['where'][2][1][1][0] === 'birth_date') {
+       if (isset($params['where'][2][1][1]) && $params['where'][2][1][1][0] === 'birth_date') {
           $params['where'][2][1][1] = ['OR', [
             ['YEAR(birth_date)', 'CONTAINS', $str],
             ['MONTH(birth_date)', 'CONTAINS', $str],
@@ -258,12 +258,12 @@ class ContactComponent implements ContactComponentInterface {
     $display = [];
     foreach ($display_fields as $field) {
       if ($field && !empty($contact[$field])) {
-	if ($field == 'Registrant_Info.SSN_Last_4') {
+       if ($field == 'Registrant_Info.SSN_Last_4') {
           $display[] = "XXX-XX-" . $contact[$field];
-	}
-	else {
+       }
+       else {
           $display[] = $escape ? Html::escape($contact[$field]) : $contact[$field];
-	}
+       }
       }
     }
     return implode(' :: ', $display);
