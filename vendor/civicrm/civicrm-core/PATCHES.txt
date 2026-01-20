@@ -41,3 +41,15 @@ Apply patch to support using transaction id in a quick search
 Source: patches/civicrm_transaction_id_quicksearch.patch
 
 
+Apply patch to hide revert changes button on loggin report
+Source: patches/hide_revert_changes.patch
+
+
+Apply patch to support year
+Source: patches/birth_date_year.patch
+
+
+Apply patch to allow for logging to be turned on and off
+Source: ./patches/civicrm_allow_logging_on_multilingual_environments.patch
+
+
