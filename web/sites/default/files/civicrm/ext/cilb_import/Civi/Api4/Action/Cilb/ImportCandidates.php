@@ -142,6 +142,7 @@ class ImportCandidates extends ImportBase {
       \Civi\Api4\Email::create(FALSE)
         ->addValue('email', $email['Email'])
         ->addValue('contact_id', $contactId)
+        ->addValue('location_type_id:name', 'Work')
         ->execute();
     }
   }

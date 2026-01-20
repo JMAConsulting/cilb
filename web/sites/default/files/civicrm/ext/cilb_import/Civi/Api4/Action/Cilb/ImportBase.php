@@ -54,8 +54,6 @@ abstract class ImportBase extends \Civi\Api4\Generic\AbstractAction {
   protected function getRows(string $query, array $params = []) {
     // Add limit clause if set
     $query .= $this->recordLimit ? " LIMIT {$this->recordLimit}" : "";
-
-    print_r($query); // Debug query
     
     if (!empty($params)) {
         // PEAR DB prepared statement with positional ?
