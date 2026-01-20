@@ -31,7 +31,12 @@ function cilb_candidate_registration_form_alter(&$form, \Drupal\Core\Form\FormSt
       if (!_is_block_active('bootstrap_barrio_subtheme_candidatenotice')) {
         $updated_markup = preg_replace(
           '/https:\/\/cilb\.jmaconsulting\.biz\/(es\/)?register-notification/',
-          'https://cilb.jmaconsulting.biz/register',
+          'https://www.floridaexam.com/register',
+          $original_markup
+        );
+        $updated_markup = preg_replace(
+          '/https:\/\/www\.floridaexam\.com\/(es\/)?register-notification/',
+          'https://www.floridaexam.com/register',
           $original_markup
         );
         $elements['user_identification_markup']['#markup'] = $updated_markup;
