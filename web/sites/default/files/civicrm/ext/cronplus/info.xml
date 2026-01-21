@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<extension key="cronplus" type="module">
+  <file>cronplus</file>
+  <name>Cron Plus</name>
+  <description>Allows you to run a Scheduled Job at a precise time, on specific days of the week, or on specific dates of the month with *cron-like* expressions.</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>Luciano Spiegel @ iXiam Global Solutions</author>
+    <email>l.spiegel@ixiam.com</email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">https://lab.civicrm.org/extensions/cronplus</url>
+    <url desc="Documentation">https://lab.civicrm.org/extensions/cronplus/wikis/home</url>
+    <url desc="Support">https://lab.civicrm.org/extensions/cronplus/issues</url>
+    <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2024-01-16</releaseDate>
+  <version>2.6.0</version>
+  <develStage>stable</develStage>
+  <compatibility>
+    <ver>5.81</ver>
+  </compatibility>
+  <comments>
+  Cron Plus adds new features to the Schedule Jobs. It can be set the exactly date / time when a job must be executed with *cron-like* expressions.
+  It fixes as well the known issue for cron execution shifting described here:&lt;br&gt;&lt;br&gt;
+  - https://civicrm.stackexchange.com/questions/12003/has-anyone-run-into-scheduled-jobs-drifting-on-centos7&lt;br&gt;
+  - https://issues.civicrm.org/jira/browse/CRM-18671
+  </comments>
+  <classloader>
+    <psr4 prefix="Civi\" path="Civi"/>
+    <psr0 prefix="CRM_" path="."/>
+  </classloader>
+  <civix>
+    <namespace>CRM/Cronplus</namespace>
+    <format>23.02.1</format>
+    <angularModule>crmCronplus</angularModule>
+  </civix>
+  <mixins>
+    <mixin>mgd-php@1.0.0</mixin>
+    <mixin>setting-php@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.1</mixin>
+  </mixins>
+  <upgrader>CRM_Cronplus_Upgrader</upgrader>
+</extension>

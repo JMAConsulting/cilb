@@ -1,0 +1,101 @@
+{htxt id="id-cronplus-title"}
+  {ts}CronPlus help{/ts}
+{/htxt}
+{htxt id="id-cronplus"}
+<h2><span class="mw-headline" id="CRON_expression">CRON expression</span></h2>
+<p>A CRON expression is a string comprising five or six fields separated by white space that represents a set of times, normally as a schedule to execute some routine.
+</p>
+<table class="wikitable">
+  <tbody>
+      <tr>
+          <th>Field
+          </th>
+          <th>Required
+          </th>
+          <th>Allowed values
+          </th>
+          <th>Allowed special characters
+          </th>
+      </tr>
+      <tr>
+          <td>Minutes
+          </td>
+          <td>Yes
+          </td>
+          <td>0–59
+          </td>
+          <td><code>*</code> <code>,</code> <code>-</code>
+          </td>
+      </tr>
+      <tr>
+          <td>Hours
+          </td>
+          <td>Yes
+          </td>
+          <td>0–23
+          </td>
+          <td><code>*</code> <code>,</code> <code>-</code>
+          </td>
+      </tr>
+      <tr>
+          <td>Day of month
+          </td>
+          <td>Yes
+          </td>
+          <td>1–31
+          </td>
+          <td><code>*</code> <code>,</code> <code>-</code> <code>L</code> <code>W</code>
+          </td>
+      </tr>
+      <tr>
+          <td>Month
+          </td>
+          <td>Yes
+          </td>
+          <td>1–12 or JAN–DEC
+          </td>
+          <td><code>*</code> <code>,</code> <code>-</code>
+          </td>
+      </tr>
+      <tr>
+          <td>Day of week
+          </td>
+          <td>Yes
+          </td>
+          <td>0–6 or SUN–SAT
+          </td>
+          <td><code>*</code> <code>,</code> <code>-</code> <code>L</code>
+          </td>
+      </tr>
+      <tr>
+          <td>Year
+          </td>
+          <td>No
+          </td>
+          <td>1970–2099
+          </td>
+          <td><code>*</code> <code>,</code> <code>-</code>
+          </td>
+      </tr>
+  </tbody>
+</table>
+<p>The month and weekday abbreviations are not case-sensitive.
+</p>
+<dl><dt>Comma ( <code>,</code> )</dt>
+    <dd>Commas are used to separate items of a list. For example, using "MON,WED,FRI" in the 5th field (day of week) means Mondays, Wednesdays and Fridays.</dd>
+</dl>
+<dl><dt>Hyphen ( <code>-</code> )</dt>
+    <dd>Hyphens define ranges. For example, 2000–2010 indicates every year between 2000 and 2010, inclusive.</dd>
+</dl>
+<dl><dt>L</dt>
+    <dd>'L' stands for "last". When used in the day-of-week field, it allows you to specify constructs such as "the last Friday" ("5L") of a given month. In the day-of-month field, it specifies the last day of the month.</dd>
+</dl>
+<dl><dt>W</dt>
+    <dd>The 'W' character is allowed for the day-of-month field. This character is used to specify the weekday (Monday-Friday) nearest the given day. As an example, if you were to specify "15W" as the value for the day-of-month field, the meaning is: "the nearest weekday to the 15th of the month." So, if the 15th is a Saturday, the trigger fires on Friday the 14th. If the 15th is a Sunday, the trigger fires on Monday the 16th. If the 15th is a Tuesday, then it fires on Tuesday the 15th. However, if you specify "1W" as the value for day-of-month, and the 1st is a Saturday, the trigger fires on Monday the 3rd, as it does not 'jump' over the boundary of a month's days. The 'W' character can be specified only when the day-of-month is a single day, not a range or list of days.</dd>
+</dl>
+<dl><dt>Slash (<code>/</code>)</dt>
+    <dd>In vixie-cron, slashes can be combined with ranges to specify step values. For example, <tt>*/5</tt> in the minutes field indicates every 5 minutes (see note below about frequencies). It is shorthand for the more verbose POSIX form <tt>5,10,15,20,25,30,35,40,45,50,55,00</tt>. POSIX does not define a use for slashes; its rationale (commenting on a BSD extension) notes that the definition is based on System V format but does not exclude the possibility of extensions.</dd>
+</dl>
+<p>Note that frequencies in general cannot be expressed; only step values which evenly divide their range express accurate frequencies (for minutes and seconds, that's /2, /3, /4, /5, /6, /10, /12, /15, /20 and /30 because 60 is evenly divisible by those numbers; for hours, that's /2, /3, /4, /6, /8 and /12); all other possible "steps" and all other fields yield inconsistent "short" periods at the end of the time-unit before it "resets" to the next minute, second, or day; for example, entering */5 for the day field sometimes executes after 1, 2, or 3 days, depending on the month and leap year; this is because cron is stateless (it does not remember the time of the last execution nor count the difference between it and now, required for accurate frequency counting—instead, cron is a mere pattern-matcher).
+</p>
+{/htxt}

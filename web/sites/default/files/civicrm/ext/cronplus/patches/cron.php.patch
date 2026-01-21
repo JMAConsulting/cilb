@@ -1,0 +1,13 @@
+--- bin/cron.php	2018-08-20 12:17:57.729283029 +0200
++++ bin/cron.php	2018-08-20 12:18:07.497282822 +0200
+@@ -35,8 +35,8 @@
+
+ $job = CRM_Utils_Request::retrieve('job', 'String', CRM_Core_DAO::$_nullArray, FALSE, NULL, 'REQUEST');
+
+-require_once 'CRM/Core/JobManager.php';
+-$facility = new CRM_Core_JobManager();
++require_once 'CRM/Cronplus/JobManager.php';
++$facility = new CRM_Cronplus_JobManager();
+
+ if ($job === NULL) {
+   $facility->execute();

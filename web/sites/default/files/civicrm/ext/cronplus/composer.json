@@ -1,0 +1,15 @@
+{
+    "name": "civicrm/cronplus",
+    "type": "civicrm-ext",
+    "description": "CronPlus extension for CiviCRM scheduled jobs",
+    "license": "AGPL-3.0-only",
+    "authors": [
+        {
+            "name": "iXiam Global Solutions",
+            "email": "info@ixiam.com"
+        }
+    ],
+    "require": {
+        "dragonmantank/cron-expression": "3.3.3"
+    }
+}
