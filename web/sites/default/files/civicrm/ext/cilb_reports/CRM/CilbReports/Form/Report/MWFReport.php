@@ -581,6 +581,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       INNER JOIN civicrm_event e ON e.id = p.event_id
       INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = e.id AND cv.{$examFormatCustomFieldsDetails['column_name']} = 'paper'
       INNER JOIN `{$loggingDb}`.log_civicrm_event le ON le.id = e.id WHERE le.log_date >= '{$lastRunCron}' AND le.log_action = 'Update' AND (le.start_date != e.start_date OR le.end_date != e.end_date) AND le.id = e.id
+      ON DUPLICATE KEY UPDATE exam_date_change=1,change_type='Change'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
