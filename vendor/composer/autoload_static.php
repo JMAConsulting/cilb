@@ -37,7 +37,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         '801c31d8ed748cfa537fa45402288c95' => __DIR__ . '/..' . '/psy/psysh/src/functions.php',
         'db356362850385d08a5381de2638b5fd' => __DIR__ . '/..' . '/mpdf/mpdf/src/functions.php',
-        'c4e646e04ac263455b2dc00e72cd7859' => __DIR__ . '/..' . '/composer/autoload_civicrm_asset.php',
+        '826913c1455bc8ad0e25cf9c3771b729' => __DIR__ . '/..' . '/composer/autoload_civicrm_asset.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -71,6 +71,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'W' => 
         array (
             'When\\' => 5,
+            'Webmozart\\Assert\\' => 17,
             'WebSocket\\' => 10,
         ),
         'T' => 
@@ -204,6 +205,7 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         ),
         'C' => 
         array (
+            'Cron\\' => 5,
             'Consolidation\\SiteProcess\\' => 26,
             'Consolidation\\SiteAlias\\' => 24,
             'Consolidation\\OutputFormatters\\' => 31,
@@ -272,6 +274,10 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'When\\' => 
         array (
             0 => __DIR__ . '/..' . '/tplaner/when/src',
+        ),
+        'Webmozart\\Assert\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/webmozart/assert/src',
         ),
         'WebSocket\\' => 
         array (
@@ -663,6 +669,10 @@ class ComposerStaticInit7f462c0e1e81602f821b8b2f59a1a946
         'DMore\\ChromeDriver\\' => 
         array (
             0 => __DIR__ . '/..' . '/dmore/chrome-mink-driver/src',
+        ),
+        'Cron\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron',
         ),
         'Consolidation\\SiteProcess\\' => 
         array (

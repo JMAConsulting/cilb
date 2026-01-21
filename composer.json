@@ -19,6 +19,7 @@
         "civicrm/civicrm-drupal-8": "6.9.*",
         "civicrm/civicrm-packages": "6.9.*",
         "composer/installers": "^2.0",
+        "dragonmantank/cron-expression": "3.3.3",
         "drupal/bootstrap": "^3.35",
         "drupal/bootstrap_barrio": "^5.5",
         "drupal/civicrm_entity": "^4.0@beta",

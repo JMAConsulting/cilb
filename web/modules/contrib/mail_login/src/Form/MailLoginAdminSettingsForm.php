@@ -128,6 +128,7 @@ class MailLoginAdminSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Login form username/email address description'),
       '#default_value' => $config->get('mail_login_username_description') ?: $this->t('You can use your username or email address to login.'),
+      '#maxlength' => 255,
       '#states' => [
         'required' => [
           ':input[name="mail_login_override_login_labels"]' => [
@@ -172,6 +173,7 @@ class MailLoginAdminSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Login form email address only description'),
       '#default_value' => $config->get('mail_login_email_only_description') ?: $this->t('You can use your email address only to login.'),
+      '#maxlength' => 255,
       '#states' => [
         'required' => [
           ':input[name="mail_login_email_only"]' => [
@@ -194,6 +196,7 @@ class MailLoginAdminSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Login form password only description'),
       '#default_value' => $config->get('mail_login_password_only_description') ?: $this->t('Enter the password that accompanies your email address.'),
+      '#maxlength' => 255,
       '#states' => [
         'required' => [
           ':input[name="mail_login_email_only"]' => [
@@ -238,6 +241,7 @@ class MailLoginAdminSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Password reset form username/email address description'),
       '#default_value' => $config->get('mail_login_password_reset_username_description') ?: $this->t('Password reset instructions will be sent to your registered email address.'),
+      '#maxlength' => 255,
       '#states' => [
         'required' => [
           ':input[name="mail_login_override_login_labels"]' => [
@@ -282,6 +286,7 @@ class MailLoginAdminSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Password reset form email address only description'),
       '#default_value' => $config->get('mail_login_password_reset_email_only_description') ?: $this->t('Password reset instructions will be sent to your registered email address.'),
+      '#maxlength' => 255,
       '#states' => [
         'required' => [
           ':input[name="mail_login_email_only"]' => [

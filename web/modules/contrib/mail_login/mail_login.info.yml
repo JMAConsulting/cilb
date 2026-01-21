@@ -6,7 +6,7 @@ type: module
 configure: mail_login.admin
 core_version_requirement: ^10.3 || ^11
 
-# Information added by Drupal.org packaging script on 2024-08-22
-version: '4.0.3'
+# Information added by Drupal.org packaging script on 2025-07-12
+version: '4.2.2'
 project: 'mail_login'
-datestamp: 1724355123
+datestamp: 1752318598
