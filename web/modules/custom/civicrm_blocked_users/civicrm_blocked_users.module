@@ -217,7 +217,9 @@ function civicrm_blocked_users_civicrm_custom($op, $groupID, $entityID, &$params
     }
   }
 
-  $currently_blocked = ($group_contact['status'] == 'Added') ? 1 : 0;
+  //$currently_blocked = ($group_contact['status'] == 'Added') ? 1 : 0;
+  $currently_blocked = (isset($group_contact['status']) && $group_contact['status'] == 'Added') ? 1 : 0;
+
 
   if ($is_restricted && !$currently_blocked) {
     \Civi\Api4\GroupContact::save(FALSE)
