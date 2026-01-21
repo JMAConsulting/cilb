@@ -108,6 +108,7 @@ function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &
               'class' => 'medium-popup',
               'qs' => 'reset=1&contribution_id=' . $objectId,
               'title' => E::ts('Record Refund'),
+              'weight' => 25,
             ];
           }
           break;
@@ -173,6 +174,7 @@ function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &
           'class' => 'medium-popup',
           'qs' => 'reset=1&payment_id=%%id%%&contribution_id=%%contribution_id%%',
           'title' => E::ts('Refund Payment'),
+          'weight' => 25,
         ];
       }
       catch (Throwable $e) {

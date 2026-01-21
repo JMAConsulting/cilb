@@ -631,6 +631,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       'output' => 'email_invoice',
       'from_email_address' => '"CILB" <info@jmaconsulting.biz>',
       'subject' => "CILB Candidate Registration Confirmation",
+      'email_comment' => '',
     ];
     \CRM_Contribute_Form_Task_Invoice::printPDF([$contributionId], $params, [$contactId]);
   }
@@ -718,7 +719,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->addWhere('email.email', '=', $email)
       ->execute()
       ->first();
-    if ($matchingContact['id']) {
+    if (!empty($matchingContact) && $matchingContact['id']) {
       $error_message = $this->t('A user account already exists with the email: %email. Click <a href="/user/login">here</a> to log in or reset your password before attempting to register again.', [
         '%adminEmail' => \Drupal::config('system.site')->get('mail'),
 	'%email' => $email,
