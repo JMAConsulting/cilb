@@ -45,7 +45,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
 
     // No Shows
     if ($examNoShow) {
-      $examStatus = 'No-Show';
+      $examStatus = 'No-show'; // case sensitive
     }
 
     // Sanity Checks
