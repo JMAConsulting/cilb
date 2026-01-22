@@ -1249,6 +1249,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         'event_type_id:label',
         'start_date',
         'end_date',
+	'is_public',
         'loc_block_id.address_id.street_address',
         "loc_block_id.address_id.supplemental_address_1",
         "loc_block_id.address_id.supplemental_address_2",
@@ -1324,6 +1325,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       }
       return TRUE;
     });
+
+    // exclude non public events from front end form
+    if ($form['#webform_id'] !== 'backoffice_registration') {
+      $events = array_filter($events, function ($event) {
+        if ($event['event_type_id:name'] === "Plumbing" && $event['is_public'] != 1) {
+        return FALSE;
+      }
+      return TRUE;
+      });
+    }
 
     return $events;
   }
