@@ -10,6 +10,7 @@ return [
     'is_contact' => 0,
     'type' => 'String',
     'html_type' => 'text',
+    'settings_pages' => ['mwfreport' => ['weight' => 10]],
   ],
   'cilb_reports_mtw_password' => [
     'name' => 'cilb_reports_mtw_password',
@@ -18,5 +19,6 @@ return [
     'is_contact' => 0,
     'type' => 'String',
     'html_type' => 'text',
+    'settings_pages' => ['mwfreport' => ['weight' => 20]],
   ],
 ];
