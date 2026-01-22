@@ -221,7 +221,8 @@ class CRM_Ses_Page_Webhook extends CRM_Core_Page {
    * @return array The verp items [ $job_id, $queue_id, $hash ]
    */
   protected function getVerpItemsFromSource(): array {
-    if (property_exists($this->snsEventMessage->mail, 'commonHeaders')
+    if (property_exists('mail', $this->snsEventMessage)
+      &&  property_exists($this->snsEventMessage->mail, 'commonHeaders')
       && property_exists($this->snsEventMessage->mail->commonHeaders, 'returnPath')) {
       $sourceAddress = $this->snsEventMessage->mail->commonHeaders->returnPath;
     }
