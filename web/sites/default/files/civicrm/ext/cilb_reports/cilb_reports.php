@@ -118,7 +118,7 @@ function _cilb_reports_civicrm_angularModules($event) {
   }
 }
 
-function cilb_reports_civicrm_alterMailParams(&$params, $context) {
+/*function cilb_reports_civicrm_alterMailParams(&$params, $context) {
   if (array_key_exists('groupName', $params) && $params['groupName'] === 'Report Email Sender') {
     if (!empty($params['attachments'])) {
       foreach ($params['attachments'] as $attachment) {
@@ -135,7 +135,7 @@ function cilb_reports_civicrm_alterMailParams(&$params, $context) {
       }
     }
   }
-}
+}*/
 
 /**
  * Implements hook_civicrm_alterReportVar().
