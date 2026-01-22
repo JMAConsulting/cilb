@@ -60,5 +60,6 @@ function cilb_user_management_user_pass_form_validate($form, \Drupal\Core\Form\F
     $form_state->setErrorByName('name', t('This is not the email we have on record for your account.'));
     return;
   }
+  $form_state->setValueForElement(['#parents' => ['account']], $user);
 
 }
