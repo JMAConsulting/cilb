@@ -52,5 +52,6 @@
     <mixin>smarty@1.0.3</mixin>
     <mixin>setting-admin@1.0.1</mixin>
     <mixin>scan-classes@1.0.0</mixin>
+    <mixin>menu-xml@1.0.0</mixin>
   </mixins>
 </extension>

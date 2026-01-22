@@ -93,6 +93,39 @@ function cilb_exam_registration_civicrm_tabset($tabsetName, &$tabs, $context) {
   }
 }
 
+function cilb_exam_registration_civicrm_links($op, $objectName, $objectID, &$links, &$mask, &$values) {
+  if ($objectName !== 'Participant' || $op !== 'participant.selector.row') {
+    return;
+  }
+
+  // Fetch participant details with event joins and custom fields.
+  try {
+    $participant = \Civi\Api4\Participant::get(FALSE)
+      ->addWhere('id', '=', $objectID)
+      ->addSelect('event_id', 'event.event_type_id', 'event.Exam_Details.Exam_Part')
+      ->addJoin('Event AS event', 'event.id = event_id')
+      ->execute()->first();
+
+    $eventTypeId = $participant['event.event_type_id'] ?? NULL;
+    $examPart = $participant['event.Exam_Details.Exam_Part'] ?? NULL;
+
+    if (!$eventTypeId || $eventTypeId !== 20 || $examPart !== 'TK') {
+      return;
+    }
+  } catch (Exception $e) {
+    return;
+  }
+
+  $links[] = [
+    'name' => E::ts('Transfer Exam Registration'),
+    'url' => 'civicrm/cilb_exam_registration/transfer/' . $objectID,
+    'qs' => 'reset=1',
+    'title' => E::ts('Transfer to another exam event'),
+    'extra' => 'class="no-popup"',
+    'weight' => 30,
+  ];
+}
+
 /**
  * Implements hook_civicrm_custom().
  */

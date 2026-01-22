@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/cilb_exam_registration/transfer</path>
+    <page_callback>CRM_CilbExamRegistration_Form_Transfer</page_callback>
+    <title>Transfer Exam Registration</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+</menu>
