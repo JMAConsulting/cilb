@@ -8,6 +8,7 @@ use Drupal\webform\WebformSubmissionInterface;
 use Drupal\webform\Plugin\WebformHandlerBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\user\Entity\User;
 use Drupal\webform\Utility\WebformFormHelper;
 use Civi\Api4\OptionValue;
@@ -760,10 +761,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * If user chooses pay by check, immediately redirect to the pay by mail page
    */
   private function redirectPayByCheck($formState) {
-    if ($formState->getValue('please_select_mode_of_payment') == 2) {
+    /*if ($formState->getValue('please_select_mode_of_payment') == 2) {
       $redirect = new RedirectResponse('register-by-mail');
       $redirect->send();
-    }
+  }*/
+	  if ($formState->getValue('please_select_mode_of_payment') == 2) {
+    $current_lang = \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_INTERFACE)->getId();
+    $path = ($current_lang === 'es') ? 'register-by-mail-sp' : 'register-by-mail';
+    $redirect = new RedirectResponse($path);
+    $redirect->send();
+  }
   }
 
   /**
