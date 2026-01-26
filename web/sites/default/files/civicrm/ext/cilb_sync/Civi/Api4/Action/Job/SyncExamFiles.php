@@ -120,7 +120,7 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
    * Import scores from downloaded PearsonVUE files
    */
   private function processPearsonVueFiles($directory): array {
-    
+    \Civi::log()->debug('L123', ['files' => $this->files]);
     $processed = [];
     foreach ($this->files['scores'] as $files) {
       foreach ($files as $type => $fileName) {
