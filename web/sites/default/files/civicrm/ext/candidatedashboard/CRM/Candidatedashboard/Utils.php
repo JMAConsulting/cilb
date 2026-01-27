@@ -3,8 +3,6 @@
 class CRM_Candidatedashboard_Utils {
 
 public static function updateSearchKitDisplay($oldValue, $newValue) {
-  CRM_Core_Error::debug_var('oldValue', $oldValue);
-  CRM_Core_Error::debug_var('newValue', $newValue);
   $activitySearch = \Civi\Api4\SavedSearch::get(FALSE)
   ->addWhere('name', '=', 'ActivitySearch')
   ->execute()->first();
