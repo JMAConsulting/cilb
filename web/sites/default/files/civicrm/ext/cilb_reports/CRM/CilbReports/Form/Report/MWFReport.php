@@ -166,10 +166,6 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_event' => [
         'dao' => 'CRM_Event_DAO_Event',
         'fields' => [
-          /*'start_date' => [
-            'title' => E::ts('Exam Date'),
-            'required' => TRUE,
-          ],*/
           'event_type_id' => [
             'title' => E::ts('Category'),
             'required' => TRUE,
@@ -324,7 +320,6 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     $fixedHeaders = [];
     $headerOrder = [
       'civicrm_participant_test_site',
-      //'civicrm_event_start_date',
       'civicrm_value_candidate_res_9_custom_80',
       'civicrm_value_registrant_in_1_custom_5',
       'civicrm_contact_last_name',
