@@ -267,7 +267,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
    */
   public function storeWhereHavingClauseArray() {
     parent::storeWhereHavingClauseArray();
-    $this->_whereClauses[] = 'exam_cat.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18';
+    $this->_whereClauses[] = " ( value_exam_details_5_civireport.exam_part_9 = 'BF' OR exam_cat.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 )";
   }
 
   /**
