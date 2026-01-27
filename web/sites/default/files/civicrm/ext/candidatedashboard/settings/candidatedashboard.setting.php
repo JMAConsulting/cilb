@@ -22,5 +22,6 @@ return [
     'is_contact' => 0,
     'help_text' => ts('Select activity types will hidden on New Activity backoffice form and on contact summary'),
     'settings_pages' => ['display' => ['section' => 'activity', 'weight' => 0]],
+    'post_change' => ['CRM_Candidatedashboard_Utils::updateSearchKitDisplay'],
   ],
 ];
