@@ -32,6 +32,43 @@ function candidatedashboard_civicrm_enable(): void {
   _candidatedashboard_civix_civicrm_enable();
 }
 
+function candidatedashboard_civicrm_buildForm($formName, &$form) {
+  if (in_array($formName, ['CRM_Activity_Form_Activity', 'CRM_Activity_Form_ActivityLinks'])) {
+    $disableATs  = Civi::settings()->get('disable_activity_types');
+    if (!empty($disableATs)) {
+      if ('CRM_Activity_Form_Activity' == $formName) {
+        // In create mode, reuse activity options from the followup_activity_type_id field since they've already been set there.
+        $activityTypeOptions = $form->_fields['followup_activity_type_id']['attributes'];
+        // But in edit mode, get all activity types (including disabled) so the frozen field correctly renders even for disabled types.
+        if ($form->_action & CRM_Core_Action::UPDATE) {
+          $activityTypeOptions = CRM_Activity_BAO_Activity::buildOptions('activity_type_id', 'get');
+        }
+        $activityTypeOptions = array_diff_key($activityTypeOptions, array_flip($disableATs));
+
+        $element = $form->add('select', 'activity_type_id', ts('Activity Type'),
+          $activityTypeOptions,
+          FALSE, [
+            'onchange' => "CRM.buildCustomData( 'Activity', this.value, false, false, false, false, false, false, {$form->_currentlyViewedContactId});",
+            'class' => 'crm-select2 required',
+            'placeholder' => TRUE,
+          ]
+        );
+
+        // Freeze for update mode.
+        if ($form->_action & CRM_Core_Action::UPDATE) {
+          $element->freeze();
+        }
+      }
+      elseif ($formName == 'CRM_Activity_Form_ActivityLinks') {
+        $activityTypes = array_diff_key(CRM_Core_PseudoConstant::ActivityType(FALSE), array_flip($disableATs));
+        $form->assign('activityTypes', array_filter($form->getTemplate()->getTemplateVars('activityTypes'), function ($type) use ($activityTypes) {
+          return in_array($type['label'], $activityTypes);
+        }));
+      }
+    }
+  }
+}
+
 /**
  * Implements hook_civicrm_pageRun().
  * 
