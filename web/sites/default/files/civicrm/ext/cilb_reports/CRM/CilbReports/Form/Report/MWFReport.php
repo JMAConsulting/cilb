@@ -237,6 +237,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
                INNER JOIN {$this->_temporaryTableName} temp ON temp.transaction_id = {$this->_aliases['civicrm_contribution']}.id
                LEFT JOIN civicrm_option_value event_type_value ON event_type_value.value = {$this->_aliases['civicrm_event']}.event_type_id AND event_type_value.option_group_id = 15
                LEFT JOIN civicrm_value_cilb_exam_cat_6 exam_cat ON exam_cat.entity_id = event_type_value.id
+               INNER JOIN {$participantTransactionIDField['custom_group_id.table_name']} pv2 ON pv2.{$participantTransactionIDField['column_name']} = contribution_civireport.id AND pv2.entity_id != pv.entity_id
+               INNER JOIN civicrm_participant p ON p.id = pv2.entity_id
+               INNER JOIN civicrm_event event_2 ON event_2.id = p.event_id
+               LEFT JOIN civicrm_option_value event_type_value_2 ON event_type_value_2.value = event_2.event_type_id AND event_type_value_2.option_group_id = 15
+               LEFT JOIN civicrm_value_cilb_exam_cat_6 exam_cat2 ON exam_cat2.entity_id = event_type_value_2.id
                LEFT JOIN civicrm_loc_block clb ON clb.id = {$this->_aliases['civicrm_event']}.loc_block_id
                LEFT JOIN civicrm_address lba ON lba.id = clb.address_id
                LEFT JOIN civicrm_phone AS home ON home.contact_id = {$this->_aliases['civicrm_contact']}.id AND home.location_type_id = {$homeLocationId}
@@ -267,7 +272,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
    */
   public function storeWhereHavingClauseArray() {
     parent::storeWhereHavingClauseArray();
-    $this->_whereClauses[] = " ( value_exam_details_5_civireport.exam_part_9 = 'BF' OR exam_cat.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 )";
+    $this->_whereClauses[] = " ( ( value_exam_details_5_civireport.exam_part_9 = 'BF' AND exam_cat2.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 ) OR ( exam_cat.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 ) )";
   }
 
   /**
