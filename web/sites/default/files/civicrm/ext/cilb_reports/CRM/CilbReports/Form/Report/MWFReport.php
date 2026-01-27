@@ -237,11 +237,6 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
                INNER JOIN {$this->_temporaryTableName} temp ON temp.transaction_id = {$this->_aliases['civicrm_contribution']}.id
                LEFT JOIN civicrm_option_value event_type_value ON event_type_value.value = {$this->_aliases['civicrm_event']}.event_type_id AND event_type_value.option_group_id = 15
                LEFT JOIN civicrm_value_cilb_exam_cat_6 exam_cat ON exam_cat.entity_id = event_type_value.id
-               INNER JOIN {$participantTransactionIDField['custom_group_id.table_name']} pv2 ON pv2.{$participantTransactionIDField['column_name']} = contribution_civireport.id AND pv2.entity_id != pv.entity_id
-               INNER JOIN civicrm_participant p ON p.id = pv2.entity_id
-               INNER JOIN civicrm_event event_2 ON event_2.id = p.event_id
-               LEFT JOIN civicrm_option_value event_type_value_2 ON event_type_value_2.value = event_2.event_type_id AND event_type_value_2.option_group_id = 15
-               LEFT JOIN civicrm_value_cilb_exam_cat_6 exam_cat2 ON exam_cat2.entity_id = event_type_value_2.id
                LEFT JOIN civicrm_loc_block clb ON clb.id = {$this->_aliases['civicrm_event']}.loc_block_id
                LEFT JOIN civicrm_address lba ON lba.id = clb.address_id
                LEFT JOIN civicrm_phone AS home ON home.contact_id = {$this->_aliases['civicrm_contact']}.id AND home.location_type_id = {$homeLocationId}
@@ -264,6 +259,9 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
    * @return string
    */
   public function selectClause(&$tableName, $tableKey, &$fieldName, &$field) {
+    if ($tableName === 'civicrm_value_cilb_candidat_7') {
+      $field['dbAlias'] = '1';
+    }
     return parent::selectClause($tableName, $tableKey, $fieldName, $field);
   }
 
@@ -272,7 +270,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
    */
   public function storeWhereHavingClauseArray() {
     parent::storeWhereHavingClauseArray();
-    $this->_whereClauses[] = " ( ( value_exam_details_5_civireport.exam_part_9 = 'BF' AND exam_cat2.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 ) OR ( exam_cat.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 ) )";
+    //$this->_whereClauses[] = " ( ( value_exam_details_5_civireport.exam_part_9 = 'BF' AND exam_cat2.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 ) OR ( exam_cat.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 ) )";
   }
 
   /**
@@ -428,9 +426,9 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             INNER JOIN civicrm_event ce ON ce.id = cp.event_id
             INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} AS ev ON ev.entity_id = ce.id
             WHERE ptf.{$participantTransactionIDField['column_name']} = %1
-	    AND cv.{$examPartCustomFieldsDetails['column_name']} = 'TK'", [
+	          AND cv.{$examPartCustomFieldsDetails['column_name']} = 'TK'", [
             1 => [$row['civicrm_contribution_id'], 'Positive'],
-	  ]);
+          ]);
           if (empty($part1)) {
             if ($paperCheck == 'paper') {
               $part1 = 'TK';
@@ -532,6 +530,14 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         }
         $rows[$rowNum]['civicrm_address_state_province_id'] = $stateProvinceIDs[$rows[$rowNum]['civicrm_address_state_province_id']];
         $entryFound = TRUE;
+      }
+
+      if (!empty($row['dbpr_code_3'])) {
+        $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_25'] = $row['dbpr_code_3'];
+        $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_31'] = CRM_Core_DAO::singleValueQuery("SELECT entity_id_imported__31 FROM civicrm_value_cilb_candidat_7 WHERE entity_id = %1 AND class_code_18 = %2", [
+          1 => [$row['civicrm_contact_id'], 'Positive'],
+          2 => [$row['dbpr_code_3'], 'String'],
+        ]);
       }
 
       if (!$entryFound) {
@@ -668,6 +674,56 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
     return $temporaryTableName;
+  }
+
+  /**
+   * Build custom data from clause.
+   *
+   * @param bool $joinsForFiltersOnly
+   *   Only include joins to support filters. This would be used if creating a table of contacts to include first.
+   */
+  public function customDataFrom($joinsForFiltersOnly = FALSE) {
+    if (empty($this->_customGroupExtends)) {
+      return;
+    }
+    $mapper = CRM_Core_BAO_CustomQuery::$extendsMap;
+    $customTables = array_column(CRM_Core_BAO_CustomGroup::getAll(), 'table_name');
+
+    foreach ($this->_columns as $table => $prop) {
+      if (in_array($table, $customTables)) {
+        $extendsTable = $mapper[$prop['extends']];
+        // Check field is required for rendering the report.
+        if ((!$this->isFieldSelected($prop)) || ($joinsForFiltersOnly && !$this->isFieldFiltered($prop))) {
+          continue;
+        }
+        $baseJoin = $this->_customGroupExtendsJoin[$prop['extends']] ?? "{$this->_aliases[$extendsTable]}.id";
+
+        $customJoin = is_array($this->_customGroupJoin) ? $this->_customGroupJoin[$table] : $this->_customGroupJoin;
+        if ($table === 'civicrm_value_cilb_candidat_7') {
+          continue;
+        }
+        $this->_from .= "
+{$customJoin} {$table} {$this->_aliases[$table]} ON {$this->_aliases[$table]}.entity_id = {$baseJoin}";
+        // handle for ContactReference
+        if (array_key_exists('fields', $prop)) {
+          foreach ($prop['fields'] as $fieldName => $field) {
+            if (($field['dataType'] ?? NULL) === 'ContactReference') {
+              $columnName = CRM_Core_BAO_CustomField::getFieldByName($fieldName)['column_name'];
+              $this->_from .= "
+LEFT JOIN civicrm_contact {$field['alias']} ON {$field['alias']}.id = {$this->_aliases[$table]}.{$columnName} ";
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Generate the SELECT clause and set class variable $_select.
+   */
+  public function select() {
+    parent::select();
+    $this->_select .= ', exam_cat.dbpr_code_3';
   }
 
 }
