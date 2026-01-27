@@ -166,10 +166,6 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_event' => [
         'dao' => 'CRM_Event_DAO_Event',
         'fields' => [
-          'start_date' => [
-            'title' => E::ts('Exam Date'),
-            'required' => TRUE,
-          ],
           'event_type_id' => [
             'title' => E::ts('Category'),
             'required' => TRUE,
@@ -239,6 +235,8 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
                INNER JOIN civicrm_contribution {$this->_aliases['civicrm_contribution']} ON {$this->_aliases['civicrm_contribution']}.id = pv.{$participantTransactionIDField['column_name']}
                INNER JOIN civicrm_event {$this->_aliases['civicrm_event']} ON {$this->_aliases['civicrm_event']}.id = {$this->_aliases['civicrm_participant']}.event_id
                INNER JOIN {$this->_temporaryTableName} temp ON temp.transaction_id = {$this->_aliases['civicrm_contribution']}.id
+               LEFT JOIN civicrm_option_value event_type_value ON event_type_value.value = {$this->_aliases['civicrm_event']}.event_type_id AND event_type_value.option_group_id = 15
+               LEFT JOIN civicrm_value_cilb_exam_cat_6 exam_cat ON exam_cat.entity_id = event_type_value.id
                LEFT JOIN civicrm_loc_block clb ON clb.id = {$this->_aliases['civicrm_event']}.loc_block_id
                LEFT JOIN civicrm_address lba ON lba.id = clb.address_id
                LEFT JOIN civicrm_phone AS home ON home.contact_id = {$this->_aliases['civicrm_contact']}.id AND home.location_type_id = {$homeLocationId}
@@ -262,6 +260,14 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
    */
   public function selectClause(&$tableName, $tableKey, &$fieldName, &$field) {
     return parent::selectClause($tableName, $tableKey, $fieldName, $field);
+  }
+
+  /**
+   * Build where clause.
+   */
+  public function storeWhereHavingClauseArray() {
+    parent::storeWhereHavingClauseArray();
+    $this->_whereClauses[] = 'exam_cat.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18';
   }
 
   /**
@@ -307,11 +313,14 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       if ($key === 'civicrm_value_registrant_in_1_custom_5') {
         $this->_columnHeaders[$key]['title'] = E::ts('SSN');
       }
+      if ($key === 'civicrm_value_candidate_res_9_custom_80') {
+        $this->_columnHeaders[$key]['title'] = E::ts('Exam Date');
+      }
     }
     $fixedHeaders = [];
     $headerOrder = [
       'civicrm_participant_test_site',
-      'civicrm_event_start_date',
+      'civicrm_value_candidate_res_9_custom_80',
       'civicrm_value_registrant_in_1_custom_5',
       'civicrm_contact_last_name',
       'civicrm_contact_first_name',
