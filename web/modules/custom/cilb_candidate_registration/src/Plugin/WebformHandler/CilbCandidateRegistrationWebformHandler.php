@@ -630,7 +630,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // we use the "invoice" task as its closest to our needs
     $params = [
       'output' => 'email_invoice',
-      'from_email_address' => '"CILB" <info@jmaconsulting.biz>',
+      'from_email_address' => \CRM_Core_BAO_Domain::getFromEmail(),
       'subject' => "CILB Candidate Registration Confirmation",
       'email_comment' => '',
     ];
