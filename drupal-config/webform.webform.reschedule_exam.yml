@@ -267,46 +267,57 @@ access:
     roles:
       - administrator
       - candidate
+      - staff
     users: {  }
     permissions: {  }
   view_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   update_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   delete_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   purge_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   view_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   update_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   delete_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   administer:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   test:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   configuration:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
 handlers:

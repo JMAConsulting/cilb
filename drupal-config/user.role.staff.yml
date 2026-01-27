@@ -8,6 +8,7 @@ dependencies:
     - node.type.page
   module:
     - block_content
+    - cilb_admin_dashboard
     - civicrm
     - config_translation
     - content_translation
@@ -16,46 +17,26 @@ label: Staff
 weight: 5
 is_admin: null
 permissions:
+  - 'access CiviCRM'
   - 'access CiviContribute'
   - 'access CiviEvent'
-  - 'access CiviMail'
-  - 'access CiviReport'
   - 'access Contact Dashboard'
-  - 'access Report Criteria'
   - 'access contact reference fields'
-  - 'access deleted contacts'
   - 'add contact notes'
   - 'add contacts'
-  - 'administer private reports'
-  - 'administer reserved reports'
   - 'create content translations'
-  - 'create event'
-  - 'delete contacts'
   - 'delete content translations'
   - 'delete in CiviContribute'
-  - 'delete in CiviEvent'
-  - 'delete in CiviMail'
-  - 'delete own event templates'
   - 'edit all contacts'
-  - 'edit all event templates'
-  - 'edit all events'
   - 'edit any registration_notification block content'
   - 'edit contributions'
   - 'edit event participants'
-  - 'edit groups'
   - 'edit message templates'
   - 'edit my contact'
-  - 'edit own event templates'
   - 'edit system workflow message templates'
   - 'edit user-driven message templates'
-  - 'force merge duplicate contacts'
-  - 'import contacts'
-  - 'manage event profiles'
-  - 'manage tags'
-  - 'merge duplicate contacts'
   - 'profile listings'
   - 'profile listings and forms'
-  - 'save Report Criteria'
   - 'translate any entity'
   - 'translate article node'
   - 'translate block_content'
@@ -65,8 +46,8 @@ permissions:
   - 'update content translations'
   - 'view all activities'
   - 'view all contacts'
-  - 'view all event templates'
   - 'view all notes'
+  - 'view cilb dashboard'
   - 'view my contact'
-  - 'view own event templates'
+  - 'view my invoices'
   - 'view public CiviMail content'

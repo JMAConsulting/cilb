@@ -4,8 +4,10 @@ status: true
 dependencies:
   config:
     - field.field.node.page.body
+    - field.field.node.page.field_instructions
     - node.type.page
   module:
+    - file
     - text
     - user
 _core:
@@ -22,8 +24,19 @@ content:
     third_party_settings: {  }
     weight: 100
     region: content
+  field_instructions:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 102
+    region: content
   links:
     weight: 101
     region: content
 hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
   langcode: true

@@ -28,22 +28,58 @@ title: 'Request Information Change'
 description: ''
 categories: {  }
 elements: |-
+  request_name_change:
+    '#type': checkbox
+    '#title': 'Request Name change'
   first_name:
     '#type': textfield
     '#title': 'First Name'
+    '#description': "<p><strong>If you are requesting a change to your name, you must upload a copy of your govt. issued ID (Driver's License or other) displaying your photo and full name.</strong></p>"
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="request_name_change"]':
+          checked: true
   middle_name:
     '#type': textfield
     '#title': 'Middle Name'
+    '#states':
+      visible:
+        ':input[name="request_name_change"]':
+          checked: true
   last_name:
     '#type': textfield
     '#title': 'Last Name'
+    '#states':
+      visible:
+        ':input[name="request_name_change"]':
+          checked: true
+    '#required': true
+  request_ssn_change:
+    '#type': checkbox
+    '#title': 'Request SSN change'
   social_security_number_ssn:
     '#type': textfield
     '#title': 'Social Security Number (SSN)'
+    '#description': '<p><strong>If you are requesting a change to your SSN, you must upload a copy of your SSN card displaying the correct number and your full name.</strong></p>'
     '#input_mask': 999-99-9999
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="request_ssn_change"]':
+          checked: true
+  request_birthdate_change:
+    '#type': checkbox
+    '#title': 'Request Birthdate change'
   date_of_birth:
     '#type': date
     '#title': 'Date of Birth'
+    '#description': "<p><strong>If you are requesting a change to your birth date, you must upload a copy of your govt. issued ID (Driver's License or other) displaying your photo, full name, and birth date.</strong></p>"
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="request_birthdate_change"]':
+          checked: true
   civicrm_1_contact_1_fieldset_fieldset:
     '#type': fieldset
     '#title': Candidate
@@ -70,9 +106,17 @@ elements: |-
       '#title': 'Existing Contact'
   civicrm_1_activity_1_activityupload_file_1:
     '#type': managed_file
-    '#title': "Driver's License"
+    '#title': 'Govt. Issued ID Scan'
     '#description': "<p>Upload a picture of your driver's license to confirm your identity.</p>"
     '#required': true
+    '#states':
+      visible:
+        - ':input[name="request_birthdate_change"]':
+            checked: true
+        - or
+        - ':input[name="request_name_change"]':
+            checked: true
+    '#file_placeholder': "<p><strong>Upload scan of Driver's License or other valid Govt. ID</strong></p>"
     '#file_extensions': 'gif jpg jpeg png pdf'
     '#data_type': File
     '#form_key': civicrm_1_activity_1_activityupload_file_1
@@ -92,6 +136,17 @@ elements: |-
             filled: true
     '#states_clear': false
     '#form_key': civicrm_1_activity_1_fieldset_fieldset
+  social_security_card_scan:
+    '#type': webform_image_file
+    '#title': 'Social Security Card Scan'
+    '#description': '<p>Upload a scan of your social security card</p>'
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="request_ssn_change"]':
+          checked: true
+    '#file_placeholder': '<p><strong>Upload scan of Social Security card</strong></p>'
+    '#file_extensions': 'gif jpg jpeg png pdf'
 css: ".webform-submission-request-information-change-add-form .form-submit::before {\r\n  background-image: url('data:image/svg+xml,<svg class=\"bi bi-check\" width=\"1em\" height=\"1em\" viewBox=\"0 0 16 16\" fill=\"black\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z\" clip-rule=\"evenodd\"/></svg>');\r\n}\r\n\r\n.ui-dialog .ui-dialog-titlebar-close,\r\n.ui-dialog {\r\n  border: unset;\r\n}\r\n\r\n.ui-dialog .ui-dialog-titlebar-close::before {\r\n  content: \"x\";\r\n  position: relative;\r\n  top: -12px;\r\n  font-size: 1.8rem;\r\n  padding: 0;\r\n  margin: 0;\r\n  line-height: normal;\r\n}"
 javascript: ''
 settings:
@@ -231,48 +286,57 @@ settings:
 access:
   create:
     roles:
-      - anonymous
       - authenticated
     users: {  }
     permissions: {  }
   view_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   update_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   delete_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   purge_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   view_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   update_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   delete_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   administer:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   test:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   configuration:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
 handlers:
@@ -434,4 +498,41 @@ handlers:
     conditions: {  }
     weight: 0
     settings: {  }
+  email:
+    id: email
+    handler_id: email
+    label: Email
+    notes: ''
+    status: true
+    conditions: {  }
+    weight: 0
+    settings:
+      states:
+        - completed
+      to_mail: flconstruction@proftesting.com
+      to_options: {  }
+      bcc_mail: ''
+      bcc_options: {  }
+      cc_mail: ''
+      cc_options: {  }
+      from_mail: _default
+      from_options: {  }
+      from_name: _default
+      reply_to: ''
+      return_path: ''
+      sender_mail: ''
+      sender_name: ''
+      subject: _default
+      body: _default
+      excluded_elements: {  }
+      ignore_access: false
+      exclude_empty: true
+      exclude_empty_checkbox: false
+      exclude_attachments: false
+      html: true
+      attachments: true
+      twig: false
+      theme_name: ''
+      parameters: {  }
+      debug: false
 variants: {  }

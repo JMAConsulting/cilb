@@ -191,7 +191,7 @@ elements: |-
         civicrm_1_contact_1_contact_birth_date:
           '#type': date
           '#title': 'Birth Date'
-          '#description': '<p><a class="webform-dialog webform-dialog-normal" href="https://cilb.jmaconsulting.biz/form/request-information-change">Request a Date of Birth Change</a></p>'
+          '#description': '<p><a class="webform-dialog webform-dialog-normal" href="/form/request-information-change">Request a Date of Birth Change</a></p>'
           '#description_display': after
           '#required': true
           '#date_date_max': '0 days'
@@ -245,6 +245,10 @@ elements: |-
         '#open': true
         civicrm_1_contact_1_address_street_address:
           '#type': textfield
+          '#title': 'Street Address'
+          '#required': true
+          '#pattern': '[^@]+'
+          '#pattern_error': 'Do not enter your email address here. This should be your street address.'
           '#counter_type': character
           '#counter_maximum': 96
           '#counter_maximum_message': ' '
@@ -252,8 +256,6 @@ elements: |-
             width: 60
           '#form_key': civicrm_1_contact_1_address_street_address
           '#parent': civicrm_1_contact_1_fieldset_fieldset
-          '#title': 'Street Address'
-          '#required': true
         civicrm_1_contact_1_address_supplemental_address_1:
           '#type': textfield
           '#counter_type': character
@@ -878,7 +880,7 @@ elements: |-
       '#required': true
     online_exam_auth:
       '#type': checkbox
-      '#title': 'I acknowledge that Business and Finance, Contract Administration & Project Management computer based examinations will be administered through Pearson VUE testing Centers. I am responsible for scheduling CBT exam dates and paying any related fees directly to Pearson VUE at 888.204.6230'
+      '#title': 'I acknowledge that Business and Finance, Contract Administration & Project Management computer based examinations will be administered through Pearson VUE testing Centers. I am responsible for scheduling CBT exam dates and paying any related fees directly to Pearson VUE at 888.204.6230. Call 7-14 days after registration.'
       '#title_display': inline
       '#required': true
     no_refund_auth:
@@ -1018,7 +1020,7 @@ settings:
   confirmation_type: page
   confirmation_url: ''
   confirmation_title: ''
-  confirmation_message: '<p>You have successfully registered for the Florida State Construction Examination. You should receive two email messages. One will contain your receipt for payment. The other will contain a link that allows you to create a password on this web site to see your registration and payment information, including your receipt. Once logged in, you can also request changes to your registration if necessary.</p>'
+  confirmation_message: '<p>You have successfully registered for the Florida State Construction Examination. You should receive two email messages. One will contain your receipt for payment. The other will contain a link that allows you to create a password on this web site to see your registration and payment information, including your receipt. Once logged in, you can also request changes to your registration if necessary.</p><p><a class="button btn btn-primary" href="https://www.floridaexam.com/civicrm/contribute/invoice?reset=1&amp;id=[webform_submission:contribution-id:1]&amp;cid=[webform_submission:contact-id:1]">Download Receipt</a></p>'
   confirmation_attributes: {  }
   confirmation_back: true
   confirmation_back_label: ''
@@ -1055,43 +1057,53 @@ access:
     users: {  }
     permissions: {  }
   view_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   update_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   delete_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   purge_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   view_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   update_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   delete_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   administer:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   test:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   configuration:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
 handlers:
@@ -1142,6 +1154,7 @@ handlers:
       civicrm_1_contact_1_cg1_custom_4: create_civicrm_webform_element
       civicrm_1_contact_1_cg1_custom_22: 0
       civicrm_1_contact_1_cg1_custom_23: 0
+      civicrm_1_contact_1_cg1_custom_95: 0
       contact_1_number_of_other: '0'
       contact_1_number_of_address: '1'
       civicrm_1_contact_1_address_street_address: create_civicrm_webform_element
@@ -1200,7 +1213,6 @@ handlers:
         disable_unregister: 0
         allow_url_load: 0
         disable_primary_participant: 0
-      membership_1_number_of_membership: '0'
       civicrm_1_contribution_1_contribution_enable_contribution: '1'
       civicrm_1_contribution_1_contribution_contact_id: '1'
       civicrm_1_contribution_1_contribution_total_amount: create_civicrm_webform_element
@@ -1228,8 +1240,8 @@ handlers:
       civicrm_1_contribution_1_contribution_billing_address_state_province_id: create_civicrm_webform_element
       lineitem_1_number_of_lineitem: '0'
       receipt_1_number_of_receipt: '1'
-      receipt_1_number_of_receipt_receipt_from_name: 'Florida Construction Industry Licensing Board (CILB) Exam Registration Portal'
-      receipt_1_number_of_receipt_receipt_from_email: cilb@jmaconsulting.biz
+      receipt_1_number_of_receipt_receipt_from_name: 'Professional Testing'
+      receipt_1_number_of_receipt_receipt_from_email: flconstruction@proftesting.com
       receipt_1_number_of_receipt_cc_receipt: ''
       receipt_1_number_of_receipt_bcc_receipt: ''
       receipt_1_number_of_receipt_pay_later_receipt: 'Mail your check to [] within [].'
@@ -1280,9 +1292,6 @@ handlers:
                 location_type_id: '5'
         activity:
           number_of_activity: '0'
-        membership:
-          1:
-            number_of_membership: '0'
         contribution:
           1:
             currency: USD
@@ -1299,8 +1308,8 @@ handlers:
           number_number_of_lineitem: '0'
         receipt:
           number_number_of_receipt: '1'
-          number_number_of_receipt_receipt_from_name: 'Florida Construction Industry Licensing Board (CILB) Exam Registration Portal'
-          number_number_of_receipt_receipt_from_email: cilb@jmaconsulting.biz
+          number_number_of_receipt_receipt_from_name: 'Professional Testing'
+          number_number_of_receipt_receipt_from_email: flconstruction@proftesting.com
           number_number_of_receipt_cc_receipt: ''
           number_number_of_receipt_bcc_receipt: ''
           number_number_of_receipt_pay_later_receipt: 'Mail your check to [] within [].'

@@ -107,8 +107,6 @@ elements: |
     '#title': 'Seleccione su categoría de examen:'
   category_info:
     '#markup': '<p>Las especialidades de Torre, Demolición y Especialista de Instalaciones Industriales requieren aprobar todas las partes del examen de contratista General: Administración de contrato, Administración de proyecto, Negocios y finanzas.<br><br>Si tiene dudas o preguntas luego de revisar en detalle la información de la licenciatura, deberá revisar la página en línea de <a href="http://www.myfloridalicense.com/dbpr/pro/cilb/cilb_index.shtml" target="window">State of Florida Department of Business and Professional Regulations/Bureau of Education and Testing (DBPR/BET) Website</a>y/o comunicarse con el centro al cliente de DBPR/BET al 850.487.1395</p>'
-  select_exam_parts:
-    '#title': 'Tarifa del examen'
   exam_fee:
     '#title': 'Ingrese la información del examen'
   authorize_credit_card_charge:

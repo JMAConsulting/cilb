@@ -1,7 +1,7 @@
 links:
   -
     title: 'Find/Manage candidates'
-    url: /civicrm/candidate-management
+    url: /civicrm/searchui/contact/search
   -
     title: 'Add new registration'
     url: /form/backoffice-registration/
@@ -17,3 +17,6 @@ links:
   -
     title: 'Update public registration screen text'
     url: /admin/content/block/1/translations
+  -
+    title: 'Operating Manual'
+    url: /operating-manual

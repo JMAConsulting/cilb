@@ -14,6 +14,8 @@ module:
   cilb_reschedule_exam: 0
   cilb_user_management: 0
   civicrm: 0
+  civicrm_blocked_users: 0
+  civicrm_group_roles: 0
   civicrmtheme: 0
   ckeditor5: 0
   comment: 0
@@ -42,11 +44,13 @@ module:
   link: 0
   locale: 0
   mail_login: 0
+  masquerade: 0
   media: 0
   menu_link_content: 0
   menu_per_role: 0
   menu_ui: 0
   mysql: 0
+  nagios: 0
   node: 0
   options: 0
   page_cache: 0

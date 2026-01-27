@@ -630,7 +630,7 @@ settings:
   form_open_message: ''
   form_close_message: ''
   form_exception_message: ''
-  form_previous_submissions: true
+  form_previous_submissions: false
   form_confidential: false
   form_confidential_message: ''
   form_disable_remote_addr: false
@@ -719,8 +719,8 @@ settings:
   draft_pending_multiple_message: ''
   confirmation_type: page
   confirmation_url: ''
-  confirmation_title: ''
-  confirmation_message: ''
+  confirmation_title: 'Contact information updated'
+  confirmation_message: '<p>Your changes have been applied to your profile. You can view them on your <a href="/civicrm/user">My Account page</a>.</p>'
   confirmation_attributes: {  }
   confirmation_back: true
   confirmation_back_label: ''
@@ -757,43 +757,53 @@ access:
     users: {  }
     permissions: {  }
   view_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   update_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   delete_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   purge_any:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   view_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   update_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   delete_own:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   administer:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   test:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
   configuration:
-    roles: {  }
+    roles:
+      - administrator
     users: {  }
     permissions: {  }
 handlers:

@@ -9,6 +9,8 @@ label: Candidate
 weight: 4
 is_admin: null
 permissions:
+  - 'access CiviCRM'
   - 'access Contact Dashboard'
   - 'view my contact'
+  - 'view my invoices'
   - 'view public CiviMail content'

@@ -4,8 +4,10 @@ status: true
 dependencies:
   config:
     - field.field.node.page.body
+    - field.field.node.page.field_instructions
     - node.type.page
   module:
+    - file
     - path
     - text
 _core:
@@ -30,6 +32,13 @@ content:
     weight: 10
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_instructions:
+    type: file_generic
+    weight: 121
+    region: content
+    settings:
+      progress_indicator: throbber
     third_party_settings: {  }
   langcode:
     type: language_select
@@ -72,6 +81,11 @@ content:
     settings:
       size: 60
       placeholder: ''
+    third_party_settings: {  }
+  translation:
+    weight: 10
+    region: content
+    settings: {  }
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete

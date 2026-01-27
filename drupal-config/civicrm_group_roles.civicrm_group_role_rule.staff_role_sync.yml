@@ -1,0 +1,8 @@
+uuid: 825e36c1-2e86-4fd3-b012-c8b21c4ecc0a
+langcode: en
+status: true
+dependencies: {  }
+id: staff_role_sync
+label: 'Staff Role Sync'
+role: staff
+group: '3'
