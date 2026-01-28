@@ -1,0 +1,51 @@
+{htxt id="id-cmsuser_pattern"}
+    <p>{ts}Use CiviCRM Tokens to create CMS user name e.g {ldelim}contact.first_name{rdelim}_{ldelim}contact.last_name{rdelim}_{ldelim}contact.contact_id{rdelim}{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_create_immediately"}
+    <p>{ts}If this setting is enabled then the CMS user is immediately created when contact gets added to Group Or Tag. Example Add Contact to Any Tag through Webform configuration or through CiviCRM UI.{/ts}</p>
+<p>{ts}If this is not enabled then the CiviCRM scheduled job has to be configured which will get executed on a set interval. This job will process set Group and Tag and create users for these contacts present in it. Thereafter Contact gets removed from Group and Tag.{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_user_fields"}
+    <p>{ts}Additional custom fields may be set to required when creating a new user in the CMS. By default, CiviCRM passes the username and email details to the CMS. The section below lists any custom fields used by the CMS when creating new users.{/ts}</p>
+    <p>CiviCRM tokens can be used to complete CMS fields. Use the following pattern:<br/>
+        field_first_name={ldelim}contact.first_name{rdelim}<br/>
+        field_last_name={ldelim}contact.last_name{rdelim}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_group_create"}
+    <p>{ts}CMS users get created for contacts from this group. After the CMS user is created, the contact is removed from the CiviCRM group.{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_group_history"}
+    <p>{ts}Newly created CMS user for contacts from above group, get assigned to this group to keep history of contact created using Group. We also create Activity on user creation.{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_group_reset"}
+    <p>{ts}Contacts in this group have their password reset and are notified by CMS email to reset their password. Can be useful when migrating from a different system.{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_tag_create"}
+    <p>{ts}CMS users get created for contacts from this tag, once a user is created, the same contact gets removed from this tag to avoid calling user create functionality again.{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_tag_history"}
+    <p>{ts}Newly created CMS users for contacts from above tag, get assigned to this tag to keep history of contact created using Tag. We also create Activity on user creation.{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_tag_reset"}
+    <p>{ts}Contacts in this tag have their password reset and are notified by CMS email to reset their password. Can be useful when migrating from a different system.{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_notify"}
+    <p>{ts}An email will be sent to the new user account email notifying them of account creation. The new user also will be able to reset their password. Mail is sent by the CMS and can be configured in the CMS.{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_preferred_language"}
+    <p>{ts}If this setting is enabled, then users created in the CMS will have their user language configured the same as with the contact's preferred language (D8+ only).{/ts}</p>
+{/htxt}
+
+{htxt id="id-cmsuser_login_immediately"}
+    <p>{ts}If this setting is enabled along with 'Create New User Immediately' then users get created and also get auto logged in.{/ts}</p>
+{/htxt}
