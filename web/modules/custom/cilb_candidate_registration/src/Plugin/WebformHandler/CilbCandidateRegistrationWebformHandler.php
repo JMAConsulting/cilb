@@ -504,7 +504,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // need to know the webform contribution ID
     $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
     $existingContributionID = $webformCivicrmPostProcess->getContributionId();
-    $contributionId = $webform_submission_data['existing_payment'] ?? $webformCivicrmPostProcess->getContributionId();
+    $contributionId = $webform_submission_data['existing_payment'] ?? $existingContributionID;
     if (!empty($webform_submission_data['existing_payment']) &&
      $existingContributionID &&
      ($existingContributionID != $webform_submission_data['existing_payment']) &&
