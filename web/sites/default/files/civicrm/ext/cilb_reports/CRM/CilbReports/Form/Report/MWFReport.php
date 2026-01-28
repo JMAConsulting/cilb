@@ -260,17 +260,14 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
    */
   public function selectClause(&$tableName, $tableKey, &$fieldName, &$field) {
     if ($tableName === 'civicrm_value_cilb_candidat_7') {
-      $field['dbAlias'] = '1';
+      if ($fieldName === 'custom_25') {
+        $field['dbAlias'] = 'exam_cat.dbpr_code_3';
+      }
+      else {
+        $field['dbAlias'] = '0';
+      }
     }
     return parent::selectClause($tableName, $tableKey, $fieldName, $field);
-  }
-
-  /**
-   * Build where clause.
-   */
-  public function storeWhereHavingClauseArray() {
-    parent::storeWhereHavingClauseArray();
-    //$this->_whereClauses[] = " ( ( value_exam_details_5_civireport.exam_part_9 = 'BF' AND exam_cat2.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 ) OR ( exam_cat.dbpr_code_3 = value_cilb_candidat_7_civireport.class_code_18 ) )";
   }
 
   /**
@@ -532,12 +529,12 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $entryFound = TRUE;
       }
 
-      if (!empty($row['dbpr_code_3'])) {
-        $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_25'] = $row['dbpr_code_3'];
-        $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_31'] = CRM_Core_DAO::singleValueQuery("SELECT entity_id_imported__31 FROM civicrm_value_cilb_candidat_7 WHERE entity_id = %1 AND class_code_18 = %2", [
+      if (!empty($row['civicrm_value_cilb_candidat_7_custom_25'])) {
+        $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_31'] = CRM_Core_DAO::singleValueQuery("SELECT entity_id_imported__31 FROM civicrm_value_cilb_candidat_7 WHERE entity_id = %1 AND class_code_18 = %2 LIMIT 1", [
           1 => [$row['civicrm_contact_id'], 'Positive'],
-          2 => [$row['dbpr_code_3'], 'String'],
+          2 => [$row['civicrm_value_cilb_candidat_7_custom_25'], 'String'],
         ]);
+        $entryFound = TRUE;
       }
 
       if (!$entryFound) {
