@@ -503,18 +503,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // when registering events, we add event payments to the webform contribution
     // need to know the webform contribution ID
     $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
-    $existingContributionID = $webformCivicrmPostProcess->getContributionId();
-    $contributionId = $webform_submission_data['existing_payment'] ?? $existingContributionID;
-    if (!empty($webform_submission_data['existing_payment']) &&
-     $existingContributionID &&
-     ($existingContributionID != $webform_submission_data['existing_payment']) &&
-     \Civi\Api4\Contribution::get(FALSE)
-      ->addSelect('contribution_status_id:name')
-      ->addWhere('id', '=', $existingContributionID)
-      ->execute()->first()['contribution_status_id:name'] == 'Pending'
-    ) {
-      \Civi\Api4\Contribution::delete(FALSE)->addWhere('id', '=', $existingContributionID)->execute();
-    }
+    $contributionId = $webform_submission_data['existing_payment'] ?? $webformCivicrmPostProcess->getContributionId();
     $webform_submission->setData(['contribution_id' => $contributionId]);
     if (empty($webform_submission_data['existing_payment'])) {
     $contribution = \Civi\Api4\Contribution::get(FALSE)
