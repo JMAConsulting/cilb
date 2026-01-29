@@ -21,8 +21,8 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         'fields' => [
           'sort_name' => [
             'title' => E::ts('Contact Name'),
-            'required' => TRUE,
-            'default' => TRUE,
+            'required' => FALSE,
+            'default' => FALSE,
             'no_repeat' => TRUE,
           ],
           'id' => [
@@ -91,6 +91,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           'id' => [
             'title' => E::ts('Contribution ID'),
             'required' => TRUE,
+            'no_display' => TRUE,
           ],
           'receive_date' => [
             'title' => E::ts('Trans Date'),
@@ -337,6 +338,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_address_postal_code',
       'civicrm_phone_phone_home',
       'civicrm_phone_phone_work',
+      'civicrm_contact_birth_date',
       'civicrm_value_candidate_res_9_custom_89',
       'civicrm_contact_gender',
       'civicrm_contact_race',
@@ -345,6 +347,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_contribution_trxn_id',
       'civicrm_event_event_type_id',
       'civicrm_value_cilb_candidat_7_custom_25',
+      'civicrm_contact_external_identifier',
       'civicrm_value_cilb_candidat_7_custom_31',
       'civicrm_participant_change_type',
       'civicrm_participant_deleted',
@@ -458,10 +461,10 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           if (!empty($part3)) {
             continue;
           }
-          if (!empty($part2)) {
+          elseif (!empty($part2)) {
             $part3 = 'PM(CBT)';
           }
-          if (!empty($part1)) {
+          elseif (!empty($part1)) {
             $part2 = 'PM(CBT)';
           }
           else {
