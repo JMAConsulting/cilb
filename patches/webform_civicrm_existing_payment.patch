@@ -1,0 +1,13 @@
+diff --git a/web/modules/contrib/webform_civicrm/src/WebformCivicrmPostProcess.php b/web/modules/contrib/webform_civicrm/src/WebformCivicrmPostProcess.php
+index ca3993a8c..1d3ddece0 100644
+--- a/web/modules/contrib/webform_civicrm/src/WebformCivicrmPostProcess.php
++++ b/web/modules/contrib/webform_civicrm/src/WebformCivicrmPostProcess.php
+@@ -254,7 +254,7 @@ public function preSave(WebformSubmissionInterface $webform_submission) {
+     }
+ 
+     // Save a non-live transaction
+-    if ($this->totalContribution && empty($this->ent['contribution'][1]['id'])) {
++    if ($this->totalContribution && empty($this->ent['contribution'][1]['id']) && empty($this->submission->getData()['existing_payment'])) {
+       $this->createDeferredPayment();
+     }
+ 

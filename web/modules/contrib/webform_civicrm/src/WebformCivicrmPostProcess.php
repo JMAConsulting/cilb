@@ -254,7 +254,7 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
     }
 
     // Save a non-live transaction
-    if ($this->totalContribution && empty($this->ent['contribution'][1]['id'])) {
+    if ($this->totalContribution && empty($this->ent['contribution'][1]['id']) && empty($this->submission->getData()['existing_payment'])) {
       $this->createDeferredPayment();
     }
 
