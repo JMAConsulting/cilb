@@ -3,7 +3,7 @@
         'name' => 'drupal/recommended-project',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '03386f70af9dd889fced7d1911050ce0d42b6231',
+        'reference' => '3ba43d3503de18356255534c3a4ea9118381adef',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -622,6 +622,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'drupal/mailcontrol' => array(
+            'pretty_version' => '1.6.0',
+            'version' => '1.6.0.0',
+            'reference' => '8.x-1.6',
+            'type' => 'drupal-module',
+            'install_path' => __DIR__ . '/../../web/modules/contrib/mailcontrol',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'drupal/masquerade' => array(
             'pretty_version' => '2.0.0',
             'version' => '2.0.0.0',
@@ -652,7 +661,7 @@
         'drupal/recommended-project' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '03386f70af9dd889fced7d1911050ce0d42b6231',
+            'reference' => '3ba43d3503de18356255534c3a4ea9118381adef',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
