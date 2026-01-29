@@ -162,7 +162,7 @@ function _cms_user_create($setDefaults, $isGroup = TRUE,
         try {
           // create CMS user
           $createParams = [
-            'cms_name' => $cms_name, // generated cms name using civicrm token
+            'cms_name' => str_replace(' ', '', $cms_name), // generated cms name using civicrm token
             'contactID' => $contactID,
             'notify' => $setDefaults['cmsuser_notify'],
           ];
@@ -193,8 +193,8 @@ function _cms_user_create($setDefaults, $isGroup = TRUE,
             $groupContactDeleted[] = $contactID;
           }
           $check_params = [
-            'name' => $createParams['cms_name'],
-            'mail' => $createParams['email'],
+            'name' => trim($createParams['cms_name']),
+            'mail' => trim($createParams['email']),
           ];
           if (!empty($createParams['email'])) {
             $config->userSystem->checkUserNameEmailExists($check_params, $errors);
@@ -505,12 +505,17 @@ function _get_group_contact($group_id) {
     'sequential' => 1,
     'return' => ["contact_id"],
     'group_id' => $group_id,
+    'options' => ['limit' => 0]
   ]);
-  $groupContacts = [];
+  $dao = CRM_Core_DAO::executeQuery("SELECT c.contact_id FROM civicrm_group_contact c LEFT JOIN civicrm_uf_match u ON u.contact_id = c.contact_id WHERE c.group_id = 8 AND u.id IS NULL");
+  while ($dao->fetch()) {
+	  $groupContacts[] = $dao->contact_id;
+  } 
+  /*$groupContacts = [];
   // make list of all contact ids
   foreach ($groupContactResult['values'] as $entity) {
     $groupContacts[] = $entity['contact_id'];
-  }
+  }*/
   return $groupContacts;
 }
 
