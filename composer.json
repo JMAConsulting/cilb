@@ -32,6 +32,7 @@
         "drupal/entity_print": "^2.14",
         "drupal/lang_dropdown": "^2.1",
         "drupal/mail_login": "^4.0",
+        "drupal/mailcontrol": "^1.6",
         "drupal/masquerade": "^2.0",
         "drupal/menu_per_role": "^1.8",
         "drupal/nagios": "^1.25",
