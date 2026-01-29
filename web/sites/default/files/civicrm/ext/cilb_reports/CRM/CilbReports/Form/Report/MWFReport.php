@@ -272,6 +272,18 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
   }
 
   /**
+   * Store Where clauses into an array.
+   *
+   * Breaking out this step makes over-riding more flexible as the clauses can be used in constructing a
+   * temp table that may not be part of the final where clause or added
+   * in other functions
+   */
+  public function storeWhereHavingClauseArray() {
+    parent::storeWhereHavingClauseArray();
+    $this->_whereClauses[] = " {$this->_aliases['civicrm_contact']}.is_deleted = 0 ";
+  }
+
+  /**
    * Add field specific where alterations.
    *
    * This can be overridden in reports for special treatment of a field
