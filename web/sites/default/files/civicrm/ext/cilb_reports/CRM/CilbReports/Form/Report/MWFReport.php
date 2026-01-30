@@ -102,6 +102,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'required' => TRUE,
           ],
         ],
+        'group_bys' => [
+          'id' => [
+            'title' => E::ts('Contribution ID'),
+          ],
+        ],
       ],
       'civicrm_participant' => [
         'dao' => 'CRM_Event_BAO_Participant',
@@ -170,6 +175,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           'event_type_id' => [
             'title' => E::ts('Category'),
             'required' => TRUE,
+          ],
+        ],
+        'group_bys' => [
+          'event_type_id' => [
+            'title' => E::ts('Category'),
           ],
         ],
         'grouping' => 'participant-fields',
@@ -333,7 +343,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     $fixedHeaders = [];
     $headerOrder = [
       'civicrm_participant_test_site',
-      'civicrm_value_candidate_res_9_custom_80',
+      //'civicrm_value_candidate_res_9_custom_80',
       'civicrm_value_registrant_in_1_custom_5',
       'civicrm_contact_last_name',
       'civicrm_contact_first_name',
