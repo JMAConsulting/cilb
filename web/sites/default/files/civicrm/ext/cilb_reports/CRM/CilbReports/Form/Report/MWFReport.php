@@ -164,7 +164,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           'test_site' => [
             'title' => E::ts('Test Site'),
             'required' => TRUE,
-            'dbAlias' => 'lba.name',
+            'dbAlias' => 'lba.city',
           ],
         ],
         'grouping' => 'participant-fields',
@@ -386,6 +386,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_value_registrant_in_1_custom_2',
     ];
     $originalColumnHeaders = $this->_columnHeaders;
+    unset($originalColumnHeaders['civicrm_value_candidate_res_9_custom_96']);
     foreach ($headerOrder as $header) {
       $fixedHeaders[$header] = $originalColumnHeaders[$header];
       unset($originalColumnHeaders[$header]);
@@ -414,8 +415,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         }
       }
 
-      if ($row['civicrm_event_event_type_id'] !== CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
-        $rows[$rowNum]['civicrm_event_start_date'] = '';
+      if ($row['civicrm_event_event_type_id'] != CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
+        $rows[$rowNum]['civicrm_event_start_date'] = $rows[$rowNum]['civicrm_participant_test_site'] = '';
+      }
+      else {
+        $rows[$rowNum]['civicrm_event_start_date'] = date('m/d/Y', strtotime($row['civicrm_event_start_date']));
       }
 
       $examPartCustomFieldsDetails = CustomField::get(FALSE)
@@ -528,10 +532,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $entryFound = TRUE;
       }
 
-      if (array_key_exists('civicrm_value_registrant_in_1_custom_2', $row)) {
-        $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'True' : 'False');
-        $entryFound = TRUE;
-      }
+      $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'TRUE' : 'FALSE');
       $change_columns = [
         'civicrm_participant_exam_date_change',
         'civicrm_participant_exam_part_change',
