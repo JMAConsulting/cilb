@@ -176,6 +176,10 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'title' => E::ts('Category'),
             'required' => TRUE,
           ],
+          'start_date' => [
+            'title' => E::ts('Exam Date'),
+            'required' => TRUE,
+          ],
         ],
         'group_bys' => [
           'event_type_id' => [
@@ -344,6 +348,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     $headerOrder = [
       'civicrm_participant_test_site',
       //'civicrm_value_candidate_res_9_custom_80',
+      'civicrm_event_start_date',
       'civicrm_value_registrant_in_1_custom_5',
       'civicrm_contact_last_name',
       'civicrm_contact_first_name',
@@ -407,6 +412,10 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             $checkList[$colName][] = $colVal;
           }
         }
+      }
+
+      if ($row['civicrm_event_event_type_id'] !== CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
+        $rows[$rowNum]['civicrm_event_start_date'] = '';
       }
 
       $examPartCustomFieldsDetails = CustomField::get(FALSE)
