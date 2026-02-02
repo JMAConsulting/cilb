@@ -829,8 +829,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
       $cleanInput = $this->normalizeSSN($ssn);
       $sql = "SELECT entity_id FROM civicrm_value_registrant_in_1
-        WHERE REGEXP_REPLACE(ssn_5, '[^0-9]', '') = %1 LIMIT 1";
-      $matchingContact = CRM_Core_DAO::singleValueQuery($sql, [1 => [$cleanInput, 'String']]);
+	WHERE REGEXP_REPLACE(ssn_5, '[^0-9]', '') = %1 LIMIT 1";
+      $matchingContact = \CRM_Core_DAO::singleValueQuery($sql, [1 => [$cleanInput, 'String']]);
+
 
       if (!$matchingContact) {
         // => the user can continue as anonymous
