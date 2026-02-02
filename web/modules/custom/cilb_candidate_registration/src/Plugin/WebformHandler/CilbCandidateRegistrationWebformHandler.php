@@ -811,6 +811,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     }
   }
 
+  private function normalizeSSN($ssn) {
+    return preg_replace('/\D/', '', $ssn);
+  }
+
   /**
    * Validate no user shares the same DOB and SSN.
    */
@@ -823,14 +827,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
       $this->civicrm->initialize();
 
-      // note we use ->first - presuming that SSNs
-      // should be unique for untrashed contacts
-      $matchingContact = \Civi\Api4\Contact::get(FALSE)
-        ->addSelect('id')
-        ->addWhere('Registrant_Info.SSN', '=', $ssn)
-        ->addWhere('is_deleted', '=', FALSE)
-        ->execute()
-        ->first();
+      $cleanInput = $this->normalizeSSN($ssn);
+      $sql = "SELECT entity_id FROM civicrm_value_registrant_in_1
+        WHERE REGEXP_REPLACE(ssn_5, '[^0-9]', '') = %1 LIMIT 1";
+      $matchingContact = CRM_Core_DAO::singleValueQuery($sql, [1 => [$cleanInput, 'String']]);
 
       if (!$matchingContact) {
         // => the user can continue as anonymous
@@ -843,7 +843,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       // if we have matching contacts, we need to check
       // if they have a user record or not
       $matchingUser = \Civi\Api4\UFMatch::get(FALSE)
-        ->addWhere('contact_id', '=', $matchingContact['id'])
+        ->addWhere('contact_id', '=', $matchingContact)
         ->execute()
         ->first();
 
@@ -859,7 +859,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           ]);
           $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
           // given we are directing the user to the admin, leave a log message to help the admin diagnose
-          $logMessage = "New user registration error: a site visitor tried to register with SSN {$ssn}, but this matched existing CiviCRM Contact {$matchingContact['id']}, which is linked to Drupal User ID {$matchingUser['uf_id']}, but the Drupal User is missing or blocked. The visitor was directed to contact the site admin.";
+          $logMessage = "New user registration error: a site visitor tried to register with SSN {$ssn}, but this matched existing CiviCRM Contact {$matchingContact}, which is linked to Drupal User ID {$matchingUser['uf_id']}, but the Drupal User is missing or blocked. The visitor was directed to contact the site admin.";
           \Drupal::logger('candidate_reg')->notice($logMessage);
           return;
         }
