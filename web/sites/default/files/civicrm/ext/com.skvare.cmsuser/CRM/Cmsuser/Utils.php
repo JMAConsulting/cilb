@@ -65,7 +65,7 @@ class CRM_Cmsuser_Utils {
 
     /** @var \Drupal\user\Entity\User $account */
     $account = \Drupal::entityTypeManager()->getStorage('user')->create();
-    $account->setUsername($params['cms_name'])->setEmail(trim($params[$mail]));
+    $account->setUsername($params['cms_name'])->setEmail(trim(str_replace(' ', '', $params[$mail])));
 
     // Check for preferred language
     if (array_key_exists('preferred_langcode', $params) && $params['preferred_langcode']) {

@@ -507,7 +507,7 @@ function _get_group_contact($group_id) {
     'group_id' => $group_id,
     'options' => ['limit' => 0]
   ]);
-  $dao = CRM_Core_DAO::executeQuery("SELECT c.contact_id FROM civicrm_group_contact c LEFT JOIN civicrm_uf_match u ON u.contact_id = c.contact_id WHERE c.group_id = 8 AND u.id IS NULL");
+  $dao = CRM_Core_DAO::executeQuery("SELECT c.contact_id FROM civicrm_group_contact c LEFT JOIN civicrm_uf_match u ON u.contact_id = c.contact_id WHERE c.group_id = 8 AND u.id IS NULL AND c.contact_id NOT IN (355480,355104,354886,354371,353749,352031,350453,349856,349359,349217,348767,348575,347301,346628,346428,344617,344505,341714,341440,341408,339920,339749,336268,335687,335067,334806,334280,334264,334176,334139,334126,334029,333880)");
   while ($dao->fetch()) {
 	  $groupContacts[] = $dao->contact_id;
   } 
