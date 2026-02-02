@@ -415,12 +415,19 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         }
       }
 
+      $event_type_id = $row['civicrm_event_event_type_id'];
+      $exam_code = $row['civicrm_value_cilb_candidat_7_custom_25'];
       if ($row['civicrm_event_event_type_id'] == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Business and Finance') ||
         $row['civicrm_event_event_type_id'] == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Pool & Spa Servicing Business and Finance')) {
-        $rows[$rowNum]['civicrm_event_type_id'] = $row['civicrm_value_candidate_res_9_custom_96'];
+        $event_type_id = $row['civicrm_value_candidate_res_9_custom_96'];
+        $code_column_name = CRM_Core_DAO::singleValueQuery('SELECT column_name FROM civicrm_custom_field WHERE id = 16');
+        $code_table_name = CRM_Core_DAO::singleValueQuery("SELECT table_name FROM civicrm_custom_group WHERE id = 6");
+        $exam_code = CRM_Core_DAO::singleValueQuery("SELECT cv.{$code_column_name} FROM {$code_table_name} AS cv INNER JOIN civicrm_option_value ov ON ov.id = cv.entity_id WHERE ov.value = %1 and ov.option_group_id = 15", [
+          1 => [$event_type_id, 'Integer'],
+        ]);
       }
 
-      if ($rows[$rowNum]['civicrm_event_event_type_id'] != CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
+      if ($event_type_id != CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
         $rows[$rowNum]['civicrm_event_start_date'] = $rows[$rowNum]['civicrm_participant_test_site'] = '';
       }
       else {
@@ -532,8 +539,9 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $entryFound = TRUE;
       }
 
-      if (array_key_exists('civicrm_event_event_type_id', $rows[$rowNum]) && $rows[$rowNum]['civicrm_event_event_type_id']) {
-        $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$rows[$rowNum]['civicrm_event_event_type_id']];
+      if (!empty($event_type_id)) {
+        $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$event_type_id];
+        $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_25'] = $exam_code;
         $entryFound = TRUE;
       }
 
@@ -569,10 +577,10 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $entryFound = TRUE;
       }
 
-      if (!empty($row['civicrm_value_cilb_candidat_7_custom_25'])) {
+      if (!empty($exam_code)) {
         $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_31'] = CRM_Core_DAO::singleValueQuery("SELECT entity_id_imported__31 FROM civicrm_value_cilb_candidat_7 WHERE entity_id = %1 AND class_code_18 = %2 LIMIT 1", [
           1 => [$row['civicrm_contact_id'], 'Positive'],
-          2 => [$row['civicrm_value_cilb_candidat_7_custom_25'], 'String'],
+          2 => [$exam_code, 'String'],
         ]);
         $entryFound = TRUE;
       }
