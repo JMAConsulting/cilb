@@ -122,7 +122,7 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
   private function processPearsonVueFiles($directory): array {
     $processed = [];
     foreach ($this->files['scores'] as $files) {
-      if (!is_array($files) {
+      if (!is_array($files)) {
         continue;
       }
       foreach ($files as $type => $fileName) {

@@ -415,7 +415,12 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         }
       }
 
-      if ($row['civicrm_event_event_type_id'] != CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
+      if ($row['civicrm_event_event_type_id'] == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Business and Finance') ||
+        $row['civicrm_event_event_type_id'] == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Pool & Spa Servicing Business and Finance')) {
+        $rows[$rowNum]['civicrm_event_type_id'] = $row['civicrm_value_candidate_res_9_custom_96'];
+      }
+
+      if ($rows[$rowNum]['civicrm_event_event_type_id'] != CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
         $rows[$rowNum]['civicrm_event_start_date'] = $rows[$rowNum]['civicrm_participant_test_site'] = '';
       }
       else {
@@ -527,8 +532,8 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $entryFound = TRUE;
       }
 
-      if (array_key_exists('civicrm_event_event_type_id', $row) && $rows[$rowNum]['civicrm_event_event_type_id']) {
-        $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$row['civicrm_event_event_type_id']];
+      if (array_key_exists('civicrm_event_event_type_id', $rows[$rowNum]) && $rows[$rowNum]['civicrm_event_event_type_id']) {
+        $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$rows[$rowNum]['civicrm_event_event_type_id']];
         $entryFound = TRUE;
       }
 
