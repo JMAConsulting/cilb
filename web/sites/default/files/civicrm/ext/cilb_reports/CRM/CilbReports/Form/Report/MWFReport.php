@@ -417,8 +417,8 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
 
       $event_type_id = $row['civicrm_event_event_type_id'];
       $exam_code = $row['civicrm_value_cilb_candidat_7_custom_25'];
-      if ($event_type_id == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Business and Finance') ||
-        $event_type_id == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Pool & Spa Servicing Business and Finance')) {
+      if (!empty($row['civicrm_value_candidate_res_9_custom_96']) && ($event_type_id == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Business and Finance') ||
+        $event_type_id == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Pool & Spa Servicing Business and Finance'))) {
         $event_type_id = trim($row['civicrm_value_candidate_res_9_custom_96'], CRM_Core_DAO::VALUE_SEPARATOR);
         $code_column_name = CRM_Core_DAO::singleValueQuery('SELECT column_name FROM civicrm_custom_field WHERE id = 16');
         $code_table_name = CRM_Core_DAO::singleValueQuery("SELECT table_name FROM civicrm_custom_group WHERE id = 6");
