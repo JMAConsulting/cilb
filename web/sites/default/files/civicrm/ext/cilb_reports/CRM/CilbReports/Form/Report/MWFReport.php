@@ -227,13 +227,16 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     $this->_temporaryTableName = $this->createChangeTemporaryTable();
     $this->_from = NULL;
     $options = \Civi::entity('Phone')->getOptions('location_type_id');
-    $workLocationId = $homeLocationId = 0;
+    $workLocationId = $homeLocationId = $mainLocationId = 0;
     foreach ($options as $option) {
       if ($option['name'] == 'Work') {
         $workLocationId = $option['id'];
       }
       elseif ($option['name'] == 'Home') {
         $homeLocationId = $option['id'];
+      }
+      elseif ($option['name'] == 'Main') {
+        $mainLocationId = $option['id'];
       }
     }
     $participantTransactionIDField = CustomField::get(FALSE)
@@ -255,7 +258,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
                LEFT JOIN civicrm_loc_block clb ON clb.id = {$this->_aliases['civicrm_event']}.loc_block_id
                LEFT JOIN civicrm_address lba ON lba.id = clb.address_id
                LEFT JOIN civicrm_phone AS home ON home.contact_id = {$this->_aliases['civicrm_contact']}.id AND home.location_type_id = {$homeLocationId}
-               LEFT JOIN civicrm_phone AS work ON work.contact_id = {$this->_aliases['civicrm_contact']}.id AND work.location_type_id = {$workLocationId}
+               LEFT JOIN civicrm_phone AS work ON work.contact_id = {$this->_aliases['civicrm_contact']}.id AND work.location_type_id IN ({$workLocationId}, {$mainLocationId})
                ";
 
 
