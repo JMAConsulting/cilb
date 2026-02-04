@@ -42,6 +42,11 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     throw new AccessDeniedHttpException('You do not have permission to access this page.');
   }
   if ($page->getVar('_name') === 'CRM_Contact_Page_View_UserDashBoard') {
+    Civi::service('angularjs.loader')->addModules('afsearchYourExamS');
+    $html = '<crm-angular-js modules="afsearchYourExamS"><form id="bootstrap-theme"><afsearch-your-exam-s></afsearch-your-exam-s></form></crm-angular-js>';
+    CRM_Core_Region::instance('crm-event-userdashboard-post')->add([
+     'markup' => $html, 'weight' => 10
+    ]);
     if (in_array('candidate', \Drupal::currentUser()->getRoles())) {
     CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
@@ -56,7 +61,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     ]);
     CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
-        $('.crm-dashboard-assignedActivities table').hide();
+        $('.crm-dashboard-assignedActivities table, .crm-dashboard-civievent table').hide();
       });"
     );
 
