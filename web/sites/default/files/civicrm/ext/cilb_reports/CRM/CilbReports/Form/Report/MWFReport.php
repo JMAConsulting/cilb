@@ -46,16 +46,17 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'required' => TRUE,
           ],
           'suffix_id' => [
-            'title' => E::ts('Suffix'),
+	    'title' => E::ts('Suffix'),
+            'dbAlias' => 'suffix_ov.label',
             'required' => TRUE,
           ],
           'middle_name' => [
             'title' => E::ts('Middle Name'),
             'required' => TRUE,
           ],
-          'gender' => [
+          'gender_id' => [
             'title' => E::ts('Gender'),
-            'dbAlias' => 'temp.id',
+            'dbAlias' => 'gender_ov.label',
             'required' => TRUE,
           ],
           'race' => [
@@ -259,6 +260,8 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
                LEFT JOIN civicrm_address lba ON lba.id = clb.address_id
                LEFT JOIN civicrm_phone AS home ON home.contact_id = {$this->_aliases['civicrm_contact']}.id AND home.location_type_id = {$homeLocationId}
                LEFT JOIN civicrm_phone AS work ON work.contact_id = {$this->_aliases['civicrm_contact']}.id AND work.location_type_id IN ({$workLocationId}, {$mainLocationId})
+               LEFT JOIN civicrm_option_value suffix_ov ON suffix_ov.value = {$this->_aliases['civicrm_contact']}.suffix_id AND suffix_ov.option_group_id = 7
+               LEFT JOIN civicrm_option_value gender_ov ON gender_ov.value = {$this->_aliases['civicrm_contact']}.gender_id AND gender_ov.option_group_id = 3
                ";
 
 
@@ -370,8 +373,9 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_phone_phone_work',
       'civicrm_contact_birth_date',
       'civicrm_value_candidate_res_9_custom_89',
-      'civicrm_contact_gender',
-      'civicrm_contact_race',
+      'civicrm_contact_gender_id',
+      //'civicrm_contact_race',
+      'civicrm_value_registrant_in_1_custom_97',
       'civicrm_email_email',
       'civicrm_contribution_receive_date',
       'civicrm_contribution_trxn_id',
@@ -526,7 +530,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       $rows[$rowNum]['civicrm_participant_part1'] = $part1;
       $rows[$rowNum]['civicrm_participant_part2'] = $part2;
       $rows[$rowNum]['civicrm_participant_part3'] = $part3;
-      $rows[$rowNum]['civicrm_contact_gender'] = $rows[$rowNum]['civicrm_contact_race'] = '';
+      //$rows[$rowNum]['civicrm_contact_gender'] = $rows[$rowNum]['civicrm_contact_race'] = '';
       $entryFound = TRUE;
 
       if (array_key_exists('civicrm_contact_sort_name', $row) &&
