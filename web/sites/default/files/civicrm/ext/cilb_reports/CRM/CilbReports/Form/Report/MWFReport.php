@@ -431,13 +431,6 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         ]);
       }
 
-      if ($event_type_id != CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
-        $rows[$rowNum]['civicrm_event_start_date'] = $rows[$rowNum]['civicrm_participant_test_site'] = '';
-      }
-      else {
-        $rows[$rowNum]['civicrm_event_start_date'] = date('m/d/Y', strtotime($row['civicrm_event_start_date']));
-      }
-
       $examPartCustomFieldsDetails = CustomField::get(FALSE)
         ->addSelect('custom_group_id.table_name', 'column_name')
         ->addWhere('name', '=', 'Exam_Part')
@@ -525,6 +518,19 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       $rows[$rowNum]['civicrm_participant_part1'] = $part1;
       $rows[$rowNum]['civicrm_participant_part2'] = $part2;
       $rows[$rowNum]['civicrm_participant_part3'] = $part3;
+      // If the Event type is not Plumbing
+      if ($event_type_id != CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
+        $rows[$rowNum]['civicrm_event_start_date'] = $rows[$rowNum]['civicrm_participant_test_site'] = '';
+      }
+      else {
+        // If we do not have a trade knowledge plumbing exam blank out the fields
+        if (!($part1 === 'TK' || $part2 === 'TK')) {
+          $rows[$rowNum]['civicrm_event_start_date'] = $rows[$rowNum]['civicrm_participant_test_site'] = '';
+        }
+        else {
+          $rows[$rowNum]['civicrm_event_start_date'] = date('m/d/Y', strtotime($row['civicrm_event_start_date']));
+        }
+      }
       //$rows[$rowNum]['civicrm_contact_gender'] = $rows[$rowNum]['civicrm_contact_race'] = '';
       $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'TRUE' : 'FALSE');
       $entryFound = TRUE;
