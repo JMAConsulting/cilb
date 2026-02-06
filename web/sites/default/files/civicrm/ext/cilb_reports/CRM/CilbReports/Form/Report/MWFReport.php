@@ -59,11 +59,6 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'dbAlias' => 'gender_ov.label',
             'required' => TRUE,
           ],
-          'race' => [
-            'title' => E::ts('Race'),
-            'dbAlias' => 'temp.id',
-            'required' => TRUE,
-          ],
           'birth_date' => [
             'title' => E::ts('Applicant BirthDate'),
             'required' => TRUE,
@@ -394,6 +389,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     ];
     $originalColumnHeaders = $this->_columnHeaders;
     unset($originalColumnHeaders['civicrm_value_candidate_res_9_custom_96']);
+    unset($originalColumnHeaders['civicrm_contact_race']);
     foreach ($headerOrder as $header) {
       $fixedHeaders[$header] = $originalColumnHeaders[$header];
       unset($originalColumnHeaders[$header]);
@@ -531,6 +527,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       $rows[$rowNum]['civicrm_participant_part2'] = $part2;
       $rows[$rowNum]['civicrm_participant_part3'] = $part3;
       //$rows[$rowNum]['civicrm_contact_gender'] = $rows[$rowNum]['civicrm_contact_race'] = '';
+      $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'TRUE' : 'FALSE');
       $entryFound = TRUE;
 
       if (array_key_exists('civicrm_contact_sort_name', $row) &&
@@ -552,7 +549,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $entryFound = TRUE;
       }
 
-      $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'TRUE' : 'FALSE');
+
       $change_columns = [
         'civicrm_participant_exam_date_change',
         'civicrm_participant_exam_part_change',
