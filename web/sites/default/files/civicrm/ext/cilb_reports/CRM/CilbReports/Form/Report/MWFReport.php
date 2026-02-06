@@ -515,7 +515,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         }
       }
 
-      if (!emtpy($this->_formValues['custom_30_value']) && $this->_formValues['custom_30_value'][0] === 'paper' && $this->_formValues['custom_30_op'] === 'in') {
+      if (!empty($this->_formValues['custom_30_value']) && $this->_formValues['custom_30_value'][0] === 'paper' && $this->_formValues['custom_30_op'] === 'in') {
         if (str_contains($part1, 'CBT')) {
           $part1 = '';
         }
