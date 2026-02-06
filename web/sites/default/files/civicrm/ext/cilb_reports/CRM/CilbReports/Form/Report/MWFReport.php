@@ -515,6 +515,26 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         }
       }
 
+      if (!emtpy($this->_formValues['custom_30_value']) && $this->_formValues['custom_30_value'][0] === 'paper' && $this->_formValues['custom_30_op'] === 'in') {
+        if (str_contains($part1, 'CBT')) {
+          $part1 = '';
+        }
+        if (str_contains($part2, 'CBT')) {
+          $part2 = '';
+        }
+        if (str_contains($part3, 'CBT')) {
+          $part3 = '';
+        }
+      }
+      elseif (!empty($this->_formValues['custom_30_value']) && $this->_formValues['custom_30_value'][0] === 'paper' && $this->_formValues['custom_30_op'] === 'notin') {
+        if ($part1 === 'TK') {
+          $part1 = '';
+        }
+        if ($part1 === 'TK') {
+          $part2 = '';
+        }
+      }
+
       $rows[$rowNum]['civicrm_participant_part1'] = $part1;
       $rows[$rowNum]['civicrm_participant_part2'] = $part2;
       $rows[$rowNum]['civicrm_participant_part3'] = $part3;
