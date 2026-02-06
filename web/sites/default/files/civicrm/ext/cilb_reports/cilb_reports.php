@@ -99,12 +99,7 @@ function cilb_reports_civicrm_alterCustomFieldDisplayValue(&$displayValue, $valu
 
   }
   if ($fieldInfo['id'] == '2') {
-    if (empty($value)) {
-      $displayValue = 'FALSE';
-    }
-    else {
-      $displayValue = 'TRUE';
-    }
+    $displayValue = (string) $value;
   }
 }
 
