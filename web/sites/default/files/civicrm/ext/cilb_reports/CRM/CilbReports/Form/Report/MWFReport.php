@@ -328,6 +328,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     foreach (array_keys($this->_columnHeaders) as $key) {
       if ($key === 'civicrm_value_registrant_in_1_custom_2') {
         $this->_columnHeaders[$key]['title'] = E::ts('Exempt');
+        $this->_columnHeaders[$key]['type'] = CRM_Utils_Type::T_STRING;
       }
       if ($key === 'civicrm_value_cilb_candidat_7_custom_31') {
         $this->_columnHeaders[$key]['title'] = E::ts('Entity ID');
@@ -469,12 +470,10 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           $part1 = 'BF(CBT)';
         }
         if (str_contains($partRecords->parts, 'TK')) {
-          $paperCheck = CRM_Core_DAO::singleValueQuery("SELECT ev.{$examFormatCustomFieldsDetails['column_name']} as exam_format
+          $paperCheck = CRM_Core_DAO::singleValueQuery("SELECT cv.{$examFormatCustomFieldsDetails['column_name']} as exam_format
             FROM civicrm_participant cp
             INNER JOIN {$participantTransactionIDField['custom_group_id.table_name']} as ptf ON ptf.entity_id = cp.id
-            INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = cp.id
-            INNER JOIN civicrm_event ce ON ce.id = cp.event_id
-            INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} AS ev ON ev.entity_id = ce.id
+            INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = cp.event_id
             WHERE ptf.{$participantTransactionIDField['column_name']} = %1
 	          AND cv.{$examPartCustomFieldsDetails['column_name']} = 'TK'", [
             1 => [$row['civicrm_contribution_id'], 'Positive'],

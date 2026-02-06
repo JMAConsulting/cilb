@@ -98,6 +98,14 @@ function cilb_reports_civicrm_alterCustomFieldDisplayValue(&$displayValue, $valu
       break;
 
   }
+  if ($fieldInfo['id'] == '2') {
+    if (empty($value)) {
+      $displayValue = 'FALSE';
+    }
+    else {
+      $displayValue = 'TRUE';
+    }
+  }
 }
 
 function cilb_reports_civicrm_pageRun($page) {
