@@ -530,7 +530,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         if ($part1 === 'TK') {
           $part1 = '';
         }
-        if ($part1 === 'TK') {
+        if ($part2 === 'TK') {
           $part2 = '';
         }
       }
