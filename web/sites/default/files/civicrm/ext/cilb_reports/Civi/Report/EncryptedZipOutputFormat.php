@@ -31,13 +31,25 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
   public function getOutputString(): string {
     $rows = $this->getForm()->getTemplate()->getTemplateVars('rows');
     $form = $this->getForm();
-    $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+    /** @var \CRM_CilbReports_Form_Report_MWFReport $form */
+    if (str_contains($form->getReportTitle(), 'Paper')) {
+      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_paper' . '.csv';
+    }
+    elseif (str_contains($form->getReportTitle(), 'cbt')) {
+      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_cbt.csv';
+    }
+    else {
+      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+    }
     $csv = \CRM_Report_Utils_Report::makeCsv($form, $rows);
     // Note that this is the same as in CRM_Report_Form::sendEmail
     $fullFileName = $this->getZipFileName();
     file_put_contents('/tmp/' . $temporaryFileName, $csv);
-    $random_password = \Drupal::service('password_generator')->generate('12');
-    \Civi::settings()->set('cilb_reports_mtw_password', $random_password);
+    $random_generated_password = \Drupal::service('password_generator')->generate('12');
+    $random_password = \Civi::settings()->get('cilb_reports_mtw_password');
+    if (empty($random_password)) {
+      $random_password = $random_generated_password;
+    }
     $zip = new \ZipArchive();
     if ($zip->open($fullFileName, \ZipArchive::CREATE) === TRUE) {
       $zip->setPassword($random_password);
@@ -53,12 +65,26 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
     $rows = $this->getForm()->getTemplate()->getTemplateVars('rows');
     $form = $this->getForm();
     $csv = \CRM_Report_Utils_Report::makeCsv($form, $rows);
-    $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+    /** @var \CRM_CilbReports_Form_Report_MWFReport $form */
+    if (str_contains($form->getReportTitle(), 'Paper')) {
+      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_paper' . '.csv';
+    }
+    elseif (str_contains($form->getReportTitle(), 'cbt')) {
+      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_cbt.csv';
+    }
+    else {
+      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+    }
     file_put_contents('/tmp/' . $temporaryFileName, $csv);
     $fullFileName = CRM_Core_Config::singleton()->templateCompileDir . CRM_Utils_File::makeFileName($this->getFileName());
+    $random_generated_password = \Drupal::service('password_generator')->generate('12');
+    $random_password = \Civi::settings()->get('cilb_reports_mtw_password');
+    if (empty($random_password)) {
+      $random_password = $random_generated_password;
+    }
     $zip = new \ZipArchive();
     if ($zip->open($fullFileName, \ZipArchive::CREATE) === TRUE) {
-      $zip->setPassword('Test Password');
+      $zip->setPassword($random_password);
       $zip->addFile('/tmp/' . $temporaryFileName, $temporaryFileName);
       $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_AES_256);
       $zip->close();

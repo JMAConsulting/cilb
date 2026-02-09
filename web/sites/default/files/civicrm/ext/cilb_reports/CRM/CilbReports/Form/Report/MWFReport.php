@@ -800,4 +800,8 @@ LEFT JOIN civicrm_contact {$field['alias']} ON {$field['alias']}.id = {$this->_a
     $this->_select .= ', exam_cat.dbpr_code_3';
   }
 
+  public function getReportTitle(): string {
+    return $this->_title;
+  }
+
 }
