@@ -471,47 +471,18 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
 	          AND cv.{$examPartCustomFieldsDetails['column_name']} = 'TK'", [
             1 => [$row['civicrm_contribution_id'], 'Positive'],
           ]);
-          if (empty($part1)) {
-            if ($paperCheck == 'paper') {
-              $part1 = 'TK';
-            }
-            else {
-              $part1 = 'TK(CBT)';
-            }
+          if ($paperCheck == 'paper') {
+            $part2 = 'TK';
           }
           else {
-            if ($paperCheck == 'paper') {
-              $part2 = 'TK';
-            }
-            else {
-              $part2 = 'TK(CBT)';
-            }
+            $part2 = 'TK(CBT)';
           }
         }
         if (str_contains($partRecords->parts, 'CA')) {
-          if (!empty($part2)) {
-            $part3 = 'CA(CBT)';
-          }
-          elseif (!empty($part1)) {
-            $part2 = 'CA(CBT)';
-          }
-          else {
-            $part1 = 'CA(CBT)';
-          }
+          $part2 = 'CA(CBT)';
         }
         if (str_contains($partRecords->parts, 'PM')) {
-          if (!empty($part3)) {
-            continue;
-          }
-          elseif (!empty($part2)) {
-            $part3 = 'PM(CBT)';
-          }
-          elseif (!empty($part1)) {
-            $part2 = 'PM(CBT)';
-          }
-          else {
-            $part1 = 'PM(CBT)';
-          }
+          $part3 = 'PM(CBT)';
         }
       }
 
