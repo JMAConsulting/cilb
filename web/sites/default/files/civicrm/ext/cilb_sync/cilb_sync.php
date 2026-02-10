@@ -112,15 +112,17 @@ function cilb_sync_civicrm_postProcess($formName, $form) {
     /** @var \CRM_Advimport_Upload_Form_DataUpload $form */
     $params = $form->getSubmittedValues();
     $form->controller->set('event_id', $params['event_id']);
-    PaperExamImportMap::save(FALSE)
-      ->addRecord([
-        'exam_id' => $params['event_id'],
-        'advanced_import_id' => $form->controller->get('advimport_id'),
-      ])
-      ->setMatch([
-        'advanced_import_id',
-      ])
-      ->execute();
+    if (!empty($params['event_id'])) {
+      PaperExamImportMap::save(FALSE)
+        ->addRecord([
+          'exam_id' => $params['event_id'],
+          'advanced_import_id' => $form->controller->get('advimport_id'),
+        ])
+        ->setMatch([
+          'advanced_import_id',
+        ])
+        ->execute();
+    }
   }
 }
 
