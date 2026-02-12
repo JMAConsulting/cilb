@@ -64,7 +64,7 @@ class SyncCILBEntity extends SyncFromSFTP {
 
     $files = scandir( $this->getPath('/') );
     $csvFiles  = [];
-    $formattedDate = date('Y-m-d', strtotime($this->dateToSync));
+    $formattedDate = date('Ymd', strtotime($this->dateToSync));
 
     // Download CSV
     foreach($files as $fileName) {

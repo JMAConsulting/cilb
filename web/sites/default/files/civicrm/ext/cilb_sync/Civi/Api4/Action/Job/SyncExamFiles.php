@@ -57,8 +57,19 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
     $result['processed'] = ['entity' => [], 'scores' => []];
     
     // Download / Sync CILB entity files and PearsonVUE scores
-    $this->downloadCILBEntityFiles();
-    $this->downloadPearsonVueFiles();
+    try {
+      $this->downloadCILBEntityFiles();
+    }
+    catch (\Exception $e) {
+      $result['errors'] = ['entity' => $e->getMessage()];
+    }
+    try {
+      $this->downloadPearsonVueFiles();
+
+    }
+    catch (\Exception $e) {
+      $result['errors'] = ['scores' => $e->getMessage()];
+    }
 
     // Process Entity files
     if ( count($this->files['entity']) > 0 ) {
