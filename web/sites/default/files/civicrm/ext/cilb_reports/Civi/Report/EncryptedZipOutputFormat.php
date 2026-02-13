@@ -52,9 +52,10 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
     }
     $zip = new \ZipArchive();
     if ($zip->open($fullFileName, \ZipArchive::CREATE) === TRUE) {
-      $zip->setPassword($random_password);
+      //$zip->setPassword($random_password);
       $zip->addFile('/tmp/' . $temporaryFileName, $temporaryFileName);
-      $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_AES_256);
+      //$zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_AES_256);
+      $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_TRAD_PKWARE, $random_password);
       $zip->close();
     }
     \unlink('/tmp/' . $temporaryFileName);
