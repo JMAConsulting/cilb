@@ -34,10 +34,11 @@ function candidatedashboard_civicrm_enable(): void {
 
 /**
  * Implements hook_civicrm_pageRun().
- * 
+ *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_pagerun/
  */
 function candidatedashboard_civicrm_pageRun( &$page) {
+  /** @var \CRM_Core_Page $page */
   if ('CRM_Contact_Page_DashBoard' === $page->getVar('_name') && in_array('candidate', \Drupal::currentUser()->getRoles())) {
     throw new AccessDeniedHttpException('You do not have permission to access this page.');
   }
@@ -65,7 +66,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
       });"
     );
 
-    $dashboardElements = $page->get_template_vars('dashboardElements');
+    $dashboardElements = $page->getTemplateVars('dashboardElements');
     foreach ($dashboardElements as $key => $dashboardElement) {
       if ($dashboardElement['class'] == 'crm-dashboard-assignedActivities') {
         $dashboardElements[$key]['sectionTitle'] = E::ts('Your Activities');
@@ -74,7 +75,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     }
     $page->assign('dashboardElements', $dashboardElements);
 
-    $participantRecords = $page->get_template_vars('event_rows');
+    $participantRecords = $page->getTemplateVars('event_rows');
     foreach ($participantRecords as $k => $record) {
        $participantRecords[$k]['score'] = \Civi\Api4\Participant::get(FALSE)
           ->addSelect('Candidate_Result.Candidate_Score')
@@ -158,7 +159,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
       else {
         $page->assign('language_preference', 'en');
       }
-    } 
+    }
 
     // Activities
     $activities = \Civi\Api4\Activity::get(FALSE)
@@ -218,7 +219,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
       ->addWhere('contact_id', '=', $contactId)
       ->execute();
     $page->assign('notes', $notes);
-    */ 
+    */
   }
 }
 
