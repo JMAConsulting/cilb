@@ -103,7 +103,7 @@ class SyncCILBEntity extends SyncFromSFTP {
 
     $bytes = filesize($directory . '/' . $fileName );
 
-    return ($bytes !== false && $bytes > 0);
+    return ($bytes !== false);
   }
 
 }
