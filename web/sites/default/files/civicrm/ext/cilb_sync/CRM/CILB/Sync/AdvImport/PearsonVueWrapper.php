@@ -87,8 +87,9 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
     }
 
     // Exam Registration
+    $examDateForMySQL = date('Y-m-d', strtotime($examDate));
     $contactID = $candidate['entity_id'];
-    $participantResults = EU::getExamRegistrationWithoutScore($contactID, $exam);
+    $participantResults = EU::getExamRegistrationWithoutScore($contactID, $exam, $examDateForMySQL);
     if ( $participantResults->count() == 0 ) {
       // @TODO: log as skipped (warning) ?
       throw new CRM_Core_Exception("No registration found that doesn't have a score already.");
