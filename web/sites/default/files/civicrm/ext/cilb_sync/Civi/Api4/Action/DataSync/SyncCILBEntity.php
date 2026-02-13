@@ -64,7 +64,7 @@ class SyncCILBEntity extends SyncFromSFTP {
 
     $files = scandir( $this->getPath('/') );
     $csvFiles  = [];
-    $formattedDate = date('Ymd', strtotime($this->dateToSync));
+    $formattedDate = date(\Civi::settings()->get('sftp_cilb_date_file_name_format'), strtotime($this->dateToSync));
 
     // Download CSV
     foreach($files as $fileName) {
@@ -103,7 +103,7 @@ class SyncCILBEntity extends SyncFromSFTP {
 
     $bytes = filesize($directory . '/' . $fileName );
 
-    return ($bytes !== false && $bytes > 0);
+    return ($bytes !== false);
   }
 
 }

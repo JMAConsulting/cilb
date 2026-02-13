@@ -39,7 +39,7 @@ class SyncPearsonVueScores extends SyncFromSFTP {
   public function _run(Result $result) {
 
     $this->prepareConnection(); // throws error if fails
-    
+
     // Get date from param or now()
     $realDate = EU::getTimestampDate($this->dateToSync);
     $this->dateToSync = date('Ymd', $realDate);
@@ -64,7 +64,7 @@ class SyncPearsonVueScores extends SyncFromSFTP {
     $files = scandir( $this->getPath('/') );
     $zipFiles = ['ABE' => '', 'NS' => ''];
     $datFiles = ['ABE' => '', 'NS' => ''];
-    $formattedDate = date('Ymd', strtotime($this->dateToSync));
+    $formattedDate = date(\Civi::settings()->get('sftp_pearson_zip_date_file_name_format'), strtotime($this->dateToSync));
 
     // Download ZIP
     foreach($files as $fileName) {
@@ -98,8 +98,8 @@ class SyncPearsonVueScores extends SyncFromSFTP {
     }
 
     $local = fopen($directory . '/' . $fileName, 'w');
-    
-    // Write buffer 
+
+    // Write buffer
     // Needed for files larger than 8k
     while(!feof($stream)){
         fwrite($local, fread($stream, 8192));
@@ -107,14 +107,14 @@ class SyncPearsonVueScores extends SyncFromSFTP {
 
     @fclose($local);
     @fclose($stream);
-    
+
     $bytes = filesize($directory . '/' . $fileName );
 
     return ($bytes !== false && $bytes > 0);
   }
 
   public function extractExamDATFile($type, $zipFile, $directory): array {
-    $formattedDate = date('Y-m-d', strtotime($this->dateToSync));
+    $formattedDate = date(\Civi::settings()->get('sftp_pearson_dat_date_file_name_format'), strtotime($this->dateToSync));
     $filesToExtract = ($type == "ABE") ?
       ['examABE-'.$formattedDate.'-a.dat'] :
         ['exam-'.$formattedDate.'a-ns.dat'];
