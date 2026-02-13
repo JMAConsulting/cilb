@@ -12,7 +12,7 @@ use Exception;
  * Automatically download CILB Exam files and trigger an import
  */
 
-class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
+class SyncPearsonViewFiles extends \Civi\Api4\Generic\AbstractAction {
   /**
    * ...
    *
