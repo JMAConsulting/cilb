@@ -58,43 +58,48 @@ class SyncExamFiles extends \Civi\Api4\Generic\AbstractAction {
 
     // Download / Sync CILB entity files and PearsonVUE scores
     try {
-      $this->downloadCILBEntityFiles();
+      $this->downloadPearsonVueFiles();
+
     }
     catch (\Exception $e) {
-      $result['errors'] = ['entity' => $e->getMessage()];
+      $result['errors'] = ['scores' => $e->getMessage()];
     }
 
-    // Process Entity files
-    if ( count($this->files['entity']) > 0 ) {
-      $result['processed']['entity'] = $this->processCILBEntityFiles($destinationDir);
+    // Process PearsonVUE files
+    if ( count($this->files['scores']) > 0 ) {
+      $result['processed']['scores'] = $this->processPearsonVueFiles($destinationDir);
     }
 
     return $result;
   }
 
   /**
-   * Download CILB entity files for select data
+   * Download PearsonVUE score files for select data
    */
-  private function downloadCILBEntityFiles() {
+  private function downloadPearsonVueFiles() {
     try {
-      $downloadResult = DataSync::syncCILBEntity(FALSE)
+      $downloadResult = DataSync::syncPearsonVueScores(FALSE)
         ->setDateToSync($this->dateToSync)
         ->execute();
-      $this->files['entity'] = $downloadResult['files'];
+      $this->files['scores'] = $downloadResult['files'];
     }
     catch (\CRM_Core_Exception $e) {
-      throw new Exception("Error downloading CILB Entity files: " . $e->getMessage());
+      throw new Exception("Error downloadingPearsonVUE files: " . $e->getMessage());
     }
   }
 
   /**
-   * Import candidate entity from downloaded CILB files
+   * Import scores from downloaded PearsonVUE files
    */
-  private function processCILBEntityFiles($directory): array {
-
+  private function processPearsonVueFiles($directory): array {
     $processed = [];
-    foreach ($this->files['entity'] as $fileName) {
-      $processed[] = $this->processImportFile($fileName, $directory, 'CILBEntityWrapper');
+    foreach ($this->files['scores'] as $files) {
+      if (!is_array($files)) {
+        continue;
+      }
+      foreach ($files as $type => $fileName) {
+        $processed[] = $this->processImportFile($fileName, $directory, 'PearsonVueWrapper');
+      }
     }
     return $processed;
   }
