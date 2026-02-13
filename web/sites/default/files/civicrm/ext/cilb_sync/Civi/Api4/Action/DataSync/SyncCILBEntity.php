@@ -28,7 +28,7 @@ class SyncCILBEntity extends SyncFromSFTP {
       $this->_sftpURL      = \Civi::settings()->get('sftp_cilb_url');
       $this->_sftpPort     = \Civi::settings()->get('sftp_cilb_url_port') ?? '22';
       $this->_sftpUser     = \Civi::settings()->get('sftp_cilb_user');
-      $encryptedPassword   = \Civi::settings()->get('sftp_pearson_password');
+      $encryptedPassword   = \Civi::settings()->get('sftp_cilb_password');
       $this->_sftpPassword = \Civi::service('crypto.token')->decrypt($encryptedPassword, ['plain', 'CRED']);
       $this->_sftpHomeDir  = \Civi::settings()->get('sftp_cilb_home_dir');
   }
@@ -37,7 +37,7 @@ class SyncCILBEntity extends SyncFromSFTP {
   public function _run(Result $result) {
 
     $this->prepareConnection(); // throws error if fails
-    
+
     // Get date from param or now()
     $realDate = EU::getTimestampDate($this->dateToSync);
     $this->dateToSync = date('Ymd', $realDate);
@@ -91,8 +91,8 @@ class SyncCILBEntity extends SyncFromSFTP {
     }
 
     $local = fopen($directory . '/' . $fileName, 'w');
-    
-    // Write buffer 
+
+    // Write buffer
     // Needed for files larger than 8k
     while(!feof($stream)){
         fwrite($local, fread($stream, 8192));
@@ -100,7 +100,7 @@ class SyncCILBEntity extends SyncFromSFTP {
 
     @fclose($local);
     @fclose($stream);
-    
+
     $bytes = filesize($directory . '/' . $fileName );
 
     return ($bytes !== false && $bytes > 0);
