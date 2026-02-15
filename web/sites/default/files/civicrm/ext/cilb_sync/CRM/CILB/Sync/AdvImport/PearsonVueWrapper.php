@@ -111,9 +111,13 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
           ->execute();
       }
       else {
+        $examItemsCorrect = $params['examitemscorrect'] ?? 0;
+        $examItemsIncorrect = $params['examitemsincorrect'] ?? 0;
+        $examItemsSkipped = $params['examitemsskipped'] ?? 0;
+        $parsedExamScore = (int)  ($examScore / ($examItemsCorrect + $examItemsIncorrect + $examItemsSkipped));
         $result = \Civi\Api4\Participant::update(FALSE)
           ->addValue('source', $examRegID)
-          ->addValue('Candidate_Result.Candidate_Score', $examScore)
+          ->addValue('Candidate_Result.Candidate_Score', $parsedExamScore)
           ->addValue('Candidate_Result.Date_Exam_Taken', $examDate)
           ->addValue('status_id:label', $examStatus)
           ->addWhere('id', '=', $participantID)
