@@ -671,7 +671,7 @@ class CRM_Report_Form extends CRM_Core_Form {
       $this->_title = $this->_instanceValues['title'];
       if (!empty($this->_instanceValues['permission']) &&
         (!(CRM_Core_Permission::check($this->_instanceValues['permission']) ||
-          CRM_Core_Permission::check('administer Reports')
+          CRM_Core_Permission::check('administer Reports') || CRM_Core_Permission::check('access CiviCRM') 
         ))
       ) {
         CRM_Utils_System::permissionDenied();
