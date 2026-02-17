@@ -46,7 +46,9 @@ class CRM_CILB_Sync_Utils {
       ->addWhere('Candidate_Result.Candidate_Score', 'IS EMPTY')
       ->addWhere('Candidate_Result.Date_Exam_Taken', 'IS NULL')
       ->addWhere('register_date', '<', $examDate)
-      ->execute();
+      ->addOrderBy('register_date', 'ASC')
+      ->execute()
+      ->first();
 
     return $participant;
   }

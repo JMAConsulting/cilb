@@ -96,11 +96,8 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
       // @TODO: log as skipped (warning) ?
       throw new CRM_Core_Exception("No registration found that doesn't have a score already.");
     }
-    if ( $participantResults->count() > 1 ) {
-      throw new CRM_Core_Exception("More than one registration found.");
-    }
 
-    $participantID = $participantResults->single()['id'];
+    $participantID = $participantResults['id'];
 
     // Update Score / Date
     try {
