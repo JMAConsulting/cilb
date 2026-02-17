@@ -33,11 +33,15 @@ class CRM_CILB_Sync_Utils {
     return $realDate;
   }
 
-  public static function getExamRegistrationWithoutScore($contactID, $exam, $examDate): Result {
+  public static function getExamRegistrationWithoutScore($contactID, $exam, $examDate): ?array {
     if (count($exam) == 1) {
       $examID = [$exam['id']];
     } else {
-      $examID = $exam;
+	    foreach($exam as $key => $examItem) {
+		    if ($key == 'id') {
+			    $examID[] = $exam[$key];
+		    }
+	    }
     }
     $participant = Participant::get(FALSE)
       ->addSelect('id')
@@ -50,7 +54,7 @@ class CRM_CILB_Sync_Utils {
       ->execute()
       ->first();
 
-    return $participant;
+    return $participant ?? [];
   }
 
   public static function getExamRegistrationFromCandidateID($candidateID, $eventID = NULL, $eventFormat = NULL): ?array {
