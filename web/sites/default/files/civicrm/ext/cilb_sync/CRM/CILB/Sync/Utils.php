@@ -79,8 +79,7 @@ class CRM_CILB_Sync_Utils {
         ->addWhere('Entity_ID_imported_', '=', (int) $candidateID) // cast as Integer to remove leading 0
         ->addWhere('class_code', '=', $classCode)
         ->addOrderBy('Entity_ID_imported_', 'ASC')
-        ->execute()
-        ->first();
+        ->execute();
       // If we have not found a match with the Candidate Entity ID + class code try matching on just the Candidate ID
       if (count($candidateEntity) < 1) {
         $candidateEntity = CustomValue::get('cilb_candidate_entity', FALSE)
@@ -100,6 +99,9 @@ class CRM_CILB_Sync_Utils {
         else {
           $candidateEntity = $candidateEntity->first();
         }
+      }
+      else {
+        $candidateEntity->first();
       }
     }
     return $candidateEntity;
