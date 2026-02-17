@@ -101,7 +101,7 @@ class CRM_CILB_Sync_Utils {
         }
       }
       else {
-        $candidateEntity->first();
+        $candidateEntity = $candidateEntity->first();
       }
     }
     return $candidateEntity;
