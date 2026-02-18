@@ -80,7 +80,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
       CRM_Advimport_Utils::logImportWarning($params, "Exam - {$examSeriesCode} was not found"); // Exam was not found
       return;
     }
-    $examClass = $exam['event_type.Exam_Type_Details.DBPR_Code'];
+    $examClass = $exam['event_type.Exam_Type_Details.DBPR_Code'] ?? NULL;
 
     // Candidate Info
     $candidate = EU::getCandidateEntity($candidateID, $examClass);
