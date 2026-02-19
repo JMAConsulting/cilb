@@ -80,24 +80,43 @@ class ImportCandidates extends ImportBase {
       if (strlen($digitsOnly) === 9) {
         $formattedSsn = substr($digitsOnly, 0, 3) . '-' .
                         substr($digitsOnly, 3, 2) . '-' .
-			substr($digitsOnly, 5, 4);
+			                  substr($digitsOnly, 5, 4);
       }
       else {
-	$formattedSsn = $contact['SSN'];
+	      $formattedSsn = $contact['SSN'];
       }
       if ($formattedSsn) {
 	      $updateExternalID = TRUE;
         $matchingContact = \Civi\Api4\Contact::get(FALSE)
-  ->addSelect('id', 'custom_cilb_candidate_entity.Entity_ID_imported_')
-->addJoin('Custom_cilb_candidate_entity AS custom_cilb_candidate_entity', 'LEFT')
-  ->addWhere('Registrant_Info.SSN', '=', $formattedSsn)
-  ->execute()->first();
-	if ($matchingContact) {
-		// We have a match, now check to see if entity ID is present.
-		if ($matchingContact['custom_cilb_candidate_entity.Entity_ID_imported_']) {
-			$updateExternalID = FALSE;
-		}
-		$recordsToCreate = [
+          ->addSelect('id', 'custom_cilb_candidate_entity.Entity_ID_imported_')
+          ->addJoin('Custom_cilb_candidate_entity AS custom_cilb_candidate_entity', 'LEFT')
+          ->addWhere('Registrant_Info.SSN', '=', $formattedSsn)
+          ->execute()->first();
+	      if ($matchingContact) {
+		      // We have a match, now check to see if entity ID is present.
+		      if ($matchingContact['custom_cilb_candidate_entity.Entity_ID_imported_']) {
+			        $updateExternalID = FALSE;
+		      }
+          if ($updateExternalID) {
+			        $recordsToCreate['external_identifier'] = $contact['FK_Account_ID'];
+		      }
+		      $recordsToCreate = [
+            'birth_date' => $contact['DOB'] ?? NULL,
+            'Registrant_Info.SSN' => $formattedSsn ?? NULL,
+            'first_name' => $contact['First_Name'],
+            'middle_name' => $contact['Middle_Name'],
+            'last_name' => $contact['Last_Name'],
+            'contact_type' => 'Individual',
+            'contact_sub_type' => [
+              'Candidate',
+            ],
+            'id' => $matchingContact['id'],
+	        ];
+	      }
+	      else {
+		    // We dont have a match, so create the contact
+		    $recordsToCreate = [
+			    'external_identifier' => $contact['FK_Account_ID'],
           'birth_date' => $contact['DOB'] ?? NULL,
           'Registrant_Info.SSN' => $formattedSsn ?? NULL,
           'first_name' => $contact['First_Name'],
@@ -106,58 +125,25 @@ class ImportCandidates extends ImportBase {
           'contact_type' => 'Individual',
           'contact_sub_type' => [
             'Candidate',
-          ],
-		];
-		if ($updateExternalID) {
-			$recordsToCreate['external_identifier'] = $contact['FK_Account_ID'];
-		}
+	        ],
+		    ];
+        }
+        $contactCreated = \Civi\Api4\Contact::save(FALSE)
+            ->addRecord($recordsToCreate)
+            ->setMatch(['external_identifier'])
+	          ->execute()->first()['id'];
 
-	}
-	else {
-		// We dont have a match, so create the contact
-		$recordsToCreate = [
-			'external_identifier' => $contact['FK_Account_ID'],
-          'birth_date' => $contact['DOB'] ?? NULL,
-          'Registrant_Info.SSN' => $formattedSsn ?? NULL,
-          'first_name' => $contact['First_Name'],
-          'middle_name' => $contact['Middle_Name'],
-          'last_name' => $contact['Last_Name'],
-          'contact_type' => 'Individual',
-          'contact_sub_type' => [
-            'Candidate',
-	  ],
-		];
-
-	}
+        if (\Civi\Api4\GroupContact::get(FALSE)
+          ->addWhere('group_id', '=', 9)
+          ->addWhere('contact_id', '=', $contactCreated)
+          ->selectRowCount()
+          ->execute()->count() == 0) { 
+          \Civi\Api4\GroupContact::create(FALSE)
+            ->addValue('group_id', 9)
+            ->addValue('contact_id', $contactCreated)
+            ->execute();
+        }
       }
-
-
-
-      $contactCreated = \Civi\Api4\Contact::save(FALSE)
-        ->addRecord($recordsToCreate)
-        ->setMatch(['Registrant_Info.SSN', 'external_identifier'])
-	->execute()->first()['id'];
-
-      if (\Civi\Api4\GroupContact::get(FALSE)
-  ->addWhere('group_id', '=', 9)
-  ->addWhere('contact_id', '=', $contactCreated)
-  ->selectRowCount()
-  ->execute()->count() == 0) { 
-\Civi\Api4\GroupContact::create(FALSE)
-  ->addValue('group_id', 9)
-  ->addValue('contact_id', $contactCreated)
-  ->execute();
-    }
-      /*\Civi\Api4\GroupContact::save(FALSE)
-	      ->addRecord([
-	       'contact_id' => $contactCreated,
-	       'group_id' => 9
-	      ])
-  ->setMatch([
-    'group_id',
-    'contact_id',
-  ]);*/
-
     }
   }
 
