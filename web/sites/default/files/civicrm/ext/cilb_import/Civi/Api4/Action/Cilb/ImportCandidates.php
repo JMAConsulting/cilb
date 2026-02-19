@@ -31,16 +31,15 @@ class ImportCandidates extends ImportBase {
     $fieldList = implode(', ', $fields);
 
     // always limit to last 5 years
-    $whereClauses[] = "c.Last_Updated_Timestamp > '{$this->cutOffDate}'";
+    $whereClauses[] = "c.Last_Updated_Timestamp < '{$this->cutOffDate}'";
     $whereList = implode(' AND ', $whereClauses);
 
     return $this->getRows("SELECT {$fieldList} FROM pti_Candidates c INNER JOIN System_Accounts a ON a.PK_Account_ID = c.FK_Account_ID WHERE {$whereList}");
   }
 
   public function importContacts() {
-
     foreach ($this->selectCandidates(['DOB', 'SSN', 'Prefix', 'Suffix', 'First_Name', 'Middle_Name', 'Last_Name']) as $contact) {
-      if (!empty($contact['Suffix'])) {
+      /*if (!empty($contact['Suffix'])) {
       $suffix = \Civi\Api4\OptionValue::get(FALSE)
         ->addWhere('option_group_id:name', '=', 'individual_suffix')
         ->addWhere('label', '=', $contact['Suffix'])
@@ -72,13 +71,35 @@ class ImportCandidates extends ImportBase {
       }
       else {
         $contact['Prefix'] = NULL;
-      }
+      }*/
+
+      // First check if contact with same SSN exists.
       
-      \Civi\Api4\Contact::save(FALSE)
-        ->addRecord([
-          'external_identifier' => $contact['FK_Account_ID'],
+      $digitsOnly = preg_replace('/\D/', '', $contact['SSN']);
+
+      if (strlen($digitsOnly) === 9) {
+        $formattedSsn = substr($digitsOnly, 0, 3) . '-' .
+                        substr($digitsOnly, 3, 2) . '-' .
+			substr($digitsOnly, 5, 4);
+      }
+      else {
+	$formattedSsn = $contact['SSN'];
+      }
+      if ($formattedSsn) {
+	      $updateExternalID = TRUE;
+        $matchingContact = \Civi\Api4\Contact::get(FALSE)
+  ->addSelect('id', 'custom_cilb_candidate_entity.Entity_ID_imported_')
+->addJoin('Custom_cilb_candidate_entity AS custom_cilb_candidate_entity', 'LEFT')
+  ->addWhere('Registrant_Info.SSN', '=', $formattedSsn)
+  ->execute()->first();
+	if ($matchingContact) {
+		// We have a match, now check to see if entity ID is present.
+		if ($matchingContact['custom_cilb_candidate_entity.Entity_ID_imported_']) {
+			$updateExternalID = FALSE;
+		}
+		$recordsToCreate = [
           'birth_date' => $contact['DOB'] ?? NULL,
-          'Registrant_Info.SSN' => $contact['SSN'] ?? NULL,
+          'Registrant_Info.SSN' => $formattedSsn ?? NULL,
           'first_name' => $contact['First_Name'],
           'middle_name' => $contact['Middle_Name'],
           'last_name' => $contact['Last_Name'],
@@ -86,11 +107,57 @@ class ImportCandidates extends ImportBase {
           'contact_sub_type' => [
             'Candidate',
           ],
-    //      'suffix_id:label' => $contact['Suffix'],
-    //      'prefix_id:label' => $contact['Prefix'],
-        ])
-        ->setMatch(['external_identifier'])
-        ->execute();
+		];
+		if ($updateExternalID) {
+			$recordsToCreate['external_identifier'] = $contact['FK_Account_ID'];
+		}
+
+	}
+	else {
+		// We dont have a match, so create the contact
+		$recordsToCreate = [
+			'external_identifier' => $contact['FK_Account_ID'],
+          'birth_date' => $contact['DOB'] ?? NULL,
+          'Registrant_Info.SSN' => $formattedSsn ?? NULL,
+          'first_name' => $contact['First_Name'],
+          'middle_name' => $contact['Middle_Name'],
+          'last_name' => $contact['Last_Name'],
+          'contact_type' => 'Individual',
+          'contact_sub_type' => [
+            'Candidate',
+	  ],
+		];
+
+	}
+      }
+
+
+
+      $contactCreated = \Civi\Api4\Contact::save(FALSE)
+        ->addRecord($recordsToCreate)
+        ->setMatch(['Registrant_Info.SSN', 'external_identifier'])
+	->execute()->first()['id'];
+
+      if (\Civi\Api4\GroupContact::get(FALSE)
+  ->addWhere('group_id', '=', 9)
+  ->addWhere('contact_id', '=', $contactCreated)
+  ->selectRowCount()
+  ->execute()->count() == 0) { 
+\Civi\Api4\GroupContact::create(FALSE)
+  ->addValue('group_id', 9)
+  ->addValue('contact_id', $contactCreated)
+  ->execute();
+    }
+      /*\Civi\Api4\GroupContact::save(FALSE)
+	      ->addRecord([
+	       'contact_id' => $contactCreated,
+	       'group_id' => 9
+	      ])
+  ->setMatch([
+    'group_id',
+    'contact_id',
+  ]);*/
+
     }
   }
 
