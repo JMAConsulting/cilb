@@ -21,4 +21,13 @@ return [
     'html_type' => 'text',
     'settings_pages' => ['mwfreport' => ['weight' => 20]],
   ],
+  'cilb_reports_changenotification_last_run_date' => [
+    'name' => 'cilb_reports_changenotification_last_run_date',
+    'title' => E::ts('Last Cron Run date of the Change Notification report'),
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'type' => 'String',
+    'html_type' => 'text',
+    'settings_pages' => ['mwfreport' => ['weight' => 30]],
+  ],
 ];
