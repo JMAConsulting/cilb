@@ -8,7 +8,7 @@ use Drupal\Core\Url;
 use Drupal\user\UserInterface;
 
 /**
- * Configures user email verification on this site.
+ * Configures user email verification this site.
  */
 class UserEmailVerificationSettingsForm extends ConfigFormBase {
 
@@ -115,30 +115,6 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
       ],
     ];
 
-    $form['redirects'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Redirects'),
-      '#open' => FALSE,
-    ];
-
-    $form['redirects']['redirect_logged_in'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Redirect logged in users'),
-      '#default_value' => $config->get('redirect_logged_in'),
-      '#maxlength' => 180,
-      '#description' => $this->t('Where to redirect logged-in users after they click verification link. Must begin with "/", "?", or "#".<br />Leave empty to redirect to the /user/[uid] page.'),
-      '#placeholder' => '/user/[uid]',
-    ];
-
-    $form['redirects']['redirect_anonymous'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Redirect anonymous users'),
-      '#default_value' => $config->get('redirect_anonymous'),
-      '#maxlength' => 180,
-      '#description' => $this->t('Where to redirect anonymous users after they click verification link. Must begin with "/", "?", or "#".<br />Leave empty to redirect to the site front page.'),
-      '#placeholder' => '<front>',
-    ];
-
     $form['extended_enable'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Enable extended verification period'),
@@ -203,33 +179,9 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Delete user account when "Extended verification time interval" ended'),
       '#default_value' => $config->get('extended_end_delete_account'),
       '#description' => $this->t(
-        'To choose the logic of user account delete visit <a href="@href" target="_blank">Account settings page</a> and setup it is using <strong>When cancelling a user account</strong> item.',
+        'To choose the logic of user account delete visit <a href="@href" target="_blank">Account settings page</a> and setup it using <strong>When cancelling a user account</strong> item.',
         ['@href' => Url::fromRoute('entity.user.admin_form')->toString()]
       ),
-    ];
-
-    $form['extended']['redirects'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Redirects'),
-      '#open' => FALSE,
-    ];
-
-    $form['extended']['redirects']['extended_redirect_logged_in'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Redirect logged in users'),
-      '#default_value' => $config->get('extended_redirect_logged_in'),
-      '#maxlength' => 180,
-      '#description' => $this->t('Where to redirect logged-in users after they click extended verification link. Must begin with "/", "?", or "#".<br />Leave empty to redirect to the /user/[uid] page.'),
-      '#placeholder' => '/user/[uid]',
-    ];
-
-    $form['extended']['redirects']['extended_redirect_anonymous'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Redirect anonymous users'),
-      '#default_value' => $config->get('extended_redirect_anonymous'),
-      '#maxlength' => 180,
-      '#description' => $this->t('Where to redirect anonymous users after they click extended verification link. Must begin with "/", "?", or "#".<br />Leave empty to redirect to the site front page.'),
-      '#placeholder' => '<front>',
     ];
 
     $form['no_creation_auto_verify'] = [
@@ -252,32 +204,6 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    parent::validateForm($form, $form_state);
-
-    $redirects = [
-      'redirect_logged_in' => $this->t('Redirect logged in users must begin with a "/", "?", or "#".'),
-      'redirect_anonymous' => $this->t('Redirect anonymous users must begin with a "/", "?", or "#".'),
-      'extended_redirect_logged_in' => $this->t('Redirect logged in users (in Extended verification period section) must begin with a "/", "?", or "#".'),
-      'extended_redirect_anonymous' => $this->t('Redirect anonymous users (in Extended verification period section) must begin with a "/", "?", or "#".'),
-    ];
-
-    foreach ($redirects as $redirect_name => $error_message) {
-      $redirect = trim($form_state->getValue($redirect_name));
-
-      if (
-        $redirect &&
-        !in_array(mb_substr($redirect, 0, 1), ['/', '?', '#'])
-      ) {
-        $form_state->setErrorByName($redirect_name, $error_message);
-      }
-    }
-
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     $this->config('user_email_verification.settings')
@@ -288,15 +214,11 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
       ->set('num_reminders', (int) $form_state->getValue('num_reminders'))
       ->set('mail_subject', trim($form_state->getValue('mail_subject')))
       ->set('mail_body', trim($form_state->getValue('mail_body')))
-      ->set('redirect_logged_in', trim($form_state->getValue('redirect_logged_in')))
-      ->set('redirect_anonymous', trim($form_state->getValue('redirect_anonymous')))
       ->set('extended_enable', (bool) $form_state->getValue('extended_enable'))
       ->set('extended_validate_interval', (int) $form_state->getValue('extended_validate_interval'))
       ->set('extended_mail_subject', trim($form_state->getValue('extended_mail_subject')))
       ->set('extended_mail_body', trim($form_state->getValue('extended_mail_body')))
       ->set('extended_end_delete_account', (bool) $form_state->getValue('extended_end_delete_account'))
-      ->set('extended_redirect_logged_in', trim($form_state->getValue('extended_redirect_logged_in')))
-      ->set('extended_redirect_anonymous', trim($form_state->getValue('extended_redirect_anonymous')))
       ->save();
 
     parent::submitForm($form, $form_state);

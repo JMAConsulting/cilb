@@ -26,6 +26,12 @@ user_email_verification.settings:
     mail_body:
       type: text
       label: 'Verification mail body'
+    redirect_logged_in:
+      type: string
+      label: 'Redirect logged in users'
+    redirect_anonymous:
+      type: string
+      label: 'Redirect anonymous users'
     extended_enable:
       type: boolean
       label: 'Enable extended verification period'
@@ -41,6 +47,12 @@ user_email_verification.settings:
     extended_end_delete_account:
       type: boolean
       label: 'Delete user account when "Extended verification time interval" ended'
+    extended_redirect_logged_in:
+      type: string
+      label: 'Redirect logged in users'
+    extended_redirect_anonymous:
+      type: string
+      label: 'Redirect anonymous users'
 
 block.settings.user_email_verification_notification:
   type: block_settings

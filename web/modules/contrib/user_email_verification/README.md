@@ -40,8 +40,9 @@ CONFIGURATION
   * Uncheck "Require email verification when a visitor creates an account"
     checkbox
 * In **Emails** section:
-  * Add [user:verify-email] to the "Welcome (no approval required)"
-  mail to send to the user the Email verification link
+  * Add [user:verify-email] token into mails (to send to the user Email verification link):
+    * **Welcome (new user created by administrator)**
+    * **Welcome (no approval required)**
 * Click "Save configuration" button
 * Go to: _Manage_ -> _Configuration_ -> _People_ -> _User Email Verification_
   `/admin/config/people/user-email-verification` page:

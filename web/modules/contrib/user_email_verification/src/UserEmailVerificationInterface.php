@@ -3,6 +3,7 @@
 namespace Drupal\user_email_verification;
 
 use Drupal\user\UserInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Interface defining User email verification helper service.
@@ -355,5 +356,21 @@ interface UserEmailVerificationInterface {
    *   Result of check.
    */
   public function isVerificationExtendedPeriodExceeded($uid);
+
+  /**
+   * Return URL to redirect to after successful verification.
+   *
+   * @return \Drupal\Core\Url
+   *   Redirect URL.
+   */
+  public function getSuccessfulVerificationRedirectUrl();
+
+  /**
+   * Return URL to redirect to after successful extended verification.
+   *
+   * @return \Drupal\Core\Url
+   *   Redirect URL.
+   */
+  public function getSuccessfulExtendedVerificationRedirectUrl();
 
 }

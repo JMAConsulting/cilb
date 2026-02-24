@@ -761,60 +761,6 @@ class UserEmailVerification implements UserEmailVerificationInterface {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function getSuccessfulVerificationRedirectUrl() {
-    return $this->getAfterAnyVerificationRedirectUrl(
-      $this->config->get('redirect_logged_in'),
-      $this->config->get('redirect_anonymous')
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getSuccessfulExtendedVerificationRedirectUrl() {
-    return $this->getAfterAnyVerificationRedirectUrl(
-      $this->config->get('extended_redirect_logged_in'),
-      $this->config->get('extended_redirect_anonymous')
-    );
-  }
-
-  /**
-   * Return redirect URL after any verification type.
-   *
-   * @param $redirect_logged_in
-   *   The redirect setting for logged-in users.
-   * @param $redirect_anonymous
-   *   The redirect setting for anonymous users.
-   *
-   * @return \Drupal\Core\Url
-   *   The redirect URL.
-   */
-  protected function getAfterAnyVerificationRedirectUrl($redirect_logged_in, $redirect_anonymous) {
-    $options = ['absolute' => TRUE];
-
-    if ($this->currentUser->isAuthenticated()) {
-      if ($redirect_logged_in) {
-        $url = Url::fromUserInput($redirect_logged_in, $options);
-      }
-      else {
-        $url = Url::fromRoute('entity.user.canonical', ['user' => $this->currentUser->id()], $options);
-      }
-    }
-    else {
-      if ($redirect_anonymous) {
-        $url = Url::fromUserInput($redirect_anonymous, $options);
-      }
-      else {
-        $url = Url::fromRoute('<front>', [], $options);
-      }
-    }
-
-    return $url;
-  }
-
-  /**
    * Return list of user IDs related to requested reason and interval pair.
    *
    * @param string $reason
