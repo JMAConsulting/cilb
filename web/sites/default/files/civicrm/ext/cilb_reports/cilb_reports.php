@@ -161,3 +161,49 @@ function cilb_reports_civicrm_queryObjects(&$queryObjects, $type): void {
     $queryObjects[] = new CRM_CilbReports_BAO_ReportHook();
   }
 }
+
+function cilb_reports_civicrm_alterLogTables(&$logTableSpec) {
+  $contactReferences = CRM_Dedupe_Merger::cidRefs();
+  $adaField = \Civi\Api4\CustomField::get(FALSE)
+    ->addSelect('custom_group_id.table_name', 'column_name')
+    ->addWhere('name', '=', 'ADA_Accommodations_Needed')
+    ->addWhere('custom_group_id.name', '=', 'Candidate_Result')
+    ->execute()
+    ->first();
+  $ssnField = \Civi\Api4\CustomField::get(FALSE)
+    ->addSelect('custom_group_id.table_name', 'column_name')
+    ->addWhere('name', '=', 'SSN')
+    ->addWhere('custom_group_id.name', '=', 'Registrant_Info')
+    ->execute()
+    ->first();
+  foreach (array_keys($logTableSpec) as $tableName) {
+    $contactIndexes = array();
+    $logTableSpec[$tableName]['engine'] = 'INNODB';
+    $logTableSpec[$tableName]['engine_config'] = 'ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=4';
+    $contactRefsForTable = CRM_Utils_Array::value($tableName, $contactReferences, array());
+    foreach ($contactRefsForTable as $fieldName) {
+      $contactIndexes['index_' . $fieldName] = $fieldName;
+    }
+    $indexArray = array(
+      'index_log_conn_id' => 'log_conn_id',
+      'index_log_date' => 'log_date',
+    );
+    // Check if current table has an "id" column. If so, index it too
+    $dsn = DB::parseDSN(CIVICRM_DSN);
+    $dbName = $dsn['database'];
+    $dao = CRM_Core_DAO::executeQuery("
+      SELECT COLUMN_NAME
+      FROM   INFORMATION_SCHEMA.COLUMNS
+      WHERE  TABLE_SCHEMA = '{$dbName}'
+      AND    TABLE_NAME = '{$tableName}'
+      AND    COLUMN_NAME = 'id'
+      ");
+    if ($dao->fetch()){
+      $indexArray['index_id'] = 'id';
+    }
+    if ($tableName === $adaField['custom_group_id.table_name'] || $tableName === $ssnField['custom_group_id.table_name']) {
+      $indexArray['index_entity_id'] = 'id';
+    }
+    $logTableSpec[$tableName]['indexes'] = array_merge($indexArray, $contactIndexes);
+  }
+}

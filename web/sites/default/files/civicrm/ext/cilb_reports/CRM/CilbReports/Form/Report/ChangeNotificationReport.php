@@ -366,7 +366,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
     $this->createTemporaryTable('entity_id', "SELECT entity_id AS contact_id, LAST_VALUE({$entityIDCustomFieldDetails['column_name']}) AS entity_id
-      FROM {$entityIDCustomFieldDetails['column_name']}
+      FROM {$entityIDCustomFieldDetails['custom_group_id.table_name']}
       GROUP BY entity_id");
     $sql = "UPDATE {$temporaryTableName} tm INNER JOIN {$this->temporaryTables['entity_id']['name']} e ON e.contact_id = tm.contact_id SET tm.entity_id = e.entity_id";
     $this->addToDeveloperTab($sql);
