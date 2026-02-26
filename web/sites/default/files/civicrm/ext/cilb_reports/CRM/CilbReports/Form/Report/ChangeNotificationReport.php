@@ -171,7 +171,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
     $headerOrder = [
       'civicrm_contact_display_name',
       'civicrm_contact_entity_id',
-      'civicrm_contact_',
+      'civicrm_value_registrant_in_1_custom_5',
       'civicrm_contact_old_value',
       'civicrm_contact_new_value',
       'civicrm_contact_changed_by',
@@ -286,12 +286,13 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       ->first();
     $lastRunCron = Civi::settings()->get('cilb_reports_changenotification_last_run_date') ?? date('YmdHis', strtotime('-1 week'));
     $temporaryTableName = $this->createTemporaryTable('changed_records_table','id int unsigned NOT NULL AUTOINCREMENT PRIMARY KEY, contact_id int unsigned NOT NULL, old_value varchar(255) DEFAULT NULL, new_value varchar(255) DEFAULT NULL, changed_by int NOT NULL default 0, is_date int NOT NULL default 0, entity_id varchar(255) NULL default NULL', TRUE);
+    CRM_Core_DAO::executeQuery("ALTER {$temporaryTableName} ADD INDEX `index_contact_id`(`contact_id`)");
     // Find all changes to names
     $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_value, new_value, changed_by)
       SELECT lc.id, CONCAT(lc.first_name, ' ', lc.middle_name, ' ', lc.last_name), CONCAT(lc2.first_name, ' ', lc2.middle_name, ' ', lc2.last_name), lc2.log_user_id
       FROM `{$loggingDb}`.log_civicrm_contact lc
       INNER JOIN `{$loggingDb}`.log_civicrm_contact lc2 ON lc2.id = lc.id AND lc2.log_date > lc.log_date
-      WHERE (lc2.first_name != lc.first_name OR lc2.last_name != lc.last_name OR lc2.middle_name != lc.last_name) AND lc2.log_action = 'Changed' AND lc2.log_date >= '{$lastRunCron}'
+      WHERE (lc2.first_name != lc.first_name OR lc2.last_name != lc.last_name OR lc2.middle_name != lc.middle_name) AND lc2.log_action = 'Changed' AND lc2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
