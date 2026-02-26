@@ -285,8 +285,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       ->execute()
       ->first();
     $lastRunCron = Civi::settings()->get('cilb_reports_changenotification_last_run_date') ?? date('YmdHis', strtotime('-1 week'));
-    $temporaryTableName = $this->createTemporaryTable('changed_records_table','id int unsigned NOT NULL AUTOINCREMENT PRIMARY KEY, contact_id int unsigned NOT NULL, old_value varchar(255) DEFAULT NULL, new_value varchar(255) DEFAULT NULL, changed_by int NOT NULL default 0, is_date int NOT NULL default 0, entity_id varchar(255) NULL default NULL', TRUE);
-    CRM_Core_DAO::executeQuery("ALTER {$temporaryTableName} ADD INDEX `index_contact_id`(`contact_id`)");
+    $temporaryTableName = $this->createTemporaryTable('changed_records_table','id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY, contact_id int unsigned NOT NULL, old_value varchar(255) DEFAULT NULL, new_value varchar(255) DEFAULT NULL, changed_by int NOT NULL default 0, is_date int NOT NULL default 0, entity_id varchar(255) NULL default NULL', TRUE);
+    CRM_Core_DAO::executeQuery("ALTER TABLE {$temporaryTableName} ADD INDEX `index_contact_id`(`contact_id`)");
     // Find all changes to names
     $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_value, new_value, changed_by)
       SELECT lc.id, CONCAT(lc.first_name, ' ', lc.middle_name, ' ', lc.last_name), CONCAT(lc2.first_name, ' ', lc2.middle_name, ' ', lc2.last_name), lc2.log_user_id
@@ -310,8 +310,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       SELECT lc.id, lcv.{$ssnField['column_name']}, lcv2.{$ssnField['column_name']}, lcv2.log_user_id
       FROM `{$loggingDb}`.log_civicrm_contact lc
       INNER JOIN `{$loggingDb}`.log_{$ssnField['custom_group_id.table_name']} AS lcv ON lcv.entity_id = lc.id
-      INNER JOIN `{$loggingDb}`.log_{$ssnField['custom_group_id.table_name']} AS lcv2 AND lcv2.log_date > lcv.log_date
-      WHERE (lcv2.{$ssnField['column_name']} != lcv.{$ssnField['column_name']}) AND lc2.log_date >= '{$lastRunCron}'
+      INNER JOIN `{$loggingDb}`.log_{$ssnField['custom_group_id.table_name']} AS lcv2 ON lcv2.entity_id = lc.id AND lcv2.log_date > lcv.log_date
+      WHERE (lcv2.{$ssnField['column_name']} != lcv.{$ssnField['column_name']}) AND lcv2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
@@ -343,7 +343,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       SELECT lc.id, lcp.phone, lcp2.phone, lcp2.log_user_id
       FROM `{$loggingDb}`.log_civicrm_contact lc
       LEFT JOIN `{$loggingDb}`.log_civicrm_phone lcp ON lcp.contact_id = lc.id AND lcp.is_primary = 1
-      LEFT JOIN `{$loggingDb}`.log_civicrm_phone AS lcp2 ON lcp2.contact_id = lc.id AND lcp.is_primary = 1 AND lcp2.log_date > lce.log_date
+      LEFT JOIN `{$loggingDb}`.log_civicrm_phone AS lcp2 ON lcp2.contact_id = lc.id AND lcp.is_primary = 1 AND lcp2.log_date > lcp.log_date
       WHERE (lcp.phone_numeric != lcp2.phone_numeric) AND lcp2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
@@ -351,7 +351,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
     $eventTypeOptionGroupId = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_OptionValue', 'option_group_id', 'event_type');
     // Find all changes to ADA Accomodation
     $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_value, new_value, changed_by)
-      SELECT lc.id, IF(lcv.{$adaField['column_name']} = 1, CONCAT('Requested', '\r\n', ov.label_en_US, (IF ov.label_en_US = 'Plumbing' AND ef.{$examFormatCustomFieldsDetails['column_name']} = 'paper', CONCAT('\r\n', ca.city, ',', MONTH(ce.start_date), '/', DAY(ce.start_date), '/', YEAR(ce.start_date)), ''), ''), CONCAT('Not Requested', '\r\n', ov.label_en_US, (IF ov.label_en_US = 'Plumbing' AND ef.{$examFormatCustomFieldsDetails['column_name']} = 'paper', CONCAT('\r\n', ca.city, ',', MONTH(ce.start_date), '/', DAY(ce.start_date), '/', YEAR(ce.start_date)), ''), '')), IF(lcv2.{$adaField['column_name']} = 1, CONCAT('Requested', '\r\n', ov.label_en_US, (IF ov.label_en_US = 'Plumbing' AND ef.{$examFormatCustomFieldsDetails['column_name']} = 'paper', CONCAT('\r\n', ca.city, ',', MONTH(ce.start_date), '/', DAY(ce.start_date), '/', YEAR(ce.start_date)), ''), ''), CONCAT('Not Requested', '\r\n', ov.label_en_US, (IF ov.label_en_US = 'Plumbing' AND ef.{$examFormatCustomFieldsDetails['column_name']} = 'paper', CONCAT('\r\n', ca.city, ',', MONTH(ce.start_date), '/', DAY(ce.start_date), '/', YEAR(ce.start_date)), ''), '')), lcv2.log_user_id
+      SELECT lc.id, IF(lcv.{$adaField['column_name']} = 1, CONCAT('Requested', '\r\n', ov.label_en_US, IF(ov.label_en_US = 'Plumbing' AND ef.{$examFormatCustomFieldsDetails['column_name']} = 'paper', CONCAT('\r\n', ca.city, ',', MONTH(ce.start_date), '/', DAY(ce.start_date), '/', YEAR(ce.start_date)), ''))), CONCAT('Not Requested', '\r\n', ov.label_en_US, IF(ov.label_en_US = 'Plumbing' AND ef.{$examFormatCustomFieldsDetails['column_name']} = 'paper', CONCAT('\r\n', ca.city, ',', MONTH(ce.start_date), '/', DAY(ce.start_date), '/', YEAR(ce.start_date)), ''))), IF(lcv2.{$adaField['column_name']} = 1, CONCAT('Requested', '\r\n', ov.label_en_US, IF(ov.label_en_US = 'Plumbing' AND ef.{$examFormatCustomFieldsDetails['column_name']} = 'paper', CONCAT('\r\n', ca.city, ',', MONTH(ce.start_date), '/', DAY(ce.start_date), '/', YEAR(ce.start_date)), ''))), CONCAT('Not Requested', '\r\n', ov.label_en_US, IF(ov.label_en_US = 'Plumbing' AND ef.{$examFormatCustomFieldsDetails['column_name']} = 'paper', CONCAT('\r\n', ca.city, ',', MONTH(ce.start_date), '/', DAY(ce.start_date), '/', YEAR(ce.start_date)), ''))), lcv2.log_user_id
       FROM `{$loggingDb}`.log_civicrm_contact lc
       INNER JOIN `{$loggingDb}`.log_civicrm_participant cp ON cp.contact_id = lc.id
       INNER JOIN `{$loggingDb}`.log_civicrm_event ce ON ce.id = cp.event_id
