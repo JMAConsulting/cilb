@@ -12,6 +12,7 @@ use Drupal\user_email_verification\Event\UserEmailVerificationVerifyEvent;
 use Drupal\user_email_verification\UserEmailVerificationInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Email verificationVerify controller.
@@ -124,12 +125,7 @@ class UserEmailVerificationVerifyExtended extends ControllerBase implements Cont
         $this->messenger()->addStatus($this->t('Your account is activated.'));
       }
 
-      if ($this->currentUser()->isAuthenticated()) {
-        return $this->redirect('entity.user.canonical', ['user' => $this->currentUser()->id()]);
-      }
-      else {
-        return $this->redirect('<front>');
-      }
+      return new RedirectResponse($this->userEmailVerification->getSuccessfulExtendedVerificationRedirectUrl()->toString());
     }
 
     $this->messenger()->addError($this->t('Your verification link is incorrect. Request a new one using the form below.'));

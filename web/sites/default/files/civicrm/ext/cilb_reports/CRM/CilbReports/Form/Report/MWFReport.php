@@ -21,8 +21,8 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         'fields' => [
           'sort_name' => [
             'title' => E::ts('Contact Name'),
-            'required' => TRUE,
-            'default' => TRUE,
+            'required' => FALSE,
+            'default' => FALSE,
             'no_repeat' => TRUE,
           ],
           'id' => [
@@ -46,21 +46,17 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             'required' => TRUE,
           ],
           'suffix_id' => [
-            'title' => E::ts('Suffix'),
+	    'title' => E::ts('Suffix'),
+            'dbAlias' => 'suffix_ov.label',
             'required' => TRUE,
           ],
           'middle_name' => [
             'title' => E::ts('Middle Name'),
             'required' => TRUE,
           ],
-          'gender' => [
+          'gender_id' => [
             'title' => E::ts('Gender'),
-            'dbAlias' => 'temp.id',
-            'required' => TRUE,
-          ],
-          'race' => [
-            'title' => E::ts('Race'),
-            'dbAlias' => 'temp.id',
+            'dbAlias' => 'gender_ov.label',
             'required' => TRUE,
           ],
           'birth_date' => [
@@ -91,6 +87,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           'id' => [
             'title' => E::ts('Contribution ID'),
             'required' => TRUE,
+            'no_display' => TRUE,
           ],
           'receive_date' => [
             'title' => E::ts('Trans Date'),
@@ -99,6 +96,11 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           'trxn_id' => [
             'title' => E::ts('Trans#'),
             'required' => TRUE,
+          ],
+        ],
+        'group_bys' => [
+          'id' => [
+            'title' => E::ts('Contribution ID'),
           ],
         ],
       ],
@@ -158,7 +160,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           'test_site' => [
             'title' => E::ts('Test Site'),
             'required' => TRUE,
-            'dbAlias' => 'lba.name',
+            'dbAlias' => 'lba.city',
           ],
         ],
         'grouping' => 'participant-fields',
@@ -169,6 +171,15 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           'event_type_id' => [
             'title' => E::ts('Category'),
             'required' => TRUE,
+          ],
+          'start_date' => [
+            'title' => E::ts('Exam Date'),
+            'required' => TRUE,
+          ],
+        ],
+        'group_bys' => [
+          'event_type_id' => [
+            'title' => E::ts('Category'),
           ],
         ],
         'grouping' => 'participant-fields',
@@ -212,13 +223,16 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     $this->_temporaryTableName = $this->createChangeTemporaryTable();
     $this->_from = NULL;
     $options = \Civi::entity('Phone')->getOptions('location_type_id');
-    $workLocationId = $homeLocationId = 0;
+    $workLocationId = $homeLocationId = $mainLocationId = 0;
     foreach ($options as $option) {
       if ($option['name'] == 'Work') {
         $workLocationId = $option['id'];
       }
       elseif ($option['name'] == 'Home') {
         $homeLocationId = $option['id'];
+      }
+      elseif ($option['name'] == 'Main') {
+        $mainLocationId = $option['id'];
       }
     }
     $participantTransactionIDField = CustomField::get(FALSE)
@@ -240,7 +254,9 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
                LEFT JOIN civicrm_loc_block clb ON clb.id = {$this->_aliases['civicrm_event']}.loc_block_id
                LEFT JOIN civicrm_address lba ON lba.id = clb.address_id
                LEFT JOIN civicrm_phone AS home ON home.contact_id = {$this->_aliases['civicrm_contact']}.id AND home.location_type_id = {$homeLocationId}
-               LEFT JOIN civicrm_phone AS work ON work.contact_id = {$this->_aliases['civicrm_contact']}.id AND work.location_type_id = {$workLocationId}
+               LEFT JOIN civicrm_phone AS work ON work.contact_id = {$this->_aliases['civicrm_contact']}.id AND work.location_type_id IN ({$workLocationId}, {$mainLocationId})
+               LEFT JOIN civicrm_option_value suffix_ov ON suffix_ov.value = {$this->_aliases['civicrm_contact']}.suffix_id AND suffix_ov.option_group_id = 7
+               LEFT JOIN civicrm_option_value gender_ov ON gender_ov.value = {$this->_aliases['civicrm_contact']}.gender_id AND gender_ov.option_group_id = 3
                ";
 
 
@@ -268,6 +284,18 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       }
     }
     return parent::selectClause($tableName, $tableKey, $fieldName, $field);
+  }
+
+  /**
+   * Store Where clauses into an array.
+   *
+   * Breaking out this step makes over-riding more flexible as the clauses can be used in constructing a
+   * temp table that may not be part of the final where clause or added
+   * in other functions
+   */
+  public function storeWhereHavingClauseArray() {
+    parent::storeWhereHavingClauseArray();
+    $this->_whereClauses[] = " {$this->_aliases['civicrm_contact']}.is_deleted = 0 ";
   }
 
   /**
@@ -300,6 +328,7 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     foreach (array_keys($this->_columnHeaders) as $key) {
       if ($key === 'civicrm_value_registrant_in_1_custom_2') {
         $this->_columnHeaders[$key]['title'] = E::ts('Exempt');
+        $this->_columnHeaders[$key]['type'] = CRM_Utils_Type::T_STRING;
       }
       if ($key === 'civicrm_value_cilb_candidat_7_custom_31') {
         $this->_columnHeaders[$key]['title'] = E::ts('Entity ID');
@@ -320,7 +349,8 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
     $fixedHeaders = [];
     $headerOrder = [
       'civicrm_participant_test_site',
-      'civicrm_value_candidate_res_9_custom_80',
+      //'civicrm_value_candidate_res_9_custom_80',
+      'civicrm_event_start_date',
       'civicrm_value_registrant_in_1_custom_5',
       'civicrm_contact_last_name',
       'civicrm_contact_first_name',
@@ -337,14 +367,17 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_address_postal_code',
       'civicrm_phone_phone_home',
       'civicrm_phone_phone_work',
+      'civicrm_contact_birth_date',
       'civicrm_value_candidate_res_9_custom_89',
-      'civicrm_contact_gender',
-      'civicrm_contact_race',
+      'civicrm_contact_gender_id',
+      //'civicrm_contact_race',
+      'civicrm_value_registrant_in_1_custom_97',
       'civicrm_email_email',
       'civicrm_contribution_receive_date',
       'civicrm_contribution_trxn_id',
       'civicrm_event_event_type_id',
       'civicrm_value_cilb_candidat_7_custom_25',
+      'civicrm_contact_external_identifier',
       'civicrm_value_cilb_candidat_7_custom_31',
       'civicrm_participant_change_type',
       'civicrm_participant_deleted',
@@ -356,6 +389,8 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
       'civicrm_value_registrant_in_1_custom_2',
     ];
     $originalColumnHeaders = $this->_columnHeaders;
+    unset($originalColumnHeaders['civicrm_value_candidate_res_9_custom_96']);
+    unset($originalColumnHeaders['civicrm_contact_race']);
     foreach ($headerOrder as $header) {
       $fixedHeaders[$header] = $originalColumnHeaders[$header];
       unset($originalColumnHeaders[$header]);
@@ -382,6 +417,18 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
             $checkList[$colName][] = $colVal;
           }
         }
+      }
+
+      $event_type_id = $row['civicrm_event_event_type_id'];
+      $exam_code = $row['civicrm_value_cilb_candidat_7_custom_25'];
+      if (!empty($row['civicrm_value_candidate_res_9_custom_96']) && ($event_type_id == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Business and Finance') ||
+        $event_type_id == CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Pool & Spa Servicing Business and Finance'))) {
+        $event_type_id = trim($row['civicrm_value_candidate_res_9_custom_96'], CRM_Core_DAO::VALUE_SEPARATOR);
+        $code_column_name = CRM_Core_DAO::singleValueQuery('SELECT column_name FROM civicrm_custom_field WHERE id = 16');
+        $code_table_name = CRM_Core_DAO::singleValueQuery("SELECT table_name FROM civicrm_custom_group WHERE id = 6");
+        $exam_code = CRM_Core_DAO::singleValueQuery("SELECT cv.{$code_column_name} FROM {$code_table_name} AS cv INNER JOIN civicrm_option_value ov ON ov.id = cv.entity_id WHERE ov.value = %1 and ov.option_group_id = 15", [
+          1 => [$event_type_id, 'Integer'],
+        ]);
       }
 
       $examPartCustomFieldsDetails = CustomField::get(FALSE)
@@ -416,64 +463,67 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
           $part1 = 'BF(CBT)';
         }
         if (str_contains($partRecords->parts, 'TK')) {
-          $paperCheck = CRM_Core_DAO::singleValueQuery("SELECT ev.{$examFormatCustomFieldsDetails['column_name']} as exam_format
+          $paperCheck = CRM_Core_DAO::singleValueQuery("SELECT cv.{$examFormatCustomFieldsDetails['column_name']} as exam_format
             FROM civicrm_participant cp
             INNER JOIN {$participantTransactionIDField['custom_group_id.table_name']} as ptf ON ptf.entity_id = cp.id
-            INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = cp.id
-            INNER JOIN civicrm_event ce ON ce.id = cp.event_id
-            INNER JOIN {$examFormatCustomFieldsDetails['custom_group_id.table_name']} AS ev ON ev.entity_id = ce.id
+            INNER JOIN {$examPartCustomFieldsDetails['custom_group_id.table_name']} as cv ON cv.entity_id = cp.event_id
             WHERE ptf.{$participantTransactionIDField['column_name']} = %1
 	          AND cv.{$examPartCustomFieldsDetails['column_name']} = 'TK'", [
             1 => [$row['civicrm_contribution_id'], 'Positive'],
           ]);
-          if (empty($part1)) {
-            if ($paperCheck == 'paper') {
-              $part1 = 'TK';
-            }
-            else {
-              $part1 = 'TK(CBT)';
-            }
+          if ($paperCheck == 'paper') {
+            $part2 = 'TK';
           }
           else {
-            if ($paperCheck == 'paper') {
-              $part2 = 'TK';
-            }
-            else {
-              $part2 = 'TK(CBT)';
-            }
+            $part2 = 'TK(CBT)';
           }
         }
         if (str_contains($partRecords->parts, 'CA')) {
-          if (!empty($part2)) {
-            $part3 = 'CA(CBT)';
-          }
-          elseif (!empty($part1)) {
-            $part2 = 'CA(CBT)';
-          }
-          else {
-            $part1 = 'CA(CBT)';
-          }
+          $part2 = 'CA(CBT)';
         }
         if (str_contains($partRecords->parts, 'PM')) {
-          if (!empty($part3)) {
-            continue;
-          }
-          if (!empty($part2)) {
-            $part3 = 'PM(CBT)';
-          }
-          if (!empty($part1)) {
-            $part2 = 'PM(CBT)';
-          }
-          else {
-            $part1 = 'PM(CBT)';
-          }
+          $part3 = 'PM(CBT)';
+        }
+      }
+
+      if (!empty($this->_formValues['custom_30_value']) && $this->_formValues['custom_30_value'][0] === 'paper' && $this->_formValues['custom_30_op'] === 'in') {
+        if (str_contains($part1, 'CBT')) {
+          $part1 = '';
+        }
+        if (str_contains($part2, 'CBT')) {
+          $part2 = '';
+        }
+        if (str_contains($part3, 'CBT')) {
+          $part3 = '';
+        }
+      }
+      elseif (!empty($this->_formValues['custom_30_value']) && $this->_formValues['custom_30_value'][0] === 'paper' && $this->_formValues['custom_30_op'] === 'notin') {
+        if ($part1 === 'TK') {
+          $part1 = '';
+        }
+        if ($part2 === 'TK') {
+          $part2 = '';
         }
       }
 
       $rows[$rowNum]['civicrm_participant_part1'] = $part1;
       $rows[$rowNum]['civicrm_participant_part2'] = $part2;
       $rows[$rowNum]['civicrm_participant_part3'] = $part3;
-      $rows[$rowNum]['civicrm_contact_gender'] = $rows[$rowNum]['civicrm_contact_race'] = '';
+      // If the Event type is not Plumbing
+      if ($event_type_id != CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Event', 'event_type_id', 'Plumbing')) {
+        $rows[$rowNum]['civicrm_event_start_date'] = $rows[$rowNum]['civicrm_participant_test_site'] = '';
+      }
+      else {
+        // If we do not have a trade knowledge plumbing exam blank out the fields
+        if (!($part1 === 'TK' || $part2 === 'TK')) {
+          $rows[$rowNum]['civicrm_event_start_date'] = $rows[$rowNum]['civicrm_participant_test_site'] = '';
+        }
+        else {
+          $rows[$rowNum]['civicrm_event_start_date'] = date('m/d/Y', strtotime($row['civicrm_event_start_date']));
+        }
+      }
+      //$rows[$rowNum]['civicrm_contact_gender'] = $rows[$rowNum]['civicrm_contact_race'] = '';
+      $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'TRUE' : 'FALSE');
       $entryFound = TRUE;
 
       if (array_key_exists('civicrm_contact_sort_name', $row) &&
@@ -489,15 +539,13 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $entryFound = TRUE;
       }
 
-      if (array_key_exists('civicrm_event_event_type_id', $row) && $rows[$rowNum]['civicrm_event_event_type_id']) {
-        $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$row['civicrm_event_event_type_id']];
+      if (!empty($event_type_id)) {
+        $rows[$rowNum]['civicrm_event_event_type_id'] = $eventTypes[$event_type_id];
+        $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_25'] = $exam_code;
         $entryFound = TRUE;
       }
 
-      if (array_key_exists('civicrm_value_registrant_in_1_custom_2', $row)) {
-        $rows[$rowNum]['civicrm_value_registrant_in_1_custom_2'] = (!empty($row['civicrm_value_registrant_in_1_custom_2']) ? 'True' : 'False');
-        $entryFound = TRUE;
-      }
+
       $change_columns = [
         'civicrm_participant_exam_date_change',
         'civicrm_participant_exam_part_change',
@@ -529,10 +577,10 @@ class CRM_CilbReports_Form_Report_MWFReport extends CRM_Report_Form {
         $entryFound = TRUE;
       }
 
-      if (!empty($row['civicrm_value_cilb_candidat_7_custom_25'])) {
+      if (!empty($exam_code)) {
         $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_31'] = CRM_Core_DAO::singleValueQuery("SELECT entity_id_imported__31 FROM civicrm_value_cilb_candidat_7 WHERE entity_id = %1 AND class_code_18 = %2 LIMIT 1", [
           1 => [$row['civicrm_contact_id'], 'Positive'],
-          2 => [$row['civicrm_value_cilb_candidat_7_custom_25'], 'String'],
+          2 => [$exam_code, 'String'],
         ]);
         $entryFound = TRUE;
       }
@@ -721,6 +769,10 @@ LEFT JOIN civicrm_contact {$field['alias']} ON {$field['alias']}.id = {$this->_a
   public function select() {
     parent::select();
     $this->_select .= ', exam_cat.dbpr_code_3';
+  }
+
+  public function getReportTitle(): string {
+    return $this->_title;
   }
 
 }

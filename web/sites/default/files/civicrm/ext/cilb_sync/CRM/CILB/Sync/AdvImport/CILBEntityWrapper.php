@@ -40,7 +40,7 @@ class CRM_CILB_Sync_AdvImport_CILBEntityWrapper extends CRM_Advimport_Helper_Csv
     $headers = [0 => 'External Identifier', 1 => 'Entity ID', 2 => 'Class Code'];
 
     // cannot use CSV Helper as we need to add missing headers
-    $csv = Reader::createFromPath($file);
+    $csv = Reader::from($file);
     $csv->setDelimiter($delimiter);
     $records = $csv->getRecords();
 

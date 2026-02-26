@@ -93,15 +93,11 @@ function cilb_exam_registration_civicrm_tabset($tabsetName, &$tabs, $context) {
   }
 }
 
-/**
- * Implements hook_civicrm_custom().
- */
 function cilb_exam_registration_civicrm_custom($op, $groupID, $entityID, &$params) {
   if (!in_array($op, ['create', 'edit'])) {
     return;
   }
 
-  // Only process our group (Registrant_Info = ID 1 from your debug)
   if ($groupID != 1) {
     return;
   }
@@ -109,20 +105,33 @@ function cilb_exam_registration_civicrm_custom($op, $groupID, $entityID, &$param
   $ssnCol = 'ssn_5';
   $last4Col = 'ssn_last_4_95';
   $tableName = 'civicrm_value_registrant_in_1';
-  $ssnValue = '';
 
-  // Loop through params to find SSN field
-  foreach ($params as $field) {
+  foreach ($params as &$field) { 
     if ($field['column_name'] === $ssnCol) {
-      $ssnValue = (string) $field['value'];
+      $rawSsn = (string) $field['value'];
+
+      $digitsOnly = preg_replace('/\D/', '', $rawSsn);
+
+      if (strlen($digitsOnly) === 9) {
+        $formattedSsn = substr($digitsOnly, 0, 3) . '-' .
+                        substr($digitsOnly, 3, 2) . '-' .
+                        substr($digitsOnly, 5, 4);
+        $sql = "UPDATE {$tableName} SET {$ssnCol} = %1 WHERE entity_id = %2";
+          CRM_Core_DAO::executeQuery($sql, [
+            1 => [$formattedSsn, 'String'],
+            2 => [$entityID, 'Integer']
+          ]);
+      } else {
+        $field['value'] = $digitsOnly; 
+      }
+
+      $last4 = strlen($digitsOnly) >= 4 ? substr($digitsOnly, -4) : '';
+
+      // Update/create the last_4 record (your existing logic)
+      add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $field['value'], $last4);
       break;
     }
   }
-
-  $last4 = strlen($ssnValue) >= 4 ? substr($ssnValue, -4) : '';
-
-  // Update/create the record
-  add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $ssnValue, $last4);
 }
 
 /**

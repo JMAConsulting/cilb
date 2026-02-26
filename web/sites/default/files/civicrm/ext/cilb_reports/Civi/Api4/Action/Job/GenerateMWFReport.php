@@ -18,15 +18,32 @@ class GenerateMWFReport extends AbstractAction {
   protected $language = NULL;
 
   /**
-   * Report Instance ID
+   * CBT Report Instance ID
    * @var int
    */
-  protected $instanceID;
+  protected $cbTInstanceID;
+
+  /**
+   * Paper Report Instance ID
+   * @var int
+   */
+  protected $paperInstanceID;
 
   public function _run(Result $result) {
     \ob_start();
     $reportResult = \CRM_Report_Utils_Report::processReport([
-      'instanceId' => $this->instanceID,
+      'instanceId' => $this->cbTInstanceID,
+      'sendmail' => true,
+      'output' => 'zip',
+    ]);
+    \ob_clean();
+    if ($reportResult['is_error']) {
+      throw new \CRM_Core_Exception($reportResult['messages']);
+    }
+    $result[] = ['messages' => $reportResult['messages']];
+    \ob_start();
+    $reportResult = \CRM_Report_Utils_Report::processReport([
+      'instanceId' => $this->paperInstanceID,
       'sendmail' => true,
       'output' => 'zip',
     ]);

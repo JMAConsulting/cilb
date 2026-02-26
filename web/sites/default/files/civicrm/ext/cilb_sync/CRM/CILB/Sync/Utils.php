@@ -33,11 +33,15 @@ class CRM_CILB_Sync_Utils {
     return $realDate;
   }
 
-  public static function getExamRegistrationWithoutScore($contactID, $exam): Result {
+  public static function getExamRegistrationWithoutScore($contactID, $exam, $examDate): ?array {
     if (count($exam) == 1) {
       $examID = [$exam['id']];
     } else {
-      $examID = $exam;
+	    foreach($exam as $key => $examItem) {
+		    if ($key == 'id') {
+			    $examID[] = $exam[$key];
+		    }
+	    }
     }
     $participant = Participant::get(FALSE)
       ->addSelect('id')
@@ -45,9 +49,12 @@ class CRM_CILB_Sync_Utils {
       ->addWhere('event_id', 'IN', $examID)
       ->addWhere('Candidate_Result.Candidate_Score', 'IS EMPTY')
       ->addWhere('Candidate_Result.Date_Exam_Taken', 'IS NULL')
-      ->execute();
+      ->addWhere('register_date', '<', $examDate)
+      ->addOrderBy('register_date', 'ASC')
+      ->execute()
+      ->first();
 
-    return $participant;
+    return $participant ?? [];
   }
 
   public static function getExamRegistrationFromCandidateID($candidateID, $eventID = NULL, $eventFormat = NULL): ?array {
@@ -78,8 +85,30 @@ class CRM_CILB_Sync_Utils {
         ->addWhere('Entity_ID_imported_', '=', (int) $candidateID) // cast as Integer to remove leading 0
         ->addWhere('class_code', '=', $classCode)
         ->addOrderBy('Entity_ID_imported_', 'ASC')
-        ->execute()
-        ->first();
+        ->execute();
+      // If we have not found a match with the Candidate Entity ID + class code try matching on just the Candidate ID
+      if (count($candidateEntity) < 1) {
+        $candidateEntity = CustomValue::get('cilb_candidate_entity', FALSE)
+          ->addWhere('Entity_ID_imported_', '=', (int) $candidateID)
+          ->addOrderBy('Entity_ID_imported_', 'ASC')
+          ->execute();
+        // if we have more than 1 candidate entity record then we should check how many distict contact ids we have (entity_ids)
+        $contact_ids = [];
+        foreach ($candidateEntity as $entity) {
+          if (!array_key_exists($entity['entity_id'], $contact_ids)) {
+            $contact_ids[$entity['entity_id']] = 1;
+          }
+        }
+        if (count($contact_ids) > 1) {
+          throw new CRM_Core_Exception('Found more than 1 Contacts for Candidate Entity ID ' . $candidateID);
+        }
+        else {
+          $candidateEntity = $candidateEntity->first();
+        }
+      }
+      else {
+        $candidateEntity = $candidateEntity->first();
+      }
     }
     return $candidateEntity;
   }
@@ -101,11 +130,11 @@ class CRM_CILB_Sync_Utils {
 
   public static function getExamInfoFromSeriesCode($seriesCode): ?array {
     if ($seriesCode == "36-FL-CN") {
-      // This is one of two B&F exams. 
+      // This is one of two B&F exams.
       $exam = \Civi\Api4\Event::get(FALSE)
         ->addSelect('id')
         ->addWhere('event_type_id:name', 'IN', ['Business and Finance', 'Pool & Spa Servicing Business and Finance'])
-	->execute()
+        ->execute()
         ->first();
     }
     else {

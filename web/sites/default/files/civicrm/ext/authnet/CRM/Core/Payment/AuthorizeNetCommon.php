@@ -422,6 +422,7 @@ abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
     $propertyBag->has('billingPostalCode') ? $customerAddress->setZip($propertyBag->getBillingPostalCode()) : NULL;
     $propertyBag->has('billingCountry') ? $customerAddress->setCountry($propertyBag->getBillingCountry()) : NULL;
 
+    CRM_Core_Error::debug_var('billingaddress', $customerAddress);
     return $customerAddress;
   }
 

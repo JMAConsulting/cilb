@@ -1,5 +1,7 @@
 <?php
 
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use CRM_CILB_Sync_ExtensionUtil as E;
 use CRM_CILB_Sync_Utils as EU;
 
@@ -78,7 +80,7 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
       CRM_Advimport_Utils::logImportWarning($params, "Exam - {$examSeriesCode} was not found"); // Exam was not found
       return;
     }
-    $examClass = $exam['event_type.Exam_Type_Details.DBPR_Code'];
+    $examClass = $exam['event_type.Exam_Type_Details.DBPR_Code'] ?? NULL;
 
     // Candidate Info
     $candidate = EU::getCandidateEntity($candidateID, $examClass);
@@ -87,17 +89,15 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
     }
 
     // Exam Registration
+    $examDateForMySQL = date('Y-m-d', strtotime($examDate));
     $contactID = $candidate['entity_id'];
-    $participantResults = EU::getExamRegistrationWithoutScore($contactID, $exam);
-    if ( $participantResults->count() == 0 ) {
+    $participantResults = EU::getExamRegistrationWithoutScore($contactID, $exam, $examDateForMySQL);
+    if ( count($participantResults) == 0 ) {
       // @TODO: log as skipped (warning) ?
       throw new CRM_Core_Exception("No registration found that doesn't have a score already.");
     }
-    if ( $participantResults->count() > 1 ) {
-      throw new CRM_Core_Exception("More than one registration found.");
-    }
 
-    $participantID = $participantResults->single()['id'];
+    $participantID = $participantResults['id'];
 
     // Update Score / Date
     try {
@@ -110,9 +110,15 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
           ->execute();
       }
       else {
+        $examItemsCorrect = BigDecimal::of((string) $params['examitemscorrect']);
+        $examItemsIncorrect = BigDecimal::of((string) $params['examitemsincorrect']);
+        $examItemsSkipped = BigDecimal::of($params['examitemsskipped']);
+        $denominator = $examItemsCorrect->plus($examItemsIncorrect)->plus($examItemsSkipped);
+        $division = ($examScore / $denominator->toFloat());
+        $parsedExamScore = BigDecimal::of($division)->multipliedBy((string) 100)->dividedBy(1, 0, RoundingMode::HALF_UP);
         $result = \Civi\Api4\Participant::update(FALSE)
           ->addValue('source', $examRegID)
-          ->addValue('Candidate_Result.Candidate_Score', $examScore)
+          ->addValue('Candidate_Result.Candidate_Score', $parsedExamScore->toInt())
           ->addValue('Candidate_Result.Date_Exam_Taken', $examDate)
           ->addValue('status_id:label', $examStatus)
           ->addWhere('id', '=', $participantID)

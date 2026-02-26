@@ -7,6 +7,7 @@ use Drupal\block\Entity\Block;
 use Drupal\cilb_candidate_registration\Plugin\WebformHandler\CilbCandidateRegistrationWebformHandler;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
+use Drupal\Core\Menu\MenuLinkInterface;
 
 /**
  * Implements hook_form_alter().
@@ -123,4 +124,17 @@ function cilb_candidate_registration_tokens($type, $tokens = '', array $data = [
   }
 }
 
-
+/**
+ * Implements hook_preprocess_HOOK() for menu.html.twig.
+ */
+function cilb_candidate_registration_preprocess_menu(&$variables) {
+  $current_user = \Drupal::currentUser();
+  if ($current_user->hasRole('staff') && $variables['menu_name'] == 'main') {  // 'main' = your menu name
+    foreach ($variables['items'] as &$item) {
+      if ($item['title'] == 'Home' || $item['url']->getInternalPath() == '<front>') {
+        $item['url'] = \Drupal\Core\Url::fromUri('internal:/admin/config/cilb-admin-dashboard');
+        break;
+      }
+    }
+  }
+}

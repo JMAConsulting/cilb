@@ -1,0 +1,387 @@
+From 85a61b8a2a79d07b9f0ae19fdbd81dec1364db7a Mon Sep 17 00:00:00 2001
+From: Anton Ivanov <anton.ivanov@ffw.com>
+Date: Mon, 5 May 2025 17:00:43 +0200
+Subject: [PATCH] Issue #3354698: Url verification redirect a custom url
+
+---
+ README.md                                     |  5 +-
+ .../user_email_verification.settings.yml      |  4 +
+ .../schema/user_email_verification.schema.yml | 12 +++
+ .../UserEmailVerificationVerify.php           | 11 +--
+ .../UserEmailVerificationVerifyExtended.php   |  8 +-
+ .../UserEmailVerificationSettingsForm.php     | 82 ++++++++++++++++++-
+ src/UserEmailVerification.php                 | 54 ++++++++++++
+ src/UserEmailVerificationInterface.php        | 17 ++++
+ user_email_verification.install               | 13 +++
+ 9 files changed, 188 insertions(+), 18 deletions(-)
+
+diff --git a/README.md b/README.md
+index 3c50e30..07d65c0 100644
+--- a/README.md
++++ b/README.md
+@@ -40,8 +40,9 @@ CONFIGURATION
+   * Uncheck "Require email verification when a visitor creates an account"
+     checkbox
+ * In **Emails** section:
+-  * Add [user:verify-email] to the "Welcome (no approval required)"
+-  mail to send to the user the Email verification link
++  * Add [user:verify-email] token into mails (to send to the user Email verification link):
++    * **Welcome (new user created by administrator)**
++    * **Welcome (no approval required)**
+ * Click "Save configuration" button
+ * Go to: _Manage_ -> _Configuration_ -> _People_ -> _User Email Verification_
+   `/admin/config/people/user-email-verification` page:
+diff --git a/config/install/user_email_verification.settings.yml b/config/install/user_email_verification.settings.yml
+index 81a6b35..19f58b6 100644
+--- a/config/install/user_email_verification.settings.yml
++++ b/config/install/user_email_verification.settings.yml
+@@ -5,8 +5,12 @@ validate_interval: 604800
+ num_reminders: 0
+ mail_subject: '[site:name]: Email verification'
+ mail_body: 'Verify your Email by following the link: [user:verify-email]'
++redirect_logged_in: ''
++redirect_anonymous: ''
+ extended_enable: false
+ extended_validate_interval: 1209600
+ extended_mail_subject: '[site:name]: Account blocked, please verify Email address'
+ extended_mail_body: 'Your account is blocked. Your Email may still be verified by following the link: [user:verify-email-extended]'
+ extended_end_delete_account: true
++extended_redirect_logged_in: ''
++extended_redirect_anonymous: ''
+diff --git a/config/schema/user_email_verification.schema.yml b/config/schema/user_email_verification.schema.yml
+index 917605d..ead6632 100644
+--- a/config/schema/user_email_verification.schema.yml
++++ b/config/schema/user_email_verification.schema.yml
+@@ -26,6 +26,12 @@ user_email_verification.settings:
+     mail_body:
+       type: text
+       label: 'Verification mail body'
++    redirect_logged_in:
++      type: string
++      label: 'Redirect logged in users'
++    redirect_anonymous:
++      type: string
++      label: 'Redirect anonymous users'
+     extended_enable:
+       type: boolean
+       label: 'Enable extended verification period'
+@@ -41,6 +47,12 @@ user_email_verification.settings:
+     extended_end_delete_account:
+       type: boolean
+       label: 'Delete user account when "Extended verification time interval" ended'
++    extended_redirect_logged_in:
++      type: string
++      label: 'Redirect logged in users'
++    extended_redirect_anonymous:
++      type: string
++      label: 'Redirect anonymous users'
+ 
+ block.settings.user_email_verification_notification:
+   type: block_settings
+diff --git a/src/Controller/UserEmailVerificationVerify.php b/src/Controller/UserEmailVerificationVerify.php
+index dfad4c5..1141632 100644
+--- a/src/Controller/UserEmailVerificationVerify.php
++++ b/src/Controller/UserEmailVerificationVerify.php
+@@ -12,6 +12,7 @@ use Drupal\user_email_verification\Event\UserEmailVerificationVerifyEvent;
+ use Drupal\user_email_verification\UserEmailVerificationInterface;
+ use Symfony\Component\DependencyInjection\ContainerInterface;
+ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
++use Symfony\Component\HttpFoundation\RedirectResponse;
+ 
+ /**
+  * Email verificationVerify controller.
+@@ -125,14 +126,8 @@ class UserEmailVerificationVerify extends ControllerBase implements ContainerInj
+ 
+         return $this->redirect('<front>');
+       }
+-      // The user is already authenticated, redirect to the user profile.
+-      elseif ($this->currentUser()->isAuthenticated()) {
+-        return $this->redirect('entity.user.canonical', ['user' => $this->currentUser()->id()]);
+-      }
+-      // Otherwise redirect to the front page.
+-      else {
+-        return $this->redirect('<front>');
+-      }
++
++      return new RedirectResponse($this->userEmailVerification->getSuccessfulVerificationRedirectUrl()->toString());
+     }
+ 
+     $this->messenger()->addError($this->t('Your verification link is incorrect. Request a new one using the form below.'));
+diff --git a/src/Controller/UserEmailVerificationVerifyExtended.php b/src/Controller/UserEmailVerificationVerifyExtended.php
+index c8f179f..a0ac389 100644
+--- a/src/Controller/UserEmailVerificationVerifyExtended.php
++++ b/src/Controller/UserEmailVerificationVerifyExtended.php
+@@ -12,6 +12,7 @@ use Drupal\user_email_verification\Event\UserEmailVerificationVerifyEvent;
+ use Drupal\user_email_verification\UserEmailVerificationInterface;
+ use Symfony\Component\DependencyInjection\ContainerInterface;
+ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
++use Symfony\Component\HttpFoundation\RedirectResponse;
+ 
+ /**
+  * Email verificationVerify controller.
+@@ -124,12 +125,7 @@ class UserEmailVerificationVerifyExtended extends ControllerBase implements Cont
+         $this->messenger()->addStatus($this->t('Your account is activated.'));
+       }
+ 
+-      if ($this->currentUser()->isAuthenticated()) {
+-        return $this->redirect('entity.user.canonical', ['user' => $this->currentUser()->id()]);
+-      }
+-      else {
+-        return $this->redirect('<front>');
+-      }
++      return new RedirectResponse($this->userEmailVerification->getSuccessfulExtendedVerificationRedirectUrl()->toString());
+     }
+ 
+     $this->messenger()->addError($this->t('Your verification link is incorrect. Request a new one using the form below.'));
+diff --git a/src/Form/UserEmailVerificationSettingsForm.php b/src/Form/UserEmailVerificationSettingsForm.php
+index 62b58d8..790d6da 100644
+--- a/src/Form/UserEmailVerificationSettingsForm.php
++++ b/src/Form/UserEmailVerificationSettingsForm.php
+@@ -9,7 +9,7 @@ use Drupal\user\RoleInterface;
+ use Drupal\Core\Url;
+ 
+ /**
+- * Configures user email verification this site.
++ * Configures user email verification on this site.
+  */
+ class UserEmailVerificationSettingsForm extends ConfigFormBase {
+ 
+@@ -121,6 +121,30 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
+       ],
+     ];
+ 
++    $form['redirects'] = [
++      '#type' => 'details',
++      '#title' => $this->t('Redirects'),
++      '#open' => FALSE,
++    ];
++
++    $form['redirects']['redirect_logged_in'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Redirect logged in users'),
++      '#default_value' => $config->get('redirect_logged_in'),
++      '#maxlength' => 180,
++      '#description' => $this->t('Where to redirect logged-in users after they click verification link. Must begin with "/", "?", or "#".<br />Leave empty to redirect to the /user/[uid] page.'),
++      '#placeholder' => '/user/[uid]',
++    ];
++
++    $form['redirects']['redirect_anonymous'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Redirect anonymous users'),
++      '#default_value' => $config->get('redirect_anonymous'),
++      '#maxlength' => 180,
++      '#description' => $this->t('Where to redirect anonymous users after they click verification link. Must begin with "/", "?", or "#".<br />Leave empty to redirect to the site front page.'),
++      '#placeholder' => '<front>',
++    ];
++
+     $form['extended_enable'] = [
+       '#type' => 'checkbox',
+       '#title' => $this->t('Enable extended verification period'),
+@@ -185,11 +209,35 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
+       '#title' => $this->t('Delete user account when "Extended verification time interval" ended'),
+       '#default_value' => $config->get('extended_end_delete_account'),
+       '#description' => $this->t(
+-        'To choose the logic of user account delete visit <a href="@href" target="_blank">Account settings page</a> and setup it using <strong>When cancelling a user account</strong> item.',
++        'To choose the logic of user account delete visit <a href="@href" target="_blank">Account settings page</a> and setup it is using <strong>When cancelling a user account</strong> item.',
+         ['@href' => Url::fromRoute('entity.user.admin_form')->toString()]
+       ),
+     ];
+ 
++    $form['extended']['redirects'] = [
++      '#type' => 'details',
++      '#title' => $this->t('Redirects'),
++      '#open' => FALSE,
++    ];
++
++    $form['extended']['redirects']['extended_redirect_logged_in'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Redirect logged in users'),
++      '#default_value' => $config->get('extended_redirect_logged_in'),
++      '#maxlength' => 180,
++      '#description' => $this->t('Where to redirect logged-in users after they click extended verification link. Must begin with "/", "?", or "#".<br />Leave empty to redirect to the /user/[uid] page.'),
++      '#placeholder' => '/user/[uid]',
++    ];
++
++    $form['extended']['redirects']['extended_redirect_anonymous'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Redirect anonymous users'),
++      '#default_value' => $config->get('extended_redirect_anonymous'),
++      '#maxlength' => 180,
++      '#description' => $this->t('Where to redirect anonymous users after they click extended verification link. Must begin with "/", "?", or "#".<br />Leave empty to redirect to the site front page.'),
++      '#placeholder' => '<front>',
++    ];
++
+     $form['no_creation_auto_verify'] = [
+       '#type' => 'checkbox',
+       '#title' => $this->t('Disable auto verification on account creation'),
+@@ -207,6 +255,32 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
+     return parent::buildForm($form, $form_state);
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function validateForm(array &$form, FormStateInterface $form_state) {
++    parent::validateForm($form, $form_state);
++
++    $redirects = [
++      'redirect_logged_in' => $this->t('Redirect logged in users must begin with a "/", "?", or "#".'),
++      'redirect_anonymous' => $this->t('Redirect anonymous users must begin with a "/", "?", or "#".'),
++      'extended_redirect_logged_in' => $this->t('Redirect logged in users (in Extended verification period section) must begin with a "/", "?", or "#".'),
++      'extended_redirect_anonymous' => $this->t('Redirect anonymous users (in Extended verification period section) must begin with a "/", "?", or "#".'),
++    ];
++
++    foreach ($redirects as $redirect_name => $error_message) {
++      $redirect = trim($form_state->getValue($redirect_name));
++
++      if (
++        $redirect &&
++        !in_array(mb_substr($redirect, 0, 1), ['/', '?', '#'])
++      ) {
++        $form_state->setErrorByName($redirect_name, $error_message);
++      }
++    }
++
++  }
++
+   /**
+    * {@inheritdoc}
+    */
+@@ -220,11 +294,15 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
+       ->set('num_reminders', (int) $form_state->getValue('num_reminders'))
+       ->set('mail_subject', trim($form_state->getValue('mail_subject')))
+       ->set('mail_body', trim($form_state->getValue('mail_body')))
++      ->set('redirect_logged_in', trim($form_state->getValue('redirect_logged_in')))
++      ->set('redirect_anonymous', trim($form_state->getValue('redirect_anonymous')))
+       ->set('extended_enable', (bool) $form_state->getValue('extended_enable'))
+       ->set('extended_validate_interval', (int) $form_state->getValue('extended_validate_interval'))
+       ->set('extended_mail_subject', trim($form_state->getValue('extended_mail_subject')))
+       ->set('extended_mail_body', trim($form_state->getValue('extended_mail_body')))
+       ->set('extended_end_delete_account', (bool) $form_state->getValue('extended_end_delete_account'))
++      ->set('extended_redirect_logged_in', trim($form_state->getValue('extended_redirect_logged_in')))
++      ->set('extended_redirect_anonymous', trim($form_state->getValue('extended_redirect_anonymous')))
+       ->save();
+ 
+     parent::submitForm($form, $form_state);
+diff --git a/src/UserEmailVerification.php b/src/UserEmailVerification.php
+index cc2b81d..3d2d4eb 100644
+--- a/src/UserEmailVerification.php
++++ b/src/UserEmailVerification.php
+@@ -765,6 +765,60 @@ class UserEmailVerification implements UserEmailVerificationInterface {
+       ->fetchField();
+   }
+ 
++  /**
++   * {@inheritdoc}
++   */
++  public function getSuccessfulVerificationRedirectUrl() {
++    return $this->getAfterAnyVerificationRedirectUrl(
++      $this->config->get('redirect_logged_in'),
++      $this->config->get('redirect_anonymous')
++    );
++  }
++
++  /**
++   * {@inheritdoc}
++   */
++  public function getSuccessfulExtendedVerificationRedirectUrl() {
++    return $this->getAfterAnyVerificationRedirectUrl(
++      $this->config->get('extended_redirect_logged_in'),
++      $this->config->get('extended_redirect_anonymous')
++    );
++  }
++
++  /**
++   * Return redirect URL after any verification type.
++   *
++   * @param $redirect_logged_in
++   *   The redirect setting for logged-in users.
++   * @param $redirect_anonymous
++   *   The redirect setting for anonymous users.
++   *
++   * @return \Drupal\Core\Url
++   *   The redirect URL.
++   */
++  protected function getAfterAnyVerificationRedirectUrl($redirect_logged_in, $redirect_anonymous) {
++    $options = ['absolute' => TRUE];
++
++    if ($this->currentUser->isAuthenticated()) {
++      if ($redirect_logged_in) {
++        $url = Url::fromUserInput($redirect_logged_in, $options);
++      }
++      else {
++        $url = Url::fromRoute('entity.user.canonical', ['user' => $this->currentUser->id()], $options);
++      }
++    }
++    else {
++      if ($redirect_anonymous) {
++        $url = Url::fromUserInput($redirect_anonymous, $options);
++      }
++      else {
++        $url = Url::fromRoute('<front>', [], $options);
++      }
++    }
++
++    return $url;
++  }
++
+   /**
+    * Return list of user IDs related to requested reason and interval pair.
+    *
+diff --git a/src/UserEmailVerificationInterface.php b/src/UserEmailVerificationInterface.php
+index 47e9522..7eb4b96 100644
+--- a/src/UserEmailVerificationInterface.php
++++ b/src/UserEmailVerificationInterface.php
+@@ -3,6 +3,7 @@
+ namespace Drupal\user_email_verification;
+ 
+ use Drupal\user\UserInterface;
++use Symfony\Component\HttpFoundation\RedirectResponse;
+ 
+ /**
+  * Interface defining User email verification helper service.
+@@ -356,4 +357,20 @@ interface UserEmailVerificationInterface {
+    */
+   public function isVerificationExtendedPeriodExceeded($uid);
+ 
++  /**
++   * Return URL to redirect to after successful verification.
++   *
++   * @return \Drupal\Core\Url
++   *   Redirect URL.
++   */
++  public function getSuccessfulVerificationRedirectUrl();
++
++  /**
++   * Return URL to redirect to after successful extended verification.
++   *
++   * @return \Drupal\Core\Url
++   *   Redirect URL.
++   */
++  public function getSuccessfulExtendedVerificationRedirectUrl();
++
+ }
+diff --git a/user_email_verification.install b/user_email_verification.install
+index 02d11c5..6c54c0d 100644
+--- a/user_email_verification.install
++++ b/user_email_verification.install
+@@ -126,3 +126,16 @@ function user_email_verification_update_8002(&$sandbox) {
+     ])
+     ->execute();
+ }
++
++/**
++ * Set default value for new "Redirect logged in users" settings.
++ */
++function user_email_verification_update_8003(&$sandbox) {
++  \Drupal::configFactory()
++    ->getEditable('user_email_verification.settings')
++    ->set('redirect_logged_in', '')
++    ->set('redirect_anonymous', '')
++    ->set('extended_redirect_logged_in', '')
++    ->set('extended_redirect_anonymous', '')
++    ->save();
++}
+-- 
+GitLab
+

@@ -58,5 +58,16 @@ return [
       'sftp' => ['weight' => 100],
     ],
   ],
+  'sftp_cilb_date_file_name_format' => [
+    'name' => 'sftp_cilb_date_file_name_format',
+    'type' => 'String',
+    'title' => E::ts('Date Format in File name'),
+    'description' => E::ts('Format of the date string in file name format e.g. Ymd. Needs to be written in the PHP Date Format string'),
+    'html_type' => 'text',
+    'default' => 'Ymd',
+    'settings_pages' => [
+      'sftp' => ['weight' => 50],
+    ],
+  ],
 ];
 

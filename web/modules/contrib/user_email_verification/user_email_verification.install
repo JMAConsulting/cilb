@@ -126,3 +126,16 @@ function user_email_verification_update_8002(&$sandbox) {
     ])
     ->execute();
 }
+
+/**
+ * Set default value for new "Redirect logged in users" settings.
+ */
+function user_email_verification_update_8003(&$sandbox) {
+  \Drupal::configFactory()
+    ->getEditable('user_email_verification.settings')
+    ->set('redirect_logged_in', '')
+    ->set('redirect_anonymous', '')
+    ->set('extended_redirect_logged_in', '')
+    ->set('extended_redirect_anonymous', '')
+    ->save();
+}
