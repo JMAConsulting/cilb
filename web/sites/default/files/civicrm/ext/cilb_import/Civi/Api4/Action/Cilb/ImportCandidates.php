@@ -112,25 +112,27 @@ class ImportCandidates extends ImportBase {
             ],
             'id' => $matchingContact['id'],
 	        ];
+          $matchingId = 'id';
 	      }
 	      else {
-		    // We dont have a match, so create the contact
-		    $recordsToCreate = [
-			    'external_identifier' => $contact['FK_Account_ID'],
-          'birth_date' => $contact['DOB'] ?? NULL,
-          'Registrant_Info.SSN' => $formattedSsn ?? NULL,
-          'first_name' => $contact['First_Name'],
-          'middle_name' => $contact['Middle_Name'],
-          'last_name' => $contact['Last_Name'],
-          'contact_type' => 'Individual',
-          'contact_sub_type' => [
-            'Candidate',
-	        ],
-		    ];
+		      // We dont have a match, so create the contact
+		      $recordsToCreate = [
+			      'external_identifier' => $contact['FK_Account_ID'],
+            'birth_date' => $contact['DOB'] ?? NULL,
+            'Registrant_Info.SSN' => $formattedSsn ?? NULL,
+            'first_name' => $contact['First_Name'],
+            'middle_name' => $contact['Middle_Name'],
+            'last_name' => $contact['Last_Name'],
+            'contact_type' => 'Individual',
+            'contact_sub_type' => [
+              'Candidate',
+	          ],
+		      ];
+          $matchingId = 'external_identifier';
         }
         $contactCreated = \Civi\Api4\Contact::save(FALSE)
             ->addRecord($recordsToCreate)
-            ->setMatch(['external_identifier'])
+            ->setMatch([$matchingId])
 	          ->execute()->first()['id'];
 
         if (\Civi\Api4\GroupContact::get(FALSE)
@@ -179,6 +181,14 @@ class ImportCandidates extends ImportBase {
       ->addWhere('external_identifier', '=', $accountId)
       ->execute()
       ->first()['id'] ?? NULL;
+
+    if (\Civi\Api4\GroupContact::get(FALSE)
+      ->addWhere('group_id', '=', 9)
+      ->addWhere('contact_id', '=', $id)
+      ->selectRowCount()
+      ->execute()->count() == 0) { 
+        $id = NULL;
+    }
 
     if (!$id) {
       $this->warning("Contact ID not found when importing linked data for Account ID {$accountId}");
