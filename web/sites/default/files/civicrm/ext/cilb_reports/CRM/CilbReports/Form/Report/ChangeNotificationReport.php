@@ -223,6 +223,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
         $entryFound = TRUE;
       }
 
+      $entryFound = TRUE;
       if (!empty($row['civicrm_contact_changed_by'])) {
         $entryFound = TRUE;
         $rows[$rowNum]['civicrm_contact_changed_by'] = CRM_Core_DAO::singleValueQuery("SELECT display_name FROM civicrm_contact WHERE id = %1", [1 => [$row['civicrm_contact_changed_by'], 'Positive']]);
