@@ -202,7 +202,7 @@ function cilb_reports_civicrm_alterLogTables(&$logTableSpec) {
       $indexArray['index_id'] = 'id';
     }
     if ($tableName === $adaField['custom_group_id.table_name'] || $tableName === $ssnField['custom_group_id.table_name']) {
-      $indexArray['index_entity_id'] = 'id';
+      $indexArray['index_entity_id'] = 'entity_id';
     }
     $logTableSpec[$tableName]['indexes'] = array_merge($indexArray, $contactIndexes);
   }
