@@ -318,7 +318,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
     $homeLocationId = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_Address', 'location_type_id', 'Home');
     // Find all changes to Home Addresses
     $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_value, new_value, changed_by)
-      SELECT DISTINCT lc.id, CONCAT(COALESCE(lca.street_address, ''), '\r\n', COALESCE(lca.city, ''), ' , ', COALESCE(lcas.abbreviation, '') ' ', COALESCE(lca.postal_code, '')), CONCAT(COALESCE(lca2.street_address, ''), '\r\n', COALESCE(lca2.city, ''), ' , ', COALESCE(lcas2.abbreviation, ''), ' ', COALESCE(lca2.postal_code, '')), COALESCE(lca2.log_user_id, 0)
+      SELECT DISTINCT lc.id, CONCAT(COALESCE(lca.street_address, ''), '\r\n', COALESCE(lca.city, ''), ' , ', COALESCE(lcas.abbreviation, ''), ' ', COALESCE(lca.postal_code, '')), CONCAT(COALESCE(lca2.street_address, ''), '\r\n', COALESCE(lca2.city, ''), ' , ', COALESCE(lcas2.abbreviation, ''), ' ', COALESCE(lca2.postal_code, '')), COALESCE(lca2.log_user_id, 0)
       FROM `{$loggingDb}`.log_civicrm_contact lc
       LEFT JOIN `{$loggingDb}`.log_civicrm_address lca ON lca.contact_id = lc.id AND lca.location_type_id = {$homeLocationId}
       LEFT JOIN `{$loggingDb}`.log_civicrm_state_province lcas ON lcas.id = lca.state_province_id
