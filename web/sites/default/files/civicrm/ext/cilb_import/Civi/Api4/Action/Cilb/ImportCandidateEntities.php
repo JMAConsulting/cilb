@@ -40,12 +40,15 @@ class ImportCandidateEntities extends ImportBase {
         continue;
       }
 
-      \Civi\Api4\CustomValue::create('cilb_candidate_entity', FALSE)
-        ->addValue('entity_id', $contact['id'])
-        ->addValue('Entity_ID_imported_', $candidateEntity['Entity_ID'])
-        ->addValue('exam_category:name', $candidateEntity['Category_Name'] ?? NULL)
-        ->addValue('class_code', $candidateEntity['Class_Code'] ?? NULL)
-        ->execute();
+      $entityIdImported = \CRM_Core_DAO::singleValueQuery("SELECT entity_id_imported__31 FROM civicrm_value_cilb_candidat_7 WHERE entity_id = %1", [1 => [$contact, 'Integer']]);
+      if (!$entityIdImported) {
+        \Civi\Api4\CustomValue::create('cilb_candidate_entity', FALSE)
+          ->addValue('entity_id', $contact['id'])
+          ->addValue('Entity_ID_imported_', $candidateEntity['Entity_ID'])
+          ->addValue('exam_category:name', $candidateEntity['Category_Name'] ?? NULL)
+          ->addValue('class_code', $candidateEntity['Class_Code'] ?? NULL)
+          ->execute();
+      }
     }
   }
 }
