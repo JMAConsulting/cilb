@@ -312,7 +312,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       FROM `{$loggingDb}`.log_civicrm_contact lc
       INNER JOIN `{$loggingDb}`.log_{$ssnField['custom_group_id.table_name']} AS lcv ON lcv.entity_id = lc.id
       INNER JOIN `{$loggingDb}`.log_{$ssnField['custom_group_id.table_name']} AS lcv2 ON lcv2.entity_id = lc.id AND lcv2.log_date > lcv.log_date
-      WHERE (lcv2.{$ssnField['column_name']} != lcv.{$ssnField['column_name']}) AND lcv2.log_date >= '{$lastRunCron}'
+      WHERE (REGEXP_REPLACE(lcv2.{$ssnField['column_name']}, '\\\\D', '') != REGEXP_REPLACE(lcv.{$ssnField['column_name']}, '\\\\D', '')) AND lcv2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
