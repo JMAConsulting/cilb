@@ -458,18 +458,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $user->set('preferred_langcode', $langcode);
     $user->save();
 
-    // Send the email verification email
-    \Drupal::service('plugin.manager.mail')->mail(
-      'user',
-      'register_no_approval_required',
-      $user->getEmail(),
-      $user->getPreferredLangcode(),
-      ['account' => $user],
-      NULL,
-      TRUE
-    );
-
-
     if (isset($webform_submission_data['civicrm_1_contact_1_contact_existing']) && is_numeric($webform_submission_data['civicrm_1_contact_1_contact_existing'])) {
       $results = \Civi\Api4\UFMatch::create(FALSE)
         ->addValue('domain_id', 1)
@@ -839,7 +827,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         // postSave
         return;
       }
-      
+
 
       // if we have matching contacts, we need to check
       // if they have a user record or not
@@ -1290,7 +1278,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->execute()
       ->indexBy('id');
     foreach ($events as &$event) {
-      if ($event['event_type_id:name'] !== "Plumbing") {	    
+      if ($event['event_type_id:name'] !== "Plumbing") {
         $event['title'] = $event['event_type_id:label'] . ' - ' . $event['Exam_Details.Exam_Part:label'];
       }
     }
