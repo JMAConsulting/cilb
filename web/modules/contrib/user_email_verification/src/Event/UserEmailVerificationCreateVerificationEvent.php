@@ -2,7 +2,6 @@
 
 namespace Drupal\user_email_verification\Event;
 
-use Symfony\Contracts\EventDispatcher\Event;
 use Drupal\user\UserInterface;
 
 /**
@@ -10,14 +9,7 @@ use Drupal\user\UserInterface;
  *
  * @ingroup user_email_verification
  */
-class UserEmailVerificationCreateVerificationEvent extends Event {
-
-  /**
-   * The user account being verify.
-   *
-   * @var \Drupal\user\UserInterface
-   */
-  protected $user;
+class UserEmailVerificationCreateVerificationEvent extends UserEmailVerificationBaseEvent {
 
   /**
    * Should the user account be verified by default or no.
@@ -30,23 +22,13 @@ class UserEmailVerificationCreateVerificationEvent extends Event {
    * Constructs a user email verification event object.
    *
    * @param \Drupal\user\UserInterface $user
-   *   The user account being verify.
+   *   The user account being verified.
    * @param bool $should_be_verified
    *   Should be user account verified by default or no.
    */
   public function __construct(UserInterface $user, $should_be_verified) {
-    $this->user = $user;
+    parent::__construct($user);
     $this->shouldBeVerified = $should_be_verified;
-  }
-
-  /**
-   * Get the user account being verify.
-   *
-   * @return \Drupal\user\UserInterface
-   *   The user account.
-   */
-  public function getUser() {
-    return $this->user;
   }
 
   /**

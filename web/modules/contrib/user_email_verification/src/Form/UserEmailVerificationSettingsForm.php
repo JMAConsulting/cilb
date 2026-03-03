@@ -4,8 +4,9 @@ namespace Drupal\user_email_verification\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\Entity\Role;
+use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
-use Drupal\user\UserInterface;
 
 /**
  * Configures user email verification on this site.
@@ -32,8 +33,13 @@ class UserEmailVerificationSettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     $config = $this->config('user_email_verification.settings');
-    $roles = user_role_names(TRUE);
-    unset($roles[UserInterface::AUTHENTICATED_ROLE]);
+
+    $roles = Role::loadMultiple();
+    unset($roles[RoleInterface::ANONYMOUS_ID]);
+    unset($roles[RoleInterface::AUTHENTICATED_ID]);
+    $roles = array_map(function(RoleInterface $role) {
+      return $role->label();
+    }, $roles);
 
     $form['skip_roles'] = [
       '#type' => 'checkboxes',

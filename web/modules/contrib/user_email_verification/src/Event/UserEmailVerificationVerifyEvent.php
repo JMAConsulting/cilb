@@ -2,7 +2,6 @@
 
 namespace Drupal\user_email_verification\Event;
 
-use Symfony\Contracts\EventDispatcher\Event;
 use Drupal\user\UserInterface;
 
 /**
@@ -10,14 +9,7 @@ use Drupal\user\UserInterface;
  *
  * @ingroup user_email_verification
  */
-class UserEmailVerificationVerifyEvent extends Event {
-
-  /**
-   * The user account being verify.
-   *
-   * @var \Drupal\user\UserInterface
-   */
-  protected $user;
+class UserEmailVerificationVerifyEvent extends UserEmailVerificationBaseEvent {
 
   /**
    * Notify the user as blocked account.
@@ -30,23 +22,13 @@ class UserEmailVerificationVerifyEvent extends Event {
    * Constructs a user email verification event object.
    *
    * @param \Drupal\user\UserInterface $user
-   *   The user account being verify.
+   *   The user account being verified.
    * @param bool $notify_as_blocked
    *   Whether to notify the user as blocked account.
    */
   public function __construct(UserInterface $user, $notify_as_blocked = FALSE) {
-    $this->user = $user;
+    parent::__construct($user);
     $this->notifyAsBlocked = $notify_as_blocked;
-  }
-
-  /**
-   * Get the user account being verify.
-   *
-   * @return \Drupal\user\UserInterface
-   *   The user account.
-   */
-  public function getUser() {
-    return $this->user;
   }
 
   /**

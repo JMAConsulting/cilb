@@ -16,10 +16,10 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\Core\Utility\Token;
 use Drupal\user\UserInterface;
-use Drupal\user_email_verification\Event\UserEmailVerificationEvents;
 use Drupal\user_email_verification\Event\UserEmailVerificationBlockAccountEvent;
 use Drupal\user_email_verification\Event\UserEmailVerificationCreateVerificationEvent;
 use Drupal\user_email_verification\Event\UserEmailVerificationDeleteAccountEvent;
+use Drupal\user_email_verification\Event\UserEmailVerificationEvents;
 use Drupal\user_email_verification\Event\UserEmailVerificationRulesExtendedReminderMailSent;
 use Drupal\user_email_verification\Event\UserEmailVerificationRulesReminderMailSent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -378,6 +378,9 @@ class UserEmailVerification implements UserEmailVerificationInterface {
     if ($verify || $event->shouldBeVerified()) {
       $verified = $this->time->getRequestTime();
     }
+    else {
+      $this->sendVerifyMailById($user->id());
+    }
 
     $this->database
       ->insert(UserEmailVerificationInterface::VERIFICATION_TABLE_NAME)
@@ -387,8 +390,8 @@ class UserEmailVerification implements UserEmailVerificationInterface {
         'last_reminder' => $this->time->getRequestTime(),
         'reminders' => 0,
         'state' => $verified
-        ? UserEmailVerificationInterface::STATE_APPROVED
-        : UserEmailVerificationInterface::STATE_IN_PROGRESS,
+          ? UserEmailVerificationInterface::STATE_APPROVED
+          : UserEmailVerificationInterface::STATE_IN_PROGRESS,
       ])
       ->execute();
   }
@@ -667,8 +670,13 @@ class UserEmailVerification implements UserEmailVerificationInterface {
     $original_language = $this->languageManager->getConfigOverrideLanguage();
     $this->languageManager->setConfigOverrideLanguage($language);
 
-    $token_data = ['user' => $user];
-    $token_options = ['langcode' => $user->getPreferredLangcode(), 'clear' => TRUE];
+    $token_data = [
+      'user' => $user,
+    ];
+    $token_options = [
+      'langcode' => $user->getPreferredLangcode(),
+      'clear' => TRUE,
+    ];
 
     switch ($key) {
 

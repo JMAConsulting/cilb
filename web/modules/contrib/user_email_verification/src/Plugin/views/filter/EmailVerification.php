@@ -5,8 +5,8 @@ namespace Drupal\user_email_verification\Plugin\views\filter;
 use Drupal\Core\Database\Query\Condition;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
-use Drupal\views\ViewExecutable;
 use Drupal\views\Plugin\views\filter\FilterPluginBase;
+use Drupal\views\ViewExecutable;
 
 /**
  * Simple filter to handle matching of boolean values.
@@ -36,7 +36,7 @@ class EmailVerification extends FilterPluginBase {
   const EQUAL = '=';
 
   /**
-   * The non equal query operator.
+   * The non-equal query operator.
    *
    * @var string
    */
@@ -54,14 +54,21 @@ class EmailVerification extends FilterPluginBase {
    *
    * @var bool
    */
-  public $no_operator = TRUE;
+  public $noOperator = TRUE;
 
   /**
    * Whether to accept NULL as a false value or not.
    *
    * @var bool
    */
-  public $accept_null = FALSE;
+  public $acceptNull = FALSE;
+
+  /**
+   * The value title.
+   *
+   * @var mixed
+   */
+  public string $valueTitle;
 
   /**
    * {@inheritdoc}
@@ -107,20 +114,20 @@ class EmailVerification extends FilterPluginBase {
   public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
     parent::init($view, $display, $options);
 
-    $this->value_value = $this->t('True');
+    $this->valueTitle = $this->t('True');
 
     if (isset($this->definition['label'])) {
-      $this->value_value = $this->definition['label'];
+      $this->valueTitle = $this->definition['label'];
     }
     elseif (isset($this->definition['title'])) {
-      $this->value_value = $this->definition['title'];
+      $this->valueTitle = $this->definition['title'];
     }
 
     if (isset($this->definition['accept null'])) {
-      $this->accept_null = (bool) $this->definition['accept null'];
+      $this->acceptNull = (bool) $this->definition['accept null'];
     }
-    elseif (isset($this->definition['accept_null'])) {
-      $this->accept_null = (bool) $this->definition['accept_null'];
+    elseif (isset($this->definition['acceptNull'])) {
+      $this->acceptNull = (bool) $this->definition['acceptNull'];
     }
     $this->valueOptions = NULL;
   }
@@ -140,19 +147,31 @@ class EmailVerification extends FilterPluginBase {
   public function getValueOptions() {
     if (isset($this->definition['type'])) {
       if ($this->definition['type'] == 'yes-no') {
-        $this->valueOptions = [1 => $this->t('Yes'), 0 => $this->t('No')];
+        $this->valueOptions = [
+          1 => $this->t('Yes'),
+          0 => $this->t('No'),
+        ];
       }
       if ($this->definition['type'] == 'on-off') {
-        $this->valueOptions = [1 => $this->t('On'), 0 => $this->t('Off')];
+        $this->valueOptions = [
+          1 => $this->t('On'),
+          0 => $this->t('Off'),
+        ];
       }
       if ($this->definition['type'] == 'enabled-disabled') {
-        $this->valueOptions = [1 => $this->t('Enabled'), 0 => $this->t('Disabled')];
+        $this->valueOptions = [
+          1 => $this->t('Enabled'),
+          0 => $this->t('Disabled'),
+        ];
       }
     }
 
     // Provide a fallback if the above didn't set anything.
     if (!isset($this->valueOptions)) {
-      $this->valueOptions = [1 => $this->t('True'), 0 => $this->t('False')];
+      $this->valueOptions = [
+        1 => $this->t('True'),
+        0 => $this->t('False'),
+      ];
     }
   }
 
@@ -185,7 +204,7 @@ class EmailVerification extends FilterPluginBase {
     }
     $form['value'] = [
       '#type' => $filter_form_type,
-      '#title' => $this->value_value,
+      '#title' => $this->valueTitle,
       '#options' => $this->valueOptions,
       '#default_value' => $this->value,
     ];
@@ -241,7 +260,7 @@ class EmailVerification extends FilterPluginBase {
   public function defaultExposeOptions() {
     parent::defaultExposeOptions();
     $this->options['expose']['operator_id'] = '';
-    $this->options['expose']['label'] = $this->value_value;
+    $this->options['expose']['label'] = $this->valueTitle;
     $this->options['expose']['required'] = TRUE;
   }
 
@@ -269,7 +288,7 @@ class EmailVerification extends FilterPluginBase {
    */
   protected function queryOpBoolean($field, $query_operator = self::EQUAL) {
     if (empty($this->value)) {
-      if ($this->accept_null) {
+      if ($this->acceptNull) {
         if ($query_operator === self::EQUAL) {
           $condition = (new Condition('OR'))
             ->condition($field, 0, $query_operator)
