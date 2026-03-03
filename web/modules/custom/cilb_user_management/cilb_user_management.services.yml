@@ -1,0 +1,5 @@
+services:
+  cilb_user_management_event_subscriber:
+    class: '\Drupal\cilb_user_management\EventSubscriber\EmailVerificationSubscriber'
+    tags:
+      - { name: 'event_subscriber' }

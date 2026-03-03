@@ -42,7 +42,16 @@
 
           const selectOptions = eventsForCat.map((option) => ({
             id: option.id,
-            text: (option.label.indexOf('Finance') != -1 ? categorySelector.selectedOptions[0].innerText + ' - Business and Finance' : option.label),
+	    text: (
+              option.label.includes('Finance') || option.label.includes('finanzas')
+            )
+            ? (
+              categorySelector.selectedOptions[0].innerText +
+              (option.label.includes('finanzas')
+                ? ' - Negocios y finanzas'
+                : ' - Business and Finance')
+              )
+            : option.label,
             selected: (currentlySelected.includes(option.id))
           }));
 

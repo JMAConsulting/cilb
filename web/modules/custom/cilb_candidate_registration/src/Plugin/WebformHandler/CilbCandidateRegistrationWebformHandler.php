@@ -458,18 +458,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $user->set('preferred_langcode', $langcode);
     $user->save();
 
-    // Send the email verification email
-    \Drupal::service('plugin.manager.mail')->mail(
-      'user',
-      'register_no_approval_required',
-      $user->getEmail(),
-      $user->getPreferredLangcode(),
-      ['account' => $user],
-      NULL,
-      TRUE
-    );
-
-
     if (isset($webform_submission_data['civicrm_1_contact_1_contact_existing']) && is_numeric($webform_submission_data['civicrm_1_contact_1_contact_existing'])) {
       $results = \Civi\Api4\UFMatch::create(FALSE)
         ->addValue('domain_id', 1)
@@ -839,7 +827,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         // postSave
         return;
       }
-      
+
 
       // if we have matching contacts, we need to check
       // if they have a user record or not
@@ -1247,12 +1235,18 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
    * @return int[] array of event ids for valid registration options
    */
   protected function getEventRegistrationOptions($form, $form_state, ?int $categoryFilter = NULL): array {
+    $currentLang = \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_INTERFACE)->getId();
+    $bnfLabel = "Business and Finance";
+    if ($currentLang == 'es') {
+      $bnfLabel = "Negocios y finanzas";
+    }
     // Fetch events with space remaining or no space cap
     $eventFetch = \Civi\Api4\Event::get(FALSE)
       ->addSelect(
         'id',
         'title',
         'Exam_Details.Exam_Part',
+	'Exam_Details.Exam_Part:label',
         'event_type_id',
         'event_type_id:name',
         'event_type_id:label',
@@ -1283,6 +1277,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $events = (array) $eventFetch
       ->execute()
       ->indexBy('id');
+    foreach ($events as &$event) {
+      if ($event['event_type_id:name'] !== "Plumbing") {
+        $event['title'] = $event['event_type_id:label'] . ' - ' . $event['Exam_Details.Exam_Part:label'];
+      }
+    }
 
     $examFound = FALSE;
     $categoryTitle = NULL;
@@ -1295,7 +1294,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       if (count($businessAndFinanceExam) > 0) {
         $examFound = TRUE;
         $bfExam = $businessAndFinanceExam->first();
-        $bfExam['title'] = $categoryTitle . ' - Business and Finance';
+        $bfExam['title'] = $categoryTitle . ' - ' . $bnfLabel;
         $events[$bfExam['id']] = $bfExam;
       }
     }
@@ -1304,7 +1303,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         $businessAndFinanceExam = self::getBusinessAndFinanceExam();
         $bfExam = $businessAndFinanceExam->first();
         if ($bfExam) {
-          $bfExam['title'] = $categoryTitle ? "{$categoryTitle} - Business and Finance" : "Business and Finance";
+          $bfExam['title'] = $categoryTitle ? "{$categoryTitle} - {$bnfLabel}" : $bnfLabel;
           $events[$bfExam['id']] = $bfExam;
         }
       }

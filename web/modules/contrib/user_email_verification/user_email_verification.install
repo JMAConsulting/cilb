@@ -12,7 +12,7 @@ use Drupal\user_email_verification\UserEmailVerificationInterface;
  * Implements hook_install().
  */
 function user_email_verification_install() {
-  // TODO: ReDo it with batch (if many users - timeout on install).
+  // @todo ReDo it with batch (if many users - timeout on install).
   $database = \Drupal::database();
 
   $uids = $database->select('users', 'u')
