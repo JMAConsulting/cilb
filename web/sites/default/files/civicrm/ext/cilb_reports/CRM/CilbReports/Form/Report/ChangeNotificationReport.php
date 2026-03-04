@@ -45,7 +45,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
           'change_date' => [
             'title' => E::ts('Date/Time of Change'),
             'required' => TRUE,
-            'dbAlias' => 'tmp.changed_date'
+            'dbAlias' => 'temp.changed_date'
           ],
           'entity_id' => [
             'title' => E::ts('Entity ID'),
