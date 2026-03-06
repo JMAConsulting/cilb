@@ -227,16 +227,11 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
         $entryFound = TRUE;
       }
 
-      if (!empty($exam_code)) {
-        $rows[$rowNum]['civicrm_value_cilb_candidat_7_custom_31'] = CRM_Core_DAO::singleValueQuery("SELECT entity_id_imported__31 FROM civicrm_value_cilb_candidat_7 WHERE entity_id = %1 AND class_code_18 = %2 LIMIT 1", [
-          1 => [$row['civicrm_contact_id'], 'Positive'],
-          2 => [$exam_code, 'String'],
-        ]);
-        $entryFound = TRUE;
-      }
-
       $entryFound = TRUE;
       $rows[$rowNum]['civicrm_contact_change_date'] = CRM_Utils_Date::customFormat($row['civicrm_contact_change_date']);
+      if (!empty($row['civicrm_value_registrant_in_1_custom_5'])) {
+        $rows[$rowNum]['civicrm_value_registrant_in_1_custom_5'] = str_replace([0,1,2,3,4,5,6,7,8,9], 'X', substr($row['civicrm_value_registrant_in_1_custom_5'], 0 -4)) . substr($row['civicrm_value_registrant_in_1_custom_5'], -4);
+      }
       if (!empty($row['civicrm_contact_changed_by'])) {
         $entryFound = TRUE;
         $rows[$rowNum]['civicrm_contact_changed_by'] = CRM_Core_DAO::singleValueQuery("SELECT display_name FROM civicrm_contact WHERE id = %1", [1 => [$row['civicrm_contact_changed_by'], 'Positive']]);
