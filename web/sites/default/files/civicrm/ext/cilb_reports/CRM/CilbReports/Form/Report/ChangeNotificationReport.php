@@ -230,7 +230,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       $entryFound = TRUE;
       $rows[$rowNum]['civicrm_contact_change_date'] = CRM_Utils_Date::customFormat($row['civicrm_contact_change_date']);
       if (!empty($row['civicrm_value_registrant_in_1_custom_5'])) {
-        $rows[$rowNum]['civicrm_value_registrant_in_1_custom_5'] = str_replace([0,1,2,3,4,5,6,7,8,9], 'X', substr($row['civicrm_value_registrant_in_1_custom_5'], 0 -4)) . substr($row['civicrm_value_registrant_in_1_custom_5'], -4);
+        $rows[$rowNum]['civicrm_value_registrant_in_1_custom_5'] = str_replace([0,1,2,3,4,5,6,7,8,9], 'X', substr($row['civicrm_value_registrant_in_1_custom_5'], 0, -4)) . substr($row['civicrm_value_registrant_in_1_custom_5'], -4);
       }
       if (!empty($row['civicrm_contact_changed_by'])) {
         $entryFound = TRUE;
