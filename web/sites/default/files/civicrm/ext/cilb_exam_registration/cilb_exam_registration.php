@@ -187,7 +187,8 @@ function cilb_exam_registration_civicrm_alterMailParams(&$params, $context) {
        ->addSelect('event_id.Exam_Details.Exam_Part:label', 'event_id.event_type_id:label', 'event_id.title')
        ->addWhere('Participant_Webform.Candidate_Payment', '=', $params['tplParams']['contributionID'])
        ->addWhere('contact_id', '=', $params['contactId'])
-       ->execute();
+       ->execute()
+       ->indexBy('id');
      $events = [];
      foreach ($participants as $participant) {
        $events[$participant['id']] = [
@@ -196,6 +197,16 @@ function cilb_exam_registration_civicrm_alterMailParams(&$params, $context) {
        ];
      }
      $params['tplParams']['events'] = $events;
+     $lineItems = CRM_Price_BAO_LineItem::getLineItemsByContributionID($params['tplParams']['contributionID']);
+     foreach ($lineItems as $k => $lineItem) {
+       if ($lineItem['entity_table'] == 'civicrm_participant') {
+          $lineItems[$k]['title'] = $participants[$lineItem['entity_id']]['event_id.title'] . ' - ' . $lineItem['field_title'];
+       }
+       else {
+         $lineItems[$k]['title'] = $lineItems[$k]['label'];
+       }
+     }
+     $params['tplParams']['lineItems'] = $lineItems;
    }
 }
 
