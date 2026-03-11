@@ -18,7 +18,7 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
   }
 
   public function isOutputHandlerFor(CRM_Report_Form $form): bool {
-    if (\get_class($form) === 'CRM_CilbReports_Form_Report_MWFReport' && $form->getOutputMode() === 'zip') {
+    if ((\get_class($form) === 'CRM_CilbReports_Form_Report_MWFReport' || \get_class($form) === 'CRM_CilbReports_Form_Report_ChangeNotificationReport') && $form->getOutputMode() === 'zip') {
       return TRUE;
     }
     return FALSE;
@@ -31,15 +31,21 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
   public function getOutputString(): string {
     $rows = $this->getForm()->getTemplate()->getTemplateVars('rows');
     $form = $this->getForm();
-    /** @var \CRM_CilbReports_Form_Report_MWFReport $form */
-    if (str_contains($form->getReportTitle(), 'Paper')) {
-      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_paper' . '.csv';
+    if (\get_class($form) === 'CRM_CilbReports_Form_Report_MWFReport') {
+      /** @var \CRM_CilbReports_Form_Report_MWFReport $form */
+      if (str_contains($form->getReportTitle(), 'Paper')) {
+        $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_paper' . '.csv';
+      }
+      elseif (str_contains($form->getReportTitle(), 'cbt')) {
+        $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_cbt.csv';
+      }
+      else {
+        $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+      }
     }
-    elseif (str_contains($form->getReportTitle(), 'cbt')) {
-      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_cbt.csv';
-    }
-    else {
-      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+    elseif (\get_class($form) === 'CRM_CilbReports_Form_Report_ChangeNotificationReport') {
+      /** @var \CRM_CilbReports_Form_Report_ChangeNotificationReport $form */
+      $temporaryFileName = 'change_notification_report_' . date('Ymd') . '.csv';
     }
     $csv = \CRM_Report_Utils_Report::makeCsv($form, $rows);
     // Note that this is the same as in CRM_Report_Form::sendEmail
@@ -67,14 +73,20 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
     $form = $this->getForm();
     $csv = \CRM_Report_Utils_Report::makeCsv($form, $rows);
     /** @var \CRM_CilbReports_Form_Report_MWFReport $form */
-    if (str_contains($form->getReportTitle(), 'Paper')) {
-      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_paper' . '.csv';
+    if (\get_class($form) === 'CRM_CilbReports_Form_Report_MWFReport') {
+      if (str_contains($form->getReportTitle(), 'Paper')) {
+        $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_paper' . '.csv';
+      }
+      elseif (str_contains($form->getReportTitle(), 'cbt')) {
+        $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_cbt.csv';
+      }
+      else {
+        $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+      }
     }
-    elseif (str_contains($form->getReportTitle(), 'cbt')) {
-      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '_cbt.csv';
-    }
-    else {
-      $temporaryFileName = 'monday_wednesday_friday_report_' . date('Ymd') . '.csv';
+    elseif (\get_class($form) === 'CRM_CilbReports_Form_Report_ChangeNotificationReport') {
+      /** @var \CRM_CilbReports_Form_Report_ChangeNotificationReport $form */
+      $temporaryFileName = 'change_notification_report_' . date('Ymd') . '.csv';
     }
     file_put_contents('/tmp/' . $temporaryFileName, $csv);
     $fullFileName = CRM_Core_Config::singleton()->templateCompileDir . CRM_Utils_File::makeFileName($this->getFileName());
@@ -87,7 +99,8 @@ class EncryptedZipOutputFormat extends OutputHandlerBase {
     if ($zip->open($fullFileName, \ZipArchive::CREATE) === TRUE) {
       $zip->setPassword($random_password);
       $zip->addFile('/tmp/' . $temporaryFileName, $temporaryFileName);
-      $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_AES_256);
+      // $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_AES_256);
+      $zip->setEncryptionName($temporaryFileName, \ZipArchive::EM_TRAD_PKWARE, $random_password);
       $zip->close();
     }
     \unlink('/tmp/' . $temporaryFileName);
