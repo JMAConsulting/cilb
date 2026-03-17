@@ -47,8 +47,8 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
     $this->_columns['civicrm_contact']['fields']['suffix_id']['no_display'] = TRUE;
     $this->_columns['civicrm_value_candidate_res_9']['fields']['custom_80']['type'] = CRM_Utils_Type::T_DATE + CRM_Utils_Type::T_TIME;
     $this->_columns['civicrm_phone']['fields']['b_literal_text'] = ['title' => 'B', 'dbAlias' => '"B"'];
-    $this->_columns['civicrm_contact']['fields']['blank_1'] = ['title' => '', 'dbAlias' => '"   "'];
-    $this->_columns['civicrm_contact']['fields']['blank_2'] = ['title' => '', 'dbAlias' => '"   "'];
+    $this->_columns['civicrm_contact']['fields']['blank_1'] = ['title' => '', 'dbAlias' => '""'];
+    $this->_columns['civicrm_contact']['fields']['blank_2'] = ['title' => '', 'dbAlias' => '""'];
     unset($this->_columns['civicrm_contact']['fields']['sort_name_linked']);
   }
 
@@ -71,11 +71,19 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
     ";
   }
 
+  function where() {
+    parent::where();
+    $this->_where .= " AND event_civireport.start_date >= CURDATE()";
+  }
+
   function alterDisplay(&$rows) {
     $suffixes = CRM_Contact_BAO_Contact::buildOptions('suffix_id');
     foreach ($rows as $rowNum => $row) {
       if (!empty($row['civicrm_contact_suffix_id'])) {
         $rows[$rowNum]['civicrm_contact_sort_name'] .= ' ' . $suffixes[$row['civicrm_contact_suffix_id']];
+      }
+      if (!empty($row['civicrm_value_candidate_res_9_custom_80'])) {
+        $rows[$rowNum]['civicrm_value_candidate_res_9_custom_80'] = str_replace('00:00:00', '0.00', $row['civicrm_value_candidate_res_9_custom_80']);
       }
     }
     $alteredColumnHeaders = [];
@@ -98,6 +106,9 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
         'civicrm_email_email',
       ] as $header) {
         $alteredColumnHeaders[$header] = $this->_columnHeaders[$header];
+        if ($header == 'civicrm_value_candidate_res_9_custom_80') {
+          $alteredColumnHeaders[$header]['type'] = 1;
+        }
         unset($this->_columnHeaders[$header]);
       }
       $this->_columnHeaders = $alteredColumnHeaders + $this->_columnHeaders;

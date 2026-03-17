@@ -48,6 +48,14 @@ return [
       ],
     ],
   ],
-  'getIndices' => fn() => [],
+  'getIndices' => fn() => [
+    'UI_zip_county' => [
+      'fields' => [
+        'zip_code' => TRUE,
+        'county_id' => TRUE,
+      ],
+      'unique' => TRUE,
+    ],
+  ],
   'getPaths' => fn() => [],
 ];
