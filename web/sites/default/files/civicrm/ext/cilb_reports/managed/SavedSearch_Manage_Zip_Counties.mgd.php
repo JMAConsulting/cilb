@@ -146,7 +146,7 @@ return [
           'actions_display_mode' => 'menu',
           'toolbar' => [
             [
-              'path' => 'civicrm/zip-county?action=view&reset=1',
+              'path' => 'civicrm/zip-county?action=add&reset=1',
               'icon' => 'fa-plus',
               'text' => E::ts('Add Zip County'),
               'style' => 'default',

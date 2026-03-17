@@ -64,6 +64,18 @@ class CRM_CilbReports_Form_ZipCounty extends CRM_Core_Form {
         $session->replaceUserContext(CRM_Utils_System::url('civicrm/admin/zip-counties'));
       }
     }
+    $this->addFormRule([__CLASS__, 'formRule'], $this);
+  }
+
+  public static function formRule($fields, $files, $self) {
+   if (!empty($fields['zip_code']) && !empty($fields['county_id'])) {
+     $result = civicrm_api4('ZipCounty', 'get', ['where' => [['zip_code', '=', $fields['zip_code']], ['county_id', '=', $fields['county_id']]], 'limit' => 1])->first();
+     if (!empty($result)) {
+       $errors['county_id'] = ts('Entry found with these values. Please select different zip code and county ID.');
+     }
+   }
+
+   return $errors;
   }
 
   /**
