@@ -11,12 +11,12 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
       ->addSelect('column_name')
       ->addWhere('name', '=', 'Gus_DBPR_Code')
       ->execute()
-      ->first()['colunmn_name'];
+      ->first()['column_name'];
     $gusCodeCF = CustomField::get(FALSE)
       ->addSelect('column_name')
       ->addWhere('name', '=', 'Gus_Code')
       ->execute()
-      ->first()['colunmn_name'];
+      ->first()['column_name'];
     $this->_columns['civicrm_contact']['fields'] = [
       '6' => [
         'title' => '',
@@ -36,7 +36,7 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
       'title' => E::ts('Gus Code'),
       'dbAlias' => 'gc.' . $gusCodeCF,
     ];
-    $this->_columns['civicrm_address']['fields']['candidate_state'] = [
+    $this->_columns['civicrm_address']['fields']['county_code'] = [
       'title' => E::ts('County Code'),
       'dbAlias' => '(CASE address_civireport.state_province_id
         WHEN "1008"
@@ -46,7 +46,7 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
     $this->_columns['civicrm_contact']['fields']['suffix_id']['required'] = TRUE;
     $this->_columns['civicrm_contact']['fields']['suffix_id']['no_display'] = TRUE;
     $this->_columns['civicrm_value_candidate_res_9']['fields']['custom_80']['type'] = CRM_Utils_Type::T_DATE + CRM_Utils_Type::T_TIME;
-    $this->_columns['civicrm_phone']['fields']['b_literal_text'] = ['title' => '', 'dbAlias' => '"B"'];
+    $this->_columns['civicrm_phone']['fields']['b_literal_text'] = ['title' => 'B', 'dbAlias' => '"B"'];
     $this->_columns['civicrm_contact']['fields']['blank_1'] = ['title' => '', 'dbAlias' => '"   "'];
     $this->_columns['civicrm_contact']['fields']['blank_2'] = ['title' => '', 'dbAlias' => '"   "'];
     unset($this->_columns['civicrm_contact']['fields']['sort_name_linked']);
@@ -62,7 +62,7 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
     $eventType = OptionGroup::get(FALSE)
       ->addSelect('id')
       ->addWhere('name', '=', 'event_type')
-      ->execute();
+      ->execute()->first()['id'];
     $this->_from .= "
         LEFT JOIN civicrm_option_value et ON et.value = event_civireport.event_type_id AND option_group_id = $eventType
         LEFT JOIN $examTypeTableName gc ON gc.entity_id = et.id
