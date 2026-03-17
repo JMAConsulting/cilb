@@ -83,7 +83,7 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
         $rows[$rowNum]['civicrm_contact_sort_name'] .= ' ' . $suffixes[$row['civicrm_contact_suffix_id']];
       }
       if (!empty($row['civicrm_value_candidate_res_9_custom_80'])) {
-        $rows[$rowNum]['civicrm_value_candidate_res_9_custom_80'] = str_replace('00:00:00', '0.00', $row['civicrm_value_candidate_res_9_custom_80']);
+        $rows[$rowNum]['civicrm_value_candidate_res_9_custom_80'] = str_replace('00:00:00', '0:00', $row['civicrm_value_candidate_res_9_custom_80']);
       }
     }
     $alteredColumnHeaders = [];
