@@ -1,0 +1,147 @@
+<?php
+use CRM_CilbReports_ExtensionUtil as E;
+
+return [
+  [
+    'name' => 'SavedSearch_Manage_County_Codes',
+    'entity' => 'SavedSearch',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'name' => 'Manage_County_Codes',
+        'label' => E::ts('Manage County Codes'),
+        'api_entity' => 'CountyCode',
+        'api_params' => [
+          'version' => 4,
+          'select' => [
+            'id',
+            'county',
+            'county_code',
+          ],
+          'orderBy' => [],
+          'where' => [],
+          'groupBy' => [],
+          'join' => [],
+          'having' => [],
+        ],
+      ],
+      'match' => [
+        'name',
+      ],
+    ],
+  ],
+  [
+    'name' => 'SavedSearch_Manage_County_Codes_SearchDisplay_Manage_County_Codes_Table_1',
+    'entity' => 'SearchDisplay',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'name' => 'Manage_County_Codes_Table_1',
+        'label' => E::ts('Manage County Codes Table 1'),
+        'saved_search_id.name' => 'Manage_County_Codes',
+        'type' => 'table',
+        'settings' => [
+          'description' => NULL,
+          'sort' => [],
+          'limit' => 50,
+          'pager' => [],
+          'placeholder' => 5,
+          'columns' => [
+            [
+              'type' => 'field',
+              'key' => 'id',
+              'label' => E::ts('ID'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'county',
+              'label' => E::ts('County'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'county_code',
+              'label' => E::ts('County Code'),
+              'sortable' => TRUE,
+            ],
+            [
+              'size' => 'btn-sm',
+              'links' => [
+                [
+                  'path' => 'civicrm/county-code?action=view&id=[id]&reset=1',
+                  'icon' => 'fa-eye',
+                  'text' => '',
+                  'style' => 'success',
+                  'conditions' => [],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+                [
+                  'path' => 'civicrm/county-code?action=update&id=[id]&reset=1',
+                  'icon' => 'fa-pencil',
+                  'text' => '',
+                  'style' => 'info',
+                  'conditions' => [],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+                [
+                  'path' => 'civicrm/county-code?action=delete&id=[id]&reset=1',
+                  'icon' => 'fa-trash',
+                  'text' => '',
+                  'style' => 'danger',
+                  'conditions' => [],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+              ],
+              'type' => 'buttons',
+              'alignment' => 'text-center',
+              'nowrap' => TRUE,
+            ],
+          ],
+          'actions' => TRUE,
+          'classes' => [
+            'table',
+            'table-striped',
+          ],
+          'actions_display_mode' => 'menu',
+          'toolbar' => [
+            [
+              'path' => 'civicrm/county-code?action=add&reset=1',
+              'icon' => 'fa-plus',
+              'text' => E::ts('Add County Code'),
+              'style' => 'default',
+              'conditions' => [],
+              'task' => '',
+              'entity' => '',
+              'action' => '',
+              'join' => '',
+              'target' => 'crm-popup',
+            ],
+          ],
+          'headerCount' => TRUE,
+        ],
+        'acl_bypass' => TRUE,
+      ],
+      'match' => [
+        'saved_search_id',
+        'name',
+      ],
+    ],
+  ],
+];

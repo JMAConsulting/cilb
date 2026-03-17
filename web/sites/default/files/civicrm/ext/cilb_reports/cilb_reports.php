@@ -56,6 +56,13 @@ function cilb_reports_civicrm_buildForm(string $formName): void {
   }
 }
 
+function cilb_reports_civicrm_alterEntityRefParams(&$props, $formName) {
+  if ($formName == 'CRM_CilbReports_Form_ZipCounty') {
+    $props['entity'] = 'CountyCode';
+    $props['placeholder'] = '- select County Code -';
+  }
+}
+
 /**
  * Implements hook_civicrm_buildForm().
  *

@@ -5,5 +5,16 @@
     <title>MWF Report Settings</title>
     <page_callback>CRM_Admin_Form_Generic</page_callback>
   </item>
+  <item>
+    <path>civicrm/zip-county</path>
+    <page_callback>CRM_CilbReports_Form_ZipCounty</page_callback>
+    <title>ZipCounty</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/county-code</path>
+    <page_callback>CRM_CilbReports_Form_CountyCode</page_callback>
+    <title>CountyCode</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
 </menu>
-
