@@ -1,21 +1,40 @@
 <?php
 use CRM_CilbReports_ExtensionUtil as E;
+use \Civi\Api4\CustomField;
+use \Civi\Api4\CustomGroup;
+use \Civi\Api4\OptionGroup;
 
 class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_ParticipantListing {
   function __construct() {
     parent::__construct();
-    $this->_columns['civicrm_contact']['fields']['gus_dbpr_code'] = [
-      'title' => E::ts('Gus DBPR Code'),
-      'dbAlias' => 'gc.gus_dbpr_code_7',
-    ];
+    $dbprCF = CustomField::get(FALSE)
+      ->addSelect('column_name')
+      ->addWhere('name', '=', 'Gus_DBPR_Code')
+      ->execute()
+      ->first()['colunmn_name'];
+    $gusCodeCF = CustomField::get(FALSE)
+      ->addSelect('column_name')
+      ->addWhere('name', '=', 'Gus_Code')
+      ->execute()
+      ->first()['colunmn_name'];
+    $this->_columns['civicrm_contact']['fields'] = [
+      '6' => [
+        'title' => '',
+        'required' => TRUE,
+        'dbAlias' => '"6"',
+      ],
+      'gus_dbpr_code' => [
+        'title' => E::ts('Gus DBPR Code'),
+        'dbAlias' => 'gc.' . $dbprCF,
+      ],
+    ] + $this->_columns['civicrm_contact']['fields'];
     $this->_columns['civicrm_contact']['fields']['sort_name'] = [
       'title' => E::ts('Candidate Name'),
-    //  'dbAlias' => 'CONCAT(contact_civireport.first_name, " ", contact_civireport.middle_name, " ", contact_civireport.last_name, " ", contact_civireport.suffix_id)',
         'dbAlias' => 'CONCAT(contact_civireport.first_name, " ", COALESCE(contact_civireport.middle_name, ""), " ", COALESCE(contact_civireport.last_name, ""))',
     ];
-    $this->_columns['civicrm_contact']['fields']['gus_code'] = [ 
+    $this->_columns['civicrm_contact']['fields']['gus_code'] = [
       'title' => E::ts('Gus Code'),
-      'dbAlias' => 'gc.gus_code_6',
+      'dbAlias' => 'gc.' . $gusCodeCF,
     ];
     $this->_columns['civicrm_address']['fields']['candidate_state'] = [
       'title' => E::ts('County Code'),
@@ -24,91 +43,64 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
         THEN ccc.county_code ELSE 79 end
       )',
     ];
+    $this->_columns['civicrm_contact']['fields']['suffix_id']['required'] = TRUE;
+    $this->_columns['civicrm_contact']['fields']['suffix_id']['no_display'] = TRUE;
+    $this->_columns['civicrm_value_candidate_res_9']['fields']['custom_80']['type'] = CRM_Utils_Type::T_DATE + CRM_Utils_Type::T_TIME;
+    $this->_columns['civicrm_phone']['fields']['b_literal_text'] = ['title' => '', 'dbAlias' => '"B"'];
+    $this->_columns['civicrm_contact']['fields']['blank_1'] = ['title' => '', 'dbAlias' => '"   "'];
+    $this->_columns['civicrm_contact']['fields']['blank_2'] = ['title' => '', 'dbAlias' => '"   "'];
     unset($this->_columns['civicrm_contact']['fields']['sort_name_linked']);
-  //  unset($this->_columns['civicrm_contact']['fields']['sort_name']);
-    //CRM_Core_Error::debug_var('_columns', $this->_columns);
-  }
-
-  function preProcess() {
-    $this->assign('reportTitle', E::ts('Membership Detail Report'));
-    parent::preProcess();
   }
 
   function from() {
     parent::from();
+    $examTypeTableName = CustomGroup::get(FALSE)
+      ->addSelect('table_name')
+      ->addWhere('name', '=', 'Exam_Type_Details')
+      ->execute()
+      ->first()['table_name'];
+    $eventType = OptionGroup::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('name', '=', 'event_type')
+      ->execute();
     $this->_from .= "
-LEFT JOIN civicrm_option_value et ON et.value = event_civireport.event_type_id AND option_group_id = 15
-LEFT JOIN civicrm_value_cilb_exam_cat_6 gc ON gc.entity_id = et.id
-
-LEFT JOIN civicrm_zip_county czp ON czp.zip_code = address_civireport.postal_code
-LEFT JOIN civicrm_county_code ccc ON czp.county_id = ccc.id
-";
+        LEFT JOIN civicrm_option_value et ON et.value = event_civireport.event_type_id AND option_group_id = $eventType
+        LEFT JOIN $examTypeTableName gc ON gc.entity_id = et.id
+        LEFT JOIN civicrm_zip_county czp ON czp.zip_code = address_civireport.postal_code
+        LEFT JOIN civicrm_county_code ccc ON czp.county_id = ccc.id
+    ";
   }
 
   function alterDisplay(&$rows) {
-CRM_Core_Error::debug_var('rows', $rows);
-return;
-    // custom code to alter rows
-    $entryFound = FALSE;
-    $checkList = array();
+    $suffixes = CRM_Contact_BAO_Contact::buildOptions('suffix_id');
     foreach ($rows as $rowNum => $row) {
-
-      if (!empty($this->_noRepeats) && $this->_outputMode != 'csv') {
-        // not repeat contact display names if it matches with the one
-        // in previous row
-        $repeatFound = FALSE;
-        foreach ($row as $colName => $colVal) {
-          if (($checkList[$colName] ?? NULL) &&
-            is_array($checkList[$colName]) &&
-            in_array($colVal, $checkList[$colName])
-          ) {
-            $rows[$rowNum][$colName] = "";
-            $repeatFound = TRUE;
-          }
-          if (in_array($colName, $this->_noRepeats)) {
-            $checkList[$colName][] = $colVal;
-          }
-        }
-      }
-
-      if (array_key_exists('civicrm_membership_membership_type_id', $row)) {
-        if ($value = $row['civicrm_membership_membership_type_id']) {
-          $rows[$rowNum]['civicrm_membership_membership_type_id'] = CRM_Member_PseudoConstant::membershipType($value, FALSE);
-        }
-        $entryFound = TRUE;
-      }
-
-      if (array_key_exists('civicrm_address_state_province_id', $row)) {
-        if ($value = $row['civicrm_address_state_province_id']) {
-          $rows[$rowNum]['civicrm_address_state_province_id'] = CRM_Core_PseudoConstant::stateProvince($value, FALSE);
-        }
-        $entryFound = TRUE;
-      }
-
-      if (array_key_exists('civicrm_address_country_id', $row)) {
-        if ($value = $row['civicrm_address_country_id']) {
-          $rows[$rowNum]['civicrm_address_country_id'] = CRM_Core_PseudoConstant::country($value, FALSE);
-        }
-        $entryFound = TRUE;
-      }
-
-      if (array_key_exists('civicrm_contact_sort_name', $row) &&
-        $rows[$rowNum]['civicrm_contact_sort_name'] &&
-        array_key_exists('civicrm_contact_id', $row)
-      ) {
-        $url = CRM_Utils_System::url("civicrm/contact/view",
-          'reset=1&cid=' . $row['civicrm_contact_id'],
-          $this->_absoluteUrl
-        );
-        $rows[$rowNum]['civicrm_contact_sort_name_link'] = $url;
-        $rows[$rowNum]['civicrm_contact_sort_name_hover'] = E::ts("View Contact Summary for this Contact.");
-        $entryFound = TRUE;
-      }
-
-      if (!$entryFound) {
-        break;
+      if (!empty($row['civicrm_contact_suffix_id'])) {
+        $rows[$rowNum]['civicrm_contact_sort_name'] .= ' ' . $suffixes[$row['civicrm_contact_suffix_id']];
       }
     }
+    $alteredColumnHeaders = [];
+      foreach([
+        'civicrm_contact_6',
+        'civicrm_contact_gus_dbpr_code',
+        'civicrm_contact_sort_name',
+        'civicrm_contact_blank_1',
+        'civicrm_contact_gus_code',
+        'civicrm_address_address_street_address',
+        'civicrm_address_address_supplemental_address_1',
+        'civicrm_contact_blank_2',
+        'civicrm_address_address_city',
+        'civicrm_address_address_state_province_id',
+        'civicrm_address_county_code',
+        'civicrm_address_address_postal_code',
+        'civicrm_phone_phone',
+        'civicrm_phone_b_literal_text',
+        'civicrm_value_candidate_res_9_custom_80',
+        'civicrm_email_email',
+      ] as $header) {
+        $alteredColumnHeaders[$header] = $this->_columnHeaders[$header];
+        unset($this->_columnHeaders[$header]);
+      }
+      $this->_columnHeaders = $alteredColumnHeaders + $this->_columnHeaders;
   }
 
 }
