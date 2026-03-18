@@ -1,0 +1,170 @@
+<?php
+use CRM_CilbReports_ExtensionUtil as E;
+
+return [
+  [
+    'name' => 'SavedSearch_Manage_Zip_Counties',
+    'entity' => 'SavedSearch',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'name' => 'Manage_Zip_Counties',
+        'label' => E::ts('Manage Zip Counties'),
+        'api_entity' => 'ZipCounty',
+        'api_params' => [
+          'version' => 4,
+          'select' => [
+            'id',
+            'county_id',
+            'zip_code',
+            'ZipCounty_CountyCode_county_id_01.county',
+            'ZipCounty_CountyCode_county_id_01.county_code',
+          ],
+          'orderBy' => [],
+          'where' => [],
+          'groupBy' => [],
+          'join' => [
+            [
+              'CountyCode AS ZipCounty_CountyCode_county_id_01',
+              'LEFT',
+              [
+                'county_id',
+                '=',
+                'ZipCounty_CountyCode_county_id_01.id',
+              ],
+            ],
+          ],
+          'having' => [],
+        ],
+      ],
+      'match' => [
+        'name',
+      ],
+    ],
+  ],
+  [
+    'name' => 'SavedSearch_Manage_Zip_Counties_SearchDisplay_Manage_Zip_Counties_Table_1',
+    'entity' => 'SearchDisplay',
+    'cleanup' => 'unused',
+    'update' => 'unmodified',
+    'params' => [
+      'version' => 4,
+      'values' => [
+        'name' => 'Manage_Zip_Counties_Table_1',
+        'label' => E::ts('Manage Zip Counties Table 1'),
+        'saved_search_id.name' => 'Manage_Zip_Counties',
+        'type' => 'table',
+        'settings' => [
+          'description' => NULL,
+          'sort' => [],
+          'limit' => 50,
+          'pager' => [],
+          'placeholder' => 5,
+          'columns' => [
+            [
+              'type' => 'field',
+              'key' => 'id',
+              'label' => E::ts('ID'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'zip_code',
+              'label' => E::ts('Zip Code'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'county_id',
+              'label' => E::ts('County ID'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'ZipCounty_CountyCode_county_id_01.county',
+              'label' => E::ts('County'),
+              'sortable' => TRUE,
+            ],
+            [
+              'type' => 'field',
+              'key' => 'ZipCounty_CountyCode_county_id_01.county_code',
+              'label' => E::ts('County Code'),
+              'sortable' => TRUE,
+            ],
+            [
+              'size' => 'btn-sm',
+              'links' => [
+                [
+                  'path' => 'civicrm/zip-county?action=view&id=[id]&reset=1',
+                  'icon' => 'fa-eye',
+                  'text' => '',
+                  'style' => 'success',
+                  'conditions' => [],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+                [
+                  'path' => 'civicrm/zip-county?action=update&id=[id]&reset=1',
+                  'icon' => 'fa-pencil',
+                  'text' => '',
+                  'style' => 'info',
+                  'conditions' => [],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+                [
+                  'path' => 'civicrm/zip-county?action=delete&id=[id]&reset=1',
+                  'icon' => 'fa-trash',
+                  'text' => '',
+                  'style' => 'danger',
+                  'conditions' => [],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+              ],
+              'type' => 'buttons',
+              'alignment' => 'text-center',
+              'nowrap' => TRUE,
+            ],
+          ],
+          'actions' => TRUE,
+          'classes' => [
+            'table',
+            'table-striped',
+          ],
+          'actions_display_mode' => 'menu',
+          'toolbar' => [
+            [
+              'path' => 'civicrm/zip-county?action=add&reset=1',
+              'icon' => 'fa-plus',
+              'text' => E::ts('Add Zip County'),
+              'style' => 'default',
+              'conditions' => [],
+              'task' => '',
+              'entity' => '',
+              'action' => '',
+              'join' => '',
+              'target' => 'crm-popup',
+            ],
+          ],
+        ],
+        'acl_bypass' => TRUE,
+      ],
+      'match' => [
+        'saved_search_id',
+        'name',
+      ],
+    ],
+  ],
+];
