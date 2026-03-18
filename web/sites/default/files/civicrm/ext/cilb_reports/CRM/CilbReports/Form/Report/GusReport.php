@@ -46,6 +46,8 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
     $this->_columns['civicrm_contact']['fields']['suffix_id']['required'] = TRUE;
     $this->_columns['civicrm_contact']['fields']['suffix_id']['no_display'] = TRUE;
     $this->_columns['civicrm_value_candidate_res_9']['fields']['custom_80']['type'] = CRM_Utils_Type::T_DATE + CRM_Utils_Type::T_TIME;
+    $this->_columns['civicrm_value_candidate_res_9']['fields']['custom_80']['title'] = ts('Exam Date');
+    $this->_columns['civicrm_address']['fields']['address_supplemental_address_1']['title'] = ts('Supplementary Address');
     $this->_columns['civicrm_phone']['fields']['b_literal_text'] = ['title' => 'B', 'dbAlias' => '"B"'];
     $this->_columns['civicrm_contact']['fields']['blank_1'] = ['title' => '', 'dbAlias' => '""'];
     $this->_columns['civicrm_contact']['fields']['blank_2'] = ['title' => '', 'dbAlias' => '""'];
