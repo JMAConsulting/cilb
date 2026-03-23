@@ -1,6 +1,8 @@
 <?php
 namespace Civi\Api4\Action\PriceFieldValue;
 
+use Civi\Api4\Generic\AbstractAction;
+use Civi\Api4\Membership;
 use Civi\Api4\PriceField;
 use Civi\Api4\PriceFieldValue;
 
@@ -9,7 +11,7 @@ use Civi\Api4\PriceFieldValue;
  *
  * @property int $membershipID
  */
-class GetDefaultPriceFieldValueForMembershipMJW extends \Civi\Api4\Generic\AbstractAction {
+class GetDefaultPriceFieldValueForMembershipMJW extends AbstractAction {
 
   /**
    * The Membership ID
@@ -35,7 +37,7 @@ class GetDefaultPriceFieldValueForMembershipMJW extends \Civi\Api4\Generic\Abstr
       throw new \CRM_Core_Exception('Membership ID is required');
     }
     // First we need membership_type_id.member_of_contact_id and membership_type_id to find the PriceFieldValue.
-    $membership = \Civi\Api4\Membership::get(FALSE)
+    $membership = Membership::get(FALSE)
       ->addSelect('membership_type_id.member_of_contact_id', 'membership_type_id')
       ->addWhere('id', '=', $this->membershipID)
       ->execute()
@@ -52,6 +54,7 @@ class GetDefaultPriceFieldValueForMembershipMJW extends \Civi\Api4\Generic\Abstr
 
     // Get the default price field ID for memberships from the default membership PriceSet and the member_of_contact_id
     $priceField = PriceField::get(FALSE)
+      ->addSelect('id')
       ->addWhere('price_set_id:name', '=', 'default_membership_type_amount')
       ->addWhere('name', '=', $membership['membership_type_id.member_of_contact_id'])
       ->addOrderBy('id', 'ASC')
@@ -60,6 +63,7 @@ class GetDefaultPriceFieldValueForMembershipMJW extends \Civi\Api4\Generic\Abstr
 
     // Now get the relevant PriceFieldValue for the MembershipType.
     $priceFieldValue = PriceFieldValue::get(FALSE)
+      ->addSelect('id', 'label', 'amount')
       ->addWhere('price_field_id', '=', $priceField['id'])
       ->addWhere('membership_type_id', '=', $membership['membership_type_id'])
       ->execute()
@@ -69,6 +73,7 @@ class GetDefaultPriceFieldValueForMembershipMJW extends \Civi\Api4\Generic\Abstr
       'price_field_id' => $priceField['id'],
       'price_field_value_id' => $priceFieldValue['id'],
       'label' => $priceFieldValue['label'],
+      'amount' => $priceFieldValue['amount'],
     ];
 
     $result->exchangeArray($results);
