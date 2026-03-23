@@ -507,7 +507,7 @@ class CRM_Core_DAO extends DB_DataObject {
             }
           }
           else {
-            $this->$dbName = $dbName . '_' . $counter;
+            $this->$dbName .= '_' . $counter;
             $maxlength = $fieldDef['maxlength'] ?? NULL;
             if ($maxlength > 0 && strlen($this->$dbName) > $maxlength) {
               $this->$dbName = substr($this->$dbName, 0, $fieldDef['maxlength']);
@@ -3067,7 +3067,7 @@ SELECT contact_id
       $fieldKey = $fieldKeys[$fieldName] ?? NULL;
     }
     // If neither worked then this field doesn't exist. Return false.
-    if (empty($fields[$fieldKey])) {
+    if (empty($fields[$fieldKey ?? ''])) {
       return FALSE;
     }
     return $fields[$fieldKey];

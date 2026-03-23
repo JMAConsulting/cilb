@@ -528,6 +528,9 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
         if (empty($extra['maxDate']) && !empty($dateAttributes['minYear'])) {
           $extra['maxDate'] = $dateAttributes['maxYear'] . '-12-31';
         }
+        if (!empty($dateAttributes['time'])) {
+          $extra['time'] = $dateAttributes['time'];
+        }
       }
       // Support minDate/maxDate properties
       if (isset($extra['minDate'])) {
@@ -702,6 +705,25 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
     return [];
   }
 
+  public function getMandatoryValues(): array {
+    return [];
+  }
+
+  private function applyMandatoryValues(array $mandatoryValues): void {
+    foreach ($mandatoryValues as $name => $value) {
+      $mandatoryElement = $this->getElement($name);
+      $mandatoryElement->setAttribute('disabled', TRUE);
+      if ($mandatoryElement instanceof HTML_QuickForm_group) {
+        foreach ($mandatoryElement->getElements() as $subElement) {
+          $subElement->setAttribute('disabled', TRUE);
+        }
+      }
+    }
+    if ($this->_submitValues && !empty($mandatoryValues)) {
+      $this->_submitValues = array_merge($this->_submitValues, $mandatoryValues);
+    }
+  }
+
   /**
    * This is a virtual function that adds group and global rules to the form.
    *
@@ -770,7 +792,10 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
 
     $this->buildQuickForm();
 
-    $defaults = $this->setDefaultValues();
+    $mandatory = $this->getMandatoryValues();
+    $this->applyMandatoryValues($mandatory);
+
+    $defaults = array_merge($this->setDefaultValues() ?: [], $mandatory);
     if (isset($defaults['qfKey'])) {
       unset($defaults['qfKey']);
     }
@@ -1434,6 +1459,13 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
     }
   }
 
+  /**
+   * @param string $name
+   * @param string $title
+   * @param array $attributes
+   * @param bool $required
+   * @return HTML_QuickForm_Element
+   */
   public function addToggle(string $name, string $title, array $attributes = [], bool $required = FALSE) {
     $attributes += [
       'on' => ts('Yes'),
@@ -1448,10 +1480,12 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
       $value = htmlspecialchars($value);
       $toggleText .= "<span class='crm-form-toggle-text crm-form-toggle-text-{$key}'>{$value}</span>";
     }
-    $this->addElement('advcheckbox', $name, $title, $toggleText, $attributes);
+    $element = $this->addElement('advcheckbox', $name, $title, $toggleText, $attributes);
+    $element->setTextEscaped();
     if ($required) {
       $this->addRule($name, ts('%1 is a required field.', [1 => $title]), 'required');
     }
+    return $element;
   }
 
   /**
@@ -1913,6 +1947,9 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
         $text = $props['text'] ?? NULL;
         unset($props['text']);
         return $this->addElement('advcheckbox', $name, $label, $text, $props);
+
+      case 'Toggle':
+        return $this->addToggle($name, $label, $props, $required);
 
       case 'File':
         // We should not build upload file in search mode.

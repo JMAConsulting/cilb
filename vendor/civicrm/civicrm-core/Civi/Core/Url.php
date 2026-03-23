@@ -595,7 +595,7 @@ final class Url implements \JsonSerializable {
           break;
 
         // (s)sl
-        case 's';
+        case 's':
           $this->ssl = TRUE;
           break;
 
@@ -826,7 +826,7 @@ final class Url implements \JsonSerializable {
       $value = ltrim($value, $separator);
     }
 
-    $var = $var . $separator . $value;
+    $var .= $separator . $value;
   }
 
 }
