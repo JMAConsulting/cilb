@@ -9,6 +9,18 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.5.5 (2026-02-10)
+
+* Fix passing parameters to ContributionLog
+
+## Release 1.5.4 (2026-02-04)
+
+* [!59](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/59) Support ContributionLog entity for updateContributionFailed().
+
+## Release 1.5.3 (2026-01-26)
+
+* Add "amount" to return values of API4 PriceFieldValue.GetDefaultPriceFieldValueForMembershipMJW/GetDefaultPriceFieldValueForContributionMJW.
+
 ## Release 1.5.2 (2025-12-15)
 
 * [!58](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/58) Fix crash on Drupal 7.

@@ -9,6 +9,11 @@ Releases use the following numbering system:
 
 **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.3.15 (2026-02-19)
+
+* [!16](https://lab.civicrm.org/extensions/ses/-/merge_requests/16) Fix missing 's' from variable.
+* [!15](https://lab.civicrm.org/extensions/ses/-/merge_requests/15) Add detailed config docs.
+
 ## Release 1.3.14 (2025-12-03)
 
 * [!14](https://lab.civicrm.org/extensions/ses/-/merge_requests/14) Deal with possibility of the reuturnPath key being set in the bounce account and always try to put complaint email address contacts on hold even if no verp items found.

@@ -454,21 +454,81 @@ trait CRM_Core_Payment_MJWIPNTrait {
   /**
    * Update a contribution to failed
    *
-   * @param array $params ['contribution_id', 'order_reference'{, cancel_date, cancel_reason}]
+   * @param array $params
+   *   [
+   *     'contribution_id',
+   *     'order_reference',
+   *     'failure_date',
+   *     'failure_reason',
+   *     'data',
+   *     'identifier',
+   *     'level',
+   *   ]
    *
+   * @return void
    * @throws \CRM_Core_Exception
+   * @throws \Civi\API\Exception\UnauthorizedException
    * @throws \Civi\Payment\Exception\PaymentProcessorException
    */
-  private function updateContributionFailed($params) {
-    $this->checkRequiredParams('updateContributionFailed', ['contribution_id', 'order_reference'], $params);
+  private function updateContributionFailed(array $params): void {
+    $this->checkRequiredParams('updateContributionFailed', ['contribution_id', 'order_reference'], $params
+    );
+
+    // Before MJWShared 1.5.4 cancel_date/cancel_reason was passed in.
+    // Provide a mapping for legacy code.
+    $mapParams = [
+      'cancel_date' => 'failure_date',
+      'cancel_reason' => 'failure_reason',
+    ];
+    foreach ($mapParams as $legacyKey => $currentKey) {
+      if (isset($params[$legacyKey])) {
+        $params[$currentKey] = $params[$legacyKey];
+        unset($params[$legacyKey]);
+      }
+    }
+
+    $logParamKeys = [
+      'contribution_id' => 'contribution_id',
+      'failure_date' => 'log_date',
+      'failure_reason' => 'message',
+      'data' => 'data',
+      'payment_processor_id' => 'payment_processor_id',
+      'identifier' => 'identifier',
+      'level' => 'level',
+    ];
+    foreach ($logParamKeys as $paramKey => $logParamKey) {
+      if (isset($params[$paramKey])) {
+        $logParams[$logParamKey] = $params[$paramKey];
+      }
+    }
+    $logParams['payment_processor_id'] = $this->getPaymentProcessor()->getID();
+
+    // No financial_trxn is created so we only need to update the Contribution.
     Contribution::update(FALSE)
       ->addValue('contribution_status_id:name', 'Failed')
       ->addValue('trxn_id', $params['order_reference'])
-      ->addValue('cancel_date', $params['cancel_date'] ?? '')
-      ->addValue('cancel_reason', $params['cancel_reason'] ?? '')
+      // Maybe stop setting cancel_date/cancel_reason if ContributionLog becomes part of core?
+      ->addValue('cancel_date', $params['failure_date'] ?? '')
+      ->addValue('cancel_reason', $params['failure_reason'] ?? '')
       ->addWhere('id', '=', $params['contribution_id'])
       ->execute();
-    // No financial_trxn is created so we don't need to update that.
+
+
+    // Currently provided by https://lab.civicrm.org/extensions/contributionlog
+    if (class_exists('\Civi\Api4\ContributionLog')) {
+      try {
+        // Wrap in try since we don't want updates to fail just because we can't write ContributionLog
+        \Civi\Api4\ContributionLog::create(FALSE)
+          ->setValues($logParams)
+          ->execute();
+      }
+      catch (\Throwable $e) {
+        \Civi::log()->error('IPN: PaymentProcessorID: '
+          . $this->getPaymentProcessor()->getID() . 'Could not write ContributionLog: '
+          . $e->getMessage()
+        );
+      }
+    }
   }
 
   /**
