@@ -671,7 +671,7 @@ class CRM_Report_Form extends CRM_Core_Form {
       $this->_title = $this->_instanceValues['title'];
       if (!empty($this->_instanceValues['permission']) &&
         (!(CRM_Core_Permission::check($this->_instanceValues['permission']) ||
-          CRM_Core_Permission::check('administer Reports') || CRM_Core_Permission::check('access CiviCRM') 
+          CRM_Core_Permission::check('administer Reports')
         ))
       ) {
         CRM_Utils_System::permissionDenied();
@@ -2303,7 +2303,7 @@ class CRM_Report_Form extends CRM_Core_Form {
     $relative, $from, $to, $type = NULL, $fromTime = NULL, $toTime = NULL
   ) {
     $clauses = [];
-    if (array_key_exists($relative, $this->getOperationPair(CRM_Report_Form::OP_DATE))) {
+    if (array_key_exists($relative ?? '', $this->getOperationPair(CRM_Report_Form::OP_DATE))) {
       $sqlOP = $this->getSQLOperator($relative);
       return "( {$fieldName} {$sqlOP} )";
     }

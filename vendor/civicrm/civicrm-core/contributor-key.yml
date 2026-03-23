@@ -88,7 +88,7 @@
 
 - github      : alietz
   name        : Andreas Lietz
-  organization: OrtmannTeam GmbH
+  organization: Stiftung Pfadfinden
 
 - github      : alifrumin
   name        : Alice Frumin
@@ -253,6 +253,9 @@
 - github      : borisson
   name        : Joris Vercammen
 
+- github      : boskabouter007
+  name        : Paul Van Leemput
+
 - github      : braders
   name        : Bradley Taylor
   organization: BrightMinded Ltd
@@ -293,6 +296,10 @@
 - github      : cdhassell
 
 - name        : Cath O'Connell
+
+- github      : celinenicolas
+  name        : Celine Nicolas
+  organization: JMA Consulting
 
 - github      : chagrawil
   name        : Charlie Wilder
@@ -381,6 +388,10 @@
 
 - name        : Andy Clarke
 
+- github      : dbwells
+  name        : Dan Wells
+  organization: Calvin Theological Seminary
+
 - name        : Daniel Martinez
 
 - github      : danielstrum
@@ -461,6 +472,8 @@
 - github      : Dawnthorn
   name        : Peter Haight
   organization: Giant Rabbit
+
+- github      : dbw2bit
 
 - github      : djnatedagreat
   name        : Nate Frank
@@ -1799,6 +1812,9 @@
 - github      : UshaMakoa
   name        : Usha F. Matisson
   organization: Makoa
+
+- github      : ustramooner
+  name        : Ben van Klinken
 
 - name        : Vakees K
 

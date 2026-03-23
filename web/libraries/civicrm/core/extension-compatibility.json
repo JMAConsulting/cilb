@@ -51,5 +51,9 @@
     "obsolete": "5.81",
     "disable": true,
     "uninstall": true
+  },
+  "minifier": {
+    "obsolete": "6.12",
+    "force-uninstall": true
   }
 }

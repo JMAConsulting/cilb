@@ -772,33 +772,6 @@ class CRM_Utils_Token {
   }
 
   /**
-   * Replace subscription-confirmation-request tokens
-   *
-   * @deprecated
-   *
-   * @param string $str
-   *   The string with tokens to be replaced.
-   * @param string $group
-   *   The name of the group being subscribed.
-   * @param $url
-   * @param bool $html
-   *   Replace tokens with html or plain text.
-   *
-   * @return string
-   *   The processed string
-   */
-  public static function &replaceSubscribeTokens($str, $group, $url, $html) {
-    CRM_Core_Error::deprecatedFunctionWarning('use token processor');
-    if (self::token_match('subscribe', 'group', $str)) {
-      self::token_replace('subscribe', 'group', $group, $str);
-    }
-    if (self::token_match('subscribe', 'url', $str)) {
-      self::token_replace('subscribe', 'url', $url, $str);
-    }
-    return $str;
-  }
-
-  /**
    * Replace subscription-invitation tokens
    *
    * @param string $str
@@ -1502,6 +1475,7 @@ class CRM_Utils_Token {
           '$contribution_status_id' => 'contribution.contribution_status_id',
           '$contributionStatusName' => 'contribution.contribution_status_id:name',
           '$subTotal' => 'contribution.tax_amount',
+          '$totalTaxAmount' => 'contribution.tax_amount',
           '$is_pay_later' => 'contribution.is_pay_later|bool',
           '$domain_street_address' => 'domain.street_address',
           '$domain_city' => 'domain.city',
@@ -1514,14 +1488,31 @@ class CRM_Utils_Token {
           '$domain_state' => 'domain.state_province_id:abbr',
           '$domain_country' => 'domain.country_id:abbr',
           '$lineItem' => '$lineItems',
+          '$billingName' => 'contribution.address_id.name',
         ],
         'contribution_online_receipt' => [
           '$contributeMode' => ts('no longer available / relevant'),
+          '$totalTaxAmount' => 'contribution.tax_amount',
           '$first_name' => 'contact.first_name',
           '$last_name' => 'contact.last_name',
           '$displayName' => 'contact.display_name',
           '$dataArray' => ts('see default template for how to show this'),
+          '$onBehalfAddress' => ts('no longer available / relevant'),
+          '$priceSetID' => ts('no longer available / relevant'),
+          '$useForMember' => ts('no longer available / relevant'),
+          '$contributionPageId' => 'contribution.contribution_page_id',
           '$lineItem' => '$lineItems',
+          '$billingName' => 'contribution.address_id.name',
+          '$selectPremium' => 'contribution_product.id|boolean',
+          '$product_name' => 'contribution_product.product_id.name',
+          '$option' => 'contribution_product.product_option:label',
+          '$sku' => 'contribution_product.product_id.sku',
+          '$price' => 'contribution_product.product_id.price|crmMoney',
+          '$is_deductible' => 'contribution.non_deductible_amount|boolean',
+          '$receive_date' => 'contribution.receive_date',
+          '$financialTypeId' => 'contribution.financial_type_id',
+          '$financialTypeName' => 'contribution.financial_type_id:name',
+          '$contributionTypeName' => 'contribution.financial_type_id:name',
         ],
         'membership_offline_receipt' => [
           // receipt_text_renewal appears to be long gone.
@@ -1543,6 +1534,8 @@ class CRM_Utils_Token {
           '$currency' => 'contribution.currency',
           '$paidBy' => 'contribution.payment_instrument_id:label',
           '$lineItem' => '$lineItems',
+          '$billingName' => 'contribution.address_id.name',
+          '$address' => 'contribution.address_id.display',
         ],
         'membership_online_receipt' => [
           '$dataArray' => ts('see default template for how to show this'),
@@ -1554,7 +1547,22 @@ class CRM_Utils_Token {
           '$mem_status' => 'membership.membership_status_id:name',
           '$receive_date' => 'contribution.receive_date',
           '$currency' => 'contribution.currency',
+          '$totalTaxAmount' => 'contribution.tax_amount',
+          '$priceSetID' => ts('no longer available / relevant'),
+          '$useForMember' => ts('no longer available / relevant'),
+          '$onBehalfAddress' => ts('no longer available / relevant'),
+          '$contributionPageId' => 'contribution.contribution_page_id',
           '$lineItem' => '$lineItems',
+          '$billingName' => 'contribution.address_id.name',
+          '$selectPremium' => 'contribution_product.id|boolean',
+          '$product_name' => 'contribution_product.product_id.name',
+          '$option' => 'contribution_product.product_option:label',
+          '$sku' => 'contribution_product.product_id.sku',
+          '$price' => 'contribution_product.product_id.price|crmMoney',
+          '$is_deductible' => 'contribution.non_deductible_amount|boolean',
+          '$financialTypeId' => 'contribution.financial_type_id',
+          '$financialTypeName' => 'contribution.financial_type_id:name',
+          '$contributionTypeName' => 'contribution.financial_type_id:name',
         ],
         'contribution_offline_receipt' => [
           '$totalTaxAmount' => 'contribution.tax_amount',
@@ -1565,6 +1573,12 @@ class CRM_Utils_Token {
           '$receipt_date' => 'contribution.receipt_date',
           '$cancel_date' => 'contribution.cancel_date',
           '$lineItem' => '$lineItems',
+          '$billingName' => 'contribution.address_id.name',
+          '$address' => 'contribution.address_id.display',
+          '$selectPremium' => 'contribution_product.id|boolean',
+          '$product_name' => 'contribution_product.product_id.name',
+          '$option' => 'contribution_product.product_option:label',
+          '$sku' => 'contribution_product.product_id.sku',
         ],
         'event_offline_receipt' => [
           '$contributeMode' => ts('no longer available / relevant'),
@@ -1591,39 +1605,50 @@ class CRM_Utils_Token {
           '$participant_status_id' => 'participant.status_id',
           '$participant.role' => 'participant.role_id:label',
           '$lineItem' => '$lineItems',
+          '$billingName' => 'contribution.address_id.name',
+          '$address' => 'contribution.address_id.display',
         ],
         'event_online_receipt' => [
           '`$participant.id`' => 'participant.id',
           '$dataArray' => ts('see default template for how to show this'),
           '$individual' => ts('see default template for how to show this'),
           '$amount' => ts('see default template for how to show this'),
+          '$isAdditionalParticipant' => ts('see default template for how to show this'),
           '$location' => 'event.location',
           '$register_date' => 'participant.register_date',
           '$participant.role' => 'participant.role_id:label',
+          '$totalAmount' => 'contribution.total_amount',
+          '$totalTaxAmount' => 'contribution.tax_amount',
           '$event.participant_role' => 'participant.role_id:label',
           '$paidBy' => 'contribution.payment_instrument_id:label',
           '$title' => 'event.title',
           '$lineItem' => '$lineItems',
+          '$participant_status' => 'participant.status_id:label',
+          '$billingName' => 'contribution.address_id.name',
         ],
         'participant_transferred' => [
           '$location' => 'event.location',
           '$participant.role' => 'participant.role_id:label',
           '$event.participant_role' => 'participant.role_id:label',
+          '$billingName' => 'contribution.address_id.name',
         ],
         'participant_cancelled' => [
           '$location' => 'event.location',
           '$participant.role' => 'participant.role_id:label',
           '$event.participant_role' => 'participant.role_id:label',
+          '$billingName' => 'contribution.address_id.name',
         ],
         'participant_expired' => [
           '$location' => 'event.location',
           '$participant.role' => 'participant.role_id:label',
           '$event.participant_role' => 'participant.role_id:label',
+          '$billingName' => 'contribution.address_id.name',
         ],
         'participant_confirm' => [
           '$location' => 'event.location',
           '$participant.role' => 'participant.role_id:label',
           '$event.participant_role' => 'participant.role_id:label',
+          '$billingName' => 'contribution.address_id.name',
         ],
         'payment_or_refund_notification' => [
           '$location' => 'event.location',
@@ -1631,14 +1656,17 @@ class CRM_Utils_Token {
           '$event.participant_role' => 'participant.role_id:label',
           '$contactDisplayName' => 'contact.display_name',
           '$paymentsComplete' => 'contribution.balance_amount',
+          '$billingName' => 'contribution.address_id.name',
         ],
         'pledge_acknowledgement' => [
           '$domain' => ts('no longer available / relevant'),
           '$contact' => ts('no longer available / relevant'),
+          '$billingName' => 'contribution.address_id.name',
         ],
         'pledge_reminder' => [
           '$domain' => ts('no longer available / relevant'),
           '$contact' => ts('no longer available / relevant'),
+          '$billingName' => 'contribution.address_id.name',
         ],
       ],
     ];

@@ -91,7 +91,7 @@ class CRM_Admin_Form_Generic extends CRM_Core_Form {
     // Sort sections by weight
     uasort($sections, ['CRM_Utils_Sort', 'cmpFunc']);
 
-    $this->assign('readOnlyFields', $this->readOnlyFields);
+    $this->assign('readOnlyFields', array_keys($this->getMandatoryValues()));
     $this->assign('settingPageName', $filter);
     $this->assign('settingSections', $sections);
 
@@ -141,12 +141,12 @@ class CRM_Admin_Form_Generic extends CRM_Core_Form {
     $errors = [];
 
     foreach ($settings as $settingName => $settingMeta) {
-      if (!empty($settingMeta['validate_callback'])) {
+      if (!empty($settingMeta['validate_callback']) && isset($fields[$settingName])) {
         $errorText = NULL;
         $callback = Civi\Core\Resolver::singleton()->get($settingMeta['validate_callback']);
         // These validate_callbacks are inconsistent. Some return FALSE, others throw an Exception.
         try {
-          $value = self::formatSettingValue($settingMeta, $fields[$settingName] ?? NULL);
+          $value = self::formatSettingValue($settingMeta, $fields[$settingName]);
           $valid = call_user_func_array($callback, [$value, $settingMeta]);
         }
         catch (CRM_Core_Exception $e) {
