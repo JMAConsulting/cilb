@@ -45,11 +45,15 @@ Apply patch to hide revert changes button on loggin report
 Source: patches/hide_revert_changes.patch
 
 
-Apply patch to support year
-Source: patches/birth_date_year.patch
-
-
 Apply patch to allow for logging to be turned on and off
 Source: ./patches/civicrm_allow_logging_on_multilingual_environments.patch
+
+
+Apply patch to prevent creating pending contribution if existing_payment is selected
+Source: patches/webform_civicrm_existing_payment.patch
+
+
+Apply patch to allow sending multiple emails via report
+Source: patches/allow_multiple_to_emails.patch
 
 

@@ -546,7 +546,8 @@ DESC limit 1");
       ['onclick' => "showEmailOptions()"]
     );
 
-    $this->add('select', 'from_email_address', ts('Receipt From'), $this->_fromEmails);
+    $fromEmailSelect = $this->add('select', 'from_email_address', ts('Receipt From'), $this->_fromEmails);
+    $fromEmailSelect->setOptionTextEscaped();
 
     $this->add('textarea', 'receipt_text', ts('Receipt Message'));
 
@@ -1227,9 +1228,6 @@ DESC limit 1");
 
       $this->set('params', $formValues);
       $this->assign('trxn_id', $result['trxn_id'] ?? NULL);
-      $this->assign('receive_date',
-        CRM_Utils_Date::mysqlToIso($params['receive_date'])
-      );
 
       // required for creating membership for related contacts
       $params['action'] = $this->_action;
@@ -1576,8 +1574,6 @@ DESC limit 1");
     $customValues = $this->getCustomValuesForReceipt();
     $this->assign('customValues', $customValues);
     $this->assign('total_amount', $this->order->getTotalAmount());
-    $this->assign('totalTaxAmount', $this->order->getTotalTaxAmount());
-    $this->assign('taxTerm', $this->getSalesTaxTerm());
 
     if ($this->_mode) {
       // @todo move this outside shared code as Batch entry just doesn't
@@ -1588,10 +1584,6 @@ DESC limit 1");
       $this->assign('is_pay_later', 0);
       $this->assign('isPrimary', 1);
     }
-    //insert financial type name in receipt.
-    $formValues['contributionType_name'] = CRM_Core_DAO::getFieldValue('CRM_Financial_DAO_FinancialType',
-      $this->getFinancialTypeID()
-    );
     $this->emailReceipt($formValues);
     return TRUE;
   }

@@ -1158,29 +1158,6 @@ WHERE civicrm_event.is_active = 1
           $sendTemplateParams['tplParams']['address'] = $displayAddress;
         }
 
-        // set lineItem details
-        $lineItem = $values['lineItem'] ?? NULL;
-        if ($lineItem) {
-          // check if additional participant, if so filter only to relevant ones
-          // CRM-9902
-          if (!empty($values['params']['additionalParticipant'])) {
-            $ownLineItems = [];
-            foreach ($lineItem as $liKey => $liValue) {
-              $firstElement = array_pop($liValue);
-              if ($firstElement['entity_id'] == $participantId) {
-                $ownLineItems[0] = $lineItem[$liKey];
-                break;
-              }
-            }
-            if (!empty($ownLineItems)) {
-              $sendTemplateParams['tplParams']['lineItem'] = $ownLineItems;
-            }
-          }
-          else {
-            $sendTemplateParams['tplParams']['lineItem'] = $lineItem;
-          }
-        }
-
         if ($returnMessageText) {
           [$sent, $subject, $message, $html] = CRM_Core_BAO_MessageTemplate::sendTemplate($sendTemplateParams);
           return [
@@ -1485,12 +1462,6 @@ WHERE  id = $cfID
                   // sometime in the future
                   $customVal = $displayValue = CRM_Utils_Date::customFormat(
                     CRM_Utils_Date::processDate($params[$name]), $config->dateformatFull);
-
-                  if (!empty($params[$name . '_time'])) {
-                    $customVal = $displayValue = CRM_Utils_Date::customFormat(
-                      CRM_Utils_Date::processDate($params[$name], $params[$name . '_time']),
-                      $config->dateformatDatetime);
-                  }
                   $skip = TRUE;
                 }
                 // for checkboxes, change array of [key => bool] to array of [idx => key]

@@ -478,6 +478,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return FALSE;
     }
 
+    $sendInvoice = TRUE;
     $eventIds = $webform_submission_data['select_exam_ids'];
 
     // fetch event details for line items
@@ -558,6 +559,16 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
           ->execute()
           ->first()['id'];
 
+        // Check to see if event is a plumbing exam in the past.
+        $plumbingEvent = \Civi\Api4\Event::get(FALSE)
+          ->addSelect('event_type_id:name', 'end_date')
+          ->addWhere('id', '=', $eventId)
+          ->execute()->first();
+        if ($plumbingEvent['event_type_id:name'] === 'Plumbing' && !empty($plumbingEvent['end_date']) && date('Ymd', strtotime($plumbingEvent['end_date'])) < date('Ymd')) {
+          // Do not send invoice
+          $sendInvoice = FALSE;
+        }
+
         $feesForThisEvent = $eventFees[$eventId] ?? NULL;
         $addedAmount = 0;
         // for fees payable now, we create additional line items in the contribution
@@ -617,13 +628,15 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
     // now the registrations have been made, we're ready to send the receipt
     // we use the "invoice" task as its closest to our needs
-    $params = [
-      'output' => 'email_invoice',
-      'from_email_address' => \CRM_Core_BAO_Domain::getFromEmail(),
-      'subject' => "CILB Candidate Registration Confirmation",
-      'email_comment' => '',
-    ];
-    \CRM_Contribute_Form_Task_Invoice::printPDF([$contributionId], $params, [$contactId]);
+    if (empty($webform_submission_data['existing_payment']) && $sendInvoice) {
+      $params = [
+        'output' => 'email_invoice',
+        'from_email_address' => \CRM_Core_BAO_Domain::getFromEmail(),
+        'subject' => "CILB Candidate Registration Confirmation",
+        'email_comment' => '',
+      ];
+      \CRM_Contribute_Form_Task_Invoice::printPDF([$contributionId], $params, [$contactId]);
+    }
   }
 
   /**
@@ -1246,13 +1259,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         'id',
         'title',
         'Exam_Details.Exam_Part',
-	'Exam_Details.Exam_Part:label',
+	      'Exam_Details.Exam_Part:label',
         'event_type_id',
         'event_type_id:name',
         'event_type_id:label',
         'start_date',
         'end_date',
-	'is_public',
+	      'is_public',
         'loc_block_id.address_id.street_address',
         "loc_block_id.address_id.supplemental_address_1",
         "loc_block_id.address_id.supplemental_address_2",
@@ -1264,7 +1277,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('is_online_registration', '=', TRUE)
       ->addWhere('is_template', '!=', TRUE)
-      //->addWhere('start_date', '>', 'now')
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0]);
 
     // for frontend form, we need to limit based on category selection on
@@ -1322,20 +1334,22 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $events = self::filterRegisterableEventsForContact($events, $contactId, $categoryFilter);
     }
 
-    // exclude Plumbing TK exams that are in the past
-    $events = array_filter($events, function ($event) {
-      if (
-        ($event['event_type_id:name'] === "Plumbing")
-        && ($event['Exam_Details.Exam_Part'] === 'TK')
-        && (!empty($event['end_date']) && date('Ymd', strtotime($event['end_date'])) < date('Ymd'))
-      ) {
-        return FALSE;
-      }
-      return TRUE;
-    });
+    
 
     // exclude non public events from front end form
     if ($form['#webform_id'] !== 'backoffice_registration') {
+      // exclude Plumbing TK exams that are in the past only for front office form.
+      $events = array_filter($events, function ($event) {
+        if (
+          ($event['event_type_id:name'] === "Plumbing")
+          && ($event['Exam_Details.Exam_Part'] === 'TK')
+          && (!empty($event['end_date']) && date('Ymd', strtotime($event['end_date'])) < date('Ymd'))
+        ) {
+          return FALSE;
+        }
+        return TRUE;
+      });
+
       $events = array_filter($events, function ($event) {
         if ($event['event_type_id:name'] === "Plumbing" && $event['is_public'] != 1) {
         return FALSE;
