@@ -3,7 +3,7 @@
         'name' => 'civicrm/ses',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '9dabaf952c856f6ffa6061e712503fc699e6118c',
+        'reference' => '9f8c5ef22ade8d7f709ff4c8c744a592fc1ec074',
         'type' => 'civicrm-extension',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -31,7 +31,7 @@
         'civicrm/ses' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '9dabaf952c856f6ffa6061e712503fc699e6118c',
+            'reference' => '9f8c5ef22ade8d7f709ff4c8c744a592fc1ec074',
             'type' => 'civicrm-extension',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
