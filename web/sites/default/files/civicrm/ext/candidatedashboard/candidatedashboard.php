@@ -39,7 +39,7 @@ function candidatedashboard_civicrm_enable(): void {
  */
 function candidatedashboard_civicrm_pageRun( &$page) {
   /** @var \CRM_Core_Page $page */
-  if ('CRM_Contact_Page_DashBoard' === $page->getVar('_name') && in_array('candidate', \Drupal::currentUser()->getRoles())) {
+  if ('CRM_Contact_Page_DashBoard' === $page->getVar('_name') && in_array('candidate', \Drupal::currentUser()->getRoles()) && !in_array('administrator', \Drupal::currentUser()->getRoles())) {
     throw new AccessDeniedHttpException('You do not have permission to access this page.');
   }
   if ($page->getVar('_name') === 'CRM_Contact_Page_View_UserDashBoard') {
@@ -48,7 +48,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
     CRM_Core_Region::instance('crm-event-userdashboard-post')->add([
      'markup' => $html, 'weight' => 10
     ]);
-    if (in_array('candidate', \Drupal::currentUser()->getRoles())) {
+    if (in_array('candidate', \Drupal::currentUser()->getRoles()) && !in_array('administrator', \Drupal::currentUser()->getRoles())) {
     CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
         $('#civicrm-menu-nav').hide();
@@ -225,7 +225,7 @@ function candidatedashboard_civicrm_pageRun( &$page) {
 
 function candidatedashboard_civicrm_coreResourceList(&$items, &$region) {
   $roles = \Drupal::currentUser()->getRoles();
-  if (in_array('candidate', $roles)) {
+  if (in_array('candidate', $roles) && !in_array('administrator', $roles)) {
     CRM_Core_Resources::singleton()->addScript(
       "CRM.$(function($) {
         $('#civicrm-menu-nav').hide();
