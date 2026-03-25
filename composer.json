@@ -15,9 +15,9 @@
         }
     ],
     "require": {
-        "civicrm/civicrm-core": "6.12.x-dev as 6.12.1",
-        "civicrm/civicrm-drupal-8": "6.12.1",
-        "civicrm/civicrm-packages": "6.12.1",
+        "civicrm/civicrm-core": "6.12.2",
+        "civicrm/civicrm-drupal-8": "6.12.2",
+        "civicrm/civicrm-packages": "6.12.2",
         "composer/installers": "^2.0",
         "dragonmantank/cron-expression": "3.3.3",
         "drupal/bootstrap": "^3.35",
@@ -38,6 +38,7 @@
         "drupal/nagios": "^1.25",
         "drupal/redirect_after_login": "^3.0",
         "drupal/redirect_page_by_role": "^3.2",
+        "drupal/registration_role": "^2.0",
         "drupal/skinr": "^2.0@alpha",
         "drupal/smtp": "^1.4",
         "drupal/token": "^1.16",

@@ -39,7 +39,7 @@ elements: |-
       '#title': 'Candidate Information'
       civicrm_1_contact_1_contact_existing:
         '#type': civicrm_contact
-        '#title': 'Existing Contact'
+        '#title': 'SEARCH for Existing Candidate'
         '#description': '<p>Start typing to find the contact</p>'
         '#widget': autocomplete
         '#search_prompt': '- Choose existing -'
@@ -133,6 +133,41 @@ elements: |-
           '#contact_type': individual
           '#form_key': civicrm_1_contact_1_contact_birth_date
           '#parent': civicrm_1_contact_1_fieldset_fieldset
+        civicrm_1_contact_1_contact_gender_id:
+          '#type': civicrm_options
+          '#title': Gender
+          '#civicrm_live_options': 0
+          '#options':
+            1: Male
+            2: Female
+            3: 'No Response'
+          '#extra':
+            aslist: 1
+            multiple: 0
+          '#contact_type': individual
+          '#form_key': civicrm_1_contact_1_contact_gender_id
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+          '#default_option': '3'
+          '#default_value': '3'
+        civicrm_1_contact_1_cg1_custom_97:
+          '#type': civicrm_options
+          '#title': Race
+          '#options':
+            101: 'Asian or Pacific Islander'
+            102: 'Black or African American'
+            103: 'Native American or Alaskan Native'
+            104: 'Spanish, Hispanic or Latino'
+            105: 'White or Caucasian'
+            106: 'No Response'
+          '#extra':
+            aslist: 1
+            multiple: 0
+          '#data_type': String
+          '#form_key': civicrm_1_contact_1_cg1_custom_97
+          '#parent': civicrm_1_contact_1_cg1_fieldset
+          '#default_option': '106'
+          '#default_value': '106'
+          '#civicrm_live_options': '1'
       flexbox_01:
         '#type': webform_flexbox
         civicrm_1_contact_1_cg1_custom_5:
@@ -140,6 +175,7 @@ elements: |-
           '#title': SSN
           '#description_display': after
           '#input_mask': 999-99-9999
+          '#input_hide': true
           '#required': true
           '#counter_type': character
           '#counter_maximum': 255
@@ -477,10 +513,6 @@ elements: |-
     civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset:
       '#type': fieldset
       '#title': 'Billing Address'
-      '#states':
-        invisible:
-          ':input[name="civicrm_1_contribution_1_contribution_payment_processor_id"]':
-            '!value': '3'
       '#states_clear': false
       '#form_key': civicrm_1_billing_1_number_of_billing_1_fieldset_fieldset
       '#parent': contribution_pagebreak
@@ -906,7 +938,7 @@ settings:
   form_required: false
   form_autofocus: false
   form_details_toggle: false
-  form_reset: false
+  form_reset: true
   form_access_denied: default
   form_access_denied_title: ''
   form_access_denied_message: ''
@@ -978,7 +1010,7 @@ settings:
   confirmation_type: page
   confirmation_url: ''
   confirmation_title: ''
-  confirmation_message: '<p>You have successfully registered the candidate.</p><ul><li><a class="ql-link" href="/form/backoffice-registration/" rel="noopener noreferrer" target="_blank">Register another candidate</a></li><li><a class="ql-link" href="[webform_submission:contact-link:1]" rel="noopener noreferrer" target="_blank">Go to the registered candidate''s profile</a></li><li><a class="ql-link" href="/admin/config/cilb-admin-dashboard" rel="noopener noreferrer" target="_blank">Go to the Admin Dashboard</a></li></ul>'
+  confirmation_message: '<p>You have successfully registered the candidate.</p><ul><li data-list-item-id="e6842f5dfb1978d7ae52edfa582d1905b"><a class="ql-link" href="/form/backoffice-registration/" rel="noopener noreferrer">Register another candidate</a></li><li data-list-item-id="ee9e0e40f972d6bc3b2056f202d60baf1"><a class="ql-link" href="[webform_submission:contact-link:1]" rel="noopener noreferrer">Go to the registered candidate''s profile</a></li><li data-list-item-id="e0b9519851fafe8d258c6471557b301f2"><a class="ql-link" href="/admin/config/cilb-admin-dashboard" rel="noopener noreferrer">Go to the Admin Dashboard</a></li></ul>'
   confirmation_attributes: {  }
   confirmation_back: true
   confirmation_back_label: ''
@@ -1087,7 +1119,7 @@ handlers:
       civicrm_1_contact_1_contact_last_name: create_civicrm_webform_element
       civicrm_1_contact_1_contact_suffix_id: create_civicrm_webform_element
       civicrm_1_contact_1_contact_nick_name: 0
-      civicrm_1_contact_1_contact_gender_id: 0
+      civicrm_1_contact_1_contact_gender_id: create_civicrm_webform_element
       civicrm_1_contact_1_contact_job_title: 0
       civicrm_1_contact_1_contact_birth_date: create_civicrm_webform_element
       civicrm_1_contact_1_contact_preferred_communication_method: 0
@@ -1113,6 +1145,7 @@ handlers:
       civicrm_1_contact_1_cg1_custom_22: 0
       civicrm_1_contact_1_cg1_custom_23: 0
       civicrm_1_contact_1_cg1_custom_95: 0
+      civicrm_1_contact_1_cg1_custom_97: create_civicrm_webform_element
       contact_1_number_of_other: '0'
       contact_1_number_of_address: '1'
       civicrm_1_contact_1_address_street_address: create_civicrm_webform_element

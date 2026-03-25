@@ -455,17 +455,17 @@
         },
         {
             "name": "civicrm/civicrm-core",
-            "version": "6.12.x-dev",
-            "version_normalized": "6.12.9999999.9999999-dev",
+            "version": "6.12.2",
+            "version_normalized": "6.12.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/civicrm/civicrm-core.git",
-                "reference": "5bd1adf9f37f46116ff0bec9695073414685adcb"
+                "reference": "b3e8aa780d64e8333533f65a1f7b0fd2bdd020d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/civicrm/civicrm-core/zipball/5bd1adf9f37f46116ff0bec9695073414685adcb",
-                "reference": "5bd1adf9f37f46116ff0bec9695073414685adcb",
+                "url": "https://api.github.com/repos/civicrm/civicrm-core/zipball/b3e8aa780d64e8333533f65a1f7b0fd2bdd020d7",
+                "reference": "b3e8aa780d64e8333533f65a1f7b0fd2bdd020d7",
                 "shasum": ""
             },
             "require": {
@@ -539,7 +539,7 @@
                 "zetacomponents/base": "1.9.*",
                 "zetacomponents/mail": "~1.9.4"
             },
-            "time": "2026-03-20T23:46:03+00:00",
+            "time": "2026-03-24T04:51:54+00:00",
             "type": "library",
             "extra": {
                 "patches": {
@@ -981,7 +981,7 @@
             ],
             "description": "Open source constituent relationship management for non-profits, NGOs and advocacy organizations.",
             "support": {
-                "source": "https://github.com/civicrm/civicrm-core/tree/6.12"
+                "source": "https://github.com/civicrm/civicrm-core/tree/6.12.2"
             },
             "funding": [
                 {
@@ -993,8 +993,8 @@
         },
         {
             "name": "civicrm/civicrm-drupal-8",
-            "version": "6.12.1",
-            "version_normalized": "6.12.1.0",
+            "version": "6.12.2",
+            "version_normalized": "6.12.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/civicrm/civicrm-drupal-8.git",
@@ -1045,7 +1045,7 @@
             ],
             "description": "Open source constituent relationship management for non-profits, NGOs and advocacy organizations.",
             "support": {
-                "source": "https://github.com/civicrm/civicrm-drupal-8/tree/6.12.1"
+                "source": "https://github.com/civicrm/civicrm-drupal-8/tree/6.12.2"
             },
             "funding": [
                 {
@@ -1057,8 +1057,8 @@
         },
         {
             "name": "civicrm/civicrm-packages",
-            "version": "6.12.1",
-            "version_normalized": "6.12.1.0",
+            "version": "6.12.2",
+            "version_normalized": "6.12.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/civicrm/civicrm-packages.git",
@@ -1076,7 +1076,7 @@
             "notification-url": "https://packagist.org/downloads/",
             "description": "Legacy third party dependencies for CiviCRM",
             "support": {
-                "source": "https://github.com/civicrm/civicrm-packages/tree/6.12.1"
+                "source": "https://github.com/civicrm/civicrm-packages/tree/6.12.2"
             },
             "install-path": "../civicrm/civicrm-packages"
         },
@@ -4244,6 +4244,73 @@
                 "source": "https://git.drupalcode.org/project/redirect_page_by_role"
             },
             "install-path": "../../web/modules/contrib/redirect_page_by_role"
+        },
+        {
+            "name": "drupal/registration_role",
+            "version": "2.0.2",
+            "version_normalized": "2.0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/registration_role.git",
+                "reference": "2.0.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/registration_role-2.0.2.zip",
+                "reference": "2.0.2",
+                "shasum": "3dcace022bae8fdbc4c66c86fa5b9b0274298a8b"
+            },
+            "require": {
+                "drupal/core": "^8 || ^9 || ^10 || ^11"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "2.0.2",
+                    "datestamp": "1739480619",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "installation-source": "dist",
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "karthikeyan-manivasagam",
+                    "homepage": "https://www.drupal.org/user/1494424"
+                },
+                {
+                    "name": "melon",
+                    "homepage": "https://www.drupal.org/user/32875"
+                },
+                {
+                    "name": "mlncn",
+                    "homepage": "https://www.drupal.org/user/64383"
+                },
+                {
+                    "name": "pfournier",
+                    "homepage": "https://www.drupal.org/user/160468"
+                },
+                {
+                    "name": "pignaz",
+                    "homepage": "https://www.drupal.org/user/471908"
+                },
+                {
+                    "name": "yogen.prasad",
+                    "homepage": "https://www.drupal.org/user/2115328"
+                }
+            ],
+            "description": "Automatically assign a role to all new users who register.",
+            "homepage": "https://www.drupal.org/project/registration_role",
+            "support": {
+                "source": "https://git.drupalcode.org/project/registration_role"
+            },
+            "install-path": "../../web/modules/contrib/registration_role"
         },
         {
             "name": "drupal/skinr",

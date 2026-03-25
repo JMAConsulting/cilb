@@ -63,6 +63,7 @@ elements: |-
     '#title': 'Social Security Number (SSN)'
     '#description': '<p><strong>If you are requesting a change to your SSN, you must upload a copy of your SSN card displaying the correct number and your full name.</strong></p>'
     '#input_mask': 999-99-9999
+    '#input_hide': true
     '#required': true
     '#states':
       visible:

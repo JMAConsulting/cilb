@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * Assigns the 'candidate' role to all active users in batches of 50.
+ */
+function cilb_candidate_registration_update_8003() {
+  $processed = 0;
+
+  // Keep querying until no more users are left.
+  while (TRUE) {
+    $uids = \Drupal::entityQuery('user')
+      ->condition('status', 1)
+      ->condition('uid', 0, '>') // exclude anonymous
+      ->range(0, 500)             // limit to 50 at a time
+      ->accessCheck(FALSE)
+      ->execute();
+
+    if (empty($uids)) {
+      break;
+    }
+
+    $users = \Drupal\user\Entity\User::loadMultiple($uids);
+    foreach ($users as $user) {
+      if (!$user->hasRole('candidate')) {
+        $user->addRole('candidate');
+        $user->save();
+        $processed++;
+      }
+    }
+  }
+
+  return t('Assigned candidate role to @count users.', ['@count' => $processed]);
+}
+
