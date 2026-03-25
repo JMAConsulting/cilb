@@ -927,7 +927,8 @@
                     "Apply patch to download invoice": "patches/civicrm_invoice.patch",
                     "Apply patch to support using transaction id in a quick search": "patches/civicrm_transaction_id_quicksearch.patch",
                     "Apply patch to hide revert changes button on loggin report": "patches/hide_revert_changes.patch",
-                    "Apply patch to allow for logging to be turned on and off": "./patches/civicrm_allow_logging_on_multilingual_environments.patch"
+                    "Apply patch to allow for logging to be turned on and off": "./patches/civicrm_allow_logging_on_multilingual_environments.patch",
+                    "Apply patch to allow sending multiple emails via report": "patches/allow_multiple_to_emails.patch"
                 }
             },
             "installation-source": "dist",
@@ -4244,6 +4245,73 @@
                 "source": "https://git.drupalcode.org/project/redirect_page_by_role"
             },
             "install-path": "../../web/modules/contrib/redirect_page_by_role"
+        },
+        {
+            "name": "drupal/registration_role",
+            "version": "2.0.2",
+            "version_normalized": "2.0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/registration_role.git",
+                "reference": "2.0.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/registration_role-2.0.2.zip",
+                "reference": "2.0.2",
+                "shasum": "3dcace022bae8fdbc4c66c86fa5b9b0274298a8b"
+            },
+            "require": {
+                "drupal/core": "^8 || ^9 || ^10 || ^11"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "2.0.2",
+                    "datestamp": "1739480619",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                }
+            },
+            "installation-source": "dist",
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "karthikeyan-manivasagam",
+                    "homepage": "https://www.drupal.org/user/1494424"
+                },
+                {
+                    "name": "melon",
+                    "homepage": "https://www.drupal.org/user/32875"
+                },
+                {
+                    "name": "mlncn",
+                    "homepage": "https://www.drupal.org/user/64383"
+                },
+                {
+                    "name": "pfournier",
+                    "homepage": "https://www.drupal.org/user/160468"
+                },
+                {
+                    "name": "pignaz",
+                    "homepage": "https://www.drupal.org/user/471908"
+                },
+                {
+                    "name": "yogen.prasad",
+                    "homepage": "https://www.drupal.org/user/2115328"
+                }
+            ],
+            "description": "Automatically assign a role to all new users who register.",
+            "homepage": "https://www.drupal.org/project/registration_role",
+            "support": {
+                "source": "https://git.drupalcode.org/project/registration_role"
+            },
+            "install-path": "../../web/modules/contrib/registration_role"
         },
         {
             "name": "drupal/skinr",

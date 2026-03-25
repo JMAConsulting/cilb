@@ -44,6 +44,7 @@ module:
   link: 0
   locale: 0
   mail_login: 0
+  mailcontrol: 0
   masquerade: 0
   media: 0
   menu_link_content: 0
@@ -57,6 +58,7 @@ module:
   path: 0
   path_alias: 0
   redirect_after_login: 0
+  registration_role: 0
   search: 0
   shortcut: 0
   smtp: 0

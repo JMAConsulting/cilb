@@ -201,6 +201,41 @@ elements: |-
           '#contact_type': individual
           '#form_key': civicrm_1_contact_1_contact_birth_date
           '#parent': civicrm_1_contact_1_fieldset_fieldset
+        civicrm_1_contact_1_contact_gender_id:
+          '#type': civicrm_options
+          '#title': Gender
+          '#civicrm_live_options': 0
+          '#options':
+            1: Male
+            2: Female
+            3: 'No Response'
+          '#extra':
+            aslist: 1
+            multiple: 0
+          '#contact_type': individual
+          '#form_key': civicrm_1_contact_1_contact_gender_id
+          '#parent': civicrm_1_contact_1_fieldset_fieldset
+          '#default_option': '3'
+          '#default_value': '3'
+        civicrm_1_contact_1_cg1_custom_97:
+          '#type': civicrm_options
+          '#title': Race
+          '#options':
+            101: 'Asian or Pacific Islander'
+            102: 'Black or African American'
+            103: 'Native American or Alaskan Native'
+            104: 'Spanish, Hispanic or Latino'
+            105: 'White or Caucasian'
+            106: 'No Response'
+          '#extra':
+            aslist: 1
+            multiple: 0
+          '#data_type': String
+          '#form_key': civicrm_1_contact_1_cg1_custom_97
+          '#parent': civicrm_1_contact_1_cg1_fieldset
+          '#default_option': '106'
+          '#default_value': '106'
+          '#civicrm_live_options': '1'
       flexbox_01:
         '#type': webform_flexbox
         civicrm_1_contact_1_cg1_custom_5:
@@ -1129,7 +1164,7 @@ handlers:
       civicrm_1_contact_1_contact_last_name: create_civicrm_webform_element
       civicrm_1_contact_1_contact_suffix_id: create_civicrm_webform_element
       civicrm_1_contact_1_contact_nick_name: 0
-      civicrm_1_contact_1_contact_gender_id: 0
+      civicrm_1_contact_1_contact_gender_id: create_civicrm_webform_element
       civicrm_1_contact_1_contact_job_title: 0
       civicrm_1_contact_1_contact_birth_date: create_civicrm_webform_element
       civicrm_1_contact_1_contact_preferred_communication_method: 0
@@ -1155,6 +1190,7 @@ handlers:
       civicrm_1_contact_1_cg1_custom_22: 0
       civicrm_1_contact_1_cg1_custom_23: 0
       civicrm_1_contact_1_cg1_custom_95: 0
+      civicrm_1_contact_1_cg1_custom_97: create_civicrm_webform_element
       contact_1_number_of_other: '0'
       contact_1_number_of_address: '1'
       civicrm_1_contact_1_address_street_address: create_civicrm_webform_element
