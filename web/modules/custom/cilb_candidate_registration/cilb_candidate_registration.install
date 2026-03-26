@@ -5,12 +5,14 @@
  */
 function cilb_candidate_registration_update_8003() {
   $processed = 0;
+  $lastProcessedId = 0;
 
   // Keep querying until no more users are left.
   while (TRUE) {
     $uids = \Drupal::entityQuery('user')
       ->condition('status', 1)
       ->condition('uid', 0, '>') // exclude anonymous
+      ->condition('uid', $lastProcessedId, '>')
       ->range(0, 500)             // limit to 50 at a time
       ->accessCheck(FALSE)
       ->execute();
@@ -26,6 +28,7 @@ function cilb_candidate_registration_update_8003() {
         $user->save();
         $processed++;
       }
+      $lastProcessedId = $user->id();
     }
   }
 
