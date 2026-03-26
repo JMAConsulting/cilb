@@ -28,7 +28,7 @@ function user_email_verification_user_delete(UserInterface $user) {
  * Implements hook_cron().
  */
 function user_email_verification_cron() {
-  \Drupal::service('user_email_verification.service')->cronHandler();
+//  \Drupal::service('user_email_verification.service')->cronHandler();
 }
 
 /**
