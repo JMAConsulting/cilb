@@ -91,7 +91,7 @@ class UserEmailVerificationVerifyExtended extends ControllerBase implements Cont
 
     $verification = $this->userEmailVerification->loadVerificationByUserId($uid);
 
-    // User tries to use verification link that doesn't belong to him
+    // User tries to use verification link that doesn't belong to user
     // or link was created for user which doesn't exist.
     if (($this->currentUser()->isAuthenticated() && $this->currentUser()->id() != $uid) || !$verification) {
       $this->messenger()->addError($this->t('Your verification link is incorrect. Request a new one using the form below.'));

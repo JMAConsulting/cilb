@@ -1,0 +1,14 @@
+diff --git a/web/modules/contrib/user_email_verification/src/UserEmailVerification.php b/web/modules/contrib/user_email_verification.bak/src/UserEmailVerification.php
+index 31c15ace1..1e89de698 100644
+--- a/src/UserEmailVerification.php
++++ b/src/UserEmailVerification.php
+@@ -378,6 +378,9 @@ public function createVerification(UserInterface $user, $verify = FALSE) {
+     if ($verify || $event->shouldBeVerified()) {
+       $verified = $this->time->getRequestTime();
+     }
++    else {
++      $this->sendVerifyMailById($user->id());
++    }
+ 
+     $this->database
+       ->insert(UserEmailVerificationInterface::VERIFICATION_TABLE_NAME)

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b70d5f161874dda7454a749d8bf63720",
+    "content-hash": "85937601b97b3781815dbff2a3fa698f",
     "packages": [
         {
             "name": "adrienrn/php-mimetyper",
@@ -4053,70 +4053,6 @@
             }
         },
         {
-            "name": "drupal/registration_role",
-            "version": "2.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://git.drupalcode.org/project/registration_role.git",
-                "reference": "2.0.2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/registration_role-2.0.2.zip",
-                "reference": "2.0.2",
-                "shasum": "3dcace022bae8fdbc4c66c86fa5b9b0274298a8b"
-            },
-            "require": {
-                "drupal/core": "^8 || ^9 || ^10 || ^11"
-            },
-            "type": "drupal-module",
-            "extra": {
-                "drupal": {
-                    "version": "2.0.2",
-                    "datestamp": "1739480619",
-                    "security-coverage": {
-                        "status": "covered",
-                        "message": "Covered by Drupal's security advisory policy"
-                    }
-                }
-            },
-            "notification-url": "https://packages.drupal.org/8/downloads",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "karthikeyan-manivasagam",
-                    "homepage": "https://www.drupal.org/user/1494424"
-                },
-                {
-                    "name": "melon",
-                    "homepage": "https://www.drupal.org/user/32875"
-                },
-                {
-                    "name": "mlncn",
-                    "homepage": "https://www.drupal.org/user/64383"
-                },
-                {
-                    "name": "pfournier",
-                    "homepage": "https://www.drupal.org/user/160468"
-                },
-                {
-                    "name": "pignaz",
-                    "homepage": "https://www.drupal.org/user/471908"
-                },
-                {
-                    "name": "yogen.prasad",
-                    "homepage": "https://www.drupal.org/user/2115328"
-                }
-            ],
-            "description": "Automatically assign a role to all new users who register.",
-            "homepage": "https://www.drupal.org/project/registration_role",
-            "support": {
-                "source": "https://git.drupalcode.org/project/registration_role"
-            }
-        },
-        {
             "name": "drupal/skinr",
             "version": "2.0.0-alpha2",
             "source": {
@@ -4322,26 +4258,26 @@
         },
         {
             "name": "drupal/user_email_verification",
-            "version": "1.2.0",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/user_email_verification.git",
-                "reference": "8.x-1.2"
+                "reference": "8.x-1.3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/user_email_verification-8.x-1.2.zip",
-                "reference": "8.x-1.2",
-                "shasum": "2217af1b52d9ac80b879e9fdc2aff407b160f931"
+                "url": "https://ftp.drupal.org/files/projects/user_email_verification-8.x-1.3.zip",
+                "reference": "8.x-1.3",
+                "shasum": "f8daeac60e6253ff86461ff41901c221a62c9599"
             },
             "require": {
-                "drupal/core": "^8 || ^9 || ^10"
+                "drupal/core": "^8 || ^9 || ^10 || ^11"
             },
             "type": "drupal-module",
             "extra": {
                 "drupal": {
-                    "version": "8.x-1.2",
-                    "datestamp": "1688652608",
+                    "version": "8.x-1.3",
+                    "datestamp": "1736843602",
                     "security-coverage": {
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
@@ -4354,7 +4290,7 @@
             ],
             "authors": [
                 {
-                    "name": "Antonnavi",
+                    "name": "antonnavi",
                     "homepage": "https://www.drupal.org/user/875410"
                 },
                 {

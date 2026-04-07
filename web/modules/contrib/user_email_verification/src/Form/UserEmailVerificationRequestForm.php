@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Class UserEmailVerificationRequestForm.
+ * Class for defining UserEmailVerification Request Form.
  */
 class UserEmailVerificationRequestForm extends FormBase {
 
