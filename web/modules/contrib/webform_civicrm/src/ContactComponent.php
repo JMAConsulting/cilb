@@ -156,9 +156,9 @@ class ContactComponent implements ContactComponentInterface {
       if ($str) {
        if (isset($params['where'][2][1][1]) && $params['where'][2][1][1][0] === 'birth_date') {
           $params['where'][2][1][1] = ['OR', [
-            ['YEAR(birth_date)', 'CONTAINS', $str],
-            ['MONTH(birth_date)', 'CONTAINS', $str],
-             //    ['DAY(birth_date)', 'CONTAINS', $str]
+            ['YEAR(birth_date)', 'LIKE', '%' . $str . '%'],
+            ['MONTH(birth_date)', 'LIKE', '%' . $str . '%'],
+             //    ['DAY(birth_date)', 'LIKE', '%' . $str . '%']
           ]];
         }
       }
