@@ -371,7 +371,7 @@ abstract class Api4Query {
         }
         elseif ($exprA->getType() === 'SqlFunction') {
           // If $valueA uses a date extraction function and $valueB uses a relative date, add that function to $valueB, to compare apples with apples
-          if ($exprA->getCategory() === SqlFunction::CATEGORY_PARTIAL_DATE && is_string($valueB) && $valueB !== '') {
+          if ($exprA->getCategory() === SqlFunction::CATEGORY_PARTIAL_DATE && is_string($valueB) && $valueB !== '' && !str_contains($valueB, '%')) {
             $valueB = FormattingUtil::formatDateValue('YmdHis', $valueB, $operator);
             // If the formatter didn't convert it to an array, add the function, otherwise no need as we're using BETWEEN
             if (is_string($valueB)) {
