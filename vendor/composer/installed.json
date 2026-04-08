@@ -412,17 +412,17 @@
         },
         {
             "name": "civicrm/civicrm-asset-plugin",
-            "version": "v1.2.0",
-            "version_normalized": "1.2.0.0",
+            "version": "v1.2.1",
+            "version_normalized": "1.2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/civicrm/civicrm-asset-plugin.git",
-                "reference": "a24237e4886a55cd6be6d5c2a9e5fb932f83a109"
+                "reference": "496b3e27a50dcc20666b005f5c01439151b7efc9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/civicrm/civicrm-asset-plugin/zipball/a24237e4886a55cd6be6d5c2a9e5fb932f83a109",
-                "reference": "a24237e4886a55cd6be6d5c2a9e5fb932f83a109",
+                "url": "https://api.github.com/repos/civicrm/civicrm-asset-plugin/zipball/496b3e27a50dcc20666b005f5c01439151b7efc9",
+                "reference": "496b3e27a50dcc20666b005f5c01439151b7efc9",
                 "shasum": ""
             },
             "require": {
@@ -432,7 +432,7 @@
                 "symfony/process": "^2.7 || ^3.0 || ^4.0",
                 "totten/process-helper": "^1.0.1"
             },
-            "time": "2025-11-01T16:17:37+00:00",
+            "time": "2026-04-03T19:26:47+00:00",
             "type": "composer-plugin",
             "extra": {
                 "class": "Civi\\AssetPlugin\\AssetPlugin"
@@ -449,23 +449,23 @@
             ],
             "description": "Publish assets from private CiviCRM folders to a public folder",
             "support": {
-                "source": "https://github.com/civicrm/civicrm-asset-plugin/tree/v1.2.0"
+                "source": "https://github.com/civicrm/civicrm-asset-plugin/tree/v1.2.1"
             },
             "install-path": "../civicrm/civicrm-asset-plugin"
         },
         {
             "name": "civicrm/civicrm-core",
-            "version": "6.12.2",
-            "version_normalized": "6.12.2.0",
+            "version": "6.12.3",
+            "version_normalized": "6.12.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/civicrm/civicrm-core.git",
-                "reference": "b3e8aa780d64e8333533f65a1f7b0fd2bdd020d7"
+                "reference": "552bf205415eacb004d7b48c1b164caf90105072"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/civicrm/civicrm-core/zipball/b3e8aa780d64e8333533f65a1f7b0fd2bdd020d7",
-                "reference": "b3e8aa780d64e8333533f65a1f7b0fd2bdd020d7",
+                "url": "https://api.github.com/repos/civicrm/civicrm-core/zipball/552bf205415eacb004d7b48c1b164caf90105072",
+                "reference": "552bf205415eacb004d7b48c1b164caf90105072",
                 "shasum": ""
             },
             "require": {
@@ -539,7 +539,7 @@
                 "zetacomponents/base": "1.9.*",
                 "zetacomponents/mail": "~1.9.4"
             },
-            "time": "2026-03-24T04:51:54+00:00",
+            "time": "2026-04-02T01:18:35+00:00",
             "type": "library",
             "extra": {
                 "patches": {
@@ -927,7 +927,8 @@
                     "Apply patch to support using transaction id in a quick search": "patches/civicrm_transaction_id_quicksearch.patch",
                     "Apply patch to hide revert changes button on loggin report": "patches/hide_revert_changes.patch",
                     "Apply patch to allow for logging to be turned on and off": "./patches/civicrm_allow_logging_on_multilingual_environments.patch",
-                    "Apply patch to allow sending multiple emails via report": "patches/allow_multiple_to_emails.patch"
+                    "Apply patch to allow sending multiple emails via report": "patches/allow_multiple_to_emails.patch",
+                    "Apply upstream patch (in 6.14) to fix contains operator in apiv4": "patches/civicrm_core_614_fix_contains_operator.patch"
                 }
             },
             "installation-source": "dist",
@@ -981,7 +982,7 @@
             ],
             "description": "Open source constituent relationship management for non-profits, NGOs and advocacy organizations.",
             "support": {
-                "source": "https://github.com/civicrm/civicrm-core/tree/6.12.2"
+                "source": "https://github.com/civicrm/civicrm-core/tree/6.12.3"
             },
             "funding": [
                 {
@@ -993,8 +994,8 @@
         },
         {
             "name": "civicrm/civicrm-drupal-8",
-            "version": "6.12.2",
-            "version_normalized": "6.12.2.0",
+            "version": "6.12.3",
+            "version_normalized": "6.12.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/civicrm/civicrm-drupal-8.git",
@@ -1045,7 +1046,7 @@
             ],
             "description": "Open source constituent relationship management for non-profits, NGOs and advocacy organizations.",
             "support": {
-                "source": "https://github.com/civicrm/civicrm-drupal-8/tree/6.12.2"
+                "source": "https://github.com/civicrm/civicrm-drupal-8/tree/6.12.3"
             },
             "funding": [
                 {
@@ -1057,26 +1058,26 @@
         },
         {
             "name": "civicrm/civicrm-packages",
-            "version": "6.12.2",
-            "version_normalized": "6.12.2.0",
+            "version": "6.12.3",
+            "version_normalized": "6.12.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/civicrm/civicrm-packages.git",
-                "reference": "652c39a03ef8e52c58da659ee87b55f1857b7675"
+                "reference": "35a8117bfd51881c08da5783208568461121d278"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/civicrm/civicrm-packages/zipball/652c39a03ef8e52c58da659ee87b55f1857b7675",
-                "reference": "652c39a03ef8e52c58da659ee87b55f1857b7675",
+                "url": "https://api.github.com/repos/civicrm/civicrm-packages/zipball/35a8117bfd51881c08da5783208568461121d278",
+                "reference": "35a8117bfd51881c08da5783208568461121d278",
                 "shasum": ""
             },
-            "time": "2026-03-18T23:24:22+00:00",
+            "time": "2026-03-25T20:48:12+00:00",
             "type": "library",
             "installation-source": "dist",
             "notification-url": "https://packagist.org/downloads/",
             "description": "Legacy third party dependencies for CiviCRM",
             "support": {
-                "source": "https://github.com/civicrm/civicrm-packages/tree/6.12.2"
+                "source": "https://github.com/civicrm/civicrm-packages/tree/6.12.3"
             },
             "install-path": "../civicrm/civicrm-packages"
         },
@@ -5103,17 +5104,17 @@
         },
         {
             "name": "firebase/php-jwt",
-            "version": "v7.0.3",
-            "version_normalized": "7.0.3.0",
+            "version": "v7.0.5",
+            "version_normalized": "7.0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/firebase/php-jwt.git",
-                "reference": "28aa0694bcfdfa5e2959c394d5a1ee7a5083629e"
+                "reference": "47ad26bab5e7c70ae8a6f08ed25ff83631121380"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/28aa0694bcfdfa5e2959c394d5a1ee7a5083629e",
-                "reference": "28aa0694bcfdfa5e2959c394d5a1ee7a5083629e",
+                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/47ad26bab5e7c70ae8a6f08ed25ff83631121380",
+                "reference": "47ad26bab5e7c70ae8a6f08ed25ff83631121380",
                 "shasum": ""
             },
             "require": {
@@ -5121,6 +5122,7 @@
             },
             "require-dev": {
                 "guzzlehttp/guzzle": "^7.4",
+                "phpfastcache/phpfastcache": "^9.2",
                 "phpspec/prophecy-phpunit": "^2.0",
                 "phpunit/phpunit": "^9.5",
                 "psr/cache": "^2.0||^3.0",
@@ -5131,7 +5133,7 @@
                 "ext-sodium": "Support EdDSA (Ed25519) signatures",
                 "paragonie/sodium_compat": "Support EdDSA (Ed25519) signatures when libsodium is not present"
             },
-            "time": "2026-02-25T22:16:40+00:00",
+            "time": "2026-04-01T20:38:03+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -5163,7 +5165,7 @@
             ],
             "support": {
                 "issues": "https://github.com/firebase/php-jwt/issues",
-                "source": "https://github.com/firebase/php-jwt/tree/v7.0.3"
+                "source": "https://github.com/firebase/php-jwt/tree/v7.0.5"
             },
             "install-path": "../firebase/php-jwt"
         },
@@ -9666,17 +9668,17 @@
         },
         {
             "name": "symfony/console",
-            "version": "v6.4.35",
-            "version_normalized": "6.4.35.0",
+            "version": "v6.4.36",
+            "version_normalized": "6.4.36.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "49257c96304c508223815ee965c251e7c79e614e"
+                "reference": "9f481cfb580db8bcecc9b2d4c63f3e13df022ad5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/49257c96304c508223815ee965c251e7c79e614e",
-                "reference": "49257c96304c508223815ee965c251e7c79e614e",
+                "url": "https://api.github.com/repos/symfony/console/zipball/9f481cfb580db8bcecc9b2d4c63f3e13df022ad5",
+                "reference": "9f481cfb580db8bcecc9b2d4c63f3e13df022ad5",
                 "shasum": ""
             },
             "require": {
@@ -9709,7 +9711,7 @@
                 "symfony/stopwatch": "^5.4|^6.0|^7.0",
                 "symfony/var-dumper": "^5.4|^6.0|^7.0"
             },
-            "time": "2026-03-06T13:31:08+00:00",
+            "time": "2026-03-27T15:30:51+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -9743,7 +9745,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https://github.com/symfony/console/tree/v6.4.35"
+                "source": "https://github.com/symfony/console/tree/v6.4.36"
             },
             "funding": [
                 {
@@ -9839,17 +9841,17 @@
         },
         {
             "name": "symfony/dependency-injection",
-            "version": "v6.4.35",
-            "version_normalized": "6.4.35.0",
+            "version": "v6.4.36",
+            "version_normalized": "6.4.36.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "d95712d0e9446b9f244b64811ffb6af7b7434213"
+                "reference": "cd7881a6dc84b780411199cd0584e1a53a3b9ba7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/d95712d0e9446b9f244b64811ffb6af7b7434213",
-                "reference": "d95712d0e9446b9f244b64811ffb6af7b7434213",
+                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/cd7881a6dc84b780411199cd0584e1a53a3b9ba7",
+                "reference": "cd7881a6dc84b780411199cd0584e1a53a3b9ba7",
                 "shasum": ""
             },
             "require": {
@@ -9875,7 +9877,7 @@
                 "symfony/expression-language": "^5.4|^6.0|^7.0",
                 "symfony/yaml": "^5.4|^6.0|^7.0"
             },
-            "time": "2026-02-26T12:16:01+00:00",
+            "time": "2026-03-30T16:39:36+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -9903,7 +9905,7 @@
             "description": "Allows you to standardize and centralize the way objects are constructed in your application",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/dependency-injection/tree/v6.4.35"
+                "source": "https://github.com/symfony/dependency-injection/tree/v6.4.36"
             },
             "funding": [
                 {
@@ -10079,17 +10081,17 @@
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v6.4.32",
-            "version_normalized": "6.4.32.0",
+            "version": "v6.4.36",
+            "version_normalized": "6.4.36.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/event-dispatcher.git",
-                "reference": "99d7e101826e6610606b9433248f80c1997cd20b"
+                "reference": "fc828863e26ceec86e2513b5e46aa0b149d76b69"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/99d7e101826e6610606b9433248f80c1997cd20b",
-                "reference": "99d7e101826e6610606b9433248f80c1997cd20b",
+                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/fc828863e26ceec86e2513b5e46aa0b149d76b69",
+                "reference": "fc828863e26ceec86e2513b5e46aa0b149d76b69",
                 "shasum": ""
             },
             "require": {
@@ -10114,7 +10116,7 @@
                 "symfony/service-contracts": "^2.5|^3",
                 "symfony/stopwatch": "^5.4|^6.0|^7.0"
             },
-            "time": "2026-01-05T11:13:48+00:00",
+            "time": "2026-03-30T11:18:01+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -10142,7 +10144,7 @@
             "description": "Provides tools that allow your application components to communicate with each other by dispatching events and listening to them",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/event-dispatcher/tree/v6.4.32"
+                "source": "https://github.com/symfony/event-dispatcher/tree/v6.4.36"
             },
             "funding": [
                 {
@@ -12440,17 +12442,17 @@
         },
         {
             "name": "symfony/var-dumper",
-            "version": "v6.4.32",
-            "version_normalized": "6.4.32.0",
+            "version": "v6.4.36",
+            "version_normalized": "6.4.36.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "131fc9915e0343052af5ed5040401b481ca192aa"
+                "reference": "7c8ad9ce4faf6c8a99948e70ce02b601a0439782"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/131fc9915e0343052af5ed5040401b481ca192aa",
-                "reference": "131fc9915e0343052af5ed5040401b481ca192aa",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/7c8ad9ce4faf6c8a99948e70ce02b601a0439782",
+                "reference": "7c8ad9ce4faf6c8a99948e70ce02b601a0439782",
                 "shasum": ""
             },
             "require": {
@@ -12469,7 +12471,7 @@
                 "symfony/uid": "^5.4|^6.0|^7.0",
                 "twig/twig": "^2.13|^3.0.4"
             },
-            "time": "2026-01-01T13:34:06+00:00",
+            "time": "2026-03-30T15:36:00+00:00",
             "bin": [
                 "Resources/bin/var-dump-server"
             ],
@@ -12507,7 +12509,7 @@
                 "dump"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-dumper/tree/v6.4.32"
+                "source": "https://github.com/symfony/var-dumper/tree/v6.4.36"
             },
             "funding": [
                 {
@@ -12531,17 +12533,17 @@
         },
         {
             "name": "symfony/var-exporter",
-            "version": "v6.4.26",
-            "version_normalized": "6.4.26.0",
+            "version": "v6.4.36",
+            "version_normalized": "6.4.36.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-exporter.git",
-                "reference": "466fcac5fa2e871f83d31173f80e9c2684743bfc"
+                "reference": "f9c4a9695a9e2bbc65c920e147d8d7ae28f8d79a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/466fcac5fa2e871f83d31173f80e9c2684743bfc",
-                "reference": "466fcac5fa2e871f83d31173f80e9c2684743bfc",
+                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/f9c4a9695a9e2bbc65c920e147d8d7ae28f8d79a",
+                "reference": "f9c4a9695a9e2bbc65c920e147d8d7ae28f8d79a",
                 "shasum": ""
             },
             "require": {
@@ -12553,7 +12555,7 @@
                 "symfony/serializer": "^6.4|^7.0",
                 "symfony/var-dumper": "^5.4|^6.0|^7.0"
             },
-            "time": "2025-09-11T09:57:09+00:00",
+            "time": "2026-03-10T15:06:19+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -12591,7 +12593,7 @@
                 "serialize"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-exporter/tree/v6.4.26"
+                "source": "https://github.com/symfony/var-exporter/tree/v6.4.36"
             },
             "funding": [
                 {
