@@ -164,44 +164,39 @@ WHERE  inst.report_id = %1";
    *
    * @return bool
    */
-   public static function mailReport($fileContent, $instanceID = NULL, $outputMode = 'html', $attachments = []) {
+  public static function mailReport($fileContent, $instanceID = NULL, $outputMode = 'html', $attachments = []) {
     if (!$instanceID) {
-        return FALSE;
+      return FALSE;
     }
 
-    list($domainEmailName, $domainEmailAddress) = CRM_Core_BAO_Domain::getNameAndEmail();
+    list($domainEmailName,
+      $domainEmailAddress
+      ) = CRM_Core_BAO_Domain::getNameAndEmail();
 
     $params = ['id' => $instanceID];
     $instanceInfo = [];
-    CRM_Core_DAO::commonRetrieve('CRM_Report_DAO_ReportInstance', $params, $instanceInfo);
+    CRM_Core_DAO::commonRetrieve('CRM_Report_DAO_ReportInstance',
+      $params,
+      $instanceInfo
+    );
 
-    // Split multiple emails by comma
-    $toEmails = [];
-    if (!empty($instanceInfo['email_to'])) {
-        $toEmails = array_map('trim', explode(',', $instanceInfo['email_to']));
+    $params = [];
+    $params['groupName'] = 'Report Email Sender';
+    $params['from'] = '"' . $domainEmailName . '" <' . $domainEmailAddress . '>';
+    //$domainEmailName;
+    $params['toName'] = "";
+    $params['toEmail'] = $instanceInfo['email_to'] ?? NULL;
+    $params['cc'] = $instanceInfo['email_cc'] ?? NULL;
+    $params['subject'] = $instanceInfo['email_subject'] ?? NULL;
+    if (empty($instanceInfo['attachments'])) {
+      $instanceInfo['attachments'] = [];
     }
+    $params['attachments'] = array_merge($instanceInfo['attachments'] ?? [], $attachments);
+    $params['text'] = '';
+    $params['html'] = $fileContent;
 
-    $results = [];
-    foreach ($toEmails as $email) {
-        if (!empty($email)) {
-            $params = [
-                'groupName'   => 'Report Email Sender',
-                'from'        => '"' . $domainEmailName . '" <' . $domainEmailAddress . '>',
-                'toName'      => '',
-                'toEmail'     => $email,
-                'cc'          => $instanceInfo['email_cc'] ?? NULL,
-                'subject'     => $instanceInfo['email_subject'] ?? NULL,
-                'attachments' => array_merge($instanceInfo['attachments'] ?? [], $attachments),
-                'text'        => '',
-                'html'        => $fileContent,
-            ];
-            $results[$email] = CRM_Utils_Mail::send($params);
-        }
-    }
-
-    return $results;
-   }
-
+    return CRM_Utils_Mail::send($params);
+  }
 
   /**
    * @param CRM_Report_Form $form

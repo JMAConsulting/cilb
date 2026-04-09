@@ -51,6 +51,8 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
     $this->_columns['civicrm_phone']['fields']['b_literal_text'] = ['title' => 'B', 'dbAlias' => '"B"'];
     $this->_columns['civicrm_contact']['fields']['blank_1'] = ['title' => '', 'dbAlias' => '""'];
     $this->_columns['civicrm_contact']['fields']['blank_2'] = ['title' => '', 'dbAlias' => '""'];
+    $this->_columns['civicrm_event']['fields']['event_start_date']['required'] = TRUE;
+    $this->_columns['civicrm_event']['fields']['event_start_date']['no_display'] = TRUE;
     unset($this->_columns['civicrm_contact']['fields']['sort_name_linked']);
   }
 
@@ -86,6 +88,9 @@ class CRM_CilbReports_Form_Report_GusReport extends CRM_Report_Form_Event_Partic
       }
       if (!empty($row['civicrm_value_candidate_res_9_custom_80'])) {
         $rows[$rowNum]['civicrm_value_candidate_res_9_custom_80'] = str_replace('00:00:00', '0:00', $row['civicrm_value_candidate_res_9_custom_80']);
+      }
+      else {
+	$rows[$rowNum]['civicrm_value_candidate_res_9_custom_80'] = str_replace('00:00:00', '0:00', $row['civicrm_event_event_start_date']);
       }
     }
     $alteredColumnHeaders = [];

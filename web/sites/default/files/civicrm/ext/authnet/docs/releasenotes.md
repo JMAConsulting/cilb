@@ -9,6 +9,16 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 2.9.1 (2026-04-03)
+
+* Fix undefined array key.
+
+## 2.9.0 (2026-04-02)
+
+* [!39](https://lab.civicrm.org/extensions/authnet/-/merge_requests/39) Handle scenario when approved from fraud filter but transaction fails.
+* [!40](https://lab.civicrm.org/extensions/authnet/-/merge_requests/40) Support ContributionLog for failed payments.
+* [!42](https://lab.civicrm.org/extensions/authnet/-/merge_requests/42) Only offer enabled credit card types.
+
 ## 2.8.1 (2025-12-05)
 
 * Fix resources now we've removed assetbuilder support from MJWShared.

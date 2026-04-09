@@ -20,24 +20,14 @@ use net\authorize\api\constants\ANetEnvironment as AnetEnvironment;
 use Authnetjson\AuthnetJsonResponse as AuthnetJsonResponse;
 use \Civi\MJW\Logger;
 
-/*
- * @fixme: Deprecated function: Creation of dynamic property
- *   CRM_Core_Payment_AuthNetCreditcard::$logger is deprecated
- *
- * Added flag to allow dynamic properties to clear the debug warnings
- * as this only deals with log, but a better solution should be created
- * or this note should be removed if this is the correct solution.
- */
-#[AllowDynamicProperties]
-
 abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
 
   use CRM_Core_Payment_MJWTrait;
 
   /**
-   * @var \Civi\MJW\Logger $log
+   * @var \Civi\MJW\Logger
    */
-  protected Logger $log;
+  protected Logger $logger;
 
   const AUTHNETECHECK_SKIP_WEBHOOK_CHECKS = 'AUTHNETECHECK_SKIP_WEBHOOK_CHECKS';
 
@@ -422,7 +412,6 @@ abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
     $propertyBag->has('billingPostalCode') ? $customerAddress->setZip($propertyBag->getBillingPostalCode()) : NULL;
     $propertyBag->has('billingCountry') ? $customerAddress->setCountry($propertyBag->getBillingCountry()) : NULL;
 
-    CRM_Core_Error::debug_var('billingaddress', $customerAddress);
     return $customerAddress;
   }
 
@@ -694,6 +683,9 @@ abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
 
   /**
    * Change the subscription amount
+   *
+   * See https://developer.authorize.net/api/reference/features/recurring-billing.html#Updating_Subscriptions
+   * and https://developer.authorize.net/api/reference/index.html#recurring-billing
    *
    * @param string $message
    * @param array $params

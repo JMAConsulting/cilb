@@ -33,9 +33,20 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
             'no_display' => TRUE,
             'required' => TRUE,
           ],
+	  'first_name' => [
+	    'title' => E::ts('First Name'),
+	    'required' => TRUE,
+	  ],
+	  'middle_name' => [
+            'title' => E::ts('Middle Name'),
+            'required' => TRUE,
+	  ],
+	  'last_name' => [
+            'title' => E::ts('Last Name'),
+            'required' => TRUE,
+          ],
           'display_name' => [
             'title' => E::ts('Candidate Name'),
-            'required' => TRUE,
           ],
           'change_type' => [
             'title' => E::ts('Change Type'),
@@ -182,6 +193,9 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       'civicrm_contact_change_type',
       'civicrm_contact_change_date',
       'civicrm_contact_display_name',
+      'civicrm_contact_first_name',
+      'civicrm_contact_middle_name',
+      'civicrm_contact_last_name',
       'civicrm_contact_entity_id',
       'civicrm_value_registrant_in_1_custom_5',
       'civicrm_contact_old_value',
