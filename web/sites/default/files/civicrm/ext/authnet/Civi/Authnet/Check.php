@@ -28,7 +28,7 @@ class Check extends AutoSubscriber {
   /**
    * @var string
    */
-  const MIN_VERSION_MJWSHARED = '1.5.0';
+  const MIN_VERSION_MJWSHARED = '1.5.5';
 
   /**
    * @var array

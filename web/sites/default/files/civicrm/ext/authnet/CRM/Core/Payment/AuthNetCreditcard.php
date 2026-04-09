@@ -63,6 +63,10 @@ class CRM_Core_Payment_AuthNetCreditcard extends CRM_Core_Payment_AuthorizeNetCo
     ];
   }
 
+  private function getCardTypes(): array {
+    return json_decode(($this->_paymentProcessor['accepted_credit_cards'] ?? ''), TRUE);
+  }
+
   /**
    * Return an array of all the details about the fields potentially required for payment fields.
    *
@@ -72,8 +76,7 @@ class CRM_Core_Payment_AuthNetCreditcard extends CRM_Core_Payment_AuthorizeNetCo
    *   field metadata
    */
   public function getPaymentFormFieldsMetadata() {
-    //@todo convert credit card type into an option value
-    $creditCardType = ['' => E::ts('- select -')] + CRM_Contribute_PseudoConstant::creditCard();
+    $creditCardType = ['' => E::ts('- select -')] + $this->getCardTypes();
     $isCVVRequired = Civi::settings()->get('cvv_backoffice_required');
     if (!$this->isBackOffice()) {
       $isCVVRequired = TRUE;

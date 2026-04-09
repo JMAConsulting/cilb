@@ -33,7 +33,7 @@ function authnetecheck_civicrm_install() {
  */
 function authnetecheck_civicrm_postInstall() {
   // Create an Direct Debit Payment Instrument
-  CRM_Core_Payment_MJWTrait::createPaymentInstrument(['name' => 'EFT']);
+  CRM_Core_Payment_AuthorizeNetCommon::createPaymentInstrument(['name' => 'EFT']);
 }
 
 /**

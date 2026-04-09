@@ -16,6 +16,7 @@ use Civi\Payment\Exception\PaymentProcessorException;
 use CRM_AuthNetEcheck_ExtensionUtil as E;
 use \Authnetjson\AuthnetWebhook as AuthnetWebhook;
 use \Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
+use Psr\Log\LogLevel;
 
 class CRM_Core_Payment_AuthNetIPN {
 
@@ -369,13 +370,19 @@ class CRM_Core_Payment_AuthNetIPN {
           $return->message = 'No matching contribution';
         }
         else {
-          $params = [
+          $invoiceID = $this->getParamFromResponse($response, 'invoice_id');
+          $failedContributionParams = [
             'contribution_id' => $contribution['id'],
-            'order_reference' => $this->getParamFromResponse($response, 'invoice_id'),
-            'cancel_date' => $eventDate,
-            'cancel_reason' => 'Transaction voided',
+            'order_reference' => $invoiceID,
+            'failure_date' => $eventDate,
+            'failure_reason' => 'Transaction voided',
+            'failure_code' => $this->getParamFromResponse($response, 'response_code'),
+            'category:name' => 'Uncategorized',
+            'data' => $response->getRawResponse(),
+            'identifier' => $invoiceID,
+            'level' => LogLevel::ERROR,
           ];
-          $this->updateContributionFailed($params);
+          $this->updateContributionFailed($failedContributionParams);
           $return->ok = TRUE;
           $return->message = 'Updated contributionID: ' . $contribution['id'] . ' to Failed';
         }
@@ -403,9 +410,17 @@ class CRM_Core_Payment_AuthNetIPN {
             'contribution_status_id' => $contribution['contribution_status_id'],
             'total_amount' => $this->getParamFromResponse($response, 'total_amount'),
           ];
-          $this->updateContributionCompleted($params);
-          $return->ok = TRUE;
-          $return->message = 'Updated contributionID: ' . $contribution['id'] . ' to Completed';
+          $responseCode = $this->getParamFromResponse($response, 'response_code');
+          if ($responseCode === 1) {
+            $this->updateContributionCompleted($params);
+            $return->ok = TRUE;
+            $return->message = 'Updated contributionID: ' . $contribution['id'] . ' to Completed';
+          }
+          else {
+            $this->updateContributionFailed($params);
+            $return->ok = TRUE;
+            $return->message = 'Updated contributionID: ' . $contribution['id'] . ' to Failed (Approved from fraud filter but payment was not successful)';
+          }
         }
         break;
 
@@ -417,13 +432,19 @@ class CRM_Core_Payment_AuthNetIPN {
           $return->message = 'No matching contribution';
         }
         else {
-          $params = [
+          $invoiceID = $this->getParamFromResponse($response, 'invoice_id');
+          $failedContributionParams = [
             'contribution_id' => $contribution['id'],
-            'order_reference' => $this->getParamFromResponse($response, 'invoice_id'),
-            'cancel_date' => $eventDate,
-            'cancel_reason' => 'Fraud declined',
+            'order_reference' => $invoiceID,
+            'failure_date' => $eventDate,
+            'failure_reason' => 'Fraud declined',
+            'failure_code' => $this->getParamFromResponse($response, 'response_code'),
+            'category:name' => 'Uncategorized',
+            'data' => $response->getRawResponse(),
+            'identifier' => $invoiceID,
+            'level' => LogLevel::ERROR,
           ];
-          $this->updateContributionFailed($params);
+          $this->updateContributionFailed($failedContributionParams);
           $return->ok = TRUE;
           $return->message = 'Updated contributionID: ' . $contribution['id'] . ' to Failed';
         }
@@ -489,6 +510,9 @@ class CRM_Core_Payment_AuthNetIPN {
 
       case 'ref_trans_id':
         return $response->transaction->refTransId;
+
+      case 'response_code':
+        return $response->transaction->responseCode;
     }
   }
 
