@@ -491,6 +491,10 @@ trait CRM_Core_Payment_MJWIPNTrait {
       'contribution_id' => 'contribution_id',
       'failure_date' => 'log_date',
       'failure_reason' => 'message',
+      'failure_code' => 'code',
+      // Use either category or category:name (in standard API4 style)
+      'category' => 'category',
+      'category:name' => 'category:name',
       'data' => 'data',
       'payment_processor_id' => 'payment_processor_id',
       'identifier' => 'identifier',
@@ -512,7 +516,6 @@ trait CRM_Core_Payment_MJWIPNTrait {
       ->addValue('cancel_reason', $params['failure_reason'] ?? '')
       ->addWhere('id', '=', $params['contribution_id'])
       ->execute();
-
 
     // Currently provided by https://lab.civicrm.org/extensions/contributionlog
     if (class_exists('\Civi\Api4\ContributionLog')) {

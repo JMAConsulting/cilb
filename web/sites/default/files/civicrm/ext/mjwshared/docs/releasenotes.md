@@ -9,6 +9,11 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.5.6 (2026-04-02)
+
+* [!61](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/61) Allow refunds when payment processor does not support it.
+* Update params for ContributionLog to support code/category.
+
 ## Release 1.5.5 (2026-02-10)
 
 * Fix passing parameters to ContributionLog

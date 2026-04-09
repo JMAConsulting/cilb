@@ -80,8 +80,16 @@ class Refund extends AbstractCreateAction {
         'currency' => $payment['currency'],
         'trxn_id' => $payment['trxn_id'],
       ];
-      if (empty($refundParams['payment_processor_id'])) {
-        // Manual payment, no paymentprocessor.
+      $paymentProcessorId = $refundParams['payment_processor_id'] ?? NULL;
+      $supportsRefund = FALSE;
+      if ($paymentProcessorId) {
+        $paymentProcessor = \Civi\Payment\System::singleton()->getById($paymentProcessorId);
+        if (method_exists($paymentProcessor, 'supportsRefund')) {
+          $supportsRefund = $paymentProcessor->supportsRefund();
+        }
+      }
+      if (!$supportsRefund) {
+        // Manual payment or refund not supported.
         $refund = ['refund_status' => 'Completed'];
       }
       else {
@@ -116,6 +124,9 @@ class Refund extends AbstractCreateAction {
         }
         $lock->release();
         $message = E::ts('Refund was processed successfully.');
+        if ($paymentProcessorId && !$supportsRefund) {
+          $message = E::ts('The refund was recorded in CiviCRM only. You must manually process the refund via the payment processor.');
+        }
 
         if (!empty($this->participantIDs)) {
           Participant::update(FALSE)
