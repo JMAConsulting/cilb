@@ -13,14 +13,7 @@ See: https://docs.civicrm.org/sysadmin/en/latest/customize/extensions/#installin
 
 ## Setup
 
-- Configure your Amazon SES account so that you have credentials and a verified email address for sending (https://docs.aws.amazon.com/ses/latest/dg/setting-up.html).
-- Go to Administer > CiviMail > Amazon SES, and enter the credentials.
-- Go to Administer > System Settings > Outbound Email, and set it "mail()". Also disable the option to let users to send emails using their own email address, unless you have validated every possible staff email.
-- Go to Administer > Communications > FROM Email Addresses, and only enable email addresses that have been validated by SES.
-- Make sure that the "Domain" and "Email" in "Mail Accounts" for "Bounce Processing" account matches one of the verified identities in AWS SES.
-
-
-The webhook verifies that the _Notification_ or _SubscriptionConfirmation_ it's been originated and sent by the SNS service (as per SNS [docs](https://docs.aws.amazon.com/sns/latest/dg/SendMessageToHttp.verify.signature.html)).
+See [detailed configuration steps here](docs/configuration.md). 
 
 ### Events
 #### SubscriptionConfirmation
@@ -49,15 +42,6 @@ If it's a Bounce, it maps SES' bounce type to Civi's bounce type as follows:
 If the _Notification_ is a _Complaint_ it creates a bounce in CiviCRM of type **Spam** and sets the **opt-out** flag for the contact identified by the email address in the notification.
 
 This is implemented in the same way as used by the coopsymbiotic fork of sparkpost: https://github.com/coopsymbiotic/sparkpost/blob/coopsymbiotic/CRM/Sparkpost/Page/callback.php#L151
-
-### Additional Information
-
-Please see Amazon's [guide and documentation](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/configure-sns-notifications.html) on how to setup SNS notifications for SES.
-
-Webhook url:
-
-* WordPress: https://example.org/civicrm/ses/webhook (or https://example.org/?page=CiviCRM&q=civicrm%2fses%2fwebhook if "clean URLs" are not enabled)
-* Drupal: https://example.org/civicrm/ses/webhook
 
 #### See also:
 

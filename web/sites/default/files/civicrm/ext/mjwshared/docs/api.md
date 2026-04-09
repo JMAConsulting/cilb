@@ -38,7 +38,7 @@ preserved but future payments will not be linked to or renew the membership.
 
 No parameters. This returns an array containing the defaul contribution price_field_value_id:
 
-`$result = ['price_field_id' = X, 'price_field_value_id' = Y, 'label' = price_field_value.label]`
+`$result = ['price_field_id' = X, 'price_field_value_id' = Y, 'label' = price_field_value.label, 'amount' = price_field_value.amount]`
 
 ## PriceFieldValue.GetDefaultPriceFieldValueForMembershipMJW
 
@@ -47,7 +47,7 @@ One parameter: `membershipID`.
 You must specify a membership ID from which the membership type and default price_field_value_id for 
 that type will be returned as an array:
 
-`$result = ['price_field_id' = X, 'price_field_value_id' = Y, 'label' = price_field_value.label]`
+`$result = ['price_field_id' = X, 'price_field_value_id' = Y, 'label' = price_field_value.label, 'amount' = price_field_value.amount]`
 
 ## PaymentMJW.create
 

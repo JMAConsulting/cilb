@@ -1,6 +1,7 @@
 <?php
 namespace Civi\Api4\Action\PriceFieldValue;
 
+use Civi\Api4\Generic\AbstractQueryAction;
 use Civi\Api4\PriceField;
 use Civi\Api4\PriceFieldValue;
 
@@ -8,7 +9,7 @@ use Civi\Api4\PriceFieldValue;
  * This API Action gets the default price_field_value_id for a contribution
  *
  */
-class GetDefaultPriceFieldValueForContributionMJW extends \Civi\Api4\Generic\AbstractQueryAction {
+class GetDefaultPriceFieldValueForContributionMJW extends AbstractQueryAction {
 
   /**
    *
@@ -24,12 +25,14 @@ class GetDefaultPriceFieldValueForContributionMJW extends \Civi\Api4\Generic\Abs
   public function _run(\Civi\Api4\Generic\Result $result) {
     $priceSetName = 'default_contribution_amount';
     $priceField = PriceField::get(FALSE)
+      ->addSelect('id')
       ->addWhere('price_set_id:name', '=', $priceSetName)
       ->addOrderBy('id', 'ASC')
       ->execute()
       ->first();
     // Now get the relevant PriceFieldValue for the MembershipType.
     $priceFieldValue = PriceFieldValue::get(FALSE)
+      ->addSelect('id', 'label', 'amount')
       ->addWhere('price_field_id', '=', $priceField['id'])
       ->execute()
       ->first();
@@ -37,6 +40,7 @@ class GetDefaultPriceFieldValueForContributionMJW extends \Civi\Api4\Generic\Abs
       'price_field_id' => $priceField['id'],
       'price_field_value_id' => $priceFieldValue['id'],
       'label' => $priceFieldValue['label'],
+      'amount' => $priceFieldValue['amount'],
     ];
 
     $result->exchangeArray($results);
