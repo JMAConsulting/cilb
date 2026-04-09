@@ -1,0 +1,41 @@
+From 97b260aae70efc5d52e722227cbe0f4f88bc5432 Mon Sep 17 00:00:00 2001
+From: colemanw <coleman@civicrm.org>
+Date: Tue, 24 Mar 2026 13:36:33 -0400
+Subject: [PATCH] Api4 - Ensure CONTAINS operator works with id fields.
+
+Ensures a string can be used with the CONTAINS operator, even with an id field.
+This is pretty edge-case stuff, but at least now it has a test.
+
+Fixes dev/core#6397
+---
+ Civi/Api4/Query/Api4Query.php                 |  2 +-
+ Civi/Api4/Utils/FormattingUtil.php            |  2 +-
+ .../phpunit/api/v4/Action/ContactGetTest.php  | 41 +++++++++++++++++++
+ 3 files changed, 43 insertions(+), 2 deletions(-)
+
+diff --git a/Civi/Api4/Query/Api4Query.php b/Civi/Api4/Query/Api4Query.php
+index af874fab518e..e00dcee1b4d2 100644
+--- a/Civi/Api4/Query/Api4Query.php
++++ b/Civi/Api4/Query/Api4Query.php
+@@ -526,7 +526,7 @@ protected function createSQLClause($fieldAlias, $operator, $value, $field, int $
+       $sqlClause = \CRM_Core_DAO::createSQLFilter($fieldAlias, [$operator => $value]);
+     }
+ 
+-    if ($original_operator === "NOT CONTAINS") {
++    if ($original_operator === "NOT CONTAINS" && ($field['nullable'] ?? TRUE) !== FALSE) {
+       // For a "NOT CONTAINS", this adds an "OR IS NULL" clause - we want to know that a particular value is not present and don't care whether it has any other value
+       return "(($sqlClause) OR $fieldAlias IS NULL)";
+     }
+diff --git a/Civi/Api4/Utils/FormattingUtil.php b/Civi/Api4/Utils/FormattingUtil.php
+index 77117963ebda..06e87f8c50df 100644
+--- a/Civi/Api4/Utils/FormattingUtil.php
++++ b/Civi/Api4/Utils/FormattingUtil.php
+@@ -123,7 +123,7 @@ public static function formatInputValue(&$value, ?string $fieldPath, array $fiel
+     // Special handling for 'current_user' and user lookups
+     $exactMatch = [NULL, '=', '!=', '<>', 'IN', 'NOT IN', 'CONTAINS', 'NOT CONTAINS'];
+     if (is_string($fk) && CoreUtil::isContact($fk) && in_array($operator, $exactMatch, TRUE)) {
+-      $value = self::resolveContactID($fieldSpec['name'], $value);
++      $value = self::resolveContactID($fieldSpec['name'], $value) ?? $value;
+     }
+ 
+     switch ($fieldSpec['data_type'] ?? NULL) {

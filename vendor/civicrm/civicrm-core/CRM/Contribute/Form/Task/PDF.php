@@ -126,7 +126,8 @@ AND    {$this->_componentClause}";
     $this->add('checkbox', 'receipt_update', ts('Update receipt dates for these contributions'), FALSE);
     $this->add('checkbox', 'override_privacy', ts('Override privacy setting? (Do not email / Do not mail)'), FALSE);
 
-    $this->add('select', 'from_email_address', ts('From Email'), $this->getFromEmails(), FALSE);
+    $fromEmailSelect = $this->add('select', 'from_email_address', ts('From Email'), $this->getFromEmails(), FALSE);
+    $fromEmailSelect->setOptionTextEscaped();
 
     $this->addButtons([
       [
@@ -211,7 +212,7 @@ AND    {$this->_componentClause}";
       $input['net_amount'] = $contribution->net_amount;
       $input['trxn_id'] = $contribution->trxn_id;
       $input['trxn_date'] = $contribution->trxn_date ?? NULL;
-      $input['receipt_update'] = $params['receipt_update'];
+      $input['receipt_update'] = (bool) ($params['receipt_update'] ?? FALSE);
       $input['contribution_status_id'] = $contribution->contribution_status_id;
       $input['payment_processor_id'] = empty($contribution->trxn_id) ? NULL :
         CRM_Core_DAO::singleValueQuery("SELECT payment_processor_id

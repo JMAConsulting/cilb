@@ -1723,7 +1723,7 @@ class CRM_Report_Form extends CRM_Core_Form {
     ) {
       $this->addElement('select', 'groups', ts('Group'),
         ['' => ts('Add Contacts to Group')] +
-        CRM_Core_PseudoConstant::nestedGroup(),
+        CRM_Core_PseudoConstant::nestedGroup(textFormat: 'plain'),
         ['class' => 'crm-select2 crm-action-menu fa-plus huge', 'title' => ts('Add Contacts to Group')]
       );
       $this->assign('group', TRUE);
@@ -1975,7 +1975,7 @@ class CRM_Report_Form extends CRM_Core_Form {
         'type' => CRM_Utils_Type::T_INT,
         'operatorType' => CRM_Report_Form::OP_MULTISELECT,
         'group' => TRUE,
-        'options' => CRM_Core_PseudoConstant::nestedGroup(),
+        'options' => CRM_Core_PseudoConstant::nestedGroup(textFormat: 'plain'),
       ],
     ];
     if (empty($this->_columns['civicrm_group']['dao'])) {
@@ -2303,7 +2303,7 @@ class CRM_Report_Form extends CRM_Core_Form {
     $relative, $from, $to, $type = NULL, $fromTime = NULL, $toTime = NULL
   ) {
     $clauses = [];
-    if (array_key_exists($relative, $this->getOperationPair(CRM_Report_Form::OP_DATE))) {
+    if (array_key_exists($relative ?? '', $this->getOperationPair(CRM_Report_Form::OP_DATE))) {
       $sqlOP = $this->getSQLOperator($relative);
       return "( {$fieldName} {$sqlOP} )";
     }

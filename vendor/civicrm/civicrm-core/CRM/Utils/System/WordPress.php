@@ -977,6 +977,10 @@ class CRM_Utils_System_WordPress extends CRM_Utils_System_Base {
      */
     do_action('civicrm_post_create_user', $uid, $params, $logged_in);
 
+    if (is_wp_error($uid)) {
+      $uid = FALSE;
+    }
+
     return $uid;
   }
 
@@ -1665,7 +1669,7 @@ class CRM_Utils_System_WordPress extends CRM_Utils_System_Base {
       return [
         new CRM_Utils_Check_Message(
           __FUNCTION__,
-          ts('Could not load a clean page to check'),
+          ts('Could not load a clean page to check: %1', [1 => $page]),
           ts('Guzzle client error'),
           \Psr\Log\LogLevel::ERROR,
           'fa-wordpress'

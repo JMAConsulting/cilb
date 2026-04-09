@@ -49,11 +49,11 @@ Apply patch to allow for logging to be turned on and off
 Source: ./patches/civicrm_allow_logging_on_multilingual_environments.patch
 
 
-Apply patch to prevent creating pending contribution if existing_payment is selected
-Source: patches/webform_civicrm_existing_payment.patch
+Apply upstream patch (in 6.14) to fix contains operator in apiv4
+Source: patches/civicrm_core_614_fix_contains_operator.patch
 
 
-Apply patch to allow sending multiple emails via report
-Source: patches/allow_multiple_to_emails.patch
+Apply patch to support date queries in Webform customisation
+Source: patches/support_webform_civicrm_customisation.patch
 
 
