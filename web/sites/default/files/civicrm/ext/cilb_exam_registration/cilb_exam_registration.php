@@ -98,40 +98,70 @@ function cilb_exam_registration_civicrm_custom($op, $groupID, $entityID, &$param
     return;
   }
 
-  if ($groupID != 1) {
+  // ── SSN formatting (group 1 only) ─────────────────────────────────────────
+  if ($groupID === 1) {
+    $ssnCol    = 'ssn_5';
+    $last4Col  = 'ssn_last_4_95';
+    $tableName = 'civicrm_value_registrant_in_1';
+
+    foreach ($params as &$field) {
+      if ($field['column_name'] === $ssnCol) {
+        $rawSsn     = (string) $field['value'];
+        $digitsOnly = preg_replace('/\D/', '', $rawSsn);
+
+        if (strlen($digitsOnly) === 9) {
+          $formattedSsn = substr($digitsOnly, 0, 3) . '-' .
+                          substr($digitsOnly, 3, 2) . '-' .
+                          substr($digitsOnly, 5, 4);
+          $sql = "UPDATE {$tableName} SET {$ssnCol} = %1 WHERE entity_id = %2";
+          CRM_Core_DAO::executeQuery($sql, [
+            1 => [$formattedSsn, 'String'],
+            2 => [$entityID, 'Integer'],
+          ]);
+        }
+        else {
+          $field['value'] = $digitsOnly;
+        }
+
+        $last4 = strlen($digitsOnly) >= 4 ? substr($digitsOnly, -4) : '';
+        add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $field['value'], $last4);
+        break;
+      }
+    }
+    unset($field);
+  }
+
+  // ── Suppress Candidate_Number default when event changed ──────────────────
+  if (empty(\Civi::$statics['cilb_exam_registration']['suppress_candidate_number'][$entityID])) {
     return;
   }
 
-  $ssnCol = 'ssn_5';
-  $last4Col = 'ssn_last_4_95';
-  $tableName = 'civicrm_value_registrant_in_1';
+  $fieldMeta = _cilb_exam_registration_candidate_number_meta();
+  if (!$fieldMeta) {
+    return;
+  }
 
-  foreach ($params as &$field) { 
-    if ($field['column_name'] === $ssnCol) {
-      $rawSsn = (string) $field['value'];
+  $nulled = FALSE;
+  foreach ($params as &$param) {
+    $colName = is_object($param)
+      ? ($param->column_name ?? '')
+      : ($param['column_name'] ?? '');
 
-      $digitsOnly = preg_replace('/\D/', '', $rawSsn);
-
-      if (strlen($digitsOnly) === 9) {
-        $formattedSsn = substr($digitsOnly, 0, 3) . '-' .
-                        substr($digitsOnly, 3, 2) . '-' .
-                        substr($digitsOnly, 5, 4);
-        $sql = "UPDATE {$tableName} SET {$ssnCol} = %1 WHERE entity_id = %2";
-          CRM_Core_DAO::executeQuery($sql, [
-            1 => [$formattedSsn, 'String'],
-            2 => [$entityID, 'Integer']
-          ]);
-      } else {
-        $field['value'] = $digitsOnly; 
-      }
-
-      $last4 = strlen($digitsOnly) >= 4 ? substr($digitsOnly, -4) : '';
-
-      // Update/create the last_4 record (your existing logic)
-      add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $field['value'], $last4);
+    if ($colName === $fieldMeta['column']) {
+      is_object($param) ? ($param->value = NULL) : ($param['value'] = NULL);
+      $nulled = TRUE;
       break;
     }
   }
+  unset($param);
+
+  if ($nulled) {
+    \Civi::log()->info(
+      'Suppressed default Candidate_Number write for participant {id}',
+      ['id' => $entityID]
+    );
+  }
+
 }
 
 /**
@@ -160,6 +190,161 @@ function add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $ssnVa
   }
 }
 
+function cilb_exam_registration_civicrm_pre(string $op, string $objectName, ?int $id, array &$params): void {
+  if ($objectName !== 'Participant' || $op !== 'edit' || empty($id)) {
+    return;
+  }
+
+  // Don't snapshot during our own internal blanking update.
+  if (!empty(\Civi::$statics['cilb_exam_registration']['blanking'][$id])) {
+    return;
+  }
+
+  try {
+    $participant = \Civi\Api4\Participant::get(FALSE)
+      ->addSelect('event_id')
+      ->addWhere('id', '=', $id)
+      ->execute()
+      ->first();
+
+    if (!$participant) {
+      return;
+    }
+
+    $oldEventId = (int) $participant['event_id'];
+    \Civi::$statics['cilb_exam_registration']['pre_event'][$id] = $oldEventId;
+
+    // If the incoming $params already carry the new event_id we can set the
+    // suppress flag immediately so hook_civicrm_custom sees it in time.
+    if (!empty($params['event_id']) && (int) $params['event_id'] !== $oldEventId) {
+      \Civi::$statics['cilb_exam_registration']['suppress_candidate_number'][$id] = TRUE;
+    }
+  }
+  catch (\Exception $e) {
+    \Civi::log()->warning('cilb_exam_registration pre hook: could not read event_id for participant {id}', [
+      'id'  => $id,
+      'msg' => $e->getMessage(),
+    ]);
+  }
+}
+
+function cilb_exam_registration_civicrm_post(string $op, string $objectName, ?int $objectId, &$objectRef): void {
+  if ($objectName !== 'Participant' || $op !== 'edit' || empty($objectId)) {
+    return;
+  }
+
+  if (!empty(\Civi::$statics['cilb_exam_registration']['blanking'][$objectId])) {
+    return;
+  }
+
+  $preEventId = \Civi::$statics['cilb_exam_registration']['pre_event'][$objectId] ?? NULL;
+  unset(\Civi::$statics['cilb_exam_registration']['pre_event'][$objectId]);
+
+  // Clear the suppress flag NOW — before any further writes — so
+  // hook_civicrm_custom doesn't fire again and swallow our blank.
+  unset(\Civi::$statics['cilb_exam_registration']['suppress_candidate_number'][$objectId]);
+
+  if ($preEventId === NULL) {
+    return;
+  }
+
+  $newEventId = isset($objectRef->event_id) ? (int) $objectRef->event_id : NULL;
+
+  if ($newEventId === NULL) {
+    try {
+      $row = \Civi\Api4\Participant::get(FALSE)
+        ->addSelect('event_id')
+        ->addWhere('id', '=', $objectId)
+        ->execute()
+        ->first();
+      $newEventId = $row ? (int) $row['event_id'] : NULL;
+    }
+    catch (\Exception $e) {
+      \Civi::log()->warning('Could not re-fetch event_id for participant {id}', [
+        'id'  => $objectId,
+        'msg' => $e->getMessage(),
+      ]);
+      return;
+    }
+  }
+
+  if ($preEventId === $newEventId) {
+    return;
+  }
+
+  \Civi::$statics['cilb_exam_registration']['blanking'][$objectId] = TRUE;
+
+  try {
+    // Resolve the custom table/column via the schema — cached after first call.
+    $fieldMeta = _cilb_exam_registration_candidate_number_meta();
+
+    if ($fieldMeta) {
+      // Direct SQL guarantees the NULL is written regardless of how CiviCRM
+      // handles NULL values passed through the API or custom hook $params.
+      CRM_Core_DAO::executeQuery(
+        "UPDATE `{$fieldMeta['table']}` SET `{$fieldMeta['column']}` = NULL WHERE entity_id = %1",
+        [1 => [$objectId, 'Integer']]
+      );
+
+      \Civi::log()->info(
+        'Blanked Candidate_Number for participant {id} (event {old} → {new})',
+        ['id' => $objectId, 'old' => $preEventId, 'new' => $newEventId]
+      );
+    }
+    else {
+      \Civi::log()->error('Could not resolve Candidate_Number table/column — blank skipped for participant {id}', [
+        'id' => $objectId,
+      ]);
+    }
+  }
+  catch (\Exception $e) {
+    \Civi::log()->error('Failed to blank Candidate_Number for participant {id}: {msg}', [
+      'id'  => $objectId,
+      'old' => $preEventId,
+      'new' => $newEventId,
+      'msg' => $e->getMessage(),
+    ]);
+  }
+  finally {
+    unset(\Civi::$statics['cilb_exam_registration']['blanking'][$objectId]);
+  }
+}
+
+/**
+ * Resolves and caches the physical table name and column name for
+ * Candidate_Result.Candidate_Number so we only hit the DB once per request.
+ *
+ * Returns ['table' => '...', 'column' => '...'] or NULL on failure.
+ */
+function _cilb_exam_registration_candidate_number_meta(): ?array {
+  $statics = &\Civi::$statics['cilb_exam_registration'];
+
+  if (array_key_exists('candidate_number_meta', $statics ?? [])) {
+    return $statics['candidate_number_meta'];
+  }
+
+  try {
+    $field = \Civi\Api4\CustomField::get(FALSE)
+      ->addSelect('column_name', 'custom_group_id.table_name')
+      ->addWhere('custom_group_id:name', '=', 'Candidate_Result')
+      ->addWhere('name', '=', 'Candidate_Number')
+      ->execute()
+      ->first();
+
+    $statics['candidate_number_meta'] = $field ? [
+      'table'  => $field['custom_group_id.table_name'],
+      'column' => $field['column_name'],
+    ] : NULL;
+  }
+  catch (\Exception $e) {
+    \Civi::log()->error('Could not resolve Candidate_Number meta: {msg}', [
+      'msg' => $e->getMessage(),
+    ]);
+    $statics['candidate_number_meta'] = NULL;
+  }
+
+  return $statics['candidate_number_meta'];
+}
 
 function cilb_exam_registration_civicrm_postProcess($formName, $form) {
   if ($formName == 'CRM_Contact_Form_Inline_CustomData') {
@@ -180,6 +365,7 @@ function cilb_exam_registration_civicrm_postProcess($formName, $form) {
     }
   }
 }
+
 
 function cilb_exam_registration_civicrm_alterMailParams(&$params, $context) {
    if (in_array($params['valueName'], ['contribution_online_receipt', 'contribution_invoice_receipt'])) {
