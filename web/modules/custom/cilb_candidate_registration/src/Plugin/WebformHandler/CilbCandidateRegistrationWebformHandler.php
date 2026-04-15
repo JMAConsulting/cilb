@@ -1234,8 +1234,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return $event;
     }, $events);
 
-    // pass event info to javascript for filtering etc
-    $form['#attached']['drupalSettings']['cilbEventOptions'] = $events;
+    $form['#attached']['drupalSettings']['cilbEventOptions'] = array_values($events);
 
     // set form element options for validation
     $elements = WebformFormHelper::flattenElements($form);
