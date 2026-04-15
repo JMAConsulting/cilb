@@ -1259,13 +1259,13 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
         'id',
         'title',
         'Exam_Details.Exam_Part',
-	      'Exam_Details.Exam_Part:label',
+	'Exam_Details.Exam_Part:label',
         'event_type_id',
         'event_type_id:name',
         'event_type_id:label',
         'start_date',
         'end_date',
-	      'is_public',
+	'is_public',
         'loc_block_id.address_id.street_address',
         "loc_block_id.address_id.supplemental_address_1",
         "loc_block_id.address_id.supplemental_address_2",
@@ -1285,6 +1285,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($categoryFilter) {
       $eventFetch->addWhere('event_type_id', '=', $categoryFilter);
     }
+
+    // Add order by
+    $eventFetch->addOrderBy('start_date', 'DESC');
 
     $events = (array) $eventFetch
       ->execute()
