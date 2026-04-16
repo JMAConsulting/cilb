@@ -1275,8 +1275,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       )
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('is_online_registration', '=', TRUE)
-      ->addWhere('is_template', '!=', TRUE)
-      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0]);
+      ->addWhere('is_template', '!=', TRUE);
+    if ($form['#webform_id'] !== 'backoffice_registration') {
+      $eventFetch->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0]);
+    }
 
     // for frontend form, we need to limit based on category selection on
     // earlier page when we go to later page
