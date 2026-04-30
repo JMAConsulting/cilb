@@ -41,6 +41,7 @@ class CRM_CilbExamRegistration_Form_Transfer extends CRM_Core_Form {
       ->addWhere('is_active', '=', 1)
       ->addWhere('Exam_Details.Exam_Part', '=', 'TK') 
       ->addWhere('id', '!=', $this->oldEventId)
+      ->addOrderBy('start_date', 'DESC')
       ->setLimit(0)
       ->execute()
       ->indexBy('id');

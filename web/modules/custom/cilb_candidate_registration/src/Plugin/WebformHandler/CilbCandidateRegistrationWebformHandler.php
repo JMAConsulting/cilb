@@ -1234,8 +1234,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return $event;
     }, $events);
 
-    // pass event info to javascript for filtering etc
-    $form['#attached']['drupalSettings']['cilbEventOptions'] = $events;
+    $form['#attached']['drupalSettings']['cilbEventOptions'] = array_values($events);
 
     // set form element options for validation
     $elements = WebformFormHelper::flattenElements($form);
@@ -1276,8 +1275,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       )
       ->addWhere('is_active', '=', TRUE)
       ->addWhere('is_online_registration', '=', TRUE)
-      ->addWhere('is_template', '!=', TRUE)
-      ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0]);
+      ->addWhere('is_template', '!=', TRUE);
+    if ($form['#webform_id'] !== 'backoffice_registration') {
+      $eventFetch->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0]);
+    }
 
     // for frontend form, we need to limit based on category selection on
     // earlier page when we go to later page
@@ -1285,6 +1286,9 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     if ($categoryFilter) {
       $eventFetch->addWhere('event_type_id', '=', $categoryFilter);
     }
+
+    // Add order by
+    $eventFetch->addOrderBy('start_date', 'DESC');
 
     $events = (array) $eventFetch
       ->execute()
@@ -1334,8 +1338,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $events = self::filterRegisterableEventsForContact($events, $contactId, $categoryFilter);
     }
 
-    
-
     // exclude non public events from front end form
     if ($form['#webform_id'] !== 'backoffice_registration') {
       // exclude Plumbing TK exams that are in the past only for front office form.
@@ -1357,6 +1359,11 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return TRUE;
       });
     }
+
+    // Re-sort after manual BF exam insertions which break the API's ordering
+    uasort($events, function ($a, $b) {
+      return strcmp($b['start_date'] ?? '', $a['start_date'] ?? '');
+    });
 
     return $events;
   }

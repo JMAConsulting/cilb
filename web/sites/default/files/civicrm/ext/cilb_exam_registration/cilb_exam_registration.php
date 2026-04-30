@@ -131,8 +131,7 @@ function cilb_exam_registration_civicrm_custom($op, $groupID, $entityID, &$param
     unset($field);
   }
 
-  // ── Suppress Candidate_Number default when event changed ──────────────────
-  if (empty(\Civi::$statics['cilb_exam_registration']['suppress_candidate_number'][$entityID])) {
+  if (empty(\Civi::$statics['cilb_exam_registration']['null_candidate_number'][$entityID])) {
     return;
   }
 
@@ -141,46 +140,44 @@ function cilb_exam_registration_civicrm_custom($op, $groupID, $entityID, &$param
     return;
   }
 
-  $nulled = FALSE;
-  foreach ($params as &$param) {
-    $colName = is_object($param)
-      ? ($param->column_name ?? '')
-      : ($param['column_name'] ?? '');
-
-    if ($colName === $fieldMeta['column']) {
-      is_object($param) ? ($param->value = NULL) : ($param['value'] = NULL);
-      $nulled = TRUE;
+  $hasColumn = FALSE;
+  foreach ($params as $param) {
+    $col = is_object($param) ? ($param->column_name ?? '') : ($param['column_name'] ?? '');
+    if ($col === $fieldMeta['column']) {
+      $hasColumn = TRUE;
       break;
     }
   }
-  unset($param);
 
-  if ($nulled) {
-    \Civi::log()->info(
-      'Suppressed default Candidate_Number write for participant {id}',
-      ['id' => $entityID]
-    );
+  if (!$hasColumn) {
+    return;
   }
+
+  CRM_Core_DAO::executeQuery(
+    "UPDATE `{$fieldMeta['table']}` SET `{$fieldMeta['column']}` = NULL WHERE entity_id = %1",
+    [1 => [$entityID, 'Integer']]
+  );
+
+  unset(\Civi::$statics['cilb_exam_registration']['null_candidate_number'][$entityID]);
+
+  \Civi::log()->info(
+    'Nulled Candidate_Number in custom hook for participant {id} (event changed)',
+    ['id' => $entityID]
+  );
 
 }
 
-/**
- * Helper function to handle INSERT/UPDATE safely
- */
 function add_update_ssn_last_4($tableName, $entityID, $ssnCol, $last4Col, $ssnValue, $last4Value) {
-  // Check if record exists
   $existsSql = "SELECT id FROM {$tableName} WHERE entity_id = %1";
   $existsDao = CRM_Core_DAO::executeQuery($existsSql, [1 => [$entityID, 'Integer']]);
 
   if ($existsDao->fetch()) {
-    // UPDATE existing record
     $sql = "UPDATE {$tableName} SET {$last4Col} = %1 WHERE entity_id = %2";
     CRM_Core_DAO::executeQuery($sql, [
       1 => [$last4Value, 'String'],
       2 => [$entityID, 'Integer']
     ]);
   } else {
-    // INSERT new record with all required fields
     $sql = "INSERT INTO {$tableName} (entity_id, {$ssnCol}, {$last4Col}) VALUES (%1, %2, %3)";
     CRM_Core_DAO::executeQuery($sql, [
       1 => [$entityID, 'Integer'],
@@ -195,7 +192,6 @@ function cilb_exam_registration_civicrm_pre(string $op, string $objectName, ?int
     return;
   }
 
-  // Don't snapshot during our own internal blanking update.
   if (!empty(\Civi::$statics['cilb_exam_registration']['blanking'][$id])) {
     return;
   }
@@ -214,10 +210,8 @@ function cilb_exam_registration_civicrm_pre(string $op, string $objectName, ?int
     $oldEventId = (int) $participant['event_id'];
     \Civi::$statics['cilb_exam_registration']['pre_event'][$id] = $oldEventId;
 
-    // If the incoming $params already carry the new event_id we can set the
-    // suppress flag immediately so hook_civicrm_custom sees it in time.
     if (!empty($params['event_id']) && (int) $params['event_id'] !== $oldEventId) {
-      \Civi::$statics['cilb_exam_registration']['suppress_candidate_number'][$id] = TRUE;
+      \Civi::$statics['cilb_exam_registration']['null_candidate_number'][$id] = TRUE;
     }
   }
   catch (\Exception $e) {
@@ -240,11 +234,8 @@ function cilb_exam_registration_civicrm_post(string $op, string $objectName, ?in
   $preEventId = \Civi::$statics['cilb_exam_registration']['pre_event'][$objectId] ?? NULL;
   unset(\Civi::$statics['cilb_exam_registration']['pre_event'][$objectId]);
 
-  // Clear the suppress flag NOW — before any further writes — so
-  // hook_civicrm_custom doesn't fire again and swallow our blank.
-  unset(\Civi::$statics['cilb_exam_registration']['suppress_candidate_number'][$objectId]);
-
   if ($preEventId === NULL) {
+    unset(\Civi::$statics['cilb_exam_registration']['null_candidate_number'][$objectId]);
     return;
   }
 
@@ -264,58 +255,37 @@ function cilb_exam_registration_civicrm_post(string $op, string $objectName, ?in
         'id'  => $objectId,
         'msg' => $e->getMessage(),
       ]);
+      unset(\Civi::$statics['cilb_exam_registration']['null_candidate_number'][$objectId]);
       return;
     }
   }
 
   if ($preEventId === $newEventId) {
+    unset(\Civi::$statics['cilb_exam_registration']['null_candidate_number'][$objectId]);
     return;
   }
 
-  \Civi::$statics['cilb_exam_registration']['blanking'][$objectId] = TRUE;
 
-  try {
-    // Resolve the custom table/column via the schema — cached after first call.
-    $fieldMeta = _cilb_exam_registration_candidate_number_meta();
+  \Civi::$statics['cilb_exam_registration']['null_candidate_number'][$objectId] = TRUE;
 
-    if ($fieldMeta) {
-      // Direct SQL guarantees the NULL is written regardless of how CiviCRM
-      // handles NULL values passed through the API or custom hook $params.
-      CRM_Core_DAO::executeQuery(
-        "UPDATE `{$fieldMeta['table']}` SET `{$fieldMeta['column']}` = NULL WHERE entity_id = %1",
-        [1 => [$objectId, 'Integer']]
-      );
-
-      \Civi::log()->info(
-        'Blanked Candidate_Number for participant {id} (event {old} → {new})',
-        ['id' => $objectId, 'old' => $preEventId, 'new' => $newEventId]
-      );
-    }
-    else {
-      \Civi::log()->error('Could not resolve Candidate_Number table/column — blank skipped for participant {id}', [
-        'id' => $objectId,
-      ]);
-    }
+  $fieldMeta = _cilb_exam_registration_candidate_number_meta();
+  if ($fieldMeta) {
+    CRM_Core_DAO::executeQuery(
+      "UPDATE `{$fieldMeta['table']}` SET `{$fieldMeta['column']}` = NULL WHERE entity_id = %1",
+      [1 => [$objectId, 'Integer']]
+    );
+    \Civi::log()->info(
+      'Nulled Candidate_Number in post hook for participant {id} (event {old} → {new})',
+      ['id' => $objectId, 'old' => $preEventId, 'new' => $newEventId]
+    );
   }
-  catch (\Exception $e) {
-    \Civi::log()->error('Failed to blank Candidate_Number for participant {id}: {msg}', [
-      'id'  => $objectId,
-      'old' => $preEventId,
-      'new' => $newEventId,
-      'msg' => $e->getMessage(),
+  else {
+    \Civi::log()->error('Could not resolve Candidate_Number table/column — post-hook null skipped for participant {id}', [
+      'id' => $objectId,
     ]);
-  }
-  finally {
-    unset(\Civi::$statics['cilb_exam_registration']['blanking'][$objectId]);
   }
 }
 
-/**
- * Resolves and caches the physical table name and column name for
- * Candidate_Result.Candidate_Number so we only hit the DB once per request.
- *
- * Returns ['table' => '...', 'column' => '...'] or NULL on failure.
- */
 function _cilb_exam_registration_candidate_number_meta(): ?array {
   $statics = &\Civi::$statics['cilb_exam_registration'];
 
