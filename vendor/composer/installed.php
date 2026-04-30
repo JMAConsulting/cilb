@@ -3,7 +3,7 @@
         'name' => 'drupal/recommended-project',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '89f446fa250949c610414565256bd979cc90db5e',
+        'reference' => 'f3fa29f4a41976db02dabda25cd1fcfcb779f667',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -661,7 +661,7 @@
         'drupal/recommended-project' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '89f446fa250949c610414565256bd979cc90db5e',
+            'reference' => 'f3fa29f4a41976db02dabda25cd1fcfcb779f667',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1181,9 +1181,9 @@
             'dev_requirement' => false,
         ),
         'phpoffice/phpspreadsheet' => array(
-            'pretty_version' => '2.4.3',
-            'version' => '2.4.3.0',
-            'reference' => '3b204d00c19f9d809f8d2374f408b197f37ad0bd',
+            'pretty_version' => '2.4.5',
+            'version' => '2.4.5.0',
+            'reference' => 'ec7815be350e03df90f3e2ace92653fa6cb4327c',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpoffice/phpspreadsheet',
             'aliases' => array(),
@@ -1208,9 +1208,9 @@
             'dev_requirement' => false,
         ),
         'phpseclib/phpseclib' => array(
-            'pretty_version' => '3.0.50',
-            'version' => '3.0.50.0',
-            'reference' => 'aa6ad8321ed103dc3624fb600a25b66ebf78ec7b',
+            'pretty_version' => '3.0.52',
+            'version' => '3.0.52.0',
+            'reference' => '2adaefc83df2ec548558307690f376dd7d4f4fce',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpseclib/phpseclib',
             'aliases' => array(),
@@ -1285,8 +1285,8 @@
         'psr/container-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '^1.0',
-                1 => '1.1|2.0',
+                0 => '1.1|2.0',
+                1 => '^1.0',
             ),
         ),
         'psr/event-dispatcher' => array(
