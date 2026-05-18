@@ -810,6 +810,20 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
       $formState->setErrorByName('verify_ssn', $error_message);
     }
+
+    $contactId = $formState->getValue('civicrm_1_contact_1_contact_existing');
+    if (!empty($contactId) && !empty($ssn)) {
+      $cleanInput = $this->normalizeSSN($ssn);
+      $sql = "SELECT entity_id FROM civicrm_value_registrant_in_1
+        WHERE REGEXP_REPLACE(ssn_5, '[^0-9]', '') = %1 LIMIT 1";
+      $matchingContact = \CRM_Core_DAO::singleValueQuery($sql, [1 => [$cleanInput, 'String']]);
+      if ($matchingContact != $contactId) {
+        $error_message = $this->t('A user account already exists with this Social Security Number. Please contact %adminEmail for assistance.', [
+          '%adminEmail' => \Drupal::config('system.site')->get('mail'),
+        ]);
+        $formState->setErrorByName('civicrm_1_contact_1_cg1_custom_5', $error_message);
+      }
+    }
   }
 
   private function normalizeSSN($ssn) {
