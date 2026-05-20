@@ -78,6 +78,11 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
             'dbAlias' => 'temp.changed_by',
             'required' => TRUE,
           ],
+          'most_recent_registration_date' => [
+            'title' => E::ts('Exam Registration Date'),
+            'dbAlias' => 'temp.most_recent_registration_date',
+            'required' => TRUE,
+          ],
           'is_date' => [
             'title' => E::ts('Is Date'),
             'dbAlias' => 'temp.is_date',
@@ -197,6 +202,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       'civicrm_contact_middle_name',
       'civicrm_contact_last_name',
       'civicrm_contact_entity_id',
+      'civicrm_contact_most_recent_registration_date',
       'civicrm_value_registrant_in_1_custom_5',
       'civicrm_contact_old_value',
       'civicrm_contact_new_value',
@@ -245,6 +251,9 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
 
       $entryFound = TRUE;
       $rows[$rowNum]['civicrm_contact_change_date'] = CRM_Utils_Date::customFormat($row['civicrm_contact_change_date']);
+      if (!empty($row['civicrm_contact_most_recent_registration_date'])) {
+        $rows[$rowNum]['civicrm_contact_most_recent_registration_date'] = CRM_Utils_Date::customFormat($row['civicrm_contact_most_recent_registration_date']);
+      }
       if (!empty($row['civicrm_value_registrant_in_1_custom_5'])) {
         $rows[$rowNum]['civicrm_value_registrant_in_1_custom_5'] = str_replace([0,1,2,3,4,5,6,7,8,9], 'X', substr($row['civicrm_value_registrant_in_1_custom_5'], 0, -4)) . substr($row['civicrm_value_registrant_in_1_custom_5'], -4);
       }
@@ -310,7 +319,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       ->execute()
       ->first();
     $lastRunCron = Civi::settings()->get('cilb_reports_changenotification_last_run_date') ?? date('YmdHis', strtotime('-1 week'));
-    $temporaryTableName = $this->createTemporaryTable('changed_records_table','id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY, contact_id int unsigned NOT NULL, old_value varchar(255) DEFAULT NULL, new_value varchar(255) DEFAULT NULL, changed_by int NOT NULL default 0, is_date int NOT NULL default 0, entity_id varchar(255) NULL default NULL, change_type varchar(255) NOT NULL DEFAULT \'\', changed_date datetime DEFAULT NULL', TRUE);
+    $temporaryTableName = $this->createTemporaryTable('changed_records_table','id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY, contact_id int unsigned NOT NULL, old_value varchar(255) DEFAULT NULL, new_value varchar(255) DEFAULT NULL, changed_by int NOT NULL default 0, is_date int NOT NULL default 0, entity_id varchar(255) NULL default NULL, change_type varchar(255) NOT NULL DEFAULT \'\', changed_date datetime DEFAULT NULL, most_recent_registration_date datetime DEFAULT NULL', TRUE);
     CRM_Core_DAO::executeQuery("ALTER TABLE {$temporaryTableName} ADD INDEX `index_contact_id`(`contact_id`)");
     // Find all changes to names
     $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_value, new_value, changed_by, change_type, changed_date)
@@ -394,6 +403,15 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
       FROM {$entityIDCustomFieldDetails['custom_group_id.table_name']}
       GROUP BY entity_id");
     $sql = "UPDATE {$temporaryTableName} tm INNER JOIN {$this->temporaryTables['entity_id']['name']} e ON e.contact_id = tm.contact_id SET tm.entity_id = e.entity_id";
+    $this->addToDeveloperTab($sql);
+    CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
+    // Populate most recent event registration date (only counted participant statuses)
+    $this->createTemporaryTable('most_recent_registration', "SELECT cp.contact_id, MAX(cp.register_date) AS most_recent_registration_date
+      FROM civicrm_participant cp
+      INNER JOIN civicrm_participant_status_type pst ON pst.id = cp.status_id AND pst.is_counted = 1
+      WHERE cp.is_test = 0
+      GROUP BY cp.contact_id");
+    $sql = "UPDATE {$temporaryTableName} tm INNER JOIN {$this->temporaryTables['most_recent_registration']['name']} r ON r.contact_id = tm.contact_id SET tm.most_recent_registration_date = r.most_recent_registration_date";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
     return $temporaryTableName;
