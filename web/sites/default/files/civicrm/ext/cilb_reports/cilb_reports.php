@@ -39,6 +39,19 @@ function cilb_reports_civicrm_enable(): void {
 }
 
 /**
+ * Implements hook_civicrm_xmlMenu().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_xmlMenu
+ */
+function cilb_reports_civicrm_xmlMenu(&$files): void {
+  foreach (glob(__DIR__ . '/xml/Menu/*.xml') as $file) {
+    if (!in_array($file, $files, TRUE)) {
+      $files[] = $file;
+    }
+  }
+}
+
+/**
  * Implements hook_civicrm_buildForm().
  *
  * Add our extra afform dependencies
