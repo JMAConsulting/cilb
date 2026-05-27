@@ -341,6 +341,12 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
       ->addWhere('custom_group_id.name', '=', 'Candidate_Result')
       ->execute()
       ->first();
+    $examFormatField = CustomField::get(FALSE)
+      ->addSelect('custom_group_id.table_name', 'column_name')
+      ->addWhere('name', '=', 'Exam_Format')
+      ->addWhere('custom_group_id.name', '=', 'Exam_Details')
+      ->execute()
+      ->first();
 
     $homeLocationId = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_Address', 'location_type_id', 'Home');
     $eventTypeOptionGroupId = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_OptionValue', 'option_group_id', 'event_type');
@@ -380,200 +386,106 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
       TRUE);
     CRM_Core_DAO::executeQuery("ALTER TABLE {$temporaryTableName} ADD INDEX `index_contact_id`(`contact_id`)");
 
-    // Most recent change to the candidate's name (and / or suffix).
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_first_name, old_middle_name, old_last_name, old_suffix, new_first_name, new_middle_name, new_last_name, new_suffix, changed_date, change_type)
-      SELECT r.contact_id, r.prev_first, r.prev_middle, r.prev_last, r.prev_suffix, r.first_name, r.middle_name, r.last_name, r.suffix_id, r.log_date, 'Candidate Name Change'
-      FROM (
-        SELECT lg.*, ROW_NUMBER() OVER (PARTITION BY lg.contact_id ORDER BY lg.log_date DESC) AS rn
-        FROM (
-          SELECT lc.id AS contact_id, lc.first_name, lc.middle_name, lc.last_name, lc.suffix_id, lc.log_date,
-            LAG(lc.first_name) OVER w AS prev_first,
-            LAG(lc.middle_name) OVER w AS prev_middle,
-            LAG(lc.last_name) OVER w AS prev_last,
-            LAG(lc.suffix_id) OVER w AS prev_suffix,
-            LAG(lc.log_date) OVER w AS prev_log_date
-          FROM `{$loggingDb}`.log_civicrm_contact lc
-          WINDOW w AS (PARTITION BY lc.id ORDER BY lc.log_date)
-        ) lg
-        WHERE lg.prev_log_date IS NOT NULL
-          AND ((lg.first_name <=> lg.prev_first) = 0 OR (lg.middle_name <=> lg.prev_middle) = 0 OR (lg.last_name <=> lg.prev_last) = 0 OR (lg.suffix_id <=> lg.prev_suffix) = 0)
-          AND lg.log_date >= '{$lastRunCron}'
-      ) r
-      WHERE r.rn = 1
+    // Each change found in the logging tables produces its own row. A
+    // candidate may therefore appear on several rows (one per change). Only the
+    // column pair relevant to a row's change type is populated; the candidate's
+    // name, SSN and Entity ID are filled in for every row further below.
+
+    // Changes to the candidate's name.
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_first_name, old_middle_name, old_last_name, old_suffix, new_first_name, new_middle_name, new_last_name, new_suffix, change_type, changed_date)
+      SELECT DISTINCT lc.id, lc.first_name, lc.middle_name, lc.last_name, lc.suffix_id, lc2.first_name, lc2.middle_name, lc2.last_name, lc2.suffix_id, 'Candidate Name Change', lc2.log_date
+      FROM `{$loggingDb}`.log_civicrm_contact lc
+      INNER JOIN `{$loggingDb}`.log_civicrm_contact lc2 ON lc2.id = lc.id AND lc2.log_date > lc.log_date
+      WHERE (lc2.first_name != lc.first_name OR lc2.last_name != lc.last_name OR lc2.middle_name != lc.middle_name) AND lc2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
-    // Most recent change to the candidate's birth date.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_birth_date, new_birth_date, changed_date, change_type)
-      SELECT r.contact_id, r.prev_birth_date, r.birth_date, r.log_date, 'Candidate Birthdate Change'
-      FROM (
-        SELECT lg.*, ROW_NUMBER() OVER (PARTITION BY lg.contact_id ORDER BY lg.log_date DESC) AS rn
-        FROM (
-          SELECT lc.id AS contact_id, lc.birth_date, lc.log_date,
-            LAG(lc.birth_date) OVER w AS prev_birth_date,
-            LAG(lc.log_date) OVER w AS prev_log_date
-          FROM `{$loggingDb}`.log_civicrm_contact lc
-          WINDOW w AS (PARTITION BY lc.id ORDER BY lc.log_date)
-        ) lg
-        WHERE lg.prev_log_date IS NOT NULL
-          AND (lg.birth_date <=> lg.prev_birth_date) = 0
-          AND lg.log_date >= '{$lastRunCron}'
-      ) r
-      WHERE r.rn = 1
+    // Changes to the candidate's birth date.
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_birth_date, new_birth_date, change_type, changed_date)
+      SELECT DISTINCT lc.id, COALESCE(lc.birth_date, ''), COALESCE(lc2.birth_date, ''), 'Candidate Birthdate Change', lc2.log_date
+      FROM `{$loggingDb}`.log_civicrm_contact lc
+      INNER JOIN `{$loggingDb}`.log_civicrm_contact lc2 ON lc2.id = lc.id AND lc2.log_date > lc.log_date
+      WHERE (lc2.birth_date != lc.birth_date) AND lc2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
-    // Most recent change to the candidate's SSN (ignoring formatting characters).
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_ssn, new_ssn, changed_date, change_type)
-      SELECT r.contact_id, r.prev_ssn, r.ssn, r.log_date, 'Candidate SSN Change'
-      FROM (
-        SELECT lg.*, ROW_NUMBER() OVER (PARTITION BY lg.contact_id ORDER BY lg.log_date DESC) AS rn
-        FROM (
-          SELECT lcv.entity_id AS contact_id, lcv.{$ssnField['column_name']} AS ssn, lcv.log_date,
-            LAG(lcv.{$ssnField['column_name']}) OVER w AS prev_ssn,
-            LAG(lcv.log_date) OVER w AS prev_log_date
-          FROM `{$loggingDb}`.log_{$ssnField['custom_group_id.table_name']} lcv
-          WINDOW w AS (PARTITION BY lcv.entity_id ORDER BY lcv.log_date)
-        ) lg
-        WHERE lg.prev_log_date IS NOT NULL
-          AND (REGEXP_REPLACE(lg.ssn, '\\\\D', '') <=> REGEXP_REPLACE(lg.prev_ssn, '\\\\D', '')) = 0
-          AND lg.log_date >= '{$lastRunCron}'
-      ) r
-      WHERE r.rn = 1
+    // Changes to the candidate's SSN (ignoring formatting characters).
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_ssn, new_ssn, change_type, changed_date)
+      SELECT DISTINCT lc.id, lcv.{$ssnField['column_name']}, lcv2.{$ssnField['column_name']}, 'Candidate SSN Change', lcv2.log_date
+      FROM `{$loggingDb}`.log_civicrm_contact lc
+      INNER JOIN `{$loggingDb}`.log_{$ssnField['custom_group_id.table_name']} AS lcv ON lcv.entity_id = lc.id
+      INNER JOIN `{$loggingDb}`.log_{$ssnField['custom_group_id.table_name']} AS lcv2 ON lcv2.entity_id = lc.id AND lcv2.log_date > lcv.log_date
+      WHERE (REGEXP_REPLACE(lcv2.{$ssnField['column_name']}, '\\\\D', '') != REGEXP_REPLACE(lcv.{$ssnField['column_name']}, '\\\\D', '')) AND lcv2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
-    // Most recent change to the candidate's home address.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_address, new_address, changed_date, change_type)
-      SELECT r.contact_id,
-        CONCAT(COALESCE(r.prev_street, ''), '\r\n', COALESCE(r.prev_city, ''), ' , ', COALESCE(spo.abbreviation, ''), ' ', COALESCE(r.prev_postal, '')),
-        CONCAT(COALESCE(r.street_address, ''), '\r\n', COALESCE(r.city, ''), ' , ', COALESCE(spn.abbreviation, ''), ' ', COALESCE(r.postal_code, '')),
-        r.log_date, 'Candidate Address Change'
-      FROM (
-        SELECT lg.*, ROW_NUMBER() OVER (PARTITION BY lg.contact_id ORDER BY lg.log_date DESC) AS rn
-        FROM (
-          SELECT lca.contact_id, lca.street_address, lca.supplemental_address_1, lca.city, lca.state_province_id, lca.postal_code, lca.log_date,
-            LAG(lca.street_address) OVER w AS prev_street,
-            LAG(lca.supplemental_address_1) OVER w AS prev_suppl,
-            LAG(lca.city) OVER w AS prev_city,
-            LAG(lca.state_province_id) OVER w AS prev_state,
-            LAG(lca.postal_code) OVER w AS prev_postal,
-            LAG(lca.log_date) OVER w AS prev_log_date
-          FROM `{$loggingDb}`.log_civicrm_address lca
-          WHERE lca.location_type_id = {$homeLocationId}
-          WINDOW w AS (PARTITION BY lca.contact_id ORDER BY lca.log_date)
-        ) lg
-        WHERE lg.prev_log_date IS NOT NULL
-          AND ((lg.street_address <=> lg.prev_street) = 0 OR (lg.supplemental_address_1 <=> lg.prev_suppl) = 0 OR (lg.city <=> lg.prev_city) = 0 OR (lg.state_province_id <=> lg.prev_state) = 0 OR (lg.postal_code <=> lg.prev_postal) = 0)
-          AND lg.log_date >= '{$lastRunCron}'
-      ) r
-      LEFT JOIN civicrm_state_province spo ON spo.id = r.prev_state
-      LEFT JOIN civicrm_state_province spn ON spn.id = r.state_province_id
-      WHERE r.rn = 1
+    // Changes to the candidate's home address.
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_address, new_address, change_type, changed_date)
+      SELECT DISTINCT lc.id,
+        CONCAT(COALESCE(lca.street_address, ''), '\r\n', COALESCE(lca.city, ''), ' , ', COALESCE(lcas.abbreviation, ''), ' ', COALESCE(lca.postal_code, '')),
+        CONCAT(COALESCE(lca2.street_address, ''), '\r\n', COALESCE(lca2.city, ''), ' , ', COALESCE(lcas2.abbreviation, ''), ' ', COALESCE(lca2.postal_code, '')),
+        'Candidate Address Change', lca2.log_date
+      FROM `{$loggingDb}`.log_civicrm_contact lc
+      LEFT JOIN `{$loggingDb}`.log_civicrm_address lca ON lca.contact_id = lc.id AND lca.location_type_id = {$homeLocationId}
+      LEFT JOIN `{$loggingDb}`.log_civicrm_state_province lcas ON lcas.id = lca.state_province_id
+      LEFT JOIN `{$loggingDb}`.log_civicrm_address AS lca2 ON lca2.contact_id = lc.id AND lca2.log_date > lca.log_date AND lca.location_type_id = {$homeLocationId}
+      LEFT JOIN `{$loggingDb}`.log_civicrm_state_province lcas2 ON lcas2.id = lca2.state_province_id
+      WHERE (lca.street_address != lca2.street_address OR lca.state_province_id != lca2.state_province_id OR lca.supplemental_address_1 != lca2.supplemental_address_1 OR lca.city != lca2.city OR lca.postal_code != lca2.postal_code) AND lca2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
-    // Most recent change to the candidate's primary email address.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_email, new_email, changed_date, change_type)
-      SELECT r.contact_id, r.prev_email, r.email, r.log_date, 'Candidate Email Change'
-      FROM (
-        SELECT lg.*, ROW_NUMBER() OVER (PARTITION BY lg.contact_id ORDER BY lg.log_date DESC) AS rn
-        FROM (
-          SELECT lce.contact_id, lce.email, lce.log_date,
-            LAG(lce.email) OVER w AS prev_email,
-            LAG(lce.log_date) OVER w AS prev_log_date
-          FROM `{$loggingDb}`.log_civicrm_email lce
-          WHERE lce.is_primary = 1
-          WINDOW w AS (PARTITION BY lce.contact_id ORDER BY lce.log_date)
-        ) lg
-        WHERE lg.prev_log_date IS NOT NULL
-          AND (lg.email <=> lg.prev_email) = 0
-          AND lg.log_date >= '{$lastRunCron}'
-      ) r
-      WHERE r.rn = 1
+    // Changes to the candidate's primary email address.
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_email, new_email, change_type, changed_date)
+      SELECT DISTINCT lc.id, COALESCE(lce.email, ''), COALESCE(lce2.email, ''), 'Candidate Email Change', lce2.log_date
+      FROM `{$loggingDb}`.log_civicrm_contact lc
+      LEFT JOIN `{$loggingDb}`.log_civicrm_email lce ON lce.contact_id = lc.id AND lce.is_primary = 1
+      LEFT JOIN `{$loggingDb}`.log_civicrm_email AS lce2 ON lce2.contact_id = lc.id AND lce.is_primary = 1 AND lce2.log_date > lce.log_date
+      WHERE (lce.email != lce2.email) AND lce2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
-    // Most recent change to the candidate's primary phone number.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_phone, new_phone, changed_date, change_type)
-      SELECT r.contact_id, r.prev_phone, r.phone, r.log_date, 'Candidate Phone Change'
-      FROM (
-        SELECT lg.*, ROW_NUMBER() OVER (PARTITION BY lg.contact_id ORDER BY lg.log_date DESC) AS rn
-        FROM (
-          SELECT lcp.contact_id, lcp.phone, lcp.phone_numeric, lcp.log_date,
-            LAG(lcp.phone) OVER w AS prev_phone,
-            LAG(lcp.phone_numeric) OVER w AS prev_phone_numeric,
-            LAG(lcp.log_date) OVER w AS prev_log_date
-          FROM `{$loggingDb}`.log_civicrm_phone lcp
-          WHERE lcp.is_primary = 1
-          WINDOW w AS (PARTITION BY lcp.contact_id ORDER BY lcp.log_date)
-        ) lg
-        WHERE lg.prev_log_date IS NOT NULL
-          AND (lg.phone_numeric <=> lg.prev_phone_numeric) = 0
-          AND lg.log_date >= '{$lastRunCron}'
-      ) r
-      WHERE r.rn = 1
+    // Changes to the candidate's primary phone number.
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_phone, new_phone, change_type, changed_date)
+      SELECT DISTINCT lc.id, COALESCE(lcp.phone, ''), COALESCE(lcp2.phone, ''), 'Candidate Phone Change', lcp2.log_date
+      FROM `{$loggingDb}`.log_civicrm_contact lc
+      LEFT JOIN `{$loggingDb}`.log_civicrm_phone lcp ON lcp.contact_id = lc.id AND lcp.is_primary = 1
+      LEFT JOIN `{$loggingDb}`.log_civicrm_phone AS lcp2 ON lcp2.contact_id = lc.id AND lcp.is_primary = 1 AND lcp2.log_date > lcp.log_date
+      WHERE (lcp.phone_numeric != lcp2.phone_numeric) AND lcp2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
-    // Most recent change to the candidate's exam language preference. The
-    // custom field lives on the participant, so map it back to the contact.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_language, new_language, changed_date, change_type)
-      SELECT r.contact_id, r.prev_language, r.language, r.log_date, 'Exam Language Change'
-      FROM (
-        SELECT x.contact_id, x.prev_language, x.language, x.log_date,
-          ROW_NUMBER() OVER (PARTITION BY x.contact_id ORDER BY x.log_date DESC) AS rn
-        FROM (
-          SELECT cp.contact_id, lg.language, lg.prev_language, lg.log_date
-          FROM (
-            SELECT lcv.entity_id AS participant_id, lcv.{$languageField['column_name']} AS language, lcv.log_date,
-              LAG(lcv.{$languageField['column_name']}) OVER w AS prev_language,
-              LAG(lcv.log_date) OVER w AS prev_log_date
-            FROM `{$loggingDb}`.log_{$languageField['custom_group_id.table_name']} lcv
-            WINDOW w AS (PARTITION BY lcv.entity_id ORDER BY lcv.log_date)
-          ) lg
-          INNER JOIN civicrm_participant cp ON cp.id = lg.participant_id
-          WHERE lg.prev_log_date IS NOT NULL
-            AND (lg.language <=> lg.prev_language) = 0
-            AND lg.log_date >= '{$lastRunCron}'
-        ) x
-      ) r
-      WHERE r.rn = 1
+    // Changes to the candidate's exam language preference. The custom field
+    // lives on the participant, so map it back to the contact.
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_language, new_language, change_type, changed_date)
+      SELECT DISTINCT cp.contact_id, lcv.{$languageField['column_name']}, lcv2.{$languageField['column_name']}, 'Exam Language Change', lcv2.log_date
+      FROM `{$loggingDb}`.log_{$languageField['custom_group_id.table_name']} AS lcv
+      INNER JOIN `{$loggingDb}`.log_{$languageField['custom_group_id.table_name']} AS lcv2 ON lcv2.entity_id = lcv.entity_id AND lcv2.log_date > lcv.log_date
+      INNER JOIN civicrm_participant cp ON cp.id = lcv.entity_id
+      WHERE (lcv.{$languageField['column_name']} != lcv2.{$languageField['column_name']}) AND lcv2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
-    // Most recent change to the candidate's ADA accommodation request. Like
-    // the exam language preference this custom field lives on the participant,
-    // so map it back to the contact. There is no dedicated column for the ADA
-    // value, so this only surfaces that the change occurred (via Change Made).
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, changed_date, change_type)
-      SELECT r.contact_id, r.log_date, 'ADA Accommodation Request'
-      FROM (
-        SELECT x.contact_id, x.log_date,
-          ROW_NUMBER() OVER (PARTITION BY x.contact_id ORDER BY x.log_date DESC) AS rn
-        FROM (
-          SELECT cp.contact_id, lg.log_date
-          FROM (
-            SELECT lcv.entity_id AS participant_id, lcv.{$adaField['column_name']} AS ada, lcv.log_date,
-              LAG(lcv.{$adaField['column_name']}) OVER w AS prev_ada,
-              LAG(lcv.log_date) OVER w AS prev_log_date
-            FROM `{$loggingDb}`.log_{$adaField['custom_group_id.table_name']} lcv
-            WINDOW w AS (PARTITION BY lcv.entity_id ORDER BY lcv.log_date)
-          ) lg
-          INNER JOIN civicrm_participant cp ON cp.id = lg.participant_id
-          WHERE lg.prev_log_date IS NOT NULL
-            AND (lg.ada <=> lg.prev_ada) = 0
-            AND lg.log_date >= '{$lastRunCron}'
-        ) x
-      ) r
-      WHERE r.rn = 1
+    // Changes to the candidate's ADA accommodation request. The custom field
+    // lives on the participant, so map it back to the contact. There is no
+    // dedicated column for the ADA value, so this only surfaces that the change
+    // occurred (via Change Made).
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, change_type, changed_date)
+      SELECT DISTINCT lc.id, 'ADA Accommodation Request', lcv2.log_date
+      FROM `{$loggingDb}`.log_civicrm_contact lc
+      INNER JOIN `{$loggingDb}`.log_civicrm_participant cp ON cp.contact_id = lc.id
+      INNER JOIN `{$loggingDb}`.log_civicrm_event ce ON ce.id = cp.event_id
+      INNER JOIN `{$loggingDb}`.log_civicrm_option_value ov ON ov.value = ce.event_type_id AND ov.option_group_id = {$eventTypeOptionGroupId}
+      INNER JOIN `{$loggingDb}`.log_{$examFormatField['custom_group_id.table_name']} AS ef ON ef.entity_id = ce.id
+      INNER JOIN `{$loggingDb}`.log_{$adaField['custom_group_id.table_name']} AS lcv ON lcv.entity_id = cp.id
+      INNER JOIN `{$loggingDb}`.log_{$adaField['custom_group_id.table_name']} AS lcv2 ON lcv2.entity_id = lcv.entity_id AND lcv2.log_date > lcv.log_date
+      WHERE (lcv.{$adaField['column_name']} != lcv2.{$adaField['column_name']}) AND lcv2.log_date >= '{$lastRunCron}'
     ";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
