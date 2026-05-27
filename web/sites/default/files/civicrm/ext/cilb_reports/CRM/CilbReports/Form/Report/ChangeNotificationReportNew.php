@@ -335,6 +335,12 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
       ->addWhere('custom_group_id.name', '=', 'Exam_Details')
       ->execute()
       ->first();
+    $adaField = CustomField::get(FALSE)
+      ->addSelect('custom_group_id.table_name', 'column_name')
+      ->addWhere('name', '=', 'ADA_Accommodations_Needed')
+      ->addWhere('custom_group_id.name', '=', 'Candidate_Result')
+      ->execute()
+      ->first();
 
     $homeLocationId = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_Address', 'location_type_id', 'Home');
     $eventTypeOptionGroupId = CRM_Core_PseudoConstant::getKey('CRM_Core_BAO_OptionValue', 'option_group_id', 'event_type');
@@ -540,6 +546,48 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
       ) r
       WHERE r.rn = 1
     ";
+    $this->addToDeveloperTab($sql);
+    CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
+
+    // Most recent change to the candidate's ADA accommodation request. Like
+    // the exam language preference this custom field lives on the participant,
+    // so map it back to the contact. There is no dedicated column for the ADA
+    // value, so this only surfaces that the change occurred (via Change Made).
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, changed_date, change_type)
+      SELECT r.contact_id, r.log_date, 'ADA Accommodation Request'
+      FROM (
+        SELECT x.contact_id, x.log_date,
+          ROW_NUMBER() OVER (PARTITION BY x.contact_id ORDER BY x.log_date DESC) AS rn
+        FROM (
+          SELECT cp.contact_id, lg.log_date
+          FROM (
+            SELECT lcv.entity_id AS participant_id, lcv.{$adaField['column_name']} AS ada, lcv.log_date,
+              LAG(lcv.{$adaField['column_name']}) OVER w AS prev_ada,
+              LAG(lcv.log_date) OVER w AS prev_log_date
+            FROM `{$loggingDb}`.log_{$adaField['custom_group_id.table_name']} lcv
+            WINDOW w AS (PARTITION BY lcv.entity_id ORDER BY lcv.log_date)
+          ) lg
+          INNER JOIN civicrm_participant cp ON cp.id = lg.participant_id
+          WHERE lg.prev_log_date IS NOT NULL
+            AND (lg.ada <=> lg.prev_ada) = 0
+            AND lg.log_date >= '{$lastRunCron}'
+        ) x
+      ) r
+      WHERE r.rn = 1
+    ";
+    $this->addToDeveloperTab($sql);
+    CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
+
+    // For every row that is not itself a name change, show the candidate's
+    // current name so the row can be identified. Name-change rows keep the
+    // before / after name captured above.
+    $sql = "UPDATE {$temporaryTableName} tm
+      INNER JOIN civicrm_contact cc ON cc.id = tm.contact_id
+      SET tm.old_first_name = cc.first_name,
+          tm.old_middle_name = cc.middle_name,
+          tm.old_last_name = cc.last_name,
+          tm.old_suffix = cc.suffix_id
+      WHERE tm.change_type <> 'Candidate Name Change'";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
