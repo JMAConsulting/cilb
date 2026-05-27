@@ -562,7 +562,7 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     // part) and the date the registration transaction was made.
     $recentRegTableName = $this->createTemporaryTable('recent_registration', "SELECT contact_id, original_registration, registration_date FROM (
         SELECT cp.contact_id,
-          CONCAT(COALESCE(etv.label, ''), ' - ', COALESCE(epv.label, '')) AS original_registration,
+          CONCAT(COALESCE(etv.label_en_US, ''), ' - ', COALESCE(epv.label_en_US, '')) AS original_registration,
           ct.receive_date AS registration_date,
           ROW_NUMBER() OVER (PARTITION BY cp.contact_id ORDER BY ct.receive_date DESC, cp.id DESC) AS rn
         FROM civicrm_participant cp
