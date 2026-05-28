@@ -169,7 +169,7 @@ class CRM_Nicechangelog_Page_ChangeLog extends CRM_Core_Page {
         'action_slug' => self::slug($action),
         'component' => $componentLabel,
         'component_slug' => self::slug($componentLabel),
-        'when' => CRM_Utils_Date::isoToMysql($logDate),
+        'when' => self::formatWhen($logDate),
         'altered_contact' => $raw['log_civicrm_entity_altered_contact'] ?? '',
         'altered_contact_id' => $alteredContactId,
         'bracket' => $bracket,
@@ -222,6 +222,19 @@ class CRM_Nicechangelog_Page_ChangeLog extends CRM_Core_Page {
       $summary .= ' ' . E::ts('+%1 more', [1 => $extra]);
     }
     return $summary;
+  }
+
+  /**
+   *
+   * @param string|null $logDate
+   *
+   * @return string
+   */
+  protected static function formatWhen(?string $logDate): string {
+    if (empty($logDate)) {
+      return '';
+    }
+    return CRM_Utils_Date::customFormat($logDate);
   }
 
   /**
