@@ -6,35 +6,14 @@ use Civi\Api4\Contact;
 use Civi\Api4\Generic\Result;
 use CRM_ChangeNotificationReceipt_Queue as Queue;
 
-/**
- * Processes the change-notification queue.
- */
 class ProcessChangeNotifications extends \Civi\Api4\Generic\AbstractAction {
 
-  /**
-   * Message-template title for the email body.
-   *
-   * @var string
-   */
   protected $emailTemplateTitle = 'CILB Change Notification - Email';
 
-  /**
-   * Message-template title that holds the PDF receipt HTML.
-   *
-   * @var string
-   */
   protected $receiptTemplateTitle = 'CILB Change Notification - Receipt';
 
-  /**
-   * When TRUE, render everything but do not send email or mark rows processed.
-   *
-   * @var bool
-   */
   protected $dryRun = FALSE;
 
-  /**
-   * Human-friendly section heading per source table for the receipt.
-   */
   private const SECTIONS = [
     'civicrm_contact' => 'Contact Information',
     'civicrm_email' => 'Contact Information',
