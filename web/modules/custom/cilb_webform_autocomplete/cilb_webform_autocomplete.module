@@ -1,0 +1,33 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+
+function cilb_webform_autocomplete_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+    if (strpos($form_id, 'webform_submission_') !== 0) {
+        return;
+    }
+
+    $form['#attributes']['autocomplete'] = 'off';
+    _cilb_webform_autocomplete_apply($form);
+    $form['#attached']['library'][] = 'cilb_webform_autocomplete/disable_autofill';
+}
+
+function _cilb_webform_autocomplete_apply(array &$elements) {
+    foreach (Element::children($elements) as $key) {
+        $element = &$elements[$key];
+
+        if (isset($element['#type'])) {
+            $type = $element['#type'];
+
+            if ($type === 'password' || $type === 'webform_password' || $type === 'password_confirm') {
+                $element['#attributes']['autocomplete'] = 'new-password';
+            }
+            elseif (!in_array($type, ['webform_section', 'webform_flexbox', 'container', 'fieldset', 'details', 'webform_wizard_page'], TRUE)) {
+                $element['#attributes']['autocomplete'] = 'off';
+            }
+        }
+
+        _cilb_webform_autocomplete_apply($element);
+    }
+}
