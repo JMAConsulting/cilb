@@ -1,0 +1,7 @@
+disable_autofill:
+  version: 1.x
+  js:
+    js/disable-autofill.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

@@ -1,0 +1,7 @@
+name: 'CILB Webform Disable Autofill'
+type: module
+description: 'Disables browser autofill/autocomplete on all Drupal webforms.'
+core_version_requirement: ^10
+package: CILB
+dependencies:
+  - webform:webform

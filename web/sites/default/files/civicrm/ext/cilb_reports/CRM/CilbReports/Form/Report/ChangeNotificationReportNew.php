@@ -375,23 +375,15 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
        new_phone varchar(255) DEFAULT NULL,
        original_registration varchar(255) DEFAULT NULL,
        registration_date datetime DEFAULT NULL,
-       change_type varchar(255) NOT NULL DEFAULT \'\',
-       changed_date datetime DEFAULT NULL',
+       change_type varchar(255) DEFAULT NULL,
+       changed_date datetime DEFAULT NULL,
+       row_kind varchar(32) NOT NULL DEFAULT \'\'',
       TRUE);
     CRM_Core_DAO::executeQuery("ALTER TABLE {$temporaryTableName} ADD INDEX `index_contact_id`(`contact_id`)");
 
-    // Each actual change found in the logging tables produces its own row. A
-    // candidate may therefore appear on several rows (one per change). To avoid
-    // duplicate rows for a single change, every field is compared against its
-    // value in the immediately preceding log entry (via LAG) rather than against
-    // every earlier entry -- so re-saves that don't alter the field (e.g. an
-    // address re-saved by geocoding) do not generate phantom rows. Only the
-    // column pair relevant to a row's change type is populated; the candidate's
-    // name, SSN and Entity ID are filled in for every row further below.
-
     // Changes to the candidate's name.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_first_name, old_middle_name, old_last_name, old_suffix, new_first_name, new_middle_name, new_last_name, new_suffix, change_type, changed_date)
-      SELECT lg.contact_id, lg.prev_first, lg.prev_middle, lg.prev_last, lg.prev_suffix, lg.first_name, lg.middle_name, lg.last_name, lg.suffix_id, 'Candidate Name Change', lg.log_date
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_first_name, old_middle_name, old_last_name, old_suffix, new_first_name, new_middle_name, new_last_name, new_suffix)
+      SELECT lg.contact_id, 'name', lg.prev_first, lg.prev_middle, lg.prev_last, lg.prev_suffix, lg.first_name, lg.middle_name, lg.last_name, lg.suffix_id
       FROM (
         SELECT lc.id AS contact_id, lc.first_name, lc.middle_name, lc.last_name, lc.suffix_id, lc.log_date,
           LAG(lc.first_name) OVER w AS prev_first,
@@ -410,8 +402,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's birth date.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_birth_date, new_birth_date, change_type, changed_date)
-      SELECT lg.contact_id, lg.prev_birth_date, lg.birth_date, 'Candidate Birthdate Change', lg.log_date
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_birth_date, new_birth_date)
+      SELECT lg.contact_id, 'birthdate', lg.prev_birth_date, lg.birth_date
       FROM (
         SELECT lc.id AS contact_id, lc.birth_date, lc.log_date,
           LAG(lc.birth_date) OVER w AS prev_birth_date,
@@ -427,8 +419,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's SSN (ignoring formatting characters).
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_ssn, new_ssn, change_type, changed_date)
-      SELECT lg.contact_id, lg.prev_ssn, lg.ssn, 'Candidate SSN Change', lg.log_date
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_ssn, new_ssn)
+      SELECT lg.contact_id, 'ssn', lg.prev_ssn, lg.ssn
       FROM (
         SELECT lcv.entity_id AS contact_id, lcv.{$ssnField['column_name']} AS ssn, lcv.log_date,
           LAG(lcv.{$ssnField['column_name']}) OVER w AS prev_ssn,
@@ -444,11 +436,10 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's home address.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_address, new_address, change_type, changed_date)
-      SELECT lg.contact_id,
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_address, new_address)
+      SELECT lg.contact_id, 'address',
         CONCAT(COALESCE(lg.prev_street, ''), '\r\n', COALESCE(lg.prev_city, ''), ' , ', COALESCE(spo.abbreviation, ''), ' ', COALESCE(lg.prev_postal, '')),
-        CONCAT(COALESCE(lg.street_address, ''), '\r\n', COALESCE(lg.city, ''), ' , ', COALESCE(spn.abbreviation, ''), ' ', COALESCE(lg.postal_code, '')),
-        'Candidate Address Change', lg.log_date
+        CONCAT(COALESCE(lg.street_address, ''), '\r\n', COALESCE(lg.city, ''), ' , ', COALESCE(spn.abbreviation, ''), ' ', COALESCE(lg.postal_code, ''))
       FROM (
         SELECT lca.contact_id, lca.street_address, lca.supplemental_address_1, lca.city, lca.state_province_id, lca.postal_code, lca.log_date,
           LAG(lca.street_address) OVER w AS prev_street,
@@ -471,8 +462,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's primary email address.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_email, new_email, change_type, changed_date)
-      SELECT lg.contact_id, lg.prev_email, lg.email, 'Candidate Email Change', lg.log_date
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_email, new_email)
+      SELECT lg.contact_id, 'email', lg.prev_email, lg.email
       FROM (
         SELECT lce.contact_id, lce.email, lce.log_date,
           LAG(lce.email) OVER w AS prev_email,
@@ -489,8 +480,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's primary phone number.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_phone, new_phone, change_type, changed_date)
-      SELECT lg.contact_id, lg.prev_phone, lg.phone, 'Candidate Phone Change', lg.log_date
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_phone, new_phone)
+      SELECT lg.contact_id, 'phone', lg.prev_phone, lg.phone
       FROM (
         SELECT lcp.contact_id, lcp.phone, lcp.phone_numeric, lcp.log_date,
           LAG(lcp.phone) OVER w AS prev_phone,
@@ -509,8 +500,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
 
     // Changes to the candidate's exam language preference. The custom field
     // lives on the participant, so map it back to the contact.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, old_language, new_language, change_type, changed_date)
-      SELECT cp.contact_id, lg.prev_language, lg.language, 'Exam Language Change', lg.log_date
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_language, new_language)
+      SELECT cp.contact_id, 'language', lg.prev_language, lg.language
       FROM (
         SELECT lcv.entity_id AS participant_id, lcv.{$languageField['column_name']} AS language, lcv.log_date,
           LAG(lcv.{$languageField['column_name']}) OVER w AS prev_language,
@@ -528,10 +519,10 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
 
     // Changes to the candidate's ADA accommodation request. The custom field
     // lives on the participant, so map it back to the contact. There is no
-    // dedicated column for the ADA value, so this only surfaces that the change
-    // occurred (via Change Made).
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, change_type, changed_date)
-      SELECT cp.contact_id, 'ADA Accommodation Request', lg.log_date
+    // dedicated column for the ADA value, so the row only signals that the
+    // change occurred (via the candidate's identity columns).
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind)
+      SELECT cp.contact_id, 'ada'
       FROM (
         SELECT lcv.entity_id AS participant_id, lcv.{$adaField['column_name']} AS ada, lcv.log_date,
           LAG(lcv.{$adaField['column_name']}) OVER w AS prev_ada,
@@ -547,16 +538,45 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
-    // For every row that is not itself a name change, show the candidate's
-    // current name so the row can be identified. Name-change rows keep the
-    // before / after name captured above.
+    // Registration changes: a participant's event_id was modified (exam swap).
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, original_registration, registration_date, change_type, changed_date)
+      SELECT cp.contact_id, 'registration',
+        TRIM(CONCAT(COALESCE(old_etv.label_en_US, ''), ' ', COALESCE(old_epv.label_en_US, ''))),
+        ct.receive_date,
+        TRIM(CONCAT(COALESCE(new_etv.label_en_US, ''), ' ', COALESCE(new_epv.label_en_US, ''))),
+        lg.log_date
+      FROM (
+        SELECT lcp.id AS participant_id, lcp.event_id, lcp.log_date,
+          LAG(lcp.event_id) OVER w AS prev_event_id,
+          LAG(lcp.log_date) OVER w AS prev_log_date
+        FROM `{$loggingDb}`.log_civicrm_participant lcp
+        WINDOW w AS (PARTITION BY lcp.id ORDER BY lcp.log_date)
+      ) lg
+      INNER JOIN civicrm_participant cp ON cp.id = lg.participant_id
+      INNER JOIN {$participantTransactionIDField['custom_group_id.table_name']} pv ON pv.entity_id = cp.id
+      INNER JOIN civicrm_contribution ct ON ct.id = pv.{$participantTransactionIDField['column_name']}
+      LEFT JOIN civicrm_event old_ce ON old_ce.id = lg.prev_event_id
+      LEFT JOIN civicrm_option_value old_etv ON old_etv.value = old_ce.event_type_id AND old_etv.option_group_id = {$eventTypeOptionGroupId}
+      LEFT JOIN {$examPartField['custom_group_id.table_name']} old_ed ON old_ed.entity_id = old_ce.id
+      LEFT JOIN civicrm_option_value old_epv ON old_epv.value = old_ed.{$examPartField['column_name']} AND old_epv.option_group_id = {$examPartOptionGroupId}
+      LEFT JOIN civicrm_event new_ce ON new_ce.id = lg.event_id
+      LEFT JOIN civicrm_option_value new_etv ON new_etv.value = new_ce.event_type_id AND new_etv.option_group_id = {$eventTypeOptionGroupId}
+      LEFT JOIN {$examPartField['custom_group_id.table_name']} new_ed ON new_ed.entity_id = new_ce.id
+      LEFT JOIN civicrm_option_value new_epv ON new_epv.value = new_ed.{$examPartField['column_name']} AND new_epv.option_group_id = {$examPartOptionGroupId}
+      WHERE lg.prev_log_date IS NOT NULL
+        AND (lg.event_id != lg.prev_event_id)
+        AND lg.log_date >= '{$lastRunCron}'
+    ";
+    $this->addToDeveloperTab($sql);
+    CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
+
     $sql = "UPDATE {$temporaryTableName} tm
       INNER JOIN civicrm_contact cc ON cc.id = tm.contact_id
       SET tm.old_first_name = cc.first_name,
           tm.old_middle_name = cc.middle_name,
           tm.old_last_name = cc.last_name,
           tm.old_suffix = cc.suffix_id
-      WHERE tm.change_type <> 'Candidate Name Change'";
+      WHERE tm.row_kind <> 'name'";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
@@ -572,27 +592,6 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
       FROM {$entityIDField['custom_group_id.table_name']}
       GROUP BY entity_id");
     $sql = "UPDATE {$temporaryTableName} tm INNER JOIN {$entityTableName} e ON e.contact_id = tm.contact_id SET tm.entity_id = e.entity_id";
-    $this->addToDeveloperTab($sql);
-    CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
-
-    // Populate the candidate's most recent registration (event type + exam
-    // part) and the date the registration transaction was made.
-    $recentRegTableName = $this->createTemporaryTable('recent_registration', "SELECT contact_id, original_registration, registration_date FROM (
-        SELECT cp.contact_id,
-          CONCAT(COALESCE(etv.label_en_US, ''), ' - ', COALESCE(epv.label_en_US, '')) AS original_registration,
-          ct.receive_date AS registration_date,
-          ROW_NUMBER() OVER (PARTITION BY cp.contact_id ORDER BY ct.receive_date DESC, cp.id DESC) AS rn
-        FROM civicrm_participant cp
-        INNER JOIN {$participantTransactionIDField['custom_group_id.table_name']} pv ON pv.entity_id = cp.id
-        INNER JOIN civicrm_contribution ct ON ct.id = pv.{$participantTransactionIDField['column_name']}
-        INNER JOIN civicrm_event ce ON ce.id = cp.event_id
-        LEFT JOIN civicrm_option_value etv ON etv.value = ce.event_type_id AND etv.option_group_id = {$eventTypeOptionGroupId}
-        LEFT JOIN {$examPartField['custom_group_id.table_name']} ed ON ed.entity_id = ce.id
-        LEFT JOIN civicrm_option_value epv ON epv.value = ed.{$examPartField['column_name']} AND epv.option_group_id = {$examPartOptionGroupId}
-        WHERE cp.contact_id IN (SELECT contact_id FROM {$temporaryTableName})
-      ) reg WHERE reg.rn = 1");
-    $sql = "UPDATE {$temporaryTableName} tm INNER JOIN {$recentRegTableName} rr ON rr.contact_id = tm.contact_id
-      SET tm.original_registration = rr.original_registration, tm.registration_date = rr.registration_date";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
