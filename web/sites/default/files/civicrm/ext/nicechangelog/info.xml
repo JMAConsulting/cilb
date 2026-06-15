@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<extension key="nicechangelog" type="module">
+  <file>nicechangelog</file>
+  <name>Nice Change Log</name>
+  <description>Enhances the contact Change Log tab. Shows what changed inline (no need to open each row) with client-side filters for action and component.</description>
+  <license>AGPL-3.0</license>
+  <authors>
+    <author>
+      <name>Edsel Lopez</name>
+      <email>edsel.lopez@jmaconsulting.biz</email>
+      <role>Maintainer</role>
+    </author>
+  </authors>
+  <urls>
+    <url desc="Licensing">https://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2025-02-27</releaseDate>
+  <version>1.0.0</version>
+  <develStage>beta</develStage>
+  <compatibility>
+    <ver>5.75</ver>
+  </compatibility>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <civix>
+    <namespace>CRM/Nicechangelog</namespace>
+    <format>25.10.1</format>
+  </civix>
+  <mixins>
+    <mixin>mgd-php@1.0.0</mixin>
+    <mixin>setting-php@1.0.0</mixin>
+    <mixin>smarty@1.0.3</mixin>
+    <mixin>scan-classes@1.0.0</mixin>
+    <mixin>menu-xml@1.0.0</mixin>
+    <mixin>entity-types-php@2.0.0</mixin>
+  </mixins>
+</extension>

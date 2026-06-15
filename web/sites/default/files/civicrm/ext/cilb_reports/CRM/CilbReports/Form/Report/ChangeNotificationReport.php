@@ -204,10 +204,12 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReport extends CRM_Report_Fo
     ];
     $originalColumnHeaders = $this->_columnHeaders;
     foreach ($headerOrder as $header) {
-      $fixedHeaders[$header] = $originalColumnHeaders[$header];
-      unset($originalColumnHeaders[$header]);
+      if (array_key_exists($header, $originalColumnHeaders)) {
+        $fixedHeaders[$header] = $originalColumnHeaders[$header];
+        unset($originalColumnHeaders[$header]);
+      }
     }
-    $this->_columnHeaders = $fixedHeaders;
+    $this->_columnHeaders = $fixedHeaders + $originalColumnHeaders;
     foreach ($rows as $rowNum => $row) {
 
       if (!empty($this->_noRepeats) && $this->_outputMode != 'csv') {

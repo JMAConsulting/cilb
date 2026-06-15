@@ -1,0 +1,122 @@
+.nicechangelog-block h3 {
+  margin-top: 0;
+}
+
+.nicechangelog-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5em;
+  padding: 0.75em 1em;
+  margin-bottom: 0.75em;
+  background: #f7f7f7;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.nicechangelog-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75em;
+}
+
+.nicechangelog-filter-label {
+  font-weight: bold;
+}
+
+.nicechangelog-checkbox {
+  font-weight: normal;
+  white-space: nowrap;
+  margin: 0;
+  cursor: pointer;
+}
+
+.nicechangelog-checkbox input {
+  margin-right: 0.3em;
+  vertical-align: middle;
+}
+
+.nicechangelog-custom-range input[type="date"] {
+  width: auto;
+}
+
+.nicechangelog-custom-range .nicechangelog-apply {
+  margin-left: 0.3em;
+}
+
+table.nicechangelog-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.nicechangelog-table > thead > tr > th {
+  text-align: left;
+  border-bottom: 2px solid #ccc;
+  padding: 6px 10px;
+}
+
+table.nicechangelog-table > tbody > tr.nicechangelog-row > td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+
+.nicechangelog-col-toggle {
+  width: 1.5em;
+  text-align: center;
+}
+
+.nicechangelog-toggle {
+  text-decoration: none;
+}
+
+.nicechangelog-row.nicechangelog-open .nicechangelog-toggle i:before {
+  content: "\f0d7";
+}
+
+.nicechangelog-row.nicechangelog-has-diffs {
+  cursor: pointer;
+}
+
+.nicechangelog-summary-text {
+  color: #33549a;
+}
+
+.nicechangelog-bracket {
+  color: #777;
+}
+
+.nicechangelog-muted {
+  color: #999;
+  font-style: italic;
+}
+
+tr.nicechangelog-detail > td {
+  background: #fbfbf4;
+  padding: 4px 10px 10px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+table.nicechangelog-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+}
+
+table.nicechangelog-detail-table th,
+table.nicechangelog-detail-table td {
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+
+table.nicechangelog-detail-table th {
+  background: #f2f2f2;
+}
+
+.nicechangelog-field {
+  font-weight: bold;
+  width: 30%;
+}
