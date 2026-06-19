@@ -382,8 +382,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery("ALTER TABLE {$temporaryTableName} ADD INDEX `index_contact_id`(`contact_id`)");
 
     // Changes to the candidate's name.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_first_name, old_middle_name, old_last_name, old_suffix, new_first_name, new_middle_name, new_last_name, new_suffix)
-      SELECT lg.contact_id, 'name', lg.prev_first, lg.prev_middle, lg.prev_last, lg.prev_suffix, lg.first_name, lg.middle_name, lg.last_name, lg.suffix_id
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_first_name, old_middle_name, old_last_name, old_suffix, new_first_name, new_middle_name, new_last_name, new_suffix, changed_date)
+      SELECT lg.contact_id, 'name', lg.prev_first, lg.prev_middle, lg.prev_last, lg.prev_suffix, lg.first_name, lg.middle_name, lg.last_name, lg.suffix_id, lg.log_date
       FROM (
         SELECT lc.id AS contact_id, lc.first_name, lc.middle_name, lc.last_name, lc.suffix_id, lc.log_date,
           LAG(lc.first_name) OVER w AS prev_first,
@@ -402,8 +402,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's birth date.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_birth_date, new_birth_date)
-      SELECT lg.contact_id, 'birthdate', lg.prev_birth_date, lg.birth_date
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_birth_date, new_birth_date, changed_date)
+      SELECT lg.contact_id, 'birthdate', lg.prev_birth_date, lg.birth_date, lg.log_date
       FROM (
         SELECT lc.id AS contact_id, lc.birth_date, lc.log_date,
           LAG(lc.birth_date) OVER w AS prev_birth_date,
@@ -419,8 +419,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's SSN (ignoring formatting characters).
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_ssn, new_ssn)
-      SELECT lg.contact_id, 'ssn', lg.prev_ssn, lg.ssn
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_ssn, new_ssn, changed_date)
+      SELECT lg.contact_id, 'ssn', lg.prev_ssn, lg.ssn, lg.log_date
       FROM (
         SELECT lcv.entity_id AS contact_id, lcv.{$ssnField['column_name']} AS ssn, lcv.log_date,
           LAG(lcv.{$ssnField['column_name']}) OVER w AS prev_ssn,
@@ -436,10 +436,11 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's home address.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_address, new_address)
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_address, new_address, changed_date)
       SELECT lg.contact_id, 'address',
         CONCAT(COALESCE(lg.prev_street, ''), '\r\n', COALESCE(lg.prev_city, ''), ' , ', COALESCE(spo.abbreviation, ''), ' ', COALESCE(lg.prev_postal, '')),
-        CONCAT(COALESCE(lg.street_address, ''), '\r\n', COALESCE(lg.city, ''), ' , ', COALESCE(spn.abbreviation, ''), ' ', COALESCE(lg.postal_code, ''))
+        CONCAT(COALESCE(lg.street_address, ''), '\r\n', COALESCE(lg.city, ''), ' , ', COALESCE(spn.abbreviation, ''), ' ', COALESCE(lg.postal_code, '')),
+        lg.log_date
       FROM (
         SELECT lca.contact_id, lca.street_address, lca.supplemental_address_1, lca.city, lca.state_province_id, lca.postal_code, lca.log_date,
           LAG(lca.street_address) OVER w AS prev_street,
@@ -462,8 +463,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's primary email address.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_email, new_email)
-      SELECT lg.contact_id, 'email', lg.prev_email, lg.email
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_email, new_email, changed_date)
+      SELECT lg.contact_id, 'email', lg.prev_email, lg.email, lg.log_date
       FROM (
         SELECT lce.contact_id, lce.email, lce.log_date,
           LAG(lce.email) OVER w AS prev_email,
@@ -480,8 +481,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
     // Changes to the candidate's primary phone number.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_phone, new_phone)
-      SELECT lg.contact_id, 'phone', lg.prev_phone, lg.phone
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_phone, new_phone, changed_date)
+      SELECT lg.contact_id, 'phone', lg.prev_phone, lg.phone, lg.log_date
       FROM (
         SELECT lcp.contact_id, lcp.phone, lcp.phone_numeric, lcp.log_date,
           LAG(lcp.phone) OVER w AS prev_phone,
@@ -500,8 +501,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
 
     // Changes to the candidate's exam language preference. The custom field
     // lives on the participant, so map it back to the contact.
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_language, new_language)
-      SELECT cp.contact_id, 'language', lg.prev_language, lg.language
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, old_language, new_language, changed_date)
+      SELECT cp.contact_id, 'language', lg.prev_language, lg.language, lg.log_date
       FROM (
         SELECT lcv.entity_id AS participant_id, lcv.{$languageField['column_name']} AS language, lcv.log_date,
           LAG(lcv.{$languageField['column_name']}) OVER w AS prev_language,
@@ -521,8 +522,8 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
     // lives on the participant, so map it back to the contact. There is no
     // dedicated column for the ADA value, so the row only signals that the
     // change occurred (via the candidate's identity columns).
-    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind)
-      SELECT cp.contact_id, 'ada'
+    $sql = "INSERT INTO {$temporaryTableName}(contact_id, row_kind, changed_date)
+      SELECT cp.contact_id, 'ada', lg.log_date
       FROM (
         SELECT lcv.entity_id AS participant_id, lcv.{$adaField['column_name']} AS ada, lcv.log_date,
           LAG(lcv.{$adaField['column_name']}) OVER w AS prev_ada,
@@ -592,6 +593,24 @@ class CRM_CilbReports_Form_Report_ChangeNotificationReportNew extends CRM_Report
       FROM {$entityIDField['custom_group_id.table_name']}
       GROUP BY entity_id");
     $sql = "UPDATE {$temporaryTableName} tm INNER JOIN {$entityTableName} e ON e.contact_id = tm.contact_id SET tm.entity_id = e.entity_id";
+    $this->addToDeveloperTab($sql);
+    CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
+
+    // For non-registration-change rows, show the candidate's most recent
+    // transaction date in the Registration date column for context. Rows
+    // produced by the registration-change insert above already carry the
+    // original transaction's receive_date and are skipped here.
+    $recentRegTableName = $this->createTemporaryTable('recent_registration', "SELECT contact_id, registration_date FROM (
+        SELECT cp.contact_id, ct.receive_date AS registration_date,
+          ROW_NUMBER() OVER (PARTITION BY cp.contact_id ORDER BY ct.receive_date DESC, cp.id DESC) AS rn
+        FROM civicrm_participant cp
+        INNER JOIN {$participantTransactionIDField['custom_group_id.table_name']} pv ON pv.entity_id = cp.id
+        INNER JOIN civicrm_contribution ct ON ct.id = pv.{$participantTransactionIDField['column_name']}
+        WHERE cp.contact_id IN (SELECT contact_id FROM {$temporaryTableName})
+      ) reg WHERE reg.rn = 1");
+    $sql = "UPDATE {$temporaryTableName} tm INNER JOIN {$recentRegTableName} rr ON rr.contact_id = tm.contact_id
+      SET tm.registration_date = rr.registration_date
+      WHERE tm.row_kind <> 'registration'";
     $this->addToDeveloperTab($sql);
     CRM_Core_DAO::executeQuery($sql, [], TRUE, NULL, FALSE, FALSE);
 
