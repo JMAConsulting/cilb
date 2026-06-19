@@ -34,6 +34,7 @@ class ProcessChangeNotifications extends \Civi\Api4\Generic\AbstractAction {
 
     [$fromName, $fromEmail] = \CRM_Core_BAO_Domain::getNameAndEmail();
     $from = "\"{$fromName}\" <{$fromEmail}>";
+    $sourceContactId = (int) \CRM_Core_BAO_Domain::getDomain()->contact_id;
 
     $contactIds = Queue::getPendingContactIds();
     $summary = ['contacts' => count($contactIds), 'sent' => 0, 'skipped' => 0, 'errors' => 0];
@@ -82,7 +83,7 @@ class ProcessChangeNotifications extends \Civi\Api4\Generic\AbstractAction {
 
       try {
         $attachment = \CRM_Utils_Mail::appendPDF('CILB-Updated-Receipt.pdf', $html);
-        [$sent] = \CRM_Core_BAO_MessageTemplate::sendTemplate([
+        [$sent, $subject, $textMessage, $htmlMessage] = \CRM_Core_BAO_MessageTemplate::sendTemplate([
           'messageTemplateID' => $emailTemplateId,
           'contactId' => $contactId,
           'from' => $from,
@@ -91,6 +92,7 @@ class ProcessChangeNotifications extends \Civi\Api4\Generic\AbstractAction {
           'attachments' => [$attachment],
         ]);
         if ($sent) {
+          $this->logActivity($sourceContactId, $contactId, $email, $subject, $htmlMessage, $textMessage, $attachment);
           Queue::markProcessed($rowIds, Queue::STATUS_SENT);
           $summary['sent']++;
         }
@@ -127,6 +129,30 @@ class ProcessChangeNotifications extends \Civi\Api4\Generic\AbstractAction {
       $out[] = ['heading' => $heading, 'entries' => $entries];
     }
     return $out;
+  }
+
+  private function logActivity(int $sourceContactId, int $targetContactId, string $email, string $subject, string $htmlMessage, string $textMessage, array $attachment): void {
+    $activityId = (int) \Civi\Api4\Activity::create(FALSE)
+      ->addValue('activity_type_id:name', 'Email')
+      ->addValue('subject', $subject)
+      ->addValue('details', $htmlMessage)
+      ->addValue('activity_date_time', date('Y-m-d H:i:s'))
+      ->addValue('status_id:name', 'Completed')
+      ->addValue('source_contact_id', $sourceContactId ?: $targetContactId)
+      ->addValue('target_contact_id', [$targetContactId])
+      ->execute()
+      ->first()['id'];
+
+    if (!$activityId || empty($attachment['fullPath']) || !is_readable($attachment['fullPath'])) {
+      return;
+    }
+    civicrm_api3('Attachment', 'create', [
+      'entity_table' => 'civicrm_activity',
+      'entity_id' => $activityId,
+      'name' => $attachment['cleanName'] ?? basename($attachment['fullPath']),
+      'mime_type' => $attachment['mime_type'] ?? 'application/pdf',
+      'content' => file_get_contents($attachment['fullPath']),
+    ]);
   }
 
   private function getTemplate(string $title): ?array {
