@@ -26,11 +26,11 @@ class ExprBuilder
     public const TYPE_NULL = 'null';
     public const TYPE_ARRAY = 'array';
 
-    protected $node;
+    public string $allowedTypes;
+    public ?\Closure $ifPart = null;
+    public ?\Closure $thenPart = null;
 
-    public $allowedTypes;
-    public $ifPart;
-    public $thenPart;
+    protected NodeDefinition $node;
 
     public function __construct(NodeDefinition $node)
     {
@@ -196,7 +196,7 @@ class ExprBuilder
      */
     public function thenInvalid(string $message): static
     {
-        $this->thenPart = static fn ($v) => throw new \InvalidArgumentException(\sprintf($message, json_encode($v)));
+        $this->thenPart = static fn ($v) => throw new \InvalidArgumentException(sprintf($message, json_encode($v)));
 
         return $this;
     }

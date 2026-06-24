@@ -50,7 +50,7 @@ class AfformAdminInjector extends AutoSubscriber {
           $links = [
             [
               'url' => \CRM_Utils_System::url('civicrm/admin/afform', NULL, FALSE, "/edit/{$afform['name']}", TRUE, FALSE, TRUE),
-              'text' => E::ts('Edit %1 in FormBuilder', [1 => "<em>{$afform['title']}</em>"]),
+              'text' => E::ts('Edit %1 in FormBuilder', [1 => sprintf("<em>%s</em>", htmlspecialchars($afform['title']))]),
               'icon' => 'fa-pencil',
               'permission' => 'manage own afform',
               'created_id' => $afform['created_id'] ?: 'null',
@@ -79,7 +79,7 @@ class AfformAdminInjector extends AutoSubscriber {
             foreach ($savedSearches as $savedSearch) {
               $links[] = [
                 'url' => \CRM_Utils_System::url('civicrm/admin/search', NULL, FALSE, "/edit/{$savedSearch['id']}", TRUE, FALSE, TRUE),
-                'text' => E::ts('Edit %1 in SearchKit', [1 => "<em>{$savedSearch['label']}</em>"]),
+                'text' => E::ts('Edit %1 in SearchKit', [1 => sprintf('<em>%s</em>', htmlspecialchars($savedSearch['label']))]),
                 'icon' => 'fa-search-plus',
                 // Saved Searches with "bypass_permission" displays are locked to non-super-admins
                 'permission' => $savedSearch['is_locked'] ? 'all CiviCRM permissions and ACLs' : 'manage own search_kit',
@@ -98,11 +98,11 @@ class AfformAdminInjector extends AutoSubscriber {
             HTML;
           }
           $editMenu = <<<HTML
-            <div class="pull-right btn-group af-admin-edit-form-link" ng-if="checkLinkPerm('{$links[0]['permission']}', {$links[0]['created_id']})">
+            <div class="btn-group crm-admin-block-context-dropdown dropup" ng-if="checkLinkPerm('{$links[0]['permission']}', {$links[0]['created_id']})">
               <button type="button" class="btn dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="crm-i fa-gear" role="img" aria-hidden="true"></i> <span class="caret"></span><span class="sr-only">{{:: ts('Configure')}}</span>
+                <i class="crm-i fa-gear" role="img" aria-hidden="true"></i> <span class="sr-only">{{:: ts('Configure')}}</span>
               </button>
-              <ul class="dropdown-menu">$linksMarkup</ul>
+              <ul class="dropdown-menu dropdown-menu-right">$linksMarkup</ul>
             </div>
           HTML;
           // Append link to end of afform markup so it has the highest z-index and is clickable.

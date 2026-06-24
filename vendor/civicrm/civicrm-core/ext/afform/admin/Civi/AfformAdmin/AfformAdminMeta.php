@@ -3,6 +3,7 @@
 namespace Civi\AfformAdmin;
 
 use Civi\Afform\Placement\PlacementUtils;
+use Civi\Afform\Utils;
 use Civi\Api4\Afform;
 use Civi\Api4\Entity;
 use Civi\Api4\Utils\CoreUtil;
@@ -197,7 +198,7 @@ class AfformAdminMeta {
    *
    * @return array
    */
-  public static function getMetadata() {
+  public static function getMetadata(): array {
     $data = \Civi::cache('metadata')->get('afform_admin.metadata');
     if (!$data) {
       $entities = [
@@ -214,25 +215,6 @@ class AfformAdminMeta {
         ->execute()->indexBy('name');
       foreach ($contactAndCustom as $name => $entity) {
         $entities[$name] = self::entityToAfformMeta($entity);
-      }
-
-      // Call getFields on getFields to get input type labels
-      $inputTypeLabels = \Civi\Api4\Contact::getFields(FALSE)
-        ->setLoadOptions(TRUE)
-        ->setAction('getFields')
-        ->addWhere('name', '=', 'input_type')
-        ->execute()
-        ->column('options')[0];
-      // Scan for input types, use label from getFields if available
-      $inputTypes = [];
-      foreach (glob(__DIR__ . '/../../ang/afGuiEditor/inputType/*.html') as $file) {
-        $name = basename($file, '.html');
-        $inputTypes[] = [
-          'name' => $name,
-          'label' => $inputTypeLabels[$name] ?? _ts($name),
-          'template' => '~/af/fields/' . $name . '.html',
-          'admin_template' => '~/afGuiEditor/inputType/' . $name . '.html',
-        ];
       }
 
       // Static elements
@@ -345,38 +327,36 @@ class AfformAdminMeta {
         'danger' => E::ts('Danger'),
       ];
 
-      $perms = \Civi\Api4\Permission::get(FALSE)
-        ->addWhere('group', 'IN', ['afformGeneric', 'const', 'civicrm', 'cms'])
-        ->addWhere('is_active', '=', 1)
-        ->setOrderBy(['title' => 'ASC'])
-        ->execute();
-      $permissions = [];
-      foreach ($perms as $perm) {
-        $permissions[] = [
-          'id' => $perm['name'],
-          'text' => $perm['title'],
-          'description' => $perm['description'] ?? NULL,
-        ];
-      }
+      $permissions = self::getPermissionList();
 
       $dateRanges = \CRM_Utils_Array::makeNonAssociative(\CRM_Core_OptionGroup::values('relative_date_filters'), 'id', 'label');
       $dateRanges = array_merge([['id' => '{}', 'label' => E::ts('Choose Date Range')]], $dateRanges);
+
+      $searchDisplayTags = Utils::getSearchDisplayTags();
 
       // Allow data to be modified by event listeners
       $data = [
         // @see afform-entity-php/mixin.php
         'entities' => &$entities,
-        'inputTypes' => &$inputTypes,
         'elements' => &$elements,
         'styles' => &$styles,
         'permissions' => &$permissions,
         'dateRanges' => &$dateRanges,
+        'searchDisplayTags' => &$searchDisplayTags,
       ];
       $event = GenericHookEvent::create($data);
       \Civi::dispatcher()->dispatch('civi.afform_admin.metadata', $event);
       \Civi::cache('metadata')->set('afform_admin.metadata', $data);
     }
+    return $data;
+  }
 
+  public static function getModuleSettings(): array {
+    $data = self::getMetadata();
+    // InputTypes have their own hook and cache.
+    $inputTypes = Utils::getInputTypes();
+    // Convert to non-associative array.
+    $data['inputTypes'] = array_map(fn($inputType, $name) => $inputType + ['name' => $name], $inputTypes, array_keys($inputTypes));
     return $data;
   }
 
@@ -417,6 +397,41 @@ class AfformAdminMeta {
       }
     }
     return $options;
+  }
+
+  /**
+   * Formats permissions into a nested list for Select2
+   *
+   * @return array[]
+   */
+  public static function getPermissionList(): array {
+    $perms = \Civi\Api4\Permission::get(FALSE)
+      ->addWhere('group', 'IN', ['afformGeneric', 'const', 'civicrm', 'cms', 'userRole'])
+      ->addWhere('is_active', '=', 1)
+      ->setOrderBy(['title' => 'ASC'])
+      ->execute();
+    $permissions = [];
+    $categories = [];
+    foreach ($perms as $perm) {
+      // By convention, permission labels begin with a category followed by a colon.
+      $titleParts = explode(':', $perm['title'], 2);
+      if (count($titleParts) === 1) {
+        array_unshift($titleParts, ts('Generic'));
+      }
+      $category = trim($titleParts[0]);
+      $categories[$category][] = [
+        'id' => $perm['name'],
+        'text' => ucfirst(trim($titleParts[1])),
+        'description' => $perm['description'] ?? NULL,
+      ];
+    }
+    foreach ($categories as $category => $perms) {
+      $permissions[] = [
+        'text' => $category,
+        'children' => $perms,
+      ];
+    }
+    return $permissions;
   }
 
 }
