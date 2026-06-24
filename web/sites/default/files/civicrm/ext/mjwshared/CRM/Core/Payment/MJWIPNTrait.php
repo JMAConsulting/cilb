@@ -487,26 +487,6 @@ trait CRM_Core_Payment_MJWIPNTrait {
       }
     }
 
-    $logParamKeys = [
-      'contribution_id' => 'contribution_id',
-      'failure_date' => 'log_date',
-      'failure_reason' => 'message',
-      'failure_code' => 'code',
-      // Use either category or category:name (in standard API4 style)
-      'category' => 'category',
-      'category:name' => 'category:name',
-      'data' => 'data',
-      'payment_processor_id' => 'payment_processor_id',
-      'identifier' => 'identifier',
-      'level' => 'level',
-    ];
-    foreach ($logParamKeys as $paramKey => $logParamKey) {
-      if (isset($params[$paramKey])) {
-        $logParams[$logParamKey] = $params[$paramKey];
-      }
-    }
-    $logParams['payment_processor_id'] = $this->getPaymentProcessor()->getID();
-
     // No financial_trxn is created so we only need to update the Contribution.
     Contribution::update(FALSE)
       ->addValue('contribution_status_id:name', 'Failed')
@@ -520,6 +500,25 @@ trait CRM_Core_Payment_MJWIPNTrait {
     // Currently provided by https://lab.civicrm.org/extensions/contributionlog
     if (class_exists('\Civi\Api4\ContributionLog')) {
       try {
+        $logParamKeys = [
+          'contribution_id' => 'contribution_id',
+          'failure_date' => 'log_date',
+          'failure_reason' => 'message',
+          'failure_code' => 'code',
+          // Use either category or category:name (in standard API4 style)
+          'category' => 'category',
+          'category:name' => 'category:name',
+          'data' => 'data',
+          'payment_processor_id' => 'payment_processor_id',
+          'identifier' => 'identifier',
+          'level' => 'level',
+        ];
+        foreach ($logParamKeys as $paramKey => $logParamKey) {
+          if (isset($params[$paramKey])) {
+            $logParams[$logParamKey] = $params[$paramKey];
+          }
+        }
+        $logParams['payment_processor_id'] = $this->getPaymentProcessor()->getID();
         // Wrap in try since we don't want updates to fail just because we can't write ContributionLog
         \Civi\Api4\ContributionLog::create(FALSE)
           ->setValues($logParams)

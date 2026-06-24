@@ -376,6 +376,7 @@ abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
       'refund_trxn_id' => $tresponse->getTransId(),
       'refund_status' => 'Completed',
       'fee_amount' => 0,
+      'trxn_date' => date('YmdHis'),
     ];
     return $refundParams;
   }

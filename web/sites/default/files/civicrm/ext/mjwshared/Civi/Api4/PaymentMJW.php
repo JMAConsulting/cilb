@@ -21,4 +21,13 @@ class PaymentMJW extends Generic\AbstractEntity {
     }))->setCheckPermissions($checkPermissions);
   }
 
+  /**
+   * @param bool $checkPermissions
+   * @return Action\PaymentMJW\Refund
+   */
+  public static function refund($checkPermissions = TRUE): Action\PaymentMJW\Refund {
+    return (new Action\PaymentMJW\Refund(__CLASS__, __FUNCTION__))
+      ->setCheckPermissions($checkPermissions);
+  }
+
 }
