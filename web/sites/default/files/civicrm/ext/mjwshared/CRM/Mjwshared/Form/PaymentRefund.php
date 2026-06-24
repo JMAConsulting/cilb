@@ -49,7 +49,7 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
 
     $this->addFormRule(['CRM_Mjwshared_Form_PaymentRefund', 'formRule'], $this);
 
-    $this->setTitle('Refund payment');
+    $this->setTitle(E::ts('Refund payment'));
 
     $this->paymentID = CRM_Utils_Request::retrieveValue('payment_id', 'Positive', NULL, FALSE, 'REQUEST');
     if ($this->paymentID) {
@@ -89,7 +89,7 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
     $this->contributionID = $financialTrxn['contribution_id'];
 
     if ($financialTrxn['contribution_id'] !== $this->contributionID) {
-      CRM_Core_Error::statusBounce('Contribution / Payment does not match');
+      CRM_Core_Error::statusBounce(E::ts('Contribution / Payment does not match'));
     }
     $financialTrxn['order_reference'] = $financialTrxn['order_reference'] ?? NULL;
 
@@ -234,10 +234,10 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
     $paymentAmount = Money::of($payment['total_amount'], $payment['currency'], new DefaultContext(), RoundingMode::CEILING);
 
     if ($refundAmount->isGreaterThan($paymentAmount)) {
-      $errors['refund_amount'] = 'Cannot refund more than the original amount';
+      $errors['refund_amount'] = E::ts('Cannot refund more than the original amount');
     }
     if ($refundAmount->isNegativeOrZero()) {
-      $errors['refund_amount'] = 'Cannot refund zero or negative amount';
+      $errors['refund_amount'] = E::ts('Cannot refund zero or negative amount');
     }
 
     return $errors;
@@ -260,7 +260,7 @@ class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
     catch (\Throwable $e) {
       CRM_Core_Error::statusBounce($e->getMessage());
     }
-    CRM_Core_Session::setStatus($result['message'] ?? '', 'Refund processed', 'success');
+    CRM_Core_Session::setStatus($result['message'] ?? '', E::ts('Refund processed'), 'success');
   }
 
 }

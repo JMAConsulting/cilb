@@ -64,7 +64,12 @@ class CRM_Core_Payment_AuthNetCreditcard extends CRM_Core_Payment_AuthorizeNetCo
   }
 
   private function getCardTypes(): array {
-    return json_decode(($this->_paymentProcessor['accepted_credit_cards'] ?? ''), TRUE);
+    if (empty($this->getPaymentProcessor()['accepted_credit_cards'])) {
+      return CRM_Contribute_PseudoConstant::creditCard();
+    }
+    else {
+      return json_decode(($this->_paymentProcessor['accepted_credit_cards']), TRUE);
+    }
   }
 
   /**

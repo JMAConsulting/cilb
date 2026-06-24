@@ -102,12 +102,13 @@ function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &
             }
             // Add the refund link to the Contribution links
             $links[] = [
-              'name' => 'Record Refund',
+              'name' => E::ts('Record Refund'),
               'icon' => 'fa-undo',
               'url' => 'civicrm/mjwpayment/refund',
               'class' => 'medium-popup',
               'qs' => 'reset=1&contribution_id=' . $objectId,
               'title' => E::ts('Record Refund'),
+              'weight' => 999,
             ];
           }
           break;
@@ -167,7 +168,7 @@ function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &
         }
         // Add the refund link to the payment
         $links[] = [
-          'name' => 'Refund Payment',
+          'name' => E::ts('Refund Payment'),
           'icon' => 'fa-undo',
           'url' => 'civicrm/mjwpayment/refund',
           'class' => 'medium-popup',
@@ -255,4 +256,14 @@ function mjwshared_symfony_preUpdateInsert(\Civi\Core\DAO\Event\PreUpdate $event
       CRM_Core_Error::deprecatedWarning("Recur ID: {$event->object->id}; civicrm_contribution_recur processor_id is different to trxn_id. trxn_id is deprecated and should be empty or match processor_id");
     }
   }
+}
+
+/**
+ * Implements hook_civicrm_permission().
+ */
+function mjwshared_civicrm_permission(&$permissions) {
+  $permissions['access all payment tokens'] = [
+    'label' => E::ts('Access all Payment Tokens'),
+    'description' => E::ts("Allows managing other contacts' payment tokens."),
+  ];
 }
