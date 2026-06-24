@@ -492,6 +492,16 @@ class CRM_Contribute_Form_Contribution_Main extends CRM_Contribute_Form_Contribu
   }
 
   /**
+   * @return string
+   */
+  public function getPayLaterLabel(): string {
+    if (!$this->getContributionPageValue('is_pay_later')) {
+      return '';
+    }
+    return (string) $this->getContributionPageValue('pay_later_text');
+  }
+
+  /**
    * Build the price set form.
    *
    * @return void

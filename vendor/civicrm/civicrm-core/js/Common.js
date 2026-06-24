@@ -125,27 +125,45 @@ function showHideByValue(trigger_field_id, trigger_value, target_element_id, tar
         }
       }
     }
-
   }
-  else {
-    if (field_type == 'radio') {
-      target = target_element_id.split("|");
-      for (j = 0; j < target.length; j++) {
-        if (cj('[name="' + trigger_field_id + '"]:first').is(':checked')) {
-          if (invert) {
-            cj('#' + target[j]).hide();
-          }
-          else {
-            cj('#' + target[j]).show();
-          }
+  else if (field_type == 'radio') {
+    target = target_element_id.split("|");
+    for (j = 0; j < target.length; j++) {
+      if (cj('[name="' + trigger_field_id + '"]:first').is(':checked')) {
+        if (invert) {
+          cj('#' + target[j]).hide();
         }
         else {
-          if (invert) {
-            cj('#' + target[j]).show();
-          }
-          else {
-            cj('#' + target[j]).hide();
-          }
+          cj('#' + target[j]).show();
+        }
+      }
+      else {
+        if (invert) {
+          cj('#' + target[j]).show();
+        }
+        else {
+          cj('#' + target[j]).hide();
+        }
+      }
+    }
+  }
+  else if (field_type == 'checkbox') {
+    target = target_element_id.split("|");
+    for (j = 0; j < target.length; j++) {
+      if (cj('#' + trigger_field_id).is(':checked')) {
+        if (invert) {
+          cj('#' + target[j]).hide();
+        }
+        else {
+          cj('#' + target[j]).show();
+        }
+      }
+      else {
+        if (invert) {
+          cj('#' + target[j]).show();
+        }
+        else {
+          cj('#' + target[j]).hide();
         }
       }
     }
@@ -624,11 +642,13 @@ if (!CRM.vars) CRM.vars = {};
         data = [data];
       }
       data.forEach((item) => {
-        links.push({
-          path: item.quickEdit.path,
-          icon: 'fa-pencil',
-          title: ts('Edit %1', {1: item.quickEdit.title}),
-        });
+        if (item.quickEdit?.path) {
+          links.push({
+            path: item.quickEdit.path,
+            icon: 'fa-pencil',
+            title: ts('Edit %1', {1: item.quickEdit.title}),
+          });
+        }
       });
       return links;
     }
@@ -1244,7 +1264,9 @@ if (!CRM.vars) CRM.vars = {};
         })
         .find('input.select-row:checked').parents('tr').addClass('crm-row-selected');
       $('.crm-sortable-list', e.target).sortable();
-      $('table.crm-sortable', e.target).DataTable();
+      if (typeof $.DataTable == 'function') {
+        $('table.crm-sortable', e.target).DataTable();
+      }
       $('table.crm-ajax-table', e.target).each(function() {
         var
           $table = $(this),
@@ -1518,12 +1540,12 @@ if (!CRM.vars) CRM.vars = {};
       const alertDialog = document.createElement('dialog');
       alertDialog.classList.add('crm-dialog', 'crm-alert');
 
-      if (title.length) {
+      if (title?.length) {
         const header = document.createElement('h1');
         header.innerText = title;
         alertDialog.append(header);
       }
-      if (text.length) {
+      if (text?.length) {
         const body = document.createElement('p');
         body.innerText = text;
         alertDialog.append(body);
@@ -1790,19 +1812,16 @@ if (!CRM.vars) CRM.vars = {};
 
       // Handle clear button for form elements
       .on('click', 'a.crm-clear-link', function() {
-        $(this).css({visibility: 'hidden'}).siblings('.crm-form-radio:checked').prop('checked', false).trigger('change', ['crmClear']);
-        $(this).closest('.crm-multiple-checkbox-radio-options').find('.crm-form-radio:checked').prop('checked', false).trigger('change', ['crmClear']);
+        $(this).css({visibility: 'hidden'}).parent().find('.crm-form-radio:checked').prop('checked', false).trigger('change', ['crmClear']);
         $(this).siblings('input:text').val('').trigger('change', ['crmClear']);
         return false;
       })
       .on('change keyup', 'input.crm-form-radio:checked, input[allowclear=1]', function(e, context) {
         if (context !== 'crmClear' && ($(this).is(':checked') || ($(this).is('[allowclear=1]') && $(this).val()))) {
-          $(this).siblings('.crm-clear-link').css({visibility: ''});
-          $(this).closest('.crm-multiple-checkbox-radio-options').find('.crm-clear-link').css({visibility: ''});
+          $(this).add($(this).parent('.crm-option-label-pair')).siblings('.crm-clear-link').css({visibility: ''});
         }
         if (context !== 'crmClear' && $(this).is('[allowclear=1]') && $(this).val() === '') {
-          $(this).siblings('.crm-clear-link').css({visibility: 'hidden'});
-          $(this).closest('.crm-multiple-checkbox-radio-options').find('.crm-clear-link').css({visibility: 'hidden'});
+          $(this).add($(this).parent('.crm-option-label-pair')).siblings('.crm-clear-link').css({visibility: 'hidden'});
         }
       })
 
@@ -2180,5 +2199,39 @@ if (!CRM.vars) CRM.vars = {};
 
     return html;
   };
+
+  CRM.utils.createButton = (label, btnClass = null, icon = null, clickHandler = null, href = null, target = null, type = 'button') => {
+    const button = document.createElement('button');
+
+    button.type = type;
+
+    button.classList.add('btn');
+    if (btnClass) {
+      button.classList.add(btnClass);
+    }
+
+    button.innerText = label;
+
+    if (icon) {
+      const i = document.createElement('i');
+      i.classList.add('crm-i', icon);
+      i.role = 'img';
+      i.ariaHidden = true;
+      button.prepend(i);
+    }
+
+    if (clickHandler) {
+      button.onclick = clickHandler;
+    }
+    if (href) {
+      button.href = href;
+    }
+    if (target) {
+      button.target = target;
+    }
+
+    return button;
+  };
+
 
 })(jQuery, _);

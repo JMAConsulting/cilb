@@ -577,10 +577,10 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
     }
 
     if ($type === 'checkbox') {
-      $element = $this->addElement($type, $name, CRM_Utils_String::purifyHTML($label), NULL, $attributes);
+      $element = $this->addElement($type, $name, $label, NULL, $attributes);
     }
     else {
-      $element = $this->addElement($type, $name, CRM_Utils_String::purifyHTML($label), $attributes, $extra);
+      $element = $this->addElement($type, $name, $label, $attributes, $extra);
     }
     if (HTML_QuickForm::isError($element)) {
       CRM_Core_Error::statusBounce(HTML_QuickForm::errorMessage($element));
@@ -1135,7 +1135,7 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
     if ($this->_paymentProcessors) {
       if (!empty($this->_submitValues)) {
         $this->_paymentProcessorID = $this->_submitValues['payment_processor_id'] ?? NULL;
-        $this->_paymentProcessor = $this->_paymentProcessors[$this->_paymentProcessorID] ?? NULL;
+        $this->_paymentProcessor = $this->_paymentProcessors[$this->_paymentProcessorID ?? ''] ?? NULL;
         $this->set('type', $this->_paymentProcessorID);
         $this->set('mode', $this->_mode);
         $this->set('paymentProcessor', $this->_paymentProcessor);
@@ -1296,13 +1296,7 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
       $tplname = $ext->getTemplatePath(CRM_Utils_System::getClassName($this)) . DIRECTORY_SEPARATOR . $filename;
     }
     else {
-      $tplname = strtr(
-        CRM_Utils_System::getClassName($this),
-        [
-          '_' => DIRECTORY_SEPARATOR,
-          '\\' => DIRECTORY_SEPARATOR,
-        ]
-      ) . '.tpl';
+      $tplname = CRM_Utils_System::getTemplateForClass($this);
     }
     return $tplname;
   }
@@ -1391,10 +1385,11 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
    * @param string $separator
    * @param bool $required
    * @param array $optionAttributes - Option specific attributes
+   * @param bool $setRadioTextEscaped
    *
    * @return HTML_QuickForm_group
    */
-  public function &addRadio($name, $title, $values, $attributes = [], $separator = NULL, $required = FALSE, $optionAttributes = []) {
+  public function &addRadio($name, $title, $values, $attributes = [], $separator = NULL, $required = FALSE, $optionAttributes = [], $setRadioTextEscaped = FALSE) {
     $options = [];
     $attributes = $attributes ?: [];
     $allowClear = !empty($attributes['allowClear']);
@@ -1413,6 +1408,9 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
         $optAttributes['class'] .= ' required';
       }
       $element = $this->createElement('radio_with_div', NULL, NULL, $var, $key, $optAttributes);
+      if ($setRadioTextEscaped) {
+        $element->setTextEscaped();
+      }
       $options[] = $element;
     }
     if (!empty($attributes['options_per_line'])) {
@@ -1934,7 +1932,8 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
         return $this->addRadio($name, $label, $options, $props, NULL, $required);
 
       case 'CheckBox':
-        if ($context === 'search') {
+        // Ex: for is_deceased, but not is_deleted (usually implicit)
+        if ($context === 'search' && !in_array($name, ['case_deleted', 'is_deleted'])) {
           $this->addYesNo($name, $label, TRUE, FALSE, $props);
           return;
         }
@@ -2376,12 +2375,8 @@ class CRM_Core_Form extends HTML_QuickForm_Page {
    * @throws \CRM_Core_Exception
    */
   public function getRequestedContactID(): ?int {
-    if (isset($this->_params) && !empty($this->_params['select_contact_id'])) {
-      return (int) $this->_params['select_contact_id'];
-    }
-    if (isset($this->_params, $this->_params[0]) && !empty($this->_params[0]['select_contact_id'])) {
-      // Event form stores as an indexed array, contribution form not so much...
-      return (int) $this->_params[0]['select_contact_id'];
+    if ($this->getSubmittedValue('select_contact_id')) {
+      return (int) $this->getSubmittedValue('select_contact_id');
     }
     $urlContactID = CRM_Utils_Request::retrieve('cid', 'Positive', $this);
     return is_numeric($urlContactID) ? (int) $urlContactID : NULL;

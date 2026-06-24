@@ -576,7 +576,7 @@ class CRM_Export_BAO_ExportProcessor {
    * @return bool
    */
   public function isRelationshipTypeKey($fieldName) {
-    return array_key_exists($fieldName, $this->relationshipTypes);
+    return $fieldName && array_key_exists($fieldName, $this->relationshipTypes);
   }
 
   /**
@@ -845,6 +845,7 @@ class CRM_Export_BAO_ExportProcessor {
       $field = trim($field);
       if (!empty($this->getReturnProperties()[$field])) {
         //CRM-15301
+        $order = CRM_Utils_Type::escape($order, 'MysqlOrderBy');
         $queryString .= " ORDER BY $order";
       }
     }
@@ -1005,7 +1006,7 @@ class CRM_Export_BAO_ExportProcessor {
         $fieldValue = $iterationDAO->$field;
         // to get phone type from phone type id
         if ($field == 'provider_id' || $field == 'im_provider') {
-          $fieldValue = $imProviders[$fieldValue] ?? NULL;
+          $fieldValue = CRM_Core_PseudoConstant::getLabel('CRM_Core_BAO_IM', 'provider_id', $fieldValue);
         }
         elseif (str_contains($field, 'master_id')) {
           // @todo - why not just $field === 'master_id'  - what else would it be?
@@ -1171,6 +1172,9 @@ class CRM_Export_BAO_ExportProcessor {
     }
     elseif ($this->isExportSpecifiedPaymentFields() && array_key_exists($field, $this->getcomponentPaymentFields())) {
       $paymentTableId = $this->getPaymentTableID();
+      if (!$iterationDAO->$paymentTableId) {
+        return NULL;
+      }
       $paymentData = $paymentDetails[$iterationDAO->$paymentTableId] ?? NULL;
       $payFieldMapper = [
         'componentPaymentField_total_amount' => 'total_amount',
@@ -2407,11 +2411,35 @@ AND civicrm_participant_payment.participant_id {$componentClause} )
 ";
     }
     elseif ($this->getExportMode() === CRM_Export_Form_Select::MEMBER_EXPORT) {
-      $componentSelect = " civicrm_membership_payment.membership_id id";
-      $additionalClause = "
+      if (CRM_Price_BAO_LineItem::siteHasMembershipPaymentRecordsNotReflectedInLineItems()
+        && (CRM_Core_DAO::singleValueQuery(
+          'SELECT p.id FROM civicrm_membership_payment p LEFT JOIN civicrm_line_item line
+          ON line.contribution_id = p.contribution_id AND line.entity_id = p.membership_id
+          AND line.entity_table = "civicrm_membership"
+          AND line.entity_id IN (' . implode(',', $this->ids) . ')
+          WHERE line.id IS NULL LIMIT 1 ')
+        )
+      ) {
+        $missingRows = CRM_Core_DAO::singleValueQuery(
+          'SELECT GROUP_CONCAT(p.membership_id) FROM civicrm_membership_payment p LEFT JOIN civicrm_line_item line
+          ON line.contribution_id = p.contribution_id AND line.entity_id = p.membership_id
+          AND line.entity_table = "civicrm_membership"
+          AND line.entity_id IN (' . implode(',', $this->ids) . ')
+          WHERE line.id IS NULL');
+        \Civi::log('data')->warning('missing line items for memberships:' . $missingRows);
+        $componentSelect = " civicrm_membership_payment.membership_id id";
+        $additionalClause = "
 INNER JOIN civicrm_membership_payment ON (civicrm_contribution.id = civicrm_membership_payment.contribution_id
 AND civicrm_membership_payment.membership_id {$componentClause} )
 ";
+      }
+      else {
+        $componentSelect = " civicrm_line_item.entity_id id";
+        $additionalClause = "
+INNER JOIN civicrm_line_item ON (civicrm_contribution.id = civicrm_line_item.contribution_id
+AND civicrm_line_item.entity_table = 'civicrm_membership' AND civicrm_line_item.entity_id {$componentClause} )
+";
+      }
     }
     elseif ($this->getExportMode() === CRM_Export_Form_Select::PLEDGE_EXPORT) {
       $componentSelect = " civicrm_pledge_payment.id id";

@@ -1213,8 +1213,8 @@ class CRM_Core_Permission {
         'administer CiviCase',
       ],
       'default' => [
-        // At minimum the user needs one of the following. Finer-grained access is controlled by CRM_Case_BAO_Case::addSelectWhereClause
-        ['access my cases and activities', 'access all cases and activities'],
+        // At minimum the user needs the following. Finer-grained access is controlled by CRM_Case_BAO_Case::addSelectWhereClause
+        'access my cases and activities',
       ],
     ];
     $permissions['case_contact'] = $permissions['case'];
@@ -1222,10 +1222,7 @@ class CRM_Core_Permission {
 
     $permissions['case_type'] = [
       'default' => ['administer CiviCase'],
-      'get' => [
-        // nested array = OR
-        ['access my cases and activities', 'access all cases and activities'],
-      ],
+      'get' => ['access my cases and activities'],
     ];
 
     // Campaign permissions
@@ -1300,6 +1297,7 @@ class CRM_Core_Permission {
       ],
     ];
     $permissions['contribution_recur'] = $permissions['payment'];
+    $permissions['order'] = $permissions['payment'];
 
     // Custom field permissions
     $permissions['custom_field'] = [

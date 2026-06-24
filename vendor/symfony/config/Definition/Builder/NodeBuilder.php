@@ -18,8 +18,8 @@ namespace Symfony\Component\Config\Definition\Builder;
  */
 class NodeBuilder implements NodeParentInterface
 {
-    protected $parent;
-    protected $nodeMapping;
+    protected (NodeDefinition&ParentNodeDefinitionInterface)|null $parent = null;
+    protected array $nodeMapping;
 
     public function __construct()
     {
@@ -39,11 +39,8 @@ class NodeBuilder implements NodeParentInterface
      *
      * @return $this
      */
-    public function setParent(?ParentNodeDefinitionInterface $parent = null): static
+    public function setParent((NodeDefinition&ParentNodeDefinitionInterface)|null $parent): static
     {
-        if (1 > \func_num_args()) {
-            trigger_deprecation('symfony/form', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
-        }
         $this->parent = $parent;
 
         return $this;
@@ -107,10 +104,8 @@ class NodeBuilder implements NodeParentInterface
 
     /**
      * Returns the parent node.
-     *
-     * @return NodeDefinition&ParentNodeDefinitionInterface
      */
-    public function end()
+    public function end(): NodeDefinition&ParentNodeDefinitionInterface
     {
         return $this->parent;
     }
@@ -190,13 +185,13 @@ class NodeBuilder implements NodeParentInterface
         $type = strtolower($type);
 
         if (!isset($this->nodeMapping[$type])) {
-            throw new \RuntimeException(\sprintf('The node type "%s" is not registered.', $type));
+            throw new \RuntimeException(sprintf('The node type "%s" is not registered.', $type));
         }
 
         $class = $this->nodeMapping[$type];
 
         if (!class_exists($class)) {
-            throw new \RuntimeException(\sprintf('The node class "%s" does not exist.', $class));
+            throw new \RuntimeException(sprintf('The node class "%s" does not exist.', $class));
         }
 
         return $class;

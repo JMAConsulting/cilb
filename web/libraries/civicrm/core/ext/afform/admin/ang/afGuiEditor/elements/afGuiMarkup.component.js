@@ -2,7 +2,7 @@
 (function(angular, $, _) {
   "use strict";
 
-  var richtextId = 0;
+  let richtextId = 0;
 
   angular.module('afGuiEditor').component('afGuiMarkup', {
     templateUrl: '~/afGuiEditor/elements/afGuiMarkup.html',
@@ -22,7 +22,7 @@
         $scope.id = 'af-markup-editor-' + richtextId++;
 
         // When creating a new markup container, go straight to edit mode
-        $timeout(function() {
+        $timeout(() => {
           if (ctrl.node['#markup'] === false) {
             $scope.edit();
           }

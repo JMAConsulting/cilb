@@ -248,12 +248,7 @@ class CRM_Member_Form_Membership extends CRM_Member_Form {
     $defaults['num_terms'] = 1;
 
     if (!empty($defaults['id'])) {
-      $contributionId = CRM_Core_DAO::singleValueQuery("
-SELECT contribution_id
-FROM civicrm_membership_payment
-WHERE membership_id = $this->_id
-ORDER BY contribution_id
-DESC limit 1");
+      $contributionId = CRM_Member_BAO_MembershipPayment::getLatestContributionIDFromLineitemAndFallbackToMembershipPayment($this->_id);
 
       if ($contributionId) {
         $defaults['record_contribution'] = $contributionId;
@@ -420,7 +415,7 @@ DESC limit 1");
         $selOrgMemType[$memberOfContactId][0] = ts('- select -');
       }
       if (empty($selOrgMemType[$memberOfContactId][$key])) {
-        $selOrgMemType[$memberOfContactId][$key] = $values['name'] ?? NULL;
+        $selOrgMemType[$memberOfContactId][$key] = $values['title'] ?? NULL;
       }
 
       $totalAmount = $values['minimum_fee'] ?? 0;
@@ -1393,14 +1388,7 @@ DESC limit 1");
       $contributionID = CRM_Member_BAO_MembershipPayment::getLatestContributionIDFromLineitemAndFallbackToMembershipPayment($this->getMembershipID());
 
       // get price fields of chosen price-set
-      $priceSetDetails = CRM_Utils_Array::value(
-        $this->_priceSetId,
-        CRM_Price_BAO_PriceSet::getSetDetail(
-          $this->_priceSetId,
-          TRUE,
-          TRUE
-        )
-      );
+      $priceSetDetails = CRM_Price_BAO_PriceSet::getSetDetail($this->_priceSetId, TRUE, TRUE)[$this->_priceSetId] ?? NULL;
 
       // add price field information in $inputParams
       self::addPriceFieldByMembershipType($inputParams, $priceSetDetails['fields'], $this->getMembership()['membership_type_id']);

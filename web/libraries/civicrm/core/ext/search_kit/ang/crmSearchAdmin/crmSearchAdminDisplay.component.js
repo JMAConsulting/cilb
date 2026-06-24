@@ -15,7 +15,6 @@
       CRM.crmSearchAdmin.displayTypes.forEach(function(type) {
         html +=
           '<div ng-switch-when="' + type.id + '">\n' +
-          '  <div class="help-block"><i class="crm-i ' + type.icon + '" role="img" aria-hidden="true"></i> ' + _.escape(type.description) + '</div>' +
           '  <search-admin-display-' + type.id + ' api-entity="$ctrl.savedSearch.api_entity" api-params="$ctrl.savedSearch.api_params" display="$ctrl.display"></search-admin-display-' + type.id + '>\n' +
           '  <hr>\n' +
           '  <button type="button" class="btn btn-{{ !$ctrl.stale ? \'success\' : $ctrl.preview ? \'warning\' : \'primary\' }}" ng-click="$ctrl.previewDisplay()" ng-disabled="!$ctrl.stale">\n' +
@@ -40,6 +39,10 @@
       this.aclBypassHelp = ts('Only users with "all CiviCRM permissions and ACLs" can disable permission checks.');
 
       this.preview = this.stale = false;
+
+      this.$onInit = function() {
+        this.displayType = CRM.crmSearchAdmin.displayTypes.find(type => type.id === this.display.type);
+      };
 
       // Extra (non-field) colum types
       this.colTypes = {
@@ -67,6 +70,19 @@
             size: 'btn-xs',
             icon: 'fa-bars',
             links: []
+          }
+        },
+        subsearch: {
+          label: ts('Embedded Subsearch'),
+          icon: 'fa-window-restore',
+          defaults: {
+            label: '',
+            rewrite: '',
+            alignment: '',
+            subsearch: {
+              filters: [],
+              subsearch_mode: 'dropdown'
+            }
           }
         },
         include: {
@@ -101,7 +117,7 @@
       this.addCol = function(type) {
         const col = _.cloneDeep(this.colTypes[type].defaults);
         col.type = type;
-        if (this.display.type === 'table') {
+        if (this.display.type === 'table' && !('alignment' in col)) {
           col.alignment = 'text-right';
         }
         ctrl.display.settings.columns.push(col);
@@ -340,18 +356,24 @@
       };
 
       // Helper function to sort active from hidden columns and initialize each column with defaults
-      this.initColumns = function(defaults) {
+      this.initColumns = (defaults) => {
         initDefaults = defaults;
-        if (!ctrl.display.settings.columns) {
-          ctrl.display.settings.columns = _.transform(ctrl.savedSearch.api_params.select, function(columns, fieldExpr) {
+        if (!this.display.settings.columns) {
+          this.display.settings.columns = _.transform(this.savedSearch.api_params.select, function(columns, fieldExpr) {
             columns.push(searchMeta.fieldToColumn(fieldExpr, defaults));
           });
         } else {
-          let activeColumns = ctrl.display.settings.columns.map(col => col.key);
+          let activeColumns = this.display.settings.columns.map(col => col.key);
           // Delete any column that is no longer in the search
           activeColumns.reverse().forEach((key, index) => {
-            if (key && !ctrl.getExprFromSelect(key)) {
-              ctrl.removeCol(activeColumns.length - 1 - index);
+            if (key && !this.getExprFromSelect(key)) {
+              this.removeCol(activeColumns.length - 1 - index);
+            }
+          });
+          // Fill in any missing default values from columns
+          this.display.settings.columns.forEach((col, index) => {
+            if (col.type && this.colTypes[col.type]?.defaults) {
+              this.display.settings.columns[index] = _.merge({}, this.colTypes[col.type].defaults, col);
             }
           });
         }

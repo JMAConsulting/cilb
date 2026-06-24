@@ -14,13 +14,13 @@
 
   {if $field.field_type eq "Formatting"}
     {if $action neq 4}
-      {$field.help_pre}
+      {$field.help_pre|purify}
     {/if}
   {elseif $profileFieldName}
     {* Show explanatory text for field if not in 'view' mode *}
     {if $field.help_pre && $action neq 4}
       <div class="crm-section helprow-{$profileFieldName}-section helprow-pre" id="helprow-{$rowIdentifier}">
-        <div class="content description">{$field.help_pre}</div>
+        <div class="content description">{$field.help_pre|purify}</div>
       </div>
     {/if}
     {if array_key_exists('options_per_line', $field) && $field.options_per_line != 0}
@@ -120,7 +120,7 @@
               </div>
               {* Include the edit options list for admins *}
               {if $formElement.html|strstr:"crm-option-edit-link"}
-                {$formElement.html|regex_replace:"@^.*(<a href=.*? class=.crm-option-edit-link.*?</a>)$@":"$1"}
+                {$formElement.html|regex_replace:"@^.*(<a href=.*? class=.crm-option-edit-link.*?</a>)$@s":"$1"}
               {/if}
             {else}
               {$formElement.html}
@@ -140,7 +140,7 @@
     {* Show explanatory text for field if not in 'view' mode *}
     {if $field.help_post && $action neq 4}
       <div class="crm-section helprow-{$profileFieldName}-section helprow-post" id="helprow-{$rowIdentifier}">
-        <div class="content description">{$field.help_post}</div>
+        <div class="content description">{$field.help_post|purify}</div>
       </div>
     {/if}
   {/if}
