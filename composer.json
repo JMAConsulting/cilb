@@ -98,9 +98,6 @@
             "Expose contribution ID for further post processing": "patches/webform_civicrm_expose_contribution_id.patch",
             "Delay contribution receipt send": "patches/webform_civicrm_delay_send_receipt.patch",
             "Apply patch to support year": "patches/birth_date_year.patch"
-        },
-        "drupal/civicrm_entity": {
-            "Fix civicrm_event_en_MX crash": "patches/civicrm_entity_497.patch"
         }
     },
   	"drupal-scaffold": {
