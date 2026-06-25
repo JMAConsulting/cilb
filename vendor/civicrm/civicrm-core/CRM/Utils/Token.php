@@ -148,70 +148,6 @@ class CRM_Utils_Token {
   }
 
   /**
-   * Replace all the domain-level tokens in $str
-   *
-   * @deprecated since ages ago will be removed around 5.90
-   *
-   * @param string $str
-   *   The string with tokens to be replaced.
-   * @param object $domain
-   *   The domain BAO.
-   * @param bool $html
-   *   Replace tokens with HTML or plain text.
-   *
-   * @param null $knownTokens
-   * @param bool $escapeSmarty
-   *
-   * @return string
-   *   The processed string
-   */
-  public static function replaceDomainTokens(
-    $str,
-    $domain,
-    $html = FALSE,
-    $knownTokens = NULL,
-    $escapeSmarty = FALSE
-  ) {
-    CRM_Core_Error::deprecatedFunctionWarning('use the Token Processor');
-    $key = 'domain';
-    if (
-      !$knownTokens || empty($knownTokens[$key])
-    ) {
-      return $str;
-    }
-
-    $str = preg_replace_callback(
-      self::tokenRegex($key),
-      function ($matches) use ($domain, $html, $escapeSmarty) {
-        return CRM_Utils_Token::getDomainTokenReplacement($matches[1], $domain, $html, $escapeSmarty);
-      },
-      $str
-    );
-    return $str;
-  }
-
-  /**
-   * Do not use.
-   *
-   * @deprecated
-   *
-   * @param string $token
-   * @param CRM_Core_BAO_Domain $domain
-   * @param bool $html
-   * @param bool $escapeSmarty
-   *
-   * @return null|string
-   */
-  public static function getDomainTokenReplacement($token, $domain, $html = FALSE, $escapeSmarty = FALSE): ?string {
-    $tokens = CRM_Core_DomainTokens::getDomainTokenValues($domain->id, $html);
-    $value = $tokens[$token] ?? "{domain.$token}";
-    if ($escapeSmarty) {
-      $value = self::tokenEscapeSmarty($value);
-    }
-    return $value;
-  }
-
-  /**
    * Replace all mailing tokens in $str
    *
    * @param string $str
@@ -252,8 +188,8 @@ class CRM_Utils_Token {
   }
 
   /**
-   * @param $token
-   * @param $mailing
+   * @param string $token
+   * @param \CRM_Mailing_BAO_Mailing $mailing
    * @param bool $escapeSmarty
    *
    * @return string
@@ -280,7 +216,7 @@ class CRM_Utils_Token {
         break;
 
       case 'group':
-        $groups = $mailing ? $mailing->getGroupNames() : ['Mailing Groups'];
+        $groups = $mailing ? ($mailing->getGroupNames() ?? []) : ['Mailing Groups'];
         $value = implode(', ', $groups);
         break;
 
@@ -1513,6 +1449,9 @@ class CRM_Utils_Token {
           '$financialTypeId' => 'contribution.financial_type_id',
           '$financialTypeName' => 'contribution.financial_type_id:name',
           '$contributionTypeName' => 'contribution.financial_type_id:name',
+          '$email' => 'contact.email_primary.email',
+          '$address' => 'contribution.address_id.display',
+          '$amount' => ts('see default template for how to show this'),
         ],
         'membership_offline_receipt' => [
           // receipt_text_renewal appears to be long gone.
@@ -1563,6 +1502,8 @@ class CRM_Utils_Token {
           '$financialTypeId' => 'contribution.financial_type_id',
           '$financialTypeName' => 'contribution.financial_type_id:name',
           '$contributionTypeName' => 'contribution.financial_type_id:name',
+          '$address' => 'contribution.address_id.display',
+          '$amount' => ts('see default template for how to show this'),
         ],
         'contribution_offline_receipt' => [
           '$totalTaxAmount' => 'contribution.tax_amount',
@@ -1625,6 +1566,11 @@ class CRM_Utils_Token {
           '$lineItem' => '$lineItems',
           '$participant_status' => 'participant.status_id:label',
           '$billingName' => 'contribution.address_id.name',
+          '$event.customGroup' => 'no longer available / relevant, use event tokens',
+          '$participant.customGroup' => 'no longer available / relevant, use participant tokens',
+          '$custom_pre_id' => 'no longer available/relevant',
+          '$custom_post_id' => 'no longer available/relevant',
+          '$address' => 'contribution.address_id.display',
         ],
         'participant_transferred' => [
           '$location' => 'event.location',
@@ -1668,6 +1614,13 @@ class CRM_Utils_Token {
           '$contact' => ts('no longer available / relevant'),
           '$billingName' => 'contribution.address_id.name',
         ],
+        'membership_autorenew_billing' => [
+          '$email' => ts('no longer available / relevant'),
+        ],
+        'contribution_recurring_billing' => [
+          '$email' => ts('no longer available / relevant'),
+        ],
+
       ],
     ];
   }

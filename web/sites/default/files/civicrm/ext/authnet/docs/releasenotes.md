@@ -9,6 +9,14 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 2.9.3 (2026-06-02)
+
+* [!47](https://lab.civicrm.org/extensions/authnet/-/merge_requests/47) Send date in refund parameters.
+
+## 2.9.2 (2026-04-13)
+
+* Fix accepted_credit_cards when there are no cards selected.
+
 ## 2.9.1 (2026-04-03)
 
 * Fix undefined array key.

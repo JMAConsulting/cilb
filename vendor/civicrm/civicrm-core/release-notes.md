@@ -15,33 +15,41 @@ Other resources for identifying changes are:
     * https://github.com/civicrm/civicrm-joomla
     * https://github.com/civicrm/civicrm-wordpress
 
-## CiviCRM 6.12.3
+## CiviCRM 6.15.4
 
-Released April 1, 2026
+Released June 18, 2026
 
-- **[Synopsis](release-notes/6.12.3.md#synopsis)**
-- **[Bugs resolved](release-notes/6.12.3.md#bugs)**
-- **[Credits](release-notes/6.12.3.md#credits)**
-- **[Feedback](release-notes/6.12.3.md#feedback)**
+- **[Synopsis](release-notes/6.15.4.md#synopsis)**
+- **[Bugs resolved](release-notes/6.15.4.md#bugs)**
+- **[Credits](release-notes/6.15.4.md#credits)**
+- **[Feedback](release-notes/6.15.4.md#feedback)**
 
-## CiviCRM 6.12.2
+## CiviCRM 6.15.3
 
-Released March 23, 2026
+Released Wed Jun 17 2026 21:00:00 GMT-0700 (GMT-07:00)
 
-- **[Synopsis](release-notes/6.12.2.md#synopsis)**
-- **[Bugs resolved](release-notes/6.12.2.md#bugs)**
-- **[Credits](release-notes/6.12.2.md#credits)**
-- **[Feedback](release-notes/6.12.2.md#feedback)**
+- **[Synopsis](release-notes/6.15.3.md#synopsis)**
+- **[Security advisories](release-notes/6.15.3.md#security)**
+- **[Credits](release-notes/6.15.3.md#credits)**
+- **[Feedback](release-notes/6.15.3.md#feedback)**
 
-## CiviCRM 6.12.1
+## CiviCRM 6.15.2
 
-Released March 18, 2026
+Released June 14, 2026
 
-- **[Synopsis](release-notes/6.12.1.md#synopsis)**
-- **[Security advisories](release-notes/6.12.1.md#security)**
-- **[Bugs resolved](release-notes/6.12.1.md#bugs)**
-- **[Credits](release-notes/6.12.1.md#credits)**
-- **[Feedback](release-notes/6.12.1.md#feedback)**
+- **[Synopsis](release-notes/6.15.2.md#synopsis)**
+- **[Bugs resolved](release-notes/6.15.2.md#bugs)**
+- **[Credits](release-notes/6.15.2.md#credits)**
+- **[Feedback](release-notes/6.15.2.md#feedback)**
+
+## CiviCRM 6.15.1
+
+Released June 10, 2026
+
+- **[Synopsis](release-notes/6.15.1.md#synopsis)**
+- **[Bugs resolved](release-notes/6.15.1.md#bugs)**
+- **[Credits](release-notes/6.15.1.md#credits)**
+- **[Feedback](release-notes/6.15.1.md#feedback)**
 
 ## CiviCRM 6.1.0
 

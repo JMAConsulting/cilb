@@ -141,7 +141,13 @@ trait CRM_Core_WorkflowMessage_ProfileTrait {
             }
           }
           $profile = $profiles[$join['uf_group_id']];
-          $profile['placement'] = $join['weight'] === 1 ? 'pre' : 'post';
+          if ('CiviContribute' === $join['module']) {
+            $profile['placement'] = $join['weight'] === 1 ? 'pre' : 'post';
+          }
+          else {
+            // e.g. soft_credit (honoree)
+            $profile['placement'] = $join['module'];
+          }
           $profile['module'] = $join['module'];
           $profile['title'] = $join['uf_group_id.frontend_title'];
           $profile['fields'] = $contactID ? $this->getProfileFields($join['uf_group_id'], $contactID, (string) $join['module']) : [];
@@ -320,7 +326,7 @@ trait CRM_Core_WorkflowMessage_ProfileTrait {
         foreach ($profile['fields'] as $participantIndex => $fields) {
           $profiles['profile'][$participantIndex][$profile['id']] = $profile['fields'][$participantIndex];
         }
-        $profiles['title'][$profile['id']] = $profile['title'];
+        $profiles['title'][$profile['id']] = $profile['frontend_title'];
       }
     }
     return $profiles;

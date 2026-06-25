@@ -74,13 +74,7 @@ class Refund extends AbstractCreateAction {
         throw new \CRM_Core_Exception('Cannot refund zero or negative amount');
       }
 
-      $refundParams = [
-        'payment_processor_id' => $payment['payment_processor_id'],
-        'amount' => $refundAmount->getAmount()->toFloat(),
-        'currency' => $payment['currency'],
-        'trxn_id' => $payment['trxn_id'],
-      ];
-      $paymentProcessorId = $refundParams['payment_processor_id'] ?? NULL;
+      $paymentProcessorId = $payment['payment_processor_id'] ?? NULL;
       $supportsRefund = FALSE;
       if ($paymentProcessorId) {
         $paymentProcessor = \Civi\Payment\System::singleton()->getById($paymentProcessorId);
@@ -93,9 +87,16 @@ class Refund extends AbstractCreateAction {
         $refund = ['refund_status' => 'Completed'];
       }
       else {
+        if (empty($payment['trxn_id'])) {
+          throw new \CRM_Core_Exception('Cannot request refund from payment processor without trxn_id');
+        }
         // Request and process refund using payment processor.
-        // @todo: Switch to API4 once https://github.com/civicrm/civicrm-core/pull/33694 is merged
-        $refund = reset(civicrm_api3('PaymentProcessor', 'Refund', $refundParams)['values']);
+        $refund = \Civi\Api4\PaymentProcessor::refund(FALSE)
+          ->setPaymentProcessorID($payment['payment_processor_id'])
+          ->setAmountToRefund($refundAmount->getAmount()->toFloat())
+          ->setTransactionID($payment['trxn_id'])
+          // ->setCurrency($payment['currency']) // Needs https://github.com/civicrm/civicrm-core/pull/35477
+          ->execute();
       }
       if ($refund['refund_status'] === 'Completed') {
         $refundPaymentParams = [
@@ -105,6 +106,7 @@ class Refund extends AbstractCreateAction {
           'total_amount' => 0 - abs($refundAmount->getAmount()->toFloat()),
           'fee_amount' => 0 - abs($refund['fee_amount']),
           'payment_processor_id' => $payment['payment_processor_id'],
+          'trxn_date' => $refund['trxn_date'] ?? NULL,
         ];
 
         $lock = \Civi::lockManager()->acquire('data.contribute.contribution.' . $refundPaymentParams['contribution_id']);
@@ -145,10 +147,10 @@ class Refund extends AbstractCreateAction {
         }
       }
       else {
-        throw new \CRM_Core_Exception("Refund status '{$refund['refund_status']}'is not supported at this time and was not recorded in CiviCRM.");
+        throw new \CRM_Core_Exception("Refund status '{$refund['refund_status']}' is not supported at this time and was not recorded in CiviCRM.");
       }
     } catch (\Throwable $e) {
-      throw new \CRM_Core_Exception($e->getMessage(), NULL, 'Refund failed');
+      throw new \CRM_Core_Exception($e->getMessage(), NULL, ['error' => 'Refund failed']);
     }
 
     $result->exchangeArray(['message' => $message ?? '']);

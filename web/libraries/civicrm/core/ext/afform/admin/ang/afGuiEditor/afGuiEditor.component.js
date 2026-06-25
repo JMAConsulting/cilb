@@ -225,10 +225,10 @@
       $scope.updateLayoutHtml = function() {
         $scope.layoutHtml = '...Loading...';
         crmApi4('Afform', 'convert', {layout: editor.afform.layout, from: 'deep', to: 'html', formatWhitespace: true})
-          .then(function(r){
+          .then((r) => {
             $scope.layoutHtml = r[0].layout || '(Error)';
           })
-          .catch(function(r){
+          .catch((r) => {
             $scope.layoutHtml = '(Error)';
           });
       };
@@ -280,7 +280,7 @@
           delete $scope.entities[type + num].loading;
           if (selectTab) {
             editor.selectEntity(type + num);
-            $timeout(function() {
+            $timeout(() => {
               editor.scrollToEntity(type + num);
             });
           }
@@ -294,7 +294,7 @@
           crmApi4('Afform', 'loadAdminData', {
             definition: {type: 'form'},
             entity: type
-          }, 0).then(function(data) {
+          }, 0).then((data) => {
             afGui.addMeta(data);
             addToCanvas();
           });
@@ -460,7 +460,7 @@
 
       this.placementRequiresServerRoute = function() {
         let requiresServerRoute = false;
-        editor.afform.placement.forEach(function(placement) {
+        editor.afform.placement.forEach((placement) => {
           const item = editor.meta.afform_placement.find(item => item.id === placement);
           if (item && item.filter) {
             requiresServerRoute = item.text;
@@ -483,15 +483,15 @@
           isJoin = function (item) {
             return _.isPlainObject(item) && ('af-join' in item);
           };
-        _.each(fieldsets, function(fieldset) {
-          _.each(afGui.getFormElements(fieldset['#children'], {'#tag': 'af-field'}, isJoin), function(field) {
+        fieldsets.forEach((fieldset) => {
+          afGui.getFormElements(fieldset['#children'], {'#tag': 'af-field'}, isJoin).forEach((field) => {
             if (field.name) {
               entityFields.fields.push(fillFieldDefn(entityType, field));
             }
           });
-          _.each(afGui.getFormElements(fieldset['#children'], isJoin), function(join) {
+          afGui.getFormElements(fieldset['#children'], isJoin).forEach((join) => {
             const joinFields = [];
-            _.each(afGui.getFormElements(join['#children'], {'#tag': 'af-field'}), function(field) {
+            afGui.getFormElements(join['#children'], {'#tag': 'af-field'}).forEach((field) => {
               if (field.name) {
                 joinFields.push(fillFieldDefn(join['af-join'], field));
               }
@@ -553,34 +553,35 @@
           select: ['name', 'label', 'parent_id', 'icon'],
           where: conditions,
           orderBy: {weight: 'ASC'}
-        }).then(function(items) {
+        }).then((items) => {
           editor.navigationMenu = buildTree(items, null);
         });
       }
 
       function buildTree(items, parentId) {
-        return _.transform(items, function(navigationMenu, item) {
+        return items.reduce((navigationMenu, item) => {
           if (parentId === item.parent_id) {
-            const children = buildTree(items, item.id),
-              menuItem = {
-                id: item.name,
-                text: item.label,
-                icon: item.icon
-              };
+            const children = buildTree(items, item.id);
+            const menuItem = {
+              id: item.name,
+              text: item.label,
+              icon: item.icon
+            };
             if (children.length) {
               menuItem.children = children;
             }
             navigationMenu.push(menuItem);
           }
+          return navigationMenu;
         }, []);
       }
 
       // Collects all search displays currently on the form
       function getSearchDisplaysOnForm() {
         const searchFieldsets = afGui.findRecursive(editor.afform.layout, {'af-fieldset': ''});
-        return _.transform(searchFieldsets, function(searchDisplays, fieldset) {
-          const displayElement = afGui.findRecursive(fieldset['#children'], function (item) {
-            return item['search-name'] && item['#tag'] && item['#tag'].indexOf('crm-search-display-') === 0;
+        return searchFieldsets.reduce((searchDisplays, fieldset) => {
+          const displayElement = afGui.findRecursive(fieldset['#children'], (item) => {
+            return item['search-name'] && item['#tag'] && afGui.meta.searchDisplayTags.includes(item['#tag']);
           })[0];
           if (displayElement) {
             searchDisplays[displayElement['search-name'] + (displayElement['display-name'] ? '.' + displayElement['display-name'] : '')] = {
@@ -589,6 +590,7 @@
               settings: afGui.getSearchDisplay(displayElement['search-name'], displayElement['display-name'])
             };
           }
+          return searchDisplays;
         }, {});
       }
 
@@ -599,7 +601,7 @@
         // A value means it's alredy loaded. Null means it's loading.
         if (!editor.searchOptions && editor.searchOptions !== null) {
           editor.searchOptions = null;
-          afGui.getAllSearchDisplays().then(function(links) {
+          afGui.getAllSearchDisplays().then((links) => {
             editor.searchOptions = links;
           });
         }
@@ -638,7 +640,7 @@
           crmApi4('Afform', 'loadAdminData', {
             definition: {type: 'search'},
             entity: display.key
-          }, 0).then(function(data) {
+          }, 0).then((data) => {
             afGui.addMeta(data);
             meta.settings = afGui.getSearchDisplay(searchName, displayName);
             addToCanvas();
@@ -718,7 +720,7 @@
         }
         $scope.saving = true;
         crmApi4('Afform', 'save', {formatWhitespace: true, records: [afform]})
-          .then(function (data) {
+          .then((data) => {
             $scope.saving = false;
             // When saving a new form for the first time
             if (!editor.afform.name) {
@@ -728,7 +730,7 @@
               changePathQuietly('/edit/' + data[0].name);
             }
             // Update undo history - mark current snapshot as "saved"
-            _.each(undoHistory, function(snapshot, index) {
+            undoHistory.forEach((snapshot, index) => {
               snapshot.saved = index === undoPosition;
               snapshot.afform.name = data[0].name;
             });
@@ -739,12 +741,17 @@
               refreshMenubar();
             }
             setLastSaved();
+          })
+          .catch((error) => {
+            const message = error?.error_message ? error.error_message : ts('Unknown error');
+            CRM.alert(message, ts('Save failed'), 'error');
+            $scope.saving = false;
           });
       };
 
       $scope.$watch('editor.afform.title', function(newTitle, oldTitle) {
         if (typeof oldTitle === 'string') {
-          _.each($scope.entities, function(entity) {
+          Object.values($scope.entities).forEach((entity) => {
             if (entity.data && 'source' in entity.data && (entity.data.source || '') === oldTitle) {
               entity.data.source = newTitle;
             }

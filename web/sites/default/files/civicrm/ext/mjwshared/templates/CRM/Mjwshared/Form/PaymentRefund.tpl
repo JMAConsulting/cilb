@@ -1,7 +1,7 @@
 {crmScope extensionKey='mjwshared'}
   <div class="crm-content">
     <div class="alert alert-info">
-      <h4>Payment details</h4>
+      <h4>{ts}Payment details{/ts}</h4>
       <div class="crm-section crm-mjwshared-paymentrefund-paymentinfo">
         <div class="label">{ts}Total Amount{/ts}</div><div class="content">{$paymentInfo.total_amount|crmMoney:$paymentInfo.currency}</div>
           {if $paymentInfo.paid_amount}<div class="label">{ts}Amount Paid{/ts}</div><div class="content">{$paymentInfo.paid_amount|crmMoney:$paymentInfo.currency}</div>{/if}

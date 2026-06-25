@@ -9,6 +9,20 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.5.8 (2026-06-23)
+
+* [!64](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/64) Add permission "Access all Payment Tokens" and by default restrict access to paymentTokens to the ones that belong to the logged in user. 
+* [!67](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/67) Add weight key to record refund action
+* [!66](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/66) CRM_Core_Exception third params needs to be array (fix crash on error).
+* [!65](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/65) Add composer package publishing pipeline.
+
+## Release 1.5.7 (2026-06-02)
+
+* i18n: translate missing user-facing strings
+* Support a trxn_date when refund is completed
+* Use API4 PaymentProcessor::refund
+* Refactor logParams and refund signature
+
 ## Release 1.5.6 (2026-04-02)
 
 * [!61](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/61) Allow refunds when payment processor does not support it.

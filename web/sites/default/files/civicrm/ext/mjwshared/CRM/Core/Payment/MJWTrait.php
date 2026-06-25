@@ -269,7 +269,7 @@ trait CRM_Core_Payment_MJWTrait {
    *   (or CRM_Core_Error::statusBounce if URL is specified)
    */
   private function handleError(string $errorCode = '', string $errorMessage = '', string $bounceURL = '', bool $log = TRUE) {
-    $errorMessage = empty($errorMessage) ? 'Unknown System Error.' : $errorMessage;
+    $errorMessage = empty($errorMessage) ? E::ts('Unknown System Error.') : $errorMessage;
     $message = $errorMessage . (!empty($errorCode) ? " - {$errorCode}" : '');
 
     if ($log) {

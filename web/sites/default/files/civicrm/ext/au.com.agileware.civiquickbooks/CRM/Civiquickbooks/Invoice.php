@@ -80,7 +80,16 @@ class CRM_Civiquickbooks_Invoice {
         throw new CRM_Core_Exception('Could not get DataService Object: ' . $e->getMessage());
       }
 
+      $next_loop_start = microtime(TRUE);
+
       foreach ($records as $i => $record) {
+        // To avoid hitting API rate limits, we will ensure there is at least 1 second between the start of each loop iteration where we make API calls.
+        // If processing a record takes less than 1 second, we will sleep for the remaining time before starting the next iteration.
+        $delay = $next_loop_start - microtime(TRUE);
+        if ($delay > 0) {
+          usleep($delay * 1e6);
+        }
+        $next_loop_start = microtime(TRUE) + 1;
         try {
           $accountsInvoice = $this->getAccountsInvoice($record);
 
@@ -108,6 +117,11 @@ class CRM_Civiquickbooks_Invoice {
             if ($last_error = $dataService->getLastError()) {
               $error_message = CRM_Quickbooks_APIHelper::parseErrorResponse($last_error);
 
+              if($last_error->getHttpStatusCode() == 429) {
+                // API rate limit exceeded. Stop processing this run.
+                throw new CRM_Civiquickbooks_RateLimitException("QBO API rate limit exceeded while pushing invoice for Contribution ID: {$record['contribution_id']}.", 'qbo_rate_limit_exceeded', $error_message);
+              }
+
               throw new Exception(json_encode($error_message));
             }
 
@@ -118,6 +132,11 @@ class CRM_Civiquickbooks_Invoice {
 
             if($last_error = $dataService->getLastError()) {
               $error_message = CRM_Quickbooks_APIHelper::parseErrorResponse($last_error);
+
+              if($last_error->getHttpStatusCode() == 429) {
+                // API rate limit exceeded. Stop processing this run.
+                throw new CRM_Civiquickbooks_RateLimitException("QBO API rate limit exceeded while pushing invoice for Contribution ID: {$record['contribution_id']}.", 'qbo_rate_limit_exceeded', $error_message);
+              }
 
               throw new Exception(json_encode($error_message));
             }
@@ -139,12 +158,20 @@ class CRM_Civiquickbooks_Invoice {
             4 => $record['accounts_invoice_id'],
           ]);
 
+          // Log the error message so it can be found in the job log for easier debugging.
+          \Civi::log()->warning($this_error);
+
+          if($e instanceof CRM_Civiquickbooks_RateLimitException) {
+            // No more API calls can be made, stop processing the rest of the records in this run.
+            // This error is handled differently because it's not an error with a specific record, but a signal that we need to stop processing more records.
+            throw new CRM_Core_Exception(ts('Invoice Push aborted due to rate limit. Previous errors: ') . json_encode($errors, JSON_PRETTY_PRINT), 'incomplete', $errors, $e);
+          }
+
+          // save the error message to the record so it can be displayed in the UI
           civicrm_api3('AccountInvoice', 'create', [
             'id' => $record['id'],
             'error_data' => json_encode([date('c'), ['message' => $messages]]),
           ]);
-
-          \Civi::log()->warning($this_error);
         }
       }
 
@@ -154,7 +181,7 @@ class CRM_Civiquickbooks_Invoice {
       }
       return TRUE;
     }
-    catch (CRM_Core_Exception $e) {
+    catch (Exception $e) {
       throw new CRM_Core_Exception('Invoice Push aborted due to: ' . $e->getMessage());
     }
   }
@@ -199,6 +226,11 @@ class CRM_Civiquickbooks_Invoice {
             3 => $e->getMessage(),
             4 => $record['id'],
           ]);
+
+          if($e instanceof CRM_Civiquickbooks_RateLimitException) {
+            // No more API calls can be made, stop processing the rest of the records in this run.
+            break;
+          }
         }
       }
 
@@ -446,7 +478,7 @@ class CRM_Civiquickbooks_Invoice {
    *
    * @param array $record
    *
-   * @return array
+   * @return object
    * @throws \CRM_Core_Exception
    */
   protected function getAccountsInvoice($record) {
@@ -504,7 +536,7 @@ class CRM_Civiquickbooks_Invoice {
    *   - contact_id
    * @param int $accountsID
    *
-   * @return array|bool
+   * @return object|bool
    *   Contact Object/ array as expected by accounts package
    *
    * @throws \CRM_Core_Exception
@@ -621,6 +653,10 @@ class CRM_Civiquickbooks_Invoice {
         try {
           $line_item_ref = self::getQBOItem($line_item['acctgCode']);
         } catch (Exception $e) {
+          if($e instanceof CRM_Civiquickbooks_RateLimitException) {
+            throw $e;
+          }
+
           $item_errormsg[] = ts(
             'No matching QBOItem for FinancialType %2 "Income Account is": Accounting Code: %1. Error: %3',
             [
@@ -834,20 +870,63 @@ class CRM_Civiquickbooks_Invoice {
    * @throws \QuickBooksOnline\API\Exception\SdkException
    */
   public static function getQBOItem($name) {
-    $items =& \Civi::$statics[__CLASS__][__FUNCTION__];
+    $items = &\Civi::$statics[__CLASS__][__FUNCTION__];
 
-    if (!isset($items[$name])) {
-      $field = (strpos($name, ':') === FALSE) ? 'Name' : 'FullyQualifiedName';
-      $query = sprintf('SELECT %1$s,Id From Item WHERE %1$s = \'%2$s\'', $field, $name);
+    $items ??= Civi::cache('long')->get('civiquickbooks/items', []);
 
+    if (empty($items)) {
+      // Load all items and cache them in a static variable for future use in this run.
       $dataService = CRM_Quickbooks_APIHelper::getAccountingDataServiceObject();
-      $result = $dataService->Query($query, 0, 1);
+      $startPosition = 1;
+      $pageSize = 100;
 
-      if (empty($result)) {
-        throw new Exception("No Product found matching $name");
+      // Query for both Name and FullyQualifiedName since either could be used in the mapping depending on how the QBO account is set up.
+      $query = 'SELECT Name,FullyQualifiedName,Id FROM Item';
+
+      do {
+        $result = $dataService->Query($query, $startPosition, $pageSize);
+
+        if (empty($result)) {
+          //  If there is an error with the query, check if it's a rate limit error and throw a specific exception for that, otherwise throw a general exception with the error message.
+          if ($last_error = $dataService->getLastError()) {
+            $error_message = CRM_Quickbooks_APIHelper::parseErrorResponse($last_error);
+
+            if ($last_error->getHttpStatusCode() == 429) {
+              throw new CRM_Civiquickbooks_RateLimitException("QBO API rate limit exceeded while querying for Items.", 'qbo_rate_limit_exceeded', $error_message);
+            }
+
+            throw new CRM_Core_Exception(
+              'Error querying QBO for Items: ' . implode("\n", $error_message)
+            );
+          } else {
+            // If the result is empty, it means we've retrieved all items and can exit the loop.
+            break;
+          }
+        }
+
+        foreach($result as $item){
+          // Cache the Id of each item using both Name and FullyQualifiedName as keys for easy lookup later.
+          if (!empty($item->Name)) {
+            // Use null coalescing assignment operator to avoid overwriting an existing entry with the same Name, since QBO can have multiple items with the same Name but different FullyQualifiedName.
+            $items[$item->Name] ??= $item->Id;
+          }
+          if (!empty($item->FullyQualifiedName)) {
+            $items[$item->FullyQualifiedName] = $item->Id;
+          }
+        }
+
+        $startPosition += $pageSize;
+      } while (count($result) === $pageSize);
+
+      if (empty($items)) {
+        throw new CRM_Core_Exception("No Products found in QuickBooks Item list");
       }
 
-      $items[$name] = $result[0]->Id;
+      Civi::cache('long')->set('civiquickbooks/items', $items, DateInterval::createFromDateString('7 days'));
+    }
+
+    if (!isset($items[$name])) {
+      throw new CRM_Core_Exception("No Product found matching $name");
     }
 
     return $items[$name];
@@ -896,6 +975,9 @@ class CRM_Civiquickbooks_Invoice {
   public static function getPaymentMethod($name) {
     $name = strtolower($name);
     $paymentMethods =& \Civi::$statics[__CLASS__][__FUNCTION__];
+
+    $paymentMethods ??= Civi::cache('long')->get('civiquickbooks/paymentmethods', []);
+
     if (!isset($paymentMethods[$name])) {
       $query = 'SELECT * From PaymentMethod';
       $dataService = CRM_Quickbooks_APIHelper::getAccountingDataServiceObject();
@@ -906,6 +988,8 @@ class CRM_Civiquickbooks_Invoice {
       foreach ($result as $paymentMethodObject) {
         $paymentMethods[strtolower($paymentMethodObject->Name)] = $paymentMethodObject->Id;
       }
+
+      Civi::cache('long')->set('civiquickbooks/paymentmethods', $paymentMethods, DateInterval::createFromDateString('7 days'));
     }
 
     return $paymentMethods[$name];
@@ -1073,6 +1157,10 @@ class CRM_Civiquickbooks_Invoice {
 
     if (!empty($responseErrors)) {
       $record['accounts_needs_update'] = 1;
+
+      if($responseErrors->getHttpStatusCode() == 429) {
+        throw new CRM_Civiquickbooks_RateLimitException("QBO API rate limit exceeded while pushing invoice for Contribution ID: {$record['contribution_id']}.", 'qbo_rate_limit_exceeded', CRM_Quickbooks_APIHelper::parseErrorResponse($responseErrors));
+      }
 
       $record['error_data'] = json_encode([$responseErrors]);
 
