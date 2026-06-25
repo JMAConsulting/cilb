@@ -4,7 +4,9 @@ namespace Drupal\civicrm_entity\Plugin\views\join;
 
 use Drupal\civicrm_entity\CiviCrmApiInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\views\Attribute\ViewsJoin;
 use Drupal\views\Plugin\views\join\JoinPluginBase;
+use Drupal\views\Plugin\views\query\Sql;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -13,6 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @ingroup views_join_handlers
  * @ViewsJoin("civicrm_entity_contact_reference")
  */
+#[ViewsJoin("civicrm_entity_contact_reference")]
 class ContactReference extends JoinPluginBase implements ContainerFactoryPluginInterface {
 
   /**
@@ -54,6 +57,7 @@ class ContactReference extends JoinPluginBase implements ContainerFactoryPluginI
     }
 
     if ($this->leftTable) {
+      assert($view_query instanceof Sql);
       $left_table = $view_query->getTableInfo($this->leftTable);
       $left_field = $this->leftFormula ?: "$left_table[alias].$this->leftField";
     }
@@ -66,7 +70,8 @@ class ContactReference extends JoinPluginBase implements ContainerFactoryPluginI
 
     $this->civicrmApi->civicrmInitialize();
 
-    $condition = "CAST($left_field AS BINARY) RLIKE BINARY CONCAT('" . \CRM_Core_DAO::VALUE_SEPARATOR . "', " . "$table[alias].$this->field" . ", '" . \CRM_Core_DAO::VALUE_SEPARATOR . "')";
+    $sep = \CRM_Core_DAO::VALUE_SEPARATOR;
+    $condition = "CAST($left_field AS BINARY) RLIKE BINARY CONCAT('$sep', $table[alias].$this->field, '$sep')";
 
     $arguments = [];
 

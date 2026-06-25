@@ -149,7 +149,7 @@ final class CivicrmActivityViewsTest extends CivicrmEntityViewsTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function doSetupViewWithArguments() {
+  public function doSetupViewWithArguments() {
     $this->addArgumentToDisplay('name[civicrm_activity.id]');
     $this->addFieldToDisplay('name[civicrm_activity.details__value]');
     $this->addFieldToDisplay('name[civicrm_activity.location]');
@@ -179,7 +179,7 @@ final class CivicrmActivityViewsTest extends CivicrmEntityViewsTestBase {
   /**
    * {@inheritdoc}
    */
-  public function dataArgumentValues() {
+  public static function dataArgumentValues() {
     yield [[1]];
     yield [[2]];
   }

@@ -2,6 +2,7 @@
 
 namespace Drupal\civicrm_entity;
 
+use Civi\Core\Container;
 use Drupal\Component\Transliteration\TransliterationInterface;
 use Drupal\Core\Language\LanguageInterface;
 
@@ -189,8 +190,7 @@ final class SupportedEntities {
       'civicrm entity name' => 'country',
       'label property' => 'name',
       'permissions' => [
-        'view' => ['view all contacts'],
-
+        'view' => ['access CiviCRM'],
         'update' => [],
         'create' => [],
         'delete' => [],
@@ -610,7 +610,7 @@ final class SupportedEntities {
       'civicrm entity name' => 'state_province',
       'label property' => 'name',
       'permissions' => [
-        'view' => ['view all contacts'],
+        'view' => ['access CiviCRM'],
         'edit' => [],
         'update' => [],
         'create' => [],
@@ -739,7 +739,7 @@ final class SupportedEntities {
       if (!in_array($entity_info['civicrm entity name'], $api_entity_types)) {
         unset($civicrm_entity_info[$entity_type]);
       }
-      // Insert dblocale table names
+      // Insert dblocale table names.
       $multilingual = \CRM_Core_I18n::isMultilingual();
       if ($multilingual) {
         // @codingStandardsIgnoreStart
@@ -912,6 +912,10 @@ final class SupportedEntities {
    */
   public static function alterEntityInfo(array &$civicrm_entity_info) {
     \Drupal::service('civicrm_entity.api')->civicrmInitialize();
+
+    if (!Container::isContainerBooted()) {
+      return FALSE;
+    }
 
     $code_version = explode('.', \CRM_Utils_System::version());
     if (version_compare($code_version[0] . '.' . $code_version[1], 4.5) >= 0) {

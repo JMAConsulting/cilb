@@ -1039,7 +1039,13 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
     // Remove data from entity
     foreach ($remove as $a => $name) {
       $params[$data_type . '_id'] = $a;
-      $this->utils->wf_civicrm_api($api, 'delete', $params);
+      if ($data_type == 'group') {
+        // group_contact.delete is deprecated and it just called create.
+        $this->utils->wf_civicrm_api($api, 'create', array_merge(['status' => 'Removed'], $params));
+      }
+      else {
+        $this->utils->wf_civicrm_api($api, 'delete', $params);
+      }
     }
     if (!empty($remove) && $data_type == 'group') {
       $display_name = $this->utils->wf_civicrm_api('contact', 'get', ['contact_id' => $id, 'return.display_name' => 1]);
@@ -1268,19 +1274,17 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
 
       // Search for existing membership to renew - must belong to same domain and organization
       // But not necessarily the same membership type to allow for upsell
-      if (!empty($params['num_terms'])) {
-        $type = $types[$params['membership_type_id']];
-        foreach ($existing as $mem) {
-          $existing_type = $types[$mem['membership_type_id']];
-          if ($type['domain_id'] == $existing_type['domain_id'] && $type['member_of_contact_id'] == $existing_type['member_of_contact_id']) {
-            $params['id'] = $mem['id'];
-            // If we have an exact match, look no further
-            if ($mem['membership_type_id'] == $params['membership_type_id']) {
-              $is_active = $mem['is_active'];
-              $membershipStatus = $mem['status'];
-              $membershipEndDate = $mem['end_date'];
-              break;
-            }
+      $type = $types[$params['membership_type_id']];
+      foreach ($existing as $mem) {
+        $existing_type = $types[$mem['membership_type_id']];
+        if ($type['domain_id'] == $existing_type['domain_id'] && $type['member_of_contact_id'] == $existing_type['member_of_contact_id']) {
+          $params['id'] = $mem['id'];
+          // If we have an exact match, look no further
+          if ($mem['membership_type_id'] == $params['membership_type_id']) {
+            $is_active = $mem['is_active'];
+            $membershipStatus = $mem['status'];
+            $membershipEndDate = $mem['end_date'];
+            break;
           }
         }
       }
@@ -1315,6 +1319,7 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
       if (isset($this->ent['contribution_recur'][1]['id'])) {
         $params['contribution_recur_id'] = $this->ent['contribution_recur'][1]['id'];
       }
+      $this->setTestMode($params);
 
       $result = $this->utils->wf_civicrm_api('membership', 'create', $params);
 
@@ -1576,7 +1581,9 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
             $this->processAttachments('activity', $n, $activity['id'], empty($params['id']));
           }
           if (!empty($params['assignee_contact_id'])) {
-            if ($this->utils->wf_crm_get_civi_setting('activity_assignee_notification')) {
+            if ($this->utils->wf_crm_get_civi_setting('activity_assignee_notification')
+              && !in_array($params['activity_type_id'], $this->utils->wf_crm_get_civi_setting('do_not_notify_assignees_for'))
+            ) {
               // Send email to assignees. TODO: Move to CiviCRM API?
               $assignees = $this->utils->wf_crm_apivalues('contact', 'get', [
                 'id' => ['IN' => (array) $params['assignee_contact_id']],
@@ -2310,6 +2317,8 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
       $params['pan_truncation'] = substr($params['credit_card_number'], -4);
     }
 
+    $this->setTestMode($params);
+
     // Save this stuff for later
     unset($params['soft'], $params['soft_credit_type_id']);
     return $params;
@@ -2467,9 +2476,14 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
         if (is_array($val)) {
           $this->data[$ent][$c][$table][$n][$name] = [];
           foreach ($val as $v) {
-            if (is_numeric($v) && !empty($this->ent['contact'][$v]['id'])) {
-              $tableName = $isStandardCustom ? $ent : $table;
-              $this->data[$ent][$c][$tableName][$n][$name][] = $this->ent['contact'][$v]['id'];
+            if (is_numeric($v)) {
+              if (!empty($this->ent['contact'][$v]['id'])) {
+                $tableName = $isStandardCustom ? $ent : $table;
+                $this->data[$ent][$c][$tableName][$n][$name][] = $this->ent['contact'][$v]['id'];
+              }
+              elseif ($contactPrefillMode) {
+                $this->data[$ent][$c]['update_contact_ref'][$n][$name] = $v;
+              }
             }
           }
         }
@@ -2529,9 +2543,9 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
           if (!empty($this->data[$ent][$c][$table][$n][$name]) && is_array($this->data[$ent][$c][$table][$n][$name])) {
             $val = array_unique(array_merge($val, $this->data[$ent][$c][$table][$n][$name]));
           }
-          if (substr($name, 0, 6) === 'custom' || ($table == 'other' && in_array($name, ['group', 'tag']))) {
+          if (substr($name, 0, 6) === 'custom' || ($table == 'other' && in_array($name, ['crmgroup', 'tag']))) {
             $val = array_filter($val);
-            if ($name === 'group') {
+            if ($name === 'crmgroup') {
               unset($val['public_groups']);
             }
           }
@@ -2636,7 +2650,7 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
       $component = $this->node->getElement("civicrm_{$c}_contact_1_contact_existing");
       $existing_contact_val = $this->submissionValue($component['#form_key']);
       // Fields are hidden if value is empty (no selection) or a numeric contact id
-      if (!$existing_contact_val[0] || is_numeric($existing_contact_val[0])) {
+      if (!$existing_contact_val[0] || ((is_numeric($existing_contact_val[0])) && ((int)$existing_contact_val[0] > 0))) {
         $type = ($table == 'contact' && strpos($name, 'name')) ? 'name' : $table;
         $component += ['#hide_fields' => []];
         if (in_array($type, $component['#hide_fields'])) {
@@ -2899,20 +2913,15 @@ class WebformCivicrmPostProcess extends WebformCivicrmBase implements WebformCiv
     $updateParams = [
       'id' => $cid,
     ];
-    $skipKeys = [];
+    // Iterate over all contact refs that we should update.
     foreach ($params['update_contact_ref'] as $n => $refKeys) {
       foreach ($refKeys as $refKey => $val) {
-        // Skip contact ref that doesn't have a valid contact ids.
-        if (empty($this->ent['contact'][$val]['id'])) {
+        $contactRefValue = $this->ent['contact'][$val]['id'] ?? NULL;
+        // Skip contact ref that doesn't have a valid contact id.
+        if (!$contactRefValue) {
           continue;
         }
-        foreach ($params['contact'] as $contactParams) {
-          foreach ($contactParams as $key => $value) {
-            if (strpos($key, "{$refKey}_") === 0 && !isset($updateParams[$key]) && !in_array($key, $skipKeys)) {
-              $updateParams[$key] = $value;
-            }
-          }
-        }
+        $updateParams[$refKey] = $contactRefValue;
       }
     }
     if (count($updateParams) > 1) {

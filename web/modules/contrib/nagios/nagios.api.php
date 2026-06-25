@@ -14,6 +14,7 @@
 function hook_nagios_info() {
   return [
     'name' => 'Your module name',
+    // This identifier will appear on Nagios' monitoring pages and alerts.
     'id' => 'IDENTIFIER',
   ];
 }
@@ -32,30 +33,29 @@ function hook_nagios_info() {
  *   run hook_nagios for any other modules.
  *
  * @return array
- * The data returned is an associative array as follows:
+ *   The data returned is an associative array as follows:
  *
  *   array(
- *     'key'  => 'IDENTIFIER',
- *     'data' => array(
+ *     'IDENTIFIER' => array(
  *       'status' => STATUS_CODE,
- *       'type    => 'state', // Can be a 'state' for OK, Warning, Critical, Unknown) or can be 'perf', which does
- *                            // Cause an alert, but can be processed later by custom programs
+ *       'type    => 'state', // Can be a 'state' for
+ *                            // (OK, Warning, Critical, Unknown), or
+ *                            // can be 'perf', which does cause an alert, but
+ *                            // can be processed later by custom programs.
  *       'text'   => 'Text description for the problem',
  *     ),
  *   );
  *
- * STATUS_CODE must be one of the following, defined in nagios.module:
+ *   STATUS_CODE must be one of the following, defined in nagios.module:
  *
  *   NAGIOS_STATUS_OK
  *   NAGIOS_STATUS_UNKNOWN
  *   NAGIOS_STATUS_WARNING
  *   NAGIOS_STATUS_CRITICAL
  *
- * Here is an example:
- *
- * @return array
+ *   Here is an example:
  */
-function hook_nagios(string $id) {
+function hook_nagios(string $id): array {
   // Check something ...
   $count = 10;
   if (!$count) {
@@ -74,9 +74,10 @@ function hook_nagios(string $id) {
   }
 
   return [
-    'key' => 'IDENTIFIER',
-    // This identifier will appear on Nagios' monitoring pages and alerts.
-    'data' => $data,
+    // Change the 'IDENTIFIER' to something that makes sense in your modules’ context.
+    // Your chosen identifier will appear on Nagios’ monitoring pages and alerts.
+    // If you also implement hook_nagios_info(), then use the same identifier as set there.
+    'IDENTIFIER' => $data,
   ];
 }
 

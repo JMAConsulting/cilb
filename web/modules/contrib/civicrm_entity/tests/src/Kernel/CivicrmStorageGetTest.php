@@ -48,7 +48,9 @@ class CivicrmStorageGetTest extends CivicrmEntityTestBase {
     $this->assertEquals($entity->id(), 1);
     $this->assertEquals($entity->get('title')->value, 'Fall Fundraiser Dinner');
     $this->assertEquals('2018-05-02T07:00:00', $entity->get('start_date')->value);
+    // @phpstan-ignore property.notFound
     $this->assertEquals('2018/05/02', $entity->get('start_date')->date->format('Y/m/d'));
+    // @phpstan-ignore property.notFound
     $this->assertTrue((bool) $entity->get('is_public')->first()->value);
   }
 
@@ -61,7 +63,9 @@ class CivicrmStorageGetTest extends CivicrmEntityTestBase {
     $entity = $storage->load(10);
     $this->assertInstanceOf(CivicrmEntity::class, $entity);
     $this->assertEquals($entity->id(), 10);
+    // @phpstan-ignore property.notFound
     $this->assertEquals($entity->get('display_name')->value, 'Emma Neal');
+    // @phpstan-ignore property.notFound
     $this->assertEquals('1982/06/28', $entity->get('birth_date')->date->format('Y/m/d'));
   }
 
@@ -87,6 +91,7 @@ class CivicrmStorageGetTest extends CivicrmEntityTestBase {
   public function testDatetimeTimezone(array $original_datetimes, array $expected_utc_datetime, $timezone) {
     date_default_timezone_set($timezone);
     $civicrm_api_mock = $this->prophesize(CiviCrmApiInterface::class);
+    // @phpstan-ignore-next-line
     $civicrm_api_mock->get('event', [
       'id' => 1,
       'return' => array_keys($this->sampleEventsGetFields()),
@@ -99,6 +104,7 @@ class CivicrmStorageGetTest extends CivicrmEntityTestBase {
     foreach ($expected_utc_datetime as $field_name => $field_data) {
       $this->assertEquals(
         $field_data,
+        // @phpstan-ignore property.notFound
         $entity->get($field_name)->date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT)
       );
     }
@@ -107,7 +113,7 @@ class CivicrmStorageGetTest extends CivicrmEntityTestBase {
   /**
    * Provides datetime and timezone test data.
    */
-  public function datetimeTimezoneDataProvider() {
+  public static function datetimeTimezoneDataProvider() {
     yield [
       [
         'start_date' => '2018-05-02 17:00:00',

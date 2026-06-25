@@ -4,6 +4,7 @@ namespace Drupal\civicrm_entity\Plugin\views\relationship;
 
 use Drupal\civicrm_entity\CiviCrmApiInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\views\Attribute\ViewsRelationship;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\Plugin\ViewsHandlerManager;
 use Drupal\views\ViewExecutable;
@@ -16,6 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @ViewsRelationship("civicrm_entity_reverse_website_type")
  */
+#[ViewsRelationship("civicrm_entity_reverse_website_type")]
 class EntityReverseWebsiteType extends EntityReverse {
 
   /**
@@ -63,7 +65,7 @@ class EntityReverseWebsiteType extends EntityReverse {
   /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
+  public function init(ViewExecutable $view, DisplayPluginBase $display, ?array &$options = NULL) {
     parent::init($view, $display, $options);
     $this->civicrmApi->civicrmInitialize();
     $this->websiteTypes = \CRM_Core_BAO_Website::buildOptions('website_type_id');

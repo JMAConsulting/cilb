@@ -55,7 +55,7 @@ class NodePreviewTest extends KernelTestBase {
     $build = $controller->view($node);
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
-    $renderer->renderPlain($build);
+    $renderer->renderInIsolation($build);
     $this->assertNotError("array_flip(): Can only flip STRING and INTEGER values!", E_WARNING);
   }
 

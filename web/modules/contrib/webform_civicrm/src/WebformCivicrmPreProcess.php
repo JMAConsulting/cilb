@@ -95,7 +95,7 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
       foreach ($this->enabled as $k => $v) {
         // @TODO review the usage of the existing element.
         if (substr($k, -8) == 'existing' && $this->form_state->getValue(['submitted', $v])) {
-          list(, $c) = explode('_', $k);
+          [, $c] = explode('_', $k);
           $val = $this->form_state->getValue(['submitted', $v]);
           $cid_data["cid$c"] = $this->ent['contact'][$c]['id'] = (int) (is_array($val) ? $val[0] : $val);
           $submitted_contacts[$c] = TRUE;
@@ -109,10 +109,12 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
     // Early return if the form (or page) was already submitted
     $triggering_element = $this->form_state->getTriggeringElement();
 
-    // When user uploads a file using a managed_file element, avoid making any change to $this->form.
+    // When user uploads a file using a managed_file element, populate
+    // contact options before returning to ensure they persist in the cached form.
     if ($this->form_state->hasFileElement()
       && is_array($triggering_element['#submit'])
       && in_array('file_managed_file_submit', $triggering_element['#submit'], TRUE)) {
+      $this->fillForm($this->form, $this->form_state->getValues());
       return;
     }
 
@@ -166,8 +168,7 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
         $this->form['#prefix'] = wf_crm_aval($this->form, '#prefix', '') . '<div class="webform-civicrm-prefix contact-unknown">' . nl2br($this->settings['prefix_unknown']) . '</div>';
       }
       if ($this->settings['block_unknown_users']) {
-        $this->form['submitted']['#access'] = $this->form['actions']['#access'] = FALSE;
-        throw new AccessDeniedHttpException();
+        $this->form['#access'] = FALSE;
       }
     }
     if (!empty($this->data['participant_reg_type'])) {
@@ -330,10 +331,10 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
     foreach ($this->enabled as $field => $fid) {
       if (strpos($field, 'participant_event_id')) {
         foreach ($this->getExposedOptions($field) as $p => $label) {
-          list($eid) = explode('-', $p);
+          [$eid] = explode('-', $p);
           $this->events[$eid]['ended'] = TRUE;
           $this->events[$eid]['title'] = $label;
-          list(, $e, , $n) = explode('_', $field);
+          [, $e, , $n] = explode('_', $field);
           $status_fid = "civicrm_{$e}_participant_{$n}_participant_status_id";
           $this->events[$eid]['form'][] = [
             'contact' => $e,
@@ -504,11 +505,12 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
         continue;
       }
       if (!empty($element['#webform']) && $pieces = $this->utils->wf_crm_explode_key($eid)) {
-        list( , $c, $ent, $n, $table, $name) = $pieces;
+        [ , $c, $ent, $n, $table, $name] = $pieces;
         if ($field = wf_crm_aval($this->all_fields, $table . '_' . $name)) {
           $element['#attributes']['class'][] = 'civicrm-enabled';
           if ($element['#type'] == 'webform_radios_other') {
             $element['other']['#attributes']['class'][] = 'civicrm-enabled';
+            $element['other']['#weight'] = 100;
           }
           $dt = NULL;
           if (!empty($field['data_type'])) {

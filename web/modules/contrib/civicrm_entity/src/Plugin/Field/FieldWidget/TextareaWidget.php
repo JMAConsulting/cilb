@@ -2,9 +2,11 @@
 
 namespace Drupal\civicrm_entity\Plugin\Field\FieldWidget;
 
+use Drupal\Core\Field\Attribute\FieldWidget;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\text\Plugin\Field\FieldWidget\TextareaWidget as CoreTextareaWidget;
 
 /**
@@ -18,6 +20,13 @@ use Drupal\text\Plugin\Field\FieldWidget\TextareaWidget as CoreTextareaWidget;
  *   }
  * )
  */
+#[FieldWidget(
+  id: "civicrm_entity_textarea",
+  label: new TranslatableMarkup("Text area (multiple rows, default CiviCRM format 1)"),
+  field_types: [
+    "text_long",
+  ]
+)]
 class TextareaWidget extends CoreTextareaWidget {
 
   /**

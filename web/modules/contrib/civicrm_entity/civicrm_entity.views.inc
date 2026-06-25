@@ -15,7 +15,6 @@ use Drupal\field\FieldStorageConfigInterface;
 /**
  * Implements hook_views_data_alter().
  *
- * @note
  * @note Copy and paste of views_views_data_alter to support our storage check.
  *
  * @see views_views_data()
@@ -145,6 +144,19 @@ function civicrm_entity_views_data_alter(&$data) {
   $data['civicrm_contact']['employer_id']['field']['id'] = 'standard';
   $data['civicrm_contribution']['contribution_source']['real field'] = 'source';
   $data['civicrm_address']['state_province_id']['filter']['id'] = 'civicrm_entity_civicrm_address_state_province';
+
+  if (isset($data['civicrm_address'])) {
+    $data['civicrm_address']['distance'] = [
+      'title' => t('Distance'),
+      'help' => t('Calculated distance from proximity filter location.'),
+      'field' => [
+        'id' => 'civicrm_entity_distance',
+      ],
+      'sort' => [
+        'id' => 'civicrm_entity_distance_sort',
+      ],
+    ];
+  }
 }
 
 /**
@@ -270,7 +282,7 @@ function civicrm_entity_field_default_views_data(FieldStorageConfigInterface $fi
   foreach ($bundles_names as $bundle) {
     $fields[$bundle] = FieldConfig::loadByName($entity_type->id(), $bundle, $field_name);
   }
-  /** @var \Drupal\field\FieldConfigInterface $config_entity */
+  /** @var \Drupal\field\FieldConfigInterface|null $config_entity */
   foreach ($fields as $bundle => $config_entity) {
     if (!empty($config_entity)) {
       if ($config_entity->isTranslatable()) {
@@ -401,7 +413,14 @@ function civicrm_entity_field_default_views_data(FieldStorageConfigInterface $fi
   // Determine the label to use for the field. We don't have a label available
   // at the field level, so we just go through all fields and take the one
   // which is used the most frequently.
-  [$label, $all_labels] = views_entity_field_label($entity_type_id, $field_name);
+  $entity_field_manager = \Drupal::service('entity_field.manager');
+  if (version_compare(\Drupal::VERSION, '11.2.0', '>=') && method_exists($entity_field_manager, 'getFieldLabels')) {
+    [$label, $all_labels] = $entity_field_manager->getFieldLabels($entity_type_id, $field_name);
+  }
+  else {
+    // @phpstan-ignore-next-line
+    [$label, $all_labels] = views_entity_field_label($entity_type_id, $field_name);
+  }
 
   // Expose data for the field as a whole.
   foreach ($field_tables as $type => $table_info) {

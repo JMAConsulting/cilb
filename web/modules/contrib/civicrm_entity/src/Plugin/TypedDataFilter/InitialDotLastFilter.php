@@ -3,8 +3,10 @@
 namespace Drupal\civicrm_entity\Plugin\TypedDataFilter;
 
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\TypedData\DataDefinition;
 use Drupal\Core\TypedData\DataDefinitionInterface;
+use Drupal\typed_data\Attribute\DataFilter;
 use Drupal\typed_data\DataFilterBase;
 
 /**
@@ -15,12 +17,16 @@ use Drupal\typed_data\DataFilterBase;
  *   label = @Translation("Drupal Username : initial.lastname."),
  * )
  */
+#[DataFilter(
+  id: "initialdotlast",
+  label: new TranslatableMarkup("Drupal Username : initial.lastname.")
+)]
 class InitialDotLastFilter extends DataFilterBase {
 
   /**
    * {@inheritdoc}
    */
-  public function canFilter(DataDefinitionInterface $definition) {
+  public function canFilter(DataDefinitionInterface $definition) : bool {
     if ($definition->getConstraints()['EntityType'] == "civicrm_contact") {
       return TRUE;
     }
@@ -32,14 +38,14 @@ class InitialDotLastFilter extends DataFilterBase {
   /**
    * {@inheritdoc}
    */
-  public function filtersTo(DataDefinitionInterface $definition, array $arguments) {
+  public function filtersTo(DataDefinitionInterface $definition, array $arguments) : DataDefinitionInterface {
     return DataDefinition::create('string');
   }
 
   /**
    * {@inheritdoc}
    */
-  public function filter(DataDefinitionInterface $definition, $value, array $arguments, BubbleableMetadata $bubbleable_metadata = NULL) {
+  public function filter(DataDefinitionInterface $definition, $value, array $arguments, ?BubbleableMetadata $bubbleable_metadata = NULL) {
     $c = preg_match_all("/(?<=\b)[a-z]/i", ($value->get('first_name')->getString()), $m);
     if ($c > 0) {
       $login = strtolower(implode('', $m[0])) . '.' . strtolower($value->get('last_name')->getString());

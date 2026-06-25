@@ -2,16 +2,42 @@
 
 namespace Drupal\redirect_after_login\Form;
 
-use Drupal;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Path\PathValidatorInterface;
+use Drupal\user\Entity\Role;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class LoginRedirectionForm.
- *
- * @package Drupal\redirect_after_login\Form
+ * Login Redirection Form class.
  */
 class LoginRedirectionForm extends ConfigFormBase {
+
+  /**
+   * The path validator.
+   *
+   * @var \Drupal\Core\Path\PathValidatorInterface
+   */
+  protected $pathValidator;
+
+  /**
+   * Constructs a new LoginRedirectionForm.
+   *
+   * @param \Drupal\Core\Path\PathValidatorInterface $path_validator
+   *   The path validator service.
+   */
+  public function __construct(PathValidatorInterface $path_validator) {
+    $this->pathValidator = $path_validator;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('path.validator')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -31,16 +57,18 @@ class LoginRedirectionForm extends ConfigFormBase {
       '#type'  => 'fieldset',
       '#title' => $this->t('All roles'),
     ];
-    foreach (user_role_names(TRUE) as $user => $name) {
-      if ($user != "anonymous") {
-        $form['roles'][$user] = [
+
+    $roles = Role::loadMultiple();
+    foreach ($roles as $role_id => $role) {
+      if ($role_id != "anonymous") {
+        $form['roles'][$role_id] = [
           '#type'          => 'textfield',
-          '#title'         => $name,
+          '#title'         => $role->label(),
           '#size'          => 60,
           '#maxlength'     => 128,
-          '#description'   => $this->t('Add a valid url or &ltfront> for main page'),
+          '#description'   => $this->t('Add a valid url or <front> for the main page'),
           '#required'      => TRUE,
-          '#default_value' => isset($savedPathRoles[$user]) ? $savedPathRoles[$user] : '',
+          '#default_value' => $savedPathRoles[$role_id] ?? '',
         ];
       }
     }
@@ -67,20 +95,29 @@ class LoginRedirectionForm extends ConfigFormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
 
-    foreach (user_role_names() as $user => $name) {
-      if ($user == "anonymous") {
+    $roles = Role::loadMultiple();
+
+    foreach ($roles as $role_id => $role) {
+      // Skip the "anonymous" role.
+      if ($role_id == "anonymous") {
         continue;
       }
-      if (!(preg_match('/^[#?\/]+/', $form_state->getValue($user)) || $form_state->getValue($user) == '<front>')) {
-        $form_state->setErrorByName($user, $this->t('This URL %url is not valid for role %role.', [
-          '%url'  => $form_state->getValue($user),
-          '%role' => $name,
+
+      $role_name = $role->label();
+      $role_value = $form_state->getValue($role_id);
+
+      // Validate the role URL.
+      if (!(preg_match('/^[#?\/]+/', $role_value) || $role_value == '<front>')) {
+        $form_state->setErrorByName($role_id, $this->t('This URL %url is not valid for role %role.', [
+          '%url'  => $role_value,
+          '%role' => $role_name,
         ]));
       }
-      $path = $form_state->getValue($user);
-      $is_valid = Drupal::service('path.validator')->isValid($path);
+
+      // Check if the path is valid.
+      $is_valid = $this->pathValidator->isValid($role_value);
       if ($is_valid == NULL) {
-        $form_state->setErrorByName($user, $this->t('Path does not exists.'));
+        $form_state->setErrorByName($role_id, $this->t('Path does not exist.'));
       }
     }
   }
@@ -90,15 +127,22 @@ class LoginRedirectionForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $loginUrls = [];
-    foreach (user_role_names() as $user => $name) {
-      if ($form_state->getValue($user) == '<front>') {
-        $loginUrls[$user] = '/';
+    // Load all roles.
+    $roles = Role::loadMultiple();
+
+    foreach ($roles as $role_id => $role) {
+      // Get the form value for the current role.
+      $role_value = $form_state->getValue($role_id);
+
+      // Check if the form value is '<front>'.
+      if ($role_value == '<front>') {
+        $loginUrls[$role_id] = '/';
       }
       else {
-        $loginUrls[$user] = $form_state->getValue($user);
-        $form_state->getValue($user);
+        $loginUrls[$role_id] = $role_value;
       }
     }
+
     $this->config('redirect_after_login.settings')
       ->set('login_redirection', $loginUrls)
       ->set('exclude_urls', $form_state->getValue('exclude_urls'))

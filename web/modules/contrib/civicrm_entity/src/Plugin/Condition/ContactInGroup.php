@@ -4,9 +4,13 @@ namespace Drupal\civicrm_entity\Plugin\Condition;
 
 use Drupal\civicrm_entity\CiviCrmApi;
 use Drupal\civicrm_entity\Entity\CivicrmEntity;
+use Drupal\civicrm_entity\TypedData\Options\CivicrmGroupOptions;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\rules\Context\ContextDefinition;
 use Drupal\rules\Core\RulesConditionBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\rules\Core\Attribute\Condition;
 
 /**
  * Provides a 'CiviCRM Contact in Group' condition.
@@ -31,6 +35,27 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   }
  * )
  */
+#[Condition(
+  id: "civicrm_entity_contact_in_group",
+  label: new TranslatableMarkup("CiviCRM Contact in Group"),
+  category: new TranslatableMarkup("CiviCRM"),
+  context_definitions: [
+    "civicrm_contact" => new ContextDefinition(
+      data_type: "entity:civicrm_contact",
+      label: new TranslatableMarkup("CiviCRM contact entity"),
+      required: TRUE,
+      description: new TranslatableMarkup("The CiviCRM contact entity.")
+    ),
+    "group" => new ContextDefinition(
+      data_type: "string",
+      label: new TranslatableMarkup("Group"),
+      required: TRUE,
+      multiple: FALSE,
+      description: new TranslatableMarkup("The group the contact is in."),
+      options_provider: CivicrmGroupOptions::class,
+    ),
+  ]
+)]
 class ContactInGroup extends RulesConditionBase implements ContainerFactoryPluginInterface {
 
   /**

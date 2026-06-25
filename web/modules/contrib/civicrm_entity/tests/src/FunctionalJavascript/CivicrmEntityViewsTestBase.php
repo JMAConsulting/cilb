@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\civicrm_entity\FunctionalJavascript;
 
 use Drupal\civicrm_entity\SupportedEntities;
+use Drupal\Core\Datetime\Entity\DateFormat;
 use Drupal\Core\Url;
 
 /**
@@ -97,10 +98,17 @@ abstract class CivicrmEntityViewsTestBase extends CivicrmEntityTestBase {
     //
     // We also want the advanced column to be open, so that it's easier to add
     // relationships.
-    \Drupal::configFactory()
-      ->getEditable('views.settings')
-      ->set('ui.always_live_preview', FALSE)
-      ->set('ui.show.advanced_column', TRUE)
+    $viewsSettings = \Drupal::configFactory()->getEditable('views.settings');
+    $viewsSettings->set('ui.always_live_preview', FALSE);
+    // ui.show.advanced_column was removed in Drupal 11.2.
+    if (version_compare(\Drupal::VERSION, '11.2', '<')) {
+      $viewsSettings->set('ui.show.advanced_column', TRUE);
+    }
+    $viewsSettings->save();
+
+    $date_format = DateFormat::load('medium');
+    $date_format
+      ->setPattern('D, m/d/Y - H:i')
       ->save();
   }
 
@@ -241,7 +249,7 @@ abstract class CivicrmEntityViewsTestBase extends CivicrmEntityTestBase {
   /**
    * Runs setup for the ::testViewWithArguments test.
    */
-  abstract protected function doSetupViewWithArguments();
+  abstract public function doSetupViewWithArguments();
 
   /**
    * Runs assertions for the ::testViewWithArguments test.
@@ -257,7 +265,7 @@ abstract class CivicrmEntityViewsTestBase extends CivicrmEntityTestBase {
    * @return \Generator
    *   The arguments test data.
    */
-  abstract public function dataArgumentValues();
+  abstract public static function dataArgumentValues();
 
   /**
    * Creates a new View for the tested entity type.

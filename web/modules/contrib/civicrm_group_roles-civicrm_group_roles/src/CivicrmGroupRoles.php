@@ -54,6 +54,13 @@ class CivicrmGroupRoles {
   protected $inactiveStatusIds;
 
   /**
+   * Entity type manager service.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
+
+  /**
    * CivicrmGroupRoles constructor.
    *
    * @param \Drupal\civicrm\Civicrm $civicrm
