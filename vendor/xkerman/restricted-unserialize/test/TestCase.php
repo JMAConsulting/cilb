@@ -13,7 +13,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     public function __call($name, $arguments)
     {
         if ($name !== 'expectException') {
-            throw new \BadMethodCallException("undefined method: ${name}");
+            throw new \BadMethodCallException("undefined method: {$name}");
         }
 
         $exception = $arguments[0];
