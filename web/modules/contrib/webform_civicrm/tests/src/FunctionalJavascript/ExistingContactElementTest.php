@@ -52,7 +52,7 @@ final class ExistingContactElementTest extends WebformCivicrmTestBase {
     $this->assertSession()->fieldValueEquals('First Name', 'Maarten');
     $this->assertSession()->fieldValueEquals('Last Name', 'van der Weijden');
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
   }
@@ -165,7 +165,6 @@ final class ExistingContactElementTest extends WebformCivicrmTestBase {
 
     // Enter contact 3.
     $this->fillContactAutocomplete('token-input-edit-civicrm-3-contact-1-contact-existing', 'Maarten');
-    $this->assertSession()->assertWaitOnAjaxRequest();
     $this->assertFieldValue('edit-civicrm-3-contact-1-contact-job-title', 'Accountant');
 
     // Check if related contact is loaded on c4.
@@ -178,6 +177,15 @@ final class ExistingContactElementTest extends WebformCivicrmTestBase {
    * searchable with all display field values.
    */
   public function testDisplayFields() {
+    // Fill with more than the widget displays, and that would come first
+    // before our desired contact
+    for ($i = 1; $i < 21; $i++) {
+      $this->createIndividual([
+        'first_name' => 'Aaron',
+        'last_name' => 'Aardvark' . $i,
+        'source' => '',
+      ]);
+    }
     $this->createIndividual([
       'first_name' => 'James',
       'last_name' => 'Doe',
@@ -204,14 +212,28 @@ final class ExistingContactElementTest extends WebformCivicrmTestBase {
     // Search on first name and verify if the contact is selected.
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->fillContactAutocomplete('token-input-edit-civicrm-1-contact-1-contact-existing', 'James');
-    $this->assertSession()->assertWaitOnAjaxRequest();
     $this->assertFieldValue('edit-civicrm-1-contact-1-contact-first-name', 'James');
     $this->assertFieldValue('edit-civicrm-1-contact-1-contact-last-name', 'Doe');
 
     // Search on source value and verify if the contact is selected.
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->fillContactAutocomplete('token-input-edit-civicrm-1-contact-1-contact-existing', 'Webform Testing');
-    $this->assertSession()->assertWaitOnAjaxRequest();
+    $this->assertFieldValue('edit-civicrm-1-contact-1-contact-first-name', 'James');
+    $this->assertFieldValue('edit-civicrm-1-contact-1-contact-last-name', 'Doe');
+
+    // Edit contact element and change to display contact id.
+    $this->drupalGet($this->webform->toUrl('edit-form'));
+    $editContact = [
+      'selector' => 'edit-webform-ui-elements-civicrm-1-contact-1-contact-existing-operations',
+      'widget' => 'Autocomplete',
+      'results_display' => ['display_name', 'id'],
+      'default' => '- None -',
+    ];
+    $this->editContactElement($editContact);
+
+    // Now see if name search still works
+    $this->drupalGet($this->webform->toUrl('canonical'));
+    $this->fillContactAutocomplete('token-input-edit-civicrm-1-contact-1-contact-existing', 'James');
     $this->assertFieldValue('edit-civicrm-1-contact-1-contact-first-name', 'James');
     $this->assertFieldValue('edit-civicrm-1-contact-1-contact-last-name', 'Doe');
   }
@@ -255,7 +277,7 @@ final class ExistingContactElementTest extends WebformCivicrmTestBase {
     //Ensure email field is not visible.
     $this->assertFalse($this->getSession()->getDriver()->isVisible($this->cssSelectToXpath('.form-type-email')));
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
 
@@ -278,7 +300,7 @@ final class ExistingContactElementTest extends WebformCivicrmTestBase {
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->fillContactAutocomplete('token-input-edit-civicrm-1-contact-1-contact-existing', $contact['first_name']);
     $this->getSession()->wait(5000);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
 
@@ -343,7 +365,7 @@ final class ExistingContactElementTest extends WebformCivicrmTestBase {
     // $civicrm_handler = $this->assertSession()->elementExists('css', '[data-webform-key="webform_civicrm"] a.tabledrag-handle');
     // Move up to be the top-most handler.
     // $this->sendKeyPress($civicrm_handler, 38);
-    $this->getSession()->getPage()->pressButton('Save handlers');
+    $this->pressButtonOverride('Save handlers');
     $this->assertSession()->assertWaitOnAjaxRequest();
 
     $this->drupalGet($this->webform->toUrl('canonical', ['query' => ['activity1' => $actID1, 'activity2' => $actID2]]));
@@ -369,7 +391,7 @@ final class ExistingContactElementTest extends WebformCivicrmTestBase {
     $this->getSession()->wait(1000);
     $this->getSession()->getPage()->selectFieldOption('State/Province', $stateProvinceID);
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
     $sent_email = $this->getMails();
@@ -607,7 +629,7 @@ States. State/Province - New Jersey.
     $this->getSession()->getPage()->checkField("webform_ui_elements[civicrm_1_contact_1_contact_last_name][required]");
     $this->getSession()->getPage()->checkField("webform_ui_elements[civicrm_2_contact_1_contact_last_name][required]");
     $this->getSession()->getPage()->checkField("webform_ui_elements[civicrm_3_contact_1_contact_last_name][required]");
-    $this->getSession()->getPage()->pressButton('Save elements');
+    $this->pressButtonOverride('Save elements');
     $this->assertSession()->assertWaitOnAjaxRequest();
 
     $this->drupalGet($this->webform->toUrl('edit-form'));
@@ -643,7 +665,7 @@ States. State/Province - New Jersey.
     // Confirm first name is disabled
     $field_disabled = $this->getSession()->evaluateScript("document.getElementById('edit-civicrm-1-contact-1-contact-first-name').disabled");
     $this->assertEquals(true, $field_disabled, 'First name is disabled');
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 0, none, 2}: Check initial values.
     $this->checkContactFields($contact[7]); // 7 is the blank contact
@@ -660,17 +682,17 @@ States. State/Province - New Jersey.
     // Page 2 {Contacts: 0, 1, 2}: Test that locked nonblank fields are disabled.
     $field_disabled = $this->getSession()->evaluateScript("document.getElementById('edit-civicrm-2-contact-1-contact-first-name').disabled");
     $this->assertEquals(true, $field_disabled, 'First name is disabled');
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
     return; // @TODO: Additional parts of this test will be enabled in susbequent PRs
     $this->assertPageNoErrorMessages();
 
     // Page 3 {Contacts: 0, 1, 2}: Check initial values.
     $this->checkContactFields($contact[2]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 2 {Contacts: 0, 1, 2}: Check entered contact data ($contact[1]).
     $this->checkContactFields($contact[1]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 1 {Contacts: 0, 1, 2}: check initial values.
     $this->checkContactFields($contact[0]);
@@ -679,15 +701,15 @@ States. State/Province - New Jersey.
     $this->getSession()->getPage()->selectFieldOption('civicrm_1_contact_1_contact_existing', "{$contact[3]['first_name']} {$contact[3]['last_name']}");
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 3, 1, 2}: Check still has $contact[1]
     $this->checkContactFields($contact[1]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 1: {Contacts: 3, 1, 2}: Check still has $contact[3]
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 3, 1, 2}: Check still has $contact[1]
     $this->checkContactFields($contact[1]);
@@ -695,19 +717,19 @@ States. State/Province - New Jersey.
     // Page 2 {Contacts: 3, 1, 2}: Create a new contact ($contact[4])
     $this->getSession()->getPage()->selectFieldOption('civicrm_2_contact_1_contact_existing', "+ Create new +");
     $this->setContactFields($contact[4]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 1 {Contacts: 3, 4, 2}: check still has $contact[3]
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 3, 4, 2}: Check still has $contact[4]
     $this->checkContactFields($contact[4]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 3 {Contacts: 3, 4, 2}: Check initial state
     $this->checkContactFields($contact[2]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 2 {Contacts: 3, 4, 2}: check still has $contact[4]
     $this->checkContactFields($contact[4]);
@@ -715,11 +737,11 @@ States. State/Province - New Jersey.
     // Page 2 {Contacts: 3, 4, 2}: Create a new contact ($contact[5])
     $this->getSession()->getPage()->selectFieldOption('civicrm_2_contact_1_contact_existing', "+ Create new +");
     $this->setContactFields($contact[5]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 3 {Contacts: 3, 5, 2}: Check initial state
     $this->checkContactFields($contact[2]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 2 {Contacts: 3, 5, 2}: check still has $contact[5]
     $this->checkContactFields($contact[5]);
@@ -729,18 +751,18 @@ States. State/Province - New Jersey.
     $this->setContactFields($contact[6]);
 
     // Page 2 {Contacts: 3, 6, 2}: Save draft
-    $this->getSession()->getPage()->pressButton('Save Draft');
+    $this->pressButtonOverride('Save Draft');
     $this->assertSession()->pageTextContains('Submission saved. You may return to this form later and it will restore the current values.');
 
     // Page 2 {Contacts: 3, 6, 2}: Reload form, check still has $contact[6]
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->assertSession()->pageTextContains('A partially-completed form was found. Please complete the remaining portions.');
     $this->checkContactFields($contact[6]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 1 {Contacts: 3, 6, 2}: Check still has $contact[3]
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 3, 6, 2}: Check still has $contact[6]
     $this->checkContactFields($contact[6]);
@@ -756,34 +778,34 @@ States. State/Province - New Jersey.
     $contact['1m'] = $contact[1];
     $contact['1m']['job_title'] = 'MODIFIED JOB TITLE 1';
     $this->getSession()->getPage()->fillField('Job Title', $contact['1m']['job_title']);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
     $this->checkContactFields($contact[3]);
 
     // Page 1 {Contacts: 3, 1m, 2}: Save/load the draft
-    $this->getSession()->getPage()->pressButton('Save Draft');
+    $this->pressButtonOverride('Save Draft');
     $this->assertSession()->pageTextContains('Submission saved. You may return to this form later and it will restore the current values.');
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->assertSession()->pageTextContains('A partially-completed form was found. Please complete the remaining portions.');
 
     // Page 1 {Contacts: 3, 1m, 2}: Confirm contact
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 3, 1m, 2}: Confirm modified contact
     $this->checkContactFields($contact['1m']);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 3 {Contacts: 3, 1m, 2}: Confirm the job is still modified
     $this->checkContactFields($contact[2]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 2 {Contacts: 3, 1m, 2}: Confirm the contact
     $this->checkContactFields($contact['1m']);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 1 {Contacts: 3, 1m, 2}: Confirm the contact
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
 
     //*** Test sequence: modify, next, save, load draft, prev, prev, next, next  ***
@@ -798,34 +820,34 @@ States. State/Province - New Jersey.
     $contact['1m'] = $contact[1];
     $contact['1m']['job_title'] = 'MODIFIED JOB TITLE 1A';
     $this->getSession()->getPage()->fillField('Job Title', $contact['1m']['job_title']);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
     $this->checkContactFields($contact[2]);
 
     // Page 3 {Contacts: 3, 1m, 2}: Save/load the draft
-    $this->getSession()->getPage()->pressButton('Save Draft');
+    $this->pressButtonOverride('Save Draft');
     $this->assertSession()->pageTextContains('Submission saved. You may return to this form later and it will restore the current values.');
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->assertSession()->pageTextContains('A partially-completed form was found. Please complete the remaining portions.');
 
     // Page 3 {Contacts: 3, 1m, 2}: Confirm contact
     $this->checkContactFields($contact[2]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 2 {Contacts: 3, 1m, 2}: Confirm modified contact
     $this->checkContactFields($contact['1m']);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 1 {Contacts: 3, 1m, 2}: Confirm the job is still modified
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 3, 1m, 2}: Confirm the contact
     $this->checkContactFields($contact['1m']);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 3 {Contacts: 3, 1m, 2}: Confirm the job is still modified
     $this->checkContactFields($contact[2]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
 
     // Page 2 {Contacts: 3, 6, 2}: Select $contact[4]
@@ -834,18 +856,18 @@ States. State/Province - New Jersey.
     $this->checkContactFields($contact[4]);
 
     // Page 2 {Contacts: 3, 4, 2}: Save draft
-    $this->getSession()->getPage()->pressButton('Save Draft');
+    $this->pressButtonOverride('Save Draft');
     $this->assertSession()->pageTextContains('Submission saved. You may return to this form later and it will restore the current values.');
 
     // Page 2 {Contacts: 3, 4, 2}: Reload form, check still has $contact[4]
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->assertSession()->pageTextContains('A partially-completed form was found. Please complete the remaining portions.');
     $this->checkContactFields($contact[4]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 3 {Contacts: 3, 4, 2}: Check initial state
     $this->checkContactFields($contact[2]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 2  {Contacts: 3, 4, 2}: Check still has $contact[4]
     $this->checkContactFields($contact[4]);
@@ -853,7 +875,7 @@ States. State/Province - New Jersey.
     // Page 2 {Contacts: 3, 4, 2}: Create a new contact ($contact[5])
     $this->getSession()->getPage()->selectFieldOption('civicrm_2_contact_1_contact_existing', "+ Create new +");
     $this->setContactFields($contact[5]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 3 {Contacts: 3, 5, 2}: Check initial state
     $this->checkContactFields($contact[2]);
@@ -863,7 +885,7 @@ States. State/Province - New Jersey.
     $this->setContactFields($contact[6]);
 
     // Page 3  {Contacts: 3, 5, 6}: Submit
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
 
@@ -890,7 +912,7 @@ States. State/Province - New Jersey.
     $this->getSession()->getPage()->selectFieldOption('civicrm_1_contact_1_contact_existing', "{$contact[8]['first_name']}");
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->checkContactFields($contact[8]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 1 {Contacts: 8, none, 2}: Still on Page 1 because Last Name is blank and required
     $this->checkContactFields($contact[8]);
@@ -900,11 +922,11 @@ States. State/Province - New Jersey.
     $contact['8m'] = $contact[8];
     $contact['8m']['last_name'] = 'CONTACT 8 LAST NAME';
     $this->getSession()->getPage()->fillField('Last Name', $contact['8m']['last_name']);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 8m, none, 2}: Check $contact[7] (null contact)
     $this->checkContactFields($contact[7]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 1 {Contacts: 8m, none, 2}: Check $contact[8m]
     $this->checkContactFields($contact['8m']);
@@ -921,14 +943,14 @@ States. State/Province - New Jersey.
     $this->getSession()->getPage()->selectFieldOption('civicrm_1_contact_1_contact_existing', "{$contact[8]['first_name']}");
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->checkContactFields($contact[8]);
-    $this->getSession()->getPage()->pressButton('Save Draft');
+    $this->pressButtonOverride('Save Draft');
     $this->assertSession()->pageTextContains('Submission saved. You may return to this form later and it will restore the current values.');
 
     // Page 1 {Contacts: 8, none, 2}: Reload form, check still has $contact[8]
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->assertSession()->pageTextContains('A partially-completed form was found. Please complete the remaining portions.');
     $this->checkContactFields($contact[8]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 1 {Contacts: 8, none, 2}: Still on Page 1 because Last Name is blank and required
     $this->checkContactFields($contact[8]);
@@ -939,15 +961,15 @@ States. State/Province - New Jersey.
     $contact['8m'] = $contact[8];
     $contact['8m']['last_name'] = 'CONTACT 8 LAST NAME';
     $this->getSession()->getPage()->fillField('Last Name', $contact['8m']['last_name']);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 8m, none, 2}: Check $contact[7] (null contact)
     $this->checkContactFields($contact[7]);
-    $this->getSession()->getPage()->pressButton('< Prev');
+    $this->pressButtonOverride('< Prev');
 
     // Page 1 {Contacts: 8m, none, 2}: Check $contact[8m]
     $this->checkContactFields($contact['8m']);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 8m, none, 2}: Check $contact[7] (null contact)
     $this->checkContactFields($contact[7]);
@@ -955,7 +977,7 @@ States. State/Province - New Jersey.
     // Page 2 {Contacts: 8m, none, 2}: Select $contact[5]
     $this->getSession()->getPage()->selectFieldOption('civicrm_2_contact_1_contact_existing', "{$contact[5]['first_name']} {$contact[5]['last_name']}");
     $this->assertSession()->assertWaitOnAjaxRequest();
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 3 {Contacts: 8m, 5, 2}: Check initial state
     $this->checkContactFields($contact[2]);
@@ -964,7 +986,7 @@ States. State/Province - New Jersey.
     $this->getSession()->getPage()->selectFieldOption('civicrm_3_contact_1_contact_existing', "{$contact[9]['first_name']}");
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->checkContactFields($contact['9']);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
 
     // Page 3 {Contacts: 8m, 5, 9}: Still on Page 3 because Last Name is blank and required
     $this->checkContactFields($contact['9']);
@@ -975,7 +997,7 @@ States. State/Province - New Jersey.
     $contact['9m'] = $contact[9];
     $contact['9m']['last_name'] = 'CONTACT 9 LAST NAME';
     $this->getSession()->getPage()->fillField('Last Name', $contact['9m']['last_name']);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->htmlOutput();
 
     // Page 3 {Contacts: 8m, 5, 9m}: Confirm submit OK
@@ -1000,7 +1022,7 @@ States. State/Province - New Jersey.
 
     // Page 1 {Contacts: 0, none, 2}: Check initial values.
     $this->checkContactFields($contact[0]);
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 2 {Contacts: 0, none, 2}: Check initial values.
     $this->checkContactFields($contact[7]);
@@ -1008,14 +1030,14 @@ States. State/Province - New Jersey.
     // Page 2 {Contacts: 0, none, 2}: Select $contact[5]
     $this->getSession()->getPage()->selectFieldOption('civicrm_2_contact_1_contact_existing', "{$contact[5]['first_name']} {$contact[5]['last_name']}");
     $this->assertSession()->assertWaitOnAjaxRequest();
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     // Page 3 {Contacts: 0, 5, 2}: Check initial state, select $contact[3], save draft
     $this->checkContactFields($contact[2]);
     $this->getSession()->getPage()->selectFieldOption('civicrm_3_contact_1_contact_existing', "{$contact[3]['first_name']} {$contact[3]['last_name']}");
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Save Draft');
+    $this->pressButtonOverride('Save Draft');
     $this->checkContactFields($contact[3]);
     $this->assertSession()->pageTextContains('Submission saved. You may return to this form later and it will restore the current values.');
     $this->htmlOutput();
@@ -1024,7 +1046,7 @@ States. State/Province - New Jersey.
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->assertSession()->pageTextContains('A partially-completed form was found. Please complete the remaining portions.');
     $this->checkContactFields($contact[3]);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
 

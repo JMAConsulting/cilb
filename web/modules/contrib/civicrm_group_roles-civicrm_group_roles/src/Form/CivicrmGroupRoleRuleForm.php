@@ -7,6 +7,8 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\user\Entity\Role;
+use Drupal\user\RoleInterface;
 
 /**
  * Form to add new Rule.
@@ -81,7 +83,7 @@ class CivicrmGroupRoleRuleForm extends EntityForm {
     ];
 
     $groups = $this->groupRoles->getGroups();
-    $roles = user_roles(TRUE);
+    $roles = Role::loadMultiple();
 
     $form['add_rule'] = [
       '#type' => 'fieldset',
@@ -105,7 +107,7 @@ class CivicrmGroupRoleRuleForm extends EntityForm {
       '#default_value' => $this->entity->getRole(),
     ];
     foreach ($roles as $role) {
-      if ($role->id() != 'authenticated') {
+      if ($role->id() !== RoleInterface::AUTHENTICATED_ID && $role->id() !== RoleInterface::ANONYMOUS_ID) {
         $form['add_rule']['role']['#options'][$role->id()] = $role->label();
       }
     }

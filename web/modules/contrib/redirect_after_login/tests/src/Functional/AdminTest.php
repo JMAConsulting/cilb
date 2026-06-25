@@ -96,7 +96,7 @@ class AdminTest extends BrowserTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    // TODO: setup tasks here.
+    // @todo setup tasks here.
     $this->adminRole = Role::create([
       'id'    => 'administrator',
       'label' => 'Administrator',

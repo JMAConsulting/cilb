@@ -4,7 +4,9 @@ namespace Drupal\civicrm_entity\Plugin\Field\FieldFormatter;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\Field\Plugin\Field\FieldFormatter\EntityReferenceLabelFormatter;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\user\Entity\User;
 
 /**
@@ -18,6 +20,11 @@ use Drupal\user\Entity\User;
  *   }
  * )
  */
+#[FieldFormatter(
+  id: "civicrm_entity_contact_reference",
+  label: new TranslatableMarkup("CiviCRM custom contact reference field"),
+  field_types: ["entity_reference"]
+)]
 class ContactReferenceFormatter extends EntityReferenceLabelFormatter {
 
   /**
@@ -26,7 +33,7 @@ class ContactReferenceFormatter extends EntityReferenceLabelFormatter {
   protected function checkAccess(EntityInterface $entity) {
     $permissions = [
       'view all contacts',
-      'access all custom data'
+      'access all custom data',
     ];
     $account = User::load(\Drupal::currentUser()->id());
     return AccessResult::allowedIfHasPermissions($account, $permissions, 'OR');

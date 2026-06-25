@@ -2,6 +2,8 @@
 
 namespace Drupal\civicrm_entity\Plugin\views\relationship;
 
+use Drupal\views\Attribute\ViewsRelationship;
+use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\Plugin\views\relationship\EntityReverse as CoreEntityReverse;
 
 /**
@@ -11,6 +13,7 @@ use Drupal\views\Plugin\views\relationship\EntityReverse as CoreEntityReverse;
  *
  * @ViewsRelationship("civicrm_entity_reverse")
  */
+#[ViewsRelationship("civicrm_entity_reverse")]
 class EntityReverse extends CoreEntityReverse {
 
   /**
@@ -18,7 +21,7 @@ class EntityReverse extends CoreEntityReverse {
    */
   public function query() {
     $this->ensureMyTable();
-
+    assert($this->query instanceof Sql);
     $join = [
       'left_table' => $this->tableAlias,
       'left_field' => $this->definition['base field'],

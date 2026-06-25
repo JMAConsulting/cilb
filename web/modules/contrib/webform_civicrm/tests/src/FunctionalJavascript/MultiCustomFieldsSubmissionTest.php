@@ -176,7 +176,7 @@ final class MultiCustomFieldsSubmissionTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->selectFieldOption($this->getCreditCardMonthFieldName(), '11');
     $this_year = date('Y');
     $this->getSession()->getPage()->selectFieldOption('credit_card_exp_date[Y]', $this_year + 1);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->htmlOutput();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
 
@@ -222,9 +222,11 @@ final class MultiCustomFieldsSubmissionTest extends WebformCivicrmTestBase {
     $this->htmlOutput();
     foreach ([2, 3, 4, 5] as $c) {
       $this->getSession()->getPage()->clickLink("Contact {$c}");
-      $this->assertSession()->assertWaitOnAjaxRequest();
       $this->getSession()->getPage()->selectFieldOption("{$c}_contact_type", 'Household');
-      $this->assertSession()->assertWaitOnAjaxRequest();
+      // Check that the progress animation has finished, but we have to first
+      // check that it even started yet.
+      $this->getSession()->wait(10000, 'document.querySelectorAll("div.ajax-progress").length > 0');
+      $this->getSession()->wait(10000, 'document.querySelectorAll("div.ajax-progress").length = 0');
       $this->getSession()->getPage()->checkField("civicrm_{$c}_contact_1_contact_existing");
       $this->assertSession()->checkboxChecked("civicrm_{$c}_contact_1_contact_existing");
     }
@@ -283,13 +285,11 @@ final class MultiCustomFieldsSubmissionTest extends WebformCivicrmTestBase {
     $this->htmlOutput();
 
     $this->getSession()->getPage()->clickLink('Contact 2');
-    $this->assertSession()->assertWaitOnAjaxRequest();
     $this->getSession()->getPage()->checkField('civicrm_2_contact_1_contact_existing');
     $this->assertSession()->checkboxChecked('civicrm_2_contact_1_contact_existing');
     $this->enableCustomFields(2);
 
     $this->getSession()->getPage()->clickLink('Contact 3');
-    $this->assertSession()->assertWaitOnAjaxRequest();
     $this->getSession()->getPage()->checkField('civicrm_3_contact_1_contact_existing');
     $this->assertSession()->checkboxChecked('civicrm_3_contact_1_contact_existing');
     $this->enableCustomFields(3);
@@ -424,7 +424,7 @@ final class MultiCustomFieldsSubmissionTest extends WebformCivicrmTestBase {
       }
     }
 
-    $this->getSession()->getPage()->pressButton($submit);
+    $this->pressButtonOverride($submit);
     $this->assertPageNoErrorMessages();
     if ($submit == 'Submit') {
       $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');

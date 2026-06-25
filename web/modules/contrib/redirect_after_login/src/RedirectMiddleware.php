@@ -2,10 +2,10 @@
 
 namespace Drupal\redirect_after_login;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Executes redirect before the main kernel takes over the request.
@@ -27,8 +27,7 @@ class RedirectMiddleware implements HttpKernelInterface {
   protected $redirectResponse;
 
   /**
-   * Constructs a RedirectMiddleware
-   * object.
+   * Constructs a RedirectMiddleware object.
    *
    * @param \Symfony\Component\HttpKernel\HttpKernelInterface $http_kernel
    *   The decorated kernel.

@@ -32,8 +32,8 @@ final class CivicrmContactUserRelationshipTest extends CivicrmEntityTestBase {
    * {@inheritdoc}
    */
   public function setUp(): void {
-    if ($this->getName() === 'testWithSeperateDatabase' && empty(getenv('SIMPLETEST_CIVICRM_DB'))) {
-      $this->markTestSkipped("Cannot run {$this->getName()} without specifying SIMPLETEST_CIVICRM_DB as a seperate database.");
+    if ($this->toString() === 'testWithSeperateDatabase' && empty(getenv('SIMPLETEST_CIVICRM_DB'))) {
+      $this->markTestSkipped("Cannot run {$this->toString()} without specifying SIMPLETEST_CIVICRM_DB as a seperate database.");
     }
     parent::setUp();
 
@@ -90,10 +90,10 @@ final class CivicrmContactUserRelationshipTest extends CivicrmEntityTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function changeDatabasePrefix() {
+  protected function changeDatabasePrefix(): void {
     parent::changeDatabasePrefix();
     // Change the CiviCRM connection to use the separate database.
-    if ($this->getName() === 'testWithSeperateDatabase') {
+    if ($this->toString() === 'testWithSeperateDatabase') {
       $db_url = getenv('SIMPLETEST_CIVICRM_DB');
       Database::removeConnection('civicrm_test');
       Database::removeConnection('civicrm');

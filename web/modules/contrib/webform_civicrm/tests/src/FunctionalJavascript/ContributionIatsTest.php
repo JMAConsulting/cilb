@@ -120,7 +120,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->selectFieldOption('civicrm_1_contribution_1_contribution_enable_contribution', 1);
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->assertSession()->pageTextContains('You must enable an email field for Contact 1 in order to process transactions.');
-    $this->getSession()->getPage()->pressButton('Enable It');
+    $this->pressButtonOverride('Enable It');
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->getSession()->getPage()->checkField('Contribution Amount');
     $this->getSession()->getPage()->selectFieldOption('Currency', 'USD');
@@ -158,9 +158,9 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     ];
     $this->fillBillingFields($billingValues);
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertSession()->assertWaitOnAjaxRequest();
-    $this->createScreenshot($this->htmlOutputDirectory . 'faps169.png');
+    $this->createScreenshot($this->htmlOutputDirectory . '/faps169.png');
     $this->assertPageNoErrorMessages();
     $this->htmlOutput();
 
@@ -256,7 +256,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->fillField('Line Item Amount', '1.75');
     $this->getSession()->getPage()->fillField('Line Item Amount 2', '5.00');
 
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
     $this->assertSession()->waitForField('Contribution Amount');
     $this->getSession()->getPage()->fillField('Contribution Amount', '3.00');
     $this->assertSession()->elementExists('css', '#wf-crm-billing-items');
@@ -280,7 +280,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
       'postal_code' => '53177',
     ];
     $this->fillBillingFields($billingValues);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     // throw new \Exception(var_export($this->htmlOutputDirectory, TRUE));
     $this->createScreenshot($this->htmlOutputDirectory . '/legacy289.png');
     $this->htmlOutput();
@@ -369,7 +369,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->drupalGet($this->webform->toUrl('settings'));
     $this->htmlOutput();
     $this->getSession()->getPage()->checkField('Use Ajax');
-    $this->getSession()->getPage()->pressButton('Save');
+    $this->pressButtonOverride('Save');
 
     $this->submitWebForm();
     $this->verifyResults();
@@ -388,7 +388,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->selectFieldOption('civicrm_1_contribution_1_contribution_enable_contribution', 1);
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->assertSession()->pageTextContains('You must enable an email field for Contact 1 in order to process transactions.');
-    $this->getSession()->getPage()->pressButton('Enable It');
+    $this->pressButtonOverride('Enable It');
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->getSession()->getPage()->checkField('Contribution Amount');
     $this->getSession()->getPage()->selectFieldOption('Currency', 'USD');
@@ -399,8 +399,12 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
 
     $this->enableBillingSection();
 
-    $this->getSession()->getPage()->pressButton('Save Settings');
+    // For some reason it needs a delay or else it gives a warning about not being able to find the financial type and then most of the fields don't get added, including the email field which is then what it fails on later.
+    sleep(5);
+
+    $this->pressButtonOverride('Save Settings');
     $this->assertSession()->pageTextContains('Saved CiviCRM settings');
+    $this->assertPageNoErrorMessages();
 
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->assertPageNoErrorMessages();
@@ -408,7 +412,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->fillField('Last Name', 'Pabst');
     $this->getSession()->getPage()->fillField('Email', 'fred@example.com');
 
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     $this->getSession()->getPage()->fillField('Contribution Amount', '99.00');
 
@@ -433,7 +437,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
       'postal_code' => '53177',
     ];
     $this->fillBillingFields($billingValues);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
 
     $api_result = $this->utils->wf_civicrm_api('contribution', 'get', [
       'sequential' => 1,
@@ -462,7 +466,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->selectFieldOption('civicrm_1_contribution_1_contribution_enable_contribution', 1);
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->assertSession()->pageTextContains('You must enable an email field for Contact 1 in order to process transactions.');
-    $this->getSession()->getPage()->pressButton('Enable It');
+    $this->pressButtonOverride('Enable It');
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->getSession()->getPage()->checkField('Contribution Amount');
     $this->getSession()->getPage()->selectFieldOption('Currency', 'USD');
@@ -478,7 +482,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->checkField('Number of Installments');
     $this->htmlOutput();
 
-    $this->getSession()->getPage()->pressButton('Save Settings');
+    $this->pressButtonOverride('Save Settings');
     $this->assertSession()->pageTextContains('Saved CiviCRM settings');
 
     // Test 1: $120 -> paid in 12 instalments -> $10/month
@@ -488,7 +492,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->fillField('Last Name', 'Pabst');
     $this->getSession()->getPage()->fillField('Email', 'fred@example.com');
 
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     $this->getSession()->getPage()->fillField('Contribution Amount', '120.00');
     $this->getSession()->getPage()->fillField('Number of Installments', '12.00');
@@ -514,7 +518,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
       'postal_code' => '53177',
     ];
     $this->fillBillingFields($billingValues);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
 
     $api_result = $this->utils->wf_civicrm_api('contribution', 'get', [
       'sequential' => 1,
@@ -554,7 +558,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->fillField('Last Name', 'Pabst');
     $this->getSession()->getPage()->fillField('Email', 'fred@example.com');
 
-    $this->getSession()->getPage()->pressButton('Next >');
+    $this->pressButtonOverride('Next >');
 
     $this->getSession()->getPage()->fillField('Contribution Amount', '120.00');
     $this->getSession()->getPage()->fillField('Number of Installments', '0');
@@ -580,7 +584,7 @@ final class ContributionIatsTest extends WebformCivicrmTestBase {
       'postal_code' => '53177',
     ];
     $this->fillBillingFields($billingValues);
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
 
     $api_result = $this->utils->wf_civicrm_api('contribution', 'get', [
       'sequential' => 1,

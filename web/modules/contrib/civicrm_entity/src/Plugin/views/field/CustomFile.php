@@ -2,6 +2,7 @@
 
 namespace Drupal\civicrm_entity\Plugin\views\field;
 
+use Drupal\views\Attribute\ViewsField;
 use Drupal\views\Plugin\views\field\FieldPluginBase;
 use Drupal\views\ResultRow;
 use Drupal\views\ViewExecutable;
@@ -17,6 +18,7 @@ use Drupal\Component\Utility\UrlHelper;
  *
  * @ViewsField("civicrm_entity_custom_file")
  */
+#[ViewsField("civicrm_entity_custom_file")]
 class CustomFile extends FieldPluginBase {
 
   /**
@@ -44,7 +46,7 @@ class CustomFile extends FieldPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
+  public function init(ViewExecutable $view, DisplayPluginBase $display, ?array &$options = NULL) {
     parent::init($view, $display, $options);
     $this->civicrmApi->civicrmInitialize();
     $this->additional_fields['entity_id'] = 'entity_id';

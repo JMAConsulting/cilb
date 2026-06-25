@@ -109,8 +109,8 @@ final class ActivitySubmissionTest extends WebformCivicrmTestBase {
     if ($num > 1) {
       $multiple = TRUE;
       $this->getSession()->getPage()->find('xpath', '//div[contains(@class, "form-item-civicrm-1-activity-1-activity-assignee-contact-id")]/a[contains(@class, "select-multiple")]')->click();
+      $this->assertSession()->assertWaitOnAjaxRequest();
     }
-    $this->assertSession()->assertWaitOnAjaxRequest();
     for ($i = 1; $i <= $num; $i++) {
       $this->getSession()->getPage()->selectFieldOption('civicrm_1_activity_1_activity_assignee_contact_id[]', "Contact {$i}", $multiple);
     }
@@ -145,7 +145,7 @@ final class ActivitySubmissionTest extends WebformCivicrmTestBase {
     // ToDo -> use different dates -> default is 'now'
     $this->getSession()->getPage()->fillField('Activity Duration', '90');
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->htmlOutput();
 
     $this->assertPageNoErrorMessages();
@@ -209,7 +209,7 @@ final class ActivitySubmissionTest extends WebformCivicrmTestBase {
     $this->assertSession()->waitForField('Activity Duration');
     $this->htmlOutput();
     $this->getSession()->getPage()->fillField('Activity Duration', '120');
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->htmlOutput();
 
     // All we've updated is the Activity Duration

@@ -334,9 +334,9 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
       'query' => ['reset' => 1, 'action' => 'update', 'gid' => 1, 'id' => $this->_customFields['color_checkboxes']]
     ])->toString();
     $this->drupalGet($fieldURL);
-    $this->getSession()->getPage()->uncheckField(version_compare(\CRM_Core_BAO_Domain::version(), '5.75.alpha1', '<') ? 'Active?' : 'Active');
+    $this->getSession()->getPage()->uncheckField('is_active');
     // $this->createScreenshot($this->htmlOutputDirectory . '/custom_field.png');
-    $this->getSession()->getPage()->pressButton('_qf_Field_done-bottom');
+    $this->pressButtonOverride('_qf_Field_done-bottom');
 
     //Reload the webform page - the custom field should be removed.
     $this->drupalGet($this->webform->toUrl('canonical'));
@@ -348,8 +348,9 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
 
     //Re-enable the field.
     $this->drupalGet($fieldURL);
-    $this->getSession()->getPage()->checkField(version_compare(\CRM_Core_BAO_Domain::version(), '5.75.alpha1', '<') ? 'Active?' : 'Active');
-    $this->getSession()->getPage()->pressButton('_qf_Field_done-bottom');
+    $this->getSession()->getPage()->checkField('is_active');
+    $this->pressButtonOverride('_qf_Field_done-bottom');
+    $this->assertPageNoErrorMessages();
 
     $this->drupalGet($this->webform->toUrl('canonical'));
     $this->htmlOutput();
@@ -368,7 +369,7 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
     $this->assertPageNoErrorMessages();
     $this->assertSession()->checkboxNotChecked("Yes");
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
   }
@@ -415,7 +416,7 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->fillField('properties[options][options][civicrm_option_1][label]', 'Red - Recommended');
     $this->htmlOutput();
     // $this->createScreenshot($this->htmlOutputDirectory . '/afterlabelchange.png');
-    $this->getSession()->getPage()->pressButton('Save');
+    $this->pressButtonOverride('Save');
     $this->assertSession()->assertWaitOnAjaxRequest();
 
     $this->drupalLogout();
@@ -446,7 +447,7 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->checkField('Orange');
     $this->getSession()->getPage()->checkField('Yes');
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
 
@@ -513,7 +514,7 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
 
     $this->assertSession()->elementExists('css', ".empty.message");
     $this->assertSession()->elementTextContains('css', "[data-drupal-selector='edit-properties-options-options']", 'Nothing');
-    $this->getSession()->getPage()->pressButton('Save');
+    $this->pressButtonOverride('Save');
     $this->assertSession()->assertWaitOnAjaxRequest();
   }
 
@@ -550,7 +551,12 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
     $this->drupalGet($this->webform->toUrl('edit-form'));
 
     $this->setDefaultValue("edit-webform-ui-elements-civicrm-1-contact-1-cg1-custom-{$this->_customFields['test_radio_2']}-operations", 3);
+    // Shouldn't be needed, but the element seems to go "missing" after
+    // setDefaultValue (which calls Save which may or may not be relevant), so
+    // reload the page.
+    $this->drupalGet($this->webform->toUrl('edit-form'));
     $this->setDefaultValue("edit-webform-ui-elements-civicrm-1-contact-1-cg1-custom-{$this->_customFields['color_checkboxes']}-operations", 2);
+    $this->drupalGet($this->webform->toUrl('edit-form'));
     $this->setDefaultValue("edit-webform-ui-elements-civicrm-1-contact-1-cg1-custom-{$this->_customFields['fruits']}-operations", 'Mango, Orange');
 
     $this->drupalGet($this->webform->toUrl('canonical', ['query' => ['cid1' => $contactID]]));
@@ -627,7 +633,7 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
 
     // Ensure all fields are loaded correctly.
     $this->verifyDefaults();
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
     $params = [
@@ -646,7 +652,7 @@ final class CustomFieldSubmissionTest extends WebformCivicrmTestBase {
 
     // Select OptionB and submit the webform
     $this->getSession()->getPage()->selectFieldOption("civicrm_1_contact_1_cg1_custom_{$this->_customFields['select_list']}", 'OptionB');
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->assertSession()->pageTextContains('New submission added to CiviCRM Webform Test.');
     $this->drupalGet($this->webform->toUrl('canonical', ['query' => ['cid1' => $contactID]]));

@@ -15,3 +15,11 @@ repos:
         language: system
         files: \.(php|module|inc|install|test|profile|theme|css|info|txt|md|yml)$
         pass_filenames: false
+  - repo: local
+    hooks:
+      - id: sort-cspell-project-words
+        name: sort-cspell-project-words
+        entry: bash -c 'sort .cspell-project-words.txt > a && mv a .cspell-project-words.txt'
+        language: system
+        files: \.cspell-project-words\.txt
+        pass_filenames: false

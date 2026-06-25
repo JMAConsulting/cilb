@@ -2,6 +2,7 @@
 
 namespace Drupal\civicrm_entity\Entity;
 
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\civicrm_entity\Plugin\Field\ActivityEndDateFieldItemList;
 use Drupal\civicrm_entity\Plugin\Field\BundleFieldItemList;
 use Drupal\civicrm_entity\SupportedEntities;
@@ -77,22 +78,39 @@ class CivicrmEntity extends ContentEntityBase {
     // This ensures the values array has the bundle property set.
     $entity_type = $storage->getEntityType();
     if ($entity_type->hasKey('bundle')) {
+      $bundle_key = $entity_type->getKey('bundle');
       $bundle_property = $entity_type->get('civicrm_bundle_property');
       /** @var \Drupal\civicrm_entity\CiviCrmApiInterface $civicrm_api */
       $civicrm_api = \Drupal::service('civicrm_entity.api');
       $options = $civicrm_api->getOptions($entity_type->get('civicrm_entity'), $bundle_property);
+      $transliteration = \Drupal::transliteration();
 
-      if (isset($values[$entity_type->getKey('bundle')]) && $values[$entity_type->getKey('bundle')] === $entity_type->id()) {
+      if (isset($values[$bundle_key]) && $values[$bundle_key] !== $entity_type->id()) {
+        if (!isset($values[$bundle_property])) {
+          foreach ($options as $raw => $label) {
+            if (SupportedEntities::optionToMachineName($label, $transliteration) === $values[$bundle_key]) {
+              $values[$bundle_property] = $raw;
+              break;
+            }
+          }
+        }
+        return;
+      }
+
+      if (isset($values[$bundle_key]) && $values[$bundle_key] === $entity_type->id()) {
         $raw_bundle_value = key($options);
       }
       else {
-        $raw_bundle_value = $values[$bundle_property];
+        $raw_bundle_value = $values[$bundle_property] ?? key($options);
       }
 
       $bundle_value = $options[$raw_bundle_value];
-      $transliteration = \Drupal::transliteration();
       $machine_name = SupportedEntities::optionToMachineName($bundle_value, $transliteration);
-      $values[$entity_type->getKey('bundle')] = $machine_name;
+      $values[$bundle_key] = $machine_name;
+      // Ensure the bundle property is set for CiviCRM.
+      if (!isset($values[$bundle_property])) {
+        $values[$bundle_property] = $raw_bundle_value;
+      }
     }
   }
 
@@ -115,9 +133,14 @@ class CivicrmEntity extends ContentEntityBase {
       $fields[$name] = $field_definition_provider->getBaseFieldDefinition($civicrm_field);
       $fields[$name]->setRequired(isset($civicrm_required_fields[$name]));
 
-      if (str_starts_with($name, 'custom_') && $values = \Drupal::service('civicrm_entity.api')->getCustomFieldMetadata($name)) {
-        $fields[$name]->setSetting('civicrm_entity_field_metadata', $values);
-        $fields[$name]->setRequired((bool) $civicrm_field['is_required']);
+      if (str_starts_with($name, 'custom_')) {
+        [, $custom_field_id] = explode('_', $name, 2);
+        if (is_numeric($custom_field_id)) {
+          if ($values = \Drupal::service('civicrm_entity.api')->getCustomFieldMetadata($name)) {
+            $fields[$name]->setSetting('civicrm_entity_field_metadata', $values);
+            $fields[$name]->setRequired((bool)$civicrm_field['is_required']);
+          }
+        }
       }
     }
 
@@ -149,7 +172,18 @@ class CivicrmEntity extends ContentEntityBase {
         ->setDisplayConfigurable('form', FALSE)
         ->setClass(ActivityEndDateFieldItemList::class);
     }
-
+    $module_handler = \Drupal::getContainer()->get('module_handler');
+    if ($module_handler->moduleExists('path')) {
+      $config = \Drupal::config('civicrm_entity.settings');
+      $enabled_entity_types = $config->get('enabled_entity_types') ?: [];
+      if (in_array($entity_type->id(), $enabled_entity_types)) {
+        $fields['path'] = BaseFieldDefinition::create('path')
+          ->setLabel(t('URL alias'))
+          ->setDisplayOptions('form', ['type' => 'path', 'weight' => 30])
+          ->setDisplayConfigurable('form', TRUE)
+          ->setComputed(TRUE);
+      }
+    }
     return $fields;
   }
 
@@ -167,13 +201,21 @@ class CivicrmEntity extends ContentEntityBase {
     if (!empty($civicrm_violations)) {
       foreach (reset($civicrm_violations) as $civicrm_field => $civicrm_violation) {
         $definition = $this->getFieldDefinition($civicrm_field);
+        // Use Drupal's translation system to safely format the message.
+        $field_label = $definition->getLabel();
+        $message = $civicrm_violation['message'] ?? '';
+        // Create a TranslatableMarkup object to safely handle the replacement.
+        // phpcs:ignore Drupal.Semantics.FunctionT.NotLiteralString
+        $translated_message = new TranslatableMarkup($message, [
+          ':' . $civicrm_field => $field_label,
+        ]);
         $violation = new ConstraintViolation(
-          str_replace($civicrm_field, $definition->getLabel(), $civicrm_violation['message']),
-          str_replace($civicrm_field, $definition->getLabel(), $civicrm_violation['message']),
+          $translated_message,
+          $translated_message,
           [],
           '',
           $civicrm_field,
-          $params[$civicrm_field]
+          $params[$civicrm_field] ?? NULL
         );
         $violations->add($violation);
       }
@@ -190,6 +232,11 @@ class CivicrmEntity extends ContentEntityBase {
     /** @var \Drupal\Core\Field\FieldItemListInterface $items */
     foreach ($this->getFields() as $field_name => $items) {
       $items->filterEmptyItems();
+
+      if ($field_name == 'path' && (!$this->hasLinkTemplate('canonical') || !$this->hasLinkTemplate('edit-form'))) {
+        continue;
+      }
+
       if ($items->isEmpty()) {
         continue;
       }
@@ -198,6 +245,10 @@ class CivicrmEntity extends ContentEntityBase {
 
       if (!$storage_definition->isBaseField()) {
         // Do not try to pass any FieldConfig (or else) to CiviCRM API.
+        continue;
+      }
+
+      if ($storage_definition->getType() == 'metatag_computed') {
         continue;
       }
 
@@ -229,6 +280,9 @@ class CivicrmEntity extends ContentEntityBase {
     return $params;
   }
 
+  /**
+   * Get raw value.
+   */
   public function getRawValue($field) {
     return $this->values[$field] ?? '';
   }

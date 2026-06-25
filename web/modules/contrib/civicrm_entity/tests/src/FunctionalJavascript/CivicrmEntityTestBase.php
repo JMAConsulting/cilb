@@ -9,6 +9,8 @@ use Drupal\Tests\civicrm\FunctionalJavascript\CiviCrmTestBase;
 
 /**
  * Base class for CiviCRM Entity tests.
+ *
+ * @method JSWebAssert assertSession(?string $name = NULL)
  */
 abstract class CivicrmEntityTestBase extends CiviCrmTestBase {
 

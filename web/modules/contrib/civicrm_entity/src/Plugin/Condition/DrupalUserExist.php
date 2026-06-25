@@ -2,6 +2,9 @@
 
 namespace Drupal\civicrm_entity\Plugin\Condition;
 
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\rules\Context\ContextDefinition;
+use Drupal\rules\Core\Attribute\Condition;
 use Drupal\rules\Core\RulesConditionBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -25,6 +28,19 @@ use Drupal\civicrm_entity\Entity\CivicrmEntity;
  *   }
  * )
  */
+#[Condition(
+  id: "civicrm_entity_drupal_user_exists",
+  label: new TranslatableMarkup("CiviCRM Contact linked User exists"),
+  category: new TranslatableMarkup("CiviCRM"),
+  context_definitions: [
+    "civicrm_contact" => new ContextDefinition(
+      data_type: "entity:civicrm_contact",
+      label: new TranslatableMarkup("CiviCRM contact entity"),
+      required: TRUE,
+      description: new TranslatableMarkup("The CiviCRM contact entity.")
+    ),
+  ]
+)]
 class DrupalUserExist extends RulesConditionBase implements ContainerFactoryPluginInterface {
 
   /**

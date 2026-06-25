@@ -3,6 +3,8 @@ services:
     class: 'Drupal\civicrm_entity\CiviCrmApi'
     arguments: ['@civicrm']
 
+  Drupal\civicrm_entity\CiviCrmApiInterface: '@civicrm_entity.api'
+
   civicrm_entity.field_definition_provider:
     class: Drupal\civicrm_entity\Entity\FieldDefinitionProvider
 
@@ -18,17 +20,38 @@ services:
     tags:
       - { name: event_subscriber }
 
-  civicrm_entity.module_installer:
-    class: Drupal\civicrm_entity\ModuleInstaller
-    decorates: module_installer
-    public: true
-    arguments: ['@civicrm_entity.module_installer.inner', '%app.root%', '@module_handler', '@kernel', '@database', '@update.update_hook_registry', '@logger.factory']
-    tags:
-      - { name: service_collector, tag: 'module_install.uninstall_validator', call: addUninstallValidator }
-
   civicrm_entity.contact_checksum_access_checker:
     class: Drupal\civicrm_entity\Access\ContactChecksumCheckAccess
     autowire: true
     arguments: ['@request_stack', '@civicrm_entity.api']
     tags:
       - {name: access_check, applies_to: _civicrm_entity_checksum_access_check }
+
+  civicrm_entity.search_api:
+    class: Drupal\civicrm_entity\EventSubscriber\SearchApiSubscriber
+    tags:
+      - { name: event_subscriber }
+
+  Drupal\civicrm_entity\Hook\EntityAlterHooks:
+    class: Drupal\civicrm_entity\Hook\EntityAlterHooks
+    autowire: true
+
+  Drupal\civicrm_entity\Hook\EntityHooks:
+    class: Drupal\civicrm_entity\Hook\EntityHooks
+    autowire: true
+
+  Drupal\civicrm_entity\Hook\FormHooks:
+    class: Drupal\civicrm_entity\Hook\FormHooks
+    autowire: true
+
+  Drupal\civicrm_entity\Hook\QueryHooks:
+    class: Drupal\civicrm_entity\Hook\QueryHooks
+    autowire: true
+
+  Drupal\civicrm_entity\Hook\RulesHooks:
+    class: Drupal\civicrm_entity\Hook\RulesHooks
+    autowire: true
+
+  Drupal\civicrm_entity\Hook\ThemeHooks:
+    class: Drupal\civicrm_entity\Hook\ThemeHooks
+    autowire: true

@@ -29,7 +29,7 @@ class FieldOptions implements FieldOptionsInterface {
         list($contact_types, $sub_types) = $utils->wf_crm_get_contact_types();
         $ret = wf_crm_aval($sub_types, $data['contact'][$c]['contact'][1]['contact_type'], []);
       }
-      elseif ((strpos($name, 'state_province_id') !== false) || (isset($field['type']) && $field['type'] === 'civicrm_number')) {
+      elseif (isset($field['type']) && $field['type'] === 'civicrm_number') {
         return [];
       }
       elseif ($name === 'relationship_type_id') {
@@ -68,7 +68,7 @@ class FieldOptions implements FieldOptionsInterface {
       }
       elseif (isset($field['table']) && $field['table'] === 'group') {
         $params = ['is_hidden' => 0];
-        $options = wf_crm_aval($data, "contact:$c:other:1:group");
+        $options = wf_crm_aval($data, "contact:$c:other:1:crmgroup");
         if (!empty($options) && !empty($options['public_groups'])) {
           $params['visibility'] = "Public Pages";
         }

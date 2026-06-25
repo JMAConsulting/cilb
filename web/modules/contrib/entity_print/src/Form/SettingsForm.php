@@ -2,11 +2,7 @@
 
 namespace Drupal\entity_print\Form;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Form\ConfigFormBase;
-use Drupal\entity_print\Plugin\EntityPrintPluginManagerInterface;
-use Drupal\entity_print\Plugin\ExportTypeManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Form\FormStateInterface;
@@ -67,7 +63,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, Request $request = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, ?Request $request = NULL) {
     $print_engines = [];
     foreach ($this->pluginManager->getDefinitions() as $plugin_id => $definition) {
       /** @var \Drupal\entity_print\Plugin\PrintEngineInterface $class */
