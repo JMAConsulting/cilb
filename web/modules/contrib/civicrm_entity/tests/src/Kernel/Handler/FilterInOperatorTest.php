@@ -231,7 +231,7 @@ final class FilterInOperatorTest extends KernelHandlerTestBase {
         'first_name' => 'John',
         'last_name' => 'Doe',
         'contact_type' => 'Individual',
-        'custom_1' => [],
+        'custom_1' => [3],
       ],
       [
         'first_name' => 'Jane',
@@ -240,7 +240,7 @@ final class FilterInOperatorTest extends KernelHandlerTestBase {
         // @todo There is bug with civicrm_entity_in_operator for custom fields
         // not yet initialized. These are not included even if it has no value
         // for "not in" operator. Remove this line once the bug is fixed.
-        'custom_1' => [],
+        'custom_1' => [3],
       ],
       [
         'organization_name' => 'The Trevor Project',

@@ -3,6 +3,7 @@
 namespace Drupal\nagios\Controller;
 
 use Drupal\Core\Config\Config;
+use Drupal\Core\Extension\Requirement\RequirementSeverity;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\update\UpdateFetcherInterface;
 use Drupal\update\UpdateManagerInterface;
@@ -42,6 +43,7 @@ class RequirementsController {
     $moduleHandler = \Drupal::service('module_handler');
 
     foreach ($enabled_modules as $module_name) {
+      // Invoke hook_requirements('runtime') — Drupal 8/9/10 and D11 compat modules.
       $requirements_data = $moduleHandler->invoke($module_name, 'requirements', ['runtime']);
       if ($requirements_data && is_array($requirements_data)) {
         // Intercept the Update Status module to respect our Ignore behavior.
@@ -51,7 +53,22 @@ class RequirementsController {
         }
         $this->reqs += $requirements_data;
       }
+
+      // Invoke hook_runtime_requirements() — introduced in Drupal 11.2
+      // (https://www.drupal.org/node/3410939). Core modules like system and
+      // update moved to this hook; without it their checks are silently skipped.
+      $runtime_data = $moduleHandler->invoke($module_name, 'runtime_requirements');
+      if ($runtime_data && is_array($runtime_data)) {
+        // Intercept the Update Status module to respect our Ignore behavior.
+        if ($module_name == 'update' && !empty($update_status)) {
+          $this->massageRequirementsFromUpdateModule($runtime_data, $enabled_modules, $project_data['drupal']['includes'], $update_status);
+        }
+        // Let runtime_requirements take precedence over requirements when keys
+        // overlap, mirroring Drupal core's SystemManager::listRequirements().
+        $this->reqs = array_merge($this->reqs, $runtime_data);
+      }
     }
+    \Drupal::moduleHandler()->alter('requirements', $this->reqs);
   }
 
   /**
@@ -71,13 +88,23 @@ class RequirementsController {
           continue;
         }
 
+        // Drupal 11.2+ (https://www.drupal.org/node/3410939) returns severity
+        // as a RequirementSeverity enum; normalise to int for all comparisons.
+        $sev = $requirement['severity'];
+        if ($sev instanceof RequirementSeverity) {
+          $sev = $sev->value;
+        }
+        else {
+          $sev = (int) $sev;
+        }
+
         // Ignore update_core warning if update check is pending:
-        if (($key == 'update_core' || $key == 'update_contrib') && $requirement['severity'] == REQUIREMENT_ERROR && $requirement['reason'] == UpdateFetcherInterface::FETCH_PENDING) {
+        if (($key == 'update_core' || $key == 'update_contrib') && $sev == REQUIREMENT_ERROR && isset($requirement['reason']) && $requirement['reason'] == UpdateFetcherInterface::FETCH_PENDING) {
           continue;
         }
-        if ($requirement['severity'] >= $min_severity) {
-          if ($requirement['severity'] > $this->severity) {
-            $this->severity = $requirement['severity'];
+        if ($sev >= $min_severity) {
+          if ($sev > $this->severity) {
+            $this->severity = $sev;
           }
           $descriptions[] = $requirement['title'];
         }
@@ -101,17 +128,29 @@ class RequirementsController {
     // nagios module.
     unset($requirements['update_contrib']);
     // Now we need to loop through all modules again to reset 'update_contrib'.
+    $module_data = [];
     foreach ($enabled_modules as $module_name) {
       // Double check we're not processing a core module.
       if (!array_key_exists($module_name, $includes) && isset($update_status[$module_name]['status']) && is_numeric($update_status[$module_name]['status'])) {
         // Within this clause, only contrib modules are processed. Get
         // update status for the current one, and store data as it would be
         // left by update_requirements() function.
-        $contrib_req = _update_requirement_check($update_status[$module_name], 'contrib');
+        // _update_requirement_check() was removed in Drupal 11 as part of
+        // https://www.drupal.org/node/3410939 (moved to OOP hook class).
+        if (function_exists('_update_requirement_check')) {
+          $contrib_req = _update_requirement_check($update_status[$module_name], 'contrib');
+        }
+        else {
+          $contrib_req = $this->computeContribRequirement($update_status[$module_name]);
+        }
         $contrib_req['name'] = $module_name;
         // If module up to date, set a severity of -1 for sorting purposes.
         if (!isset($contrib_req['severity'])) {
           $contrib_req['severity'] = -1;
+        }
+        elseif ($contrib_req['severity'] instanceof RequirementSeverity) {
+          // Normalise Drupal 11+ enum to int so usort comparisons work.
+          $contrib_req['severity'] = $contrib_req['severity']->value;
         }
         // Build an array of required contrib updates.
         $module_data[] = $contrib_req;
@@ -129,6 +168,34 @@ class RequirementsController {
       $controller = new StatuspageController();
       $controller->calculateOutdatedModuleAndThemeNames($requirements[key($requirements)]['title'], UpdateManagerInterface::NOT_CURRENT);
     }
+  }
+
+  /**
+   * Computes a requirements array for a contrib project from its update status.
+   *
+   * Replicates the logic of the removed _update_requirement_check() for the
+   * 'contrib' type, returning integer severity constants so the rest of the
+   * nagios code keeps working on both D10 and D11.
+   */
+  private function computeContribRequirement(array $project_data): array {
+    $requirement = ['title' => (string) $this->t('Module and theme update status')];
+    $status = $project_data['status'];
+
+    if (in_array($status, [
+      UpdateManagerInterface::NOT_SECURE,
+      UpdateManagerInterface::REVOKED,
+      UpdateManagerInterface::NOT_SUPPORTED,
+    ], TRUE)) {
+      $requirement['severity'] = REQUIREMENT_ERROR;
+      $requirement['reason'] = $status;
+    }
+    elseif ($status === UpdateManagerInterface::NOT_CURRENT) {
+      $requirement['severity'] = REQUIREMENT_WARNING;
+      $requirement['reason'] = $status;
+    }
+    // CURRENT and unknown statuses: no severity key → caller sets -1.
+
+    return $requirement;
   }
 
 }

@@ -5,6 +5,8 @@ namespace Drupal\civicrm_entity\Plugin\views\query;
 use Drupal\civicrm\Civicrm;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Database\Query\Select;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\views\Attribute\ViewsQuery;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\ViewExecutable;
@@ -21,6 +23,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   help = @Translation("Query will be generated and run using the Drupal database API against the CiviCRM database.")
  * )
  */
+#[ViewsQuery(
+  id: 'civicrm_views_query',
+  title: new TranslatableMarkup('CiviCRM SQL Query'),
+  help: new TranslatableMarkup('Query will be generated and run using the Drupal database API against the CiviCRM database.')
+)]
 class CivicrmSql extends Sql {
 
   /**
@@ -55,7 +62,7 @@ class CivicrmSql extends Sql {
   /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
+  public function init(ViewExecutable $view, DisplayPluginBase $display, ?array &$options = NULL) {
     // Ensure that Drupal is aware of the CiviCRM database connection.
     // This should be added into the settings.php, but we provide a backwards
     // compatibility layer here.

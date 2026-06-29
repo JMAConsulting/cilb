@@ -2,9 +2,11 @@
 
 namespace Drupal\civicrm_entity\Plugin\views\relationship;
 
+use Drupal\views\Attribute\ViewsRelationship;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\Plugin\views\relationship\RelationshipPluginBase;
 use Drupal\views\Views;
 
@@ -15,6 +17,7 @@ use Drupal\views\Views;
  *
  * @ViewsRelationship("civicrm_entity_activity_contact")
  */
+#[ViewsRelationship("civicrm_entity_activity_contact")]
 class CiviCrmActivityContact extends RelationshipPluginBase {
 
   /**
@@ -64,7 +67,7 @@ class CiviCrmActivityContact extends RelationshipPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
+  public function init(ViewExecutable $view, DisplayPluginBase $display, ?array &$options = NULL) {
     parent::init($view, $display, $options);
 
     $this->definition['extra'] = [];
@@ -84,6 +87,7 @@ class CiviCrmActivityContact extends RelationshipPluginBase {
    * {@inheritdoc}
    */
   public function query() {
+    assert($this->query instanceof Sql);
     $this->ensureMyTable();
 
     $views_data = Views::viewsData()->get($this->table);

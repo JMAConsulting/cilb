@@ -5,6 +5,7 @@ namespace Drupal\civicrm_entity\TypedData\Options;
 use Drupal\civicrm_entity\CiviCrmApi;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\rules\TypedData\Options\OptionsProviderBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -41,7 +42,7 @@ class CivicrmGroupOptions extends OptionsProviderBase implements ContainerInject
   /**
    * {@inheritdoc}
    */
-  public function getPossibleOptions(AccountInterface $account = NULL) {
+  public function getPossibleOptions(?AccountInterface $account = NULL) {
     $options = [];
 
     // Load all the node types.

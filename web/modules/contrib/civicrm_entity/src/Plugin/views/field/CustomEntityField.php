@@ -2,19 +2,13 @@
 
 namespace Drupal\civicrm_entity\Plugin\views\field;
 
+use Drupal\views\Attribute\ViewsField;
 use Drupal\views\Plugin\views\field\EntityField;
-use Drupal\Core\Entity\EntityFieldManagerInterface;
-use Drupal\Core\Entity\EntityRepositoryInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Field\FieldTypePluginManagerInterface;
-use Drupal\Core\Field\FormatterPluginManager;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\Render\RendererInterface;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
+use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\ResultRow;
 use Drupal\views\ViewExecutable;
-use Drupal\civicrm_entity\CiviCrmApiInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
@@ -30,6 +24,7 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
  *
  * @ViewsField("civicrm_entity_custom_field")
  */
+#[ViewsField("civicrm_entity_custom_field")]
 class CustomEntityField extends EntityField {
   /**
    * The field definition.
@@ -62,34 +57,16 @@ class CustomEntityField extends EntityField {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, FormatterPluginManager $formatter_plugin_manager, FieldTypePluginManagerInterface $field_type_plugin_manager, LanguageManagerInterface $language_manager, RendererInterface $renderer, EntityRepositoryInterface $entity_repository = NULL, EntityFieldManagerInterface $entity_field_manager = NULL, CiviCrmApiInterface $civicrm_api) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $entity_type_manager, $formatter_plugin_manager, $field_type_plugin_manager, $language_manager, $renderer, $entity_repository, $entity_field_manager);
-    $this->civicrmApi = $civicrm_api;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('entity_type.manager'),
-      $container->get('plugin.manager.field.formatter'),
-      $container->get('plugin.manager.field.field_type'),
-      $container->get('language_manager'),
-      $container->get('renderer'),
-      $container->get('entity.repository'),
-      $container->get('entity_field.manager'),
-      $container->get('civicrm_entity.api')
-    );
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    $instance->civicrmApi = $container->get('civicrm_entity.api');
+    return $instance;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
+  public function init(ViewExecutable $view, DisplayPluginBase $display, ?array &$options = NULL) {
     $field_definition = $this->getFieldDefinition();
 
     if ($settings = $field_definition->getSetting('civicrm_entity_field_metadata')) {
@@ -99,6 +76,9 @@ class CustomEntityField extends EntityField {
         $this->fieldDefinition->setCardinality($this->fieldMetadata['max_multiple']);
       }
     }
+
+    $options['entity_field'] = $options['field'];
+
     parent::init($view, $display, $options);
   }
 
@@ -133,7 +113,7 @@ class CustomEntityField extends EntityField {
    */
   public function clickSort($order) {
     $this->ensureMyTable();
-
+    assert($this->query instanceof Sql);
     if ($this->fieldMetadata && $this->fieldMetadata['column_name']) {
       $this->query->addOrderBy(NULL, NULL, $order, $this->tableAlias . '.' . $this->fieldMetadata['column_name']);
     }
@@ -183,6 +163,7 @@ class CustomEntityField extends EntityField {
       $entity = $this->createEntity($entity);
 
       if (isset($this->aliases['id']) && isset($values->{$this->aliases['id']})) {
+        // @phpstan-ignore property.notFound
         $values->delta = $this->getDelta($values->{$this->aliases['id']});
       }
 
@@ -222,7 +203,9 @@ class CustomEntityField extends EntityField {
     if ($this->limit_values) {
       $row = $this->view->result[$this->view->row_index];
 
+      // @phpstan-ignore property.notFound
       if (!$this->options['group_rows'] && isset($all_values[$row->delta]) && is_numeric($row->delta)) {
+        // @phpstan-ignore property.notFound
         return [$all_values[$row->delta]];
       }
     }
@@ -240,7 +223,7 @@ class CustomEntityField extends EntityField {
    *   Returns the processed entity.
    */
   protected function createEntity(EntityInterface $entity) {
-    $processed_entity = clone $entity;
+    $processed_entity = $entity;
 
     try {
       $result = $this->civicrmApi->get('CustomValue', [

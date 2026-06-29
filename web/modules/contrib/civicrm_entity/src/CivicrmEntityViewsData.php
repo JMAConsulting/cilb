@@ -27,7 +27,7 @@ class CivicrmEntityViewsData extends EntityViewsData {
   /**
    * {@inheritdoc}
    */
-  public function __construct(EntityTypeInterface $entity_type, SqlEntityStorageInterface $storage_controller, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler, TranslationInterface $translation_manager, EntityFieldManagerInterface $entity_field_manager = NULL, CiviCrmApiInterface $civicrm_api) {
+  public function __construct(EntityTypeInterface $entity_type, SqlEntityStorageInterface $storage_controller, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler, TranslationInterface $translation_manager, EntityFieldManagerInterface $entity_field_manager, CiviCrmApiInterface $civicrm_api) {
     parent::__construct($entity_type, $storage_controller, $entity_type_manager, $module_handler, $translation_manager, $entity_field_manager);
     $this->civicrmApi = $civicrm_api;
     $this->civicrmApi->civicrmInitialize();
@@ -495,13 +495,15 @@ class CivicrmEntityViewsData extends EntityViewsData {
         }
 
         break;
+
       case 'civicrm_website':
         if (isset($views_field['civicrm_contact']['reverse__civicrm_website__contact_id']['relationship'])) {
           $views_field['civicrm_contact']['reverse__civicrm_website__contact_id']['relationship']['id'] = 'civicrm_entity_reverse_website_type';
           $views_field['civicrm_contact']['reverse__civicrm_website__contact_id']['relationship']['label'] = $this->t('Website');
         }
-  
+
         break;
+
       case 'civicrm_address':
         if (isset($views_field['civicrm_contact']['reverse__civicrm_address__contact_id']['relationship'])) {
           $views_field['civicrm_contact']['reverse__civicrm_address__contact_id']['relationship']['id'] = 'civicrm_entity_reverse_location';
@@ -675,7 +677,15 @@ class CivicrmEntityViewsData extends EntityViewsData {
           'left_field' => 'id',
           'field' => 'entity_id',
         ];
+        $views_field['civicrm_contribution_page']['table']['join']['civicrm_price_set_entity'] = [
+          'left_field' => 'entity_id',
+          'field' => 'id',
+        ];
 
+        $views_field['civicrm_price_set_entity']['table']['join']['civicrm_contribution_page'] = [
+          'left_field' => 'id',
+          'field' => 'entity_id',
+        ];
         break;
 
       case 'civicrm_participant':
@@ -760,11 +770,14 @@ class CivicrmEntityViewsData extends EntityViewsData {
         return $filter;
 
       case 'ContactReference':
-        return [
+        $filter = [
           'id' => 'civicrm_entity_contact_reference',
           'allow empty' => TRUE,
-          'multi' => TRUE,
         ];
+        if (!empty($field_metadata['serialize'])) {
+          $filter['multi'] = TRUE;
+        }
+        return $filter;
     }
 
     $type = !empty($field_metadata['pseudoconstant']) ? 'pseudoconstant' :
@@ -798,9 +811,23 @@ class CivicrmEntityViewsData extends EntityViewsData {
             'options callback' => "{$class_name}::buildOptions",
             'options arguments' => $field_metadata['name'],
           ];
-          $multi_type_fields = ['Multi-Select', 'CheckBox'];
+          $multi_type_fields = [
+            'Multi-Select',
+            'CheckBox',
+            'Autocomplete-Select',
+          ];
           if (in_array($field_metadata['html_type'], $multi_type_fields)) {
-            $filter['multi'] = TRUE;
+            // Check if the field type is in the list of multi-type fields,
+            // such as multiple select options.
+            if ($field_metadata['html_type'] == 'Autocomplete-Select') {
+              // If the field type is 'Autocomplete-Select', set 'multi' filter.
+              // Base it on whether the serialize attribute is enabled.
+              $filter['multi'] = $field_metadata['serialize'];
+            }
+            else {
+              // For other types, assume it's a multi-select field.
+              $filter['multi'] = TRUE;
+            }
           }
 
           return $filter;

@@ -4,5 +4,3 @@ redirect_after_login.admin_settings:
   route_name: redirect_after_login.admin_settings
   parent: user.admin_index
   weight: 10
-
-  

@@ -17,7 +17,7 @@ final class StripeTest extends WebformCivicrmTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    $this->setUpExtension('mjwshared,firewall,mjwpaymentapi,com.drastikbydesign.stripe');
+    $this->setUpExtension('mjwshared,firewall,com.drastikbydesign.stripe');
 
     $this->paymentProcessorID = $this->createStripeProcessor();
 
@@ -58,7 +58,7 @@ final class StripeTest extends WebformCivicrmTestBase {
 
     $this->fillStripeCardWidget();
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->htmlOutput();
 
@@ -103,7 +103,7 @@ final class StripeTest extends WebformCivicrmTestBase {
 
     $this->fillStripeCardWidget();
 
-    $this->getSession()->getPage()->pressButton('Submit');
+    $this->pressButtonOverride('Submit');
     $this->assertPageNoErrorMessages();
     $this->htmlOutput();
 
@@ -126,7 +126,7 @@ final class StripeTest extends WebformCivicrmTestBase {
     $this->getSession()->wait(3000);
 
     $this->assertSession()->waitForElementVisible('css', 'input[name="cardnumber"]');
-    $this->getSession()->getPage()->fillField('cardnumber', '4111 1111 1111 1111');
+    $this->getSession()->getPage()->fillField('cardnumber', '4242 4242 4242 4242');
     $this->getSession()->getPage()->fillField('exp-date', '11 / ' . $expYear);
     $this->getSession()->getPage()->fillField('cvc', '123');
     $this->getSession()->getPage()->fillField('postal', '12345');
@@ -192,7 +192,7 @@ final class StripeTest extends WebformCivicrmTestBase {
     $this->getSession()->getPage()->selectFieldOption('civicrm_1_contribution_1_contribution_enable_contribution', 1);
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->assertSession()->pageTextContains('You must enable an email field for Contact 1 in order to process transactions.');
-    $this->getSession()->getPage()->pressButton('Enable It');
+    $this->pressButtonOverride('Enable It');
     $this->assertSession()->assertWaitOnAjaxRequest();
     $this->getSession()->getPage()->checkField('Contribution Amount');
     $this->getSession()->getPage()->selectFieldOption('Currency', 'USD');

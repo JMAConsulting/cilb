@@ -2,14 +2,12 @@
 
 /**
  * @file
- * A simple module providing a feature to redirect users according to an
- * URL-defined parameter after logging in. Allows redirect only internal url
- * of site.
+ * Redirect users according to  URL-defined parameter after logging in.
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\redirect_after_login\Event\RedirectAfterLoginEvent;
 
 /**
  * Implements hook_help().
@@ -23,7 +21,7 @@ function redirect_after_login_help($route_name, RouteMatchInterface $route_match
 
       // If the Markdown module is installed, use it to render the README.
       if ($text && Drupal::moduleHandler()
-          ->moduleExists('markdown') === TRUE) {
+        ->moduleExists('markdown') === TRUE) {
         $filter_manager = Drupal::service('plugin.manager.filter');
         $settings = Drupal::configFactory()
           ->get('markdown.settings')
@@ -72,7 +70,7 @@ function redirect_after_login_user_login($account) {
     // Step out and let Drupal handle it.
     \Drupal::service('request_stack')
       ->getCurrentRequest()->query->set('destination', URL::fromUserInput('/')
-      ->toString());
+        ->toString());
   }
 
   $config = Drupal::config('redirect_after_login.settings');
@@ -89,21 +87,32 @@ function redirect_after_login_user_login($account) {
     }
   }
 
-  if (!in_array($current_route, ['user.reset', 'user.reset.login'])) {
-    // Redirect user on login.
-    $current_user = Drupal::currentUser();
-    $username = $current_user->getRoles();
-    $login_redirection = Drupal::config('redirect_after_login.settings')
-      ->get('login_redirection');
-
-    $url = (isset($login_redirection[array_reverse($username)[0]])) ? $login_redirection[array_reverse($username)[0]] : '/';
-    \Drupal::service('request_stack')
-      ->getCurrentRequest()->query->set('destination', URL::fromUserInput($url)->toString());
+  if (in_array($current_route, ['user.reset', 'user.reset.login'])) {
+    return;
   }
+
+  // Retrieve the redirect URL from the configuration.
+  $current_user = Drupal::currentUser();
+  $username = $current_user->getRoles();
+  $login_redirection = Drupal::config('redirect_after_login.settings')->get('login_redirection');
+  $url = $login_redirection[array_reverse($username)[0]] ?? '/';
+
+  // Allow other modules to alter the redirect URL and prevent redirection.
+  $event = new RedirectAfterLoginEvent($url);
+  /** @var \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher */
+  $event_dispatcher = \Drupal::service('event_dispatcher');
+  $event_dispatcher->dispatch($event);
+
+  if (!$event->isRedirectAllowed()) {
+    return;
+  }
+
+  \Drupal::service('request_stack')
+    ->getCurrentRequest()->query->set('destination', URL::fromUserInput($event->getUrl())->toString());
 }
 
 /**
- * Implements hook_passwordless_login_redirect_alter
+ * Implements hook_passwordless_login_redirect_alter().
  */
 function redirect_after_login_passwordless_login_redirect_alter(string &$route_name, array &$route_parameters = []) {
   $current_user = \Drupal::currentUser();

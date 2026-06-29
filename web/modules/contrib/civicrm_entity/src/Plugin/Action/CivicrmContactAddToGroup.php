@@ -2,6 +2,8 @@
 
 namespace Drupal\civicrm_entity\Plugin\Action;
 
+use Drupal\Core\Action\Attribute\Action;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\views_bulk_operations\Action\ViewsBulkOperationsActionBase;
 use Drupal\views_bulk_operations\Action\ViewsBulkOperationsPreconfigurationInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
@@ -10,10 +12,6 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\civicrm_entity\CiviCrmApi;
-
-if (!class_exists('Drupal\views_bulk_operations\Action\ViewsBulkOperationsActionBase')) {
-  return;
-}
 
 /**
  * Action to add CiviCRM Contact to a CiviCRM group.
@@ -25,6 +23,11 @@ if (!class_exists('Drupal\views_bulk_operations\Action\ViewsBulkOperationsAction
  *   confirm = TRUE,
  * )
  */
+#[Action(
+  id: 'civicrm_contact_add_to_group',
+  label: new TranslatableMarkup('Add Contact to Group'),
+  type: 'civicrm_contact',
+)]
 class CivicrmContactAddToGroup extends ViewsBulkOperationsActionBase implements ViewsBulkOperationsPreconfigurationInterface, PluginFormInterface, ContainerFactoryPluginInterface {
 
   /**
@@ -140,7 +143,7 @@ class CivicrmContactAddToGroup extends ViewsBulkOperationsActionBase implements 
   /**
    * {@inheritdoc}
    */
-  public function access($object, AccountInterface $account = NULL, $return_as_object = FALSE) {
+  public function access($object, ?AccountInterface $account = NULL, $return_as_object = FALSE) {
     return $object->access('update', $account, $return_as_object);
   }
 

@@ -105,7 +105,7 @@ class EntityPrintAccessTest extends KernelTestBase {
       'bypass entity print access',
       'access content',
     ]);
-    $this->assertSame(FALSE, $this->checkAccess($account, $entity_type, $entity_id, $export_type));
+    $this->assertFalse($this->checkAccess($account, $entity_type, $entity_id, $export_type));
   }
 
   /**

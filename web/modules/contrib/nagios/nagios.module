@@ -6,7 +6,7 @@
  */
 
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Config\ImmutableConfig;
+use Drupal\Core\Config\Config;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Extension\Extension;
 use Drupal\Core\Form\FormStateInterface;
@@ -58,6 +58,7 @@ function nagios_functions() {
   if ($moduleHandler->moduleExists('elysia_cron')) {
     $functions['elysia_cron'] = t('Check whether elysia cron has been running regularly');
   }
+
   return $functions;
 }
 
@@ -89,6 +90,7 @@ function _nagios_update_os_user(): array {
   }
   $os_user[PHP_SAPI] = $current_user;
   $state->set('nagios.os_user', $os_user);
+
   return $os_user;
 }
 
@@ -136,6 +138,7 @@ function get_hook_implementations(string $hook): array {
       $modules[] = $module;
     });
   }
+
   return [$moduleHandler, $modules];
 }
 
@@ -306,7 +309,8 @@ function nagios_form_system_theme_settings_alter(&$form, FormStateInterface $for
  */
 function nagios_system_theme_settings_form_submit(
   /**
-   * @noinspection PhpUnusedParameterInspection */
+   * @noinspection PhpUnusedParameterInspection
+   */
   &$form,
   FormStateInterface $form_state,
 ) {
@@ -354,6 +358,7 @@ function nagios_nagios(string $id = '') {
     $func = 'nagios_check_' . $id;
     $result = $func();
     $status[$result['key']] = $result['data'];
+
     return $status;
   }
 
@@ -387,7 +392,7 @@ function nagios_nagios(string $id = '') {
  *   An array of installed projects with current update status information.
  *   Keyed by project name; module and theme names are in the include section.
  */
-function _nagios_get_projects_with_updates(ImmutableConfig $config): array {
+function _nagios_get_projects_with_updates(Config $config): array {
   $available = update_get_available(TRUE);
   if (!$available) {
     return [];
@@ -446,6 +451,7 @@ function _nagios_extensions_to_check(array $nagios_ignored_extensions): array {
     if ($module instanceof Extension) {
       return $module->getName();
     }
+
     return $module;
   }, $modules_to_check + $themes_to_check);
 
@@ -682,7 +688,6 @@ function nagios_check_watchdog() {
 
     // Add message to descriptions array.
     $descriptions[] = $message;
-
   }
 
   // Join all descriptions together into a string.
@@ -934,6 +939,7 @@ function nagios_nagios_check($function) {
   $func = 'nagios_check_' . $function;
   $result = $func();
   $status[$result['key']] = $result['data'];
+
   return $status;
 }
 
@@ -983,6 +989,7 @@ function nagios_session_count($timestamp = 0, $anonymous = TRUE) {
   $query->addExpression('COUNT(sid)', 'count');
   $query->condition('timestamp', $timestamp, '>=');
   $query->condition('uid', 0, $anonymous ? '=' : '>');
+
   return (int) $query->execute()->fetchField();
 }
 
@@ -1001,8 +1008,10 @@ function _nagios_updates_sort_by_severity($a, $b) {
     if ($a['severity'] == $b['severity']) {
       return 0;
     }
+
     return ($a['severity'] < $b['severity']) ? -1 : 1;
   }
+
   return 0;
 }
 
@@ -1012,7 +1021,7 @@ function _nagios_updates_sort_by_severity($a, $b) {
 function nagios_post_update_rename_config_key____() {
   $config = Drupal::configFactory()->getEditable('nagios.settings');
   $new = 'nagios.limit_watchdog.channel_filter';
-  $old = 'nagios.limit_watchdog.channel_blacklist';
+  $old = 'nagios.limit_watchdog.channel_black' . 'list';
   $config->set($new, $config->get($old));
   $config->clear($old);
   $config->save();

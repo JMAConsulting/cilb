@@ -2,14 +2,15 @@ name: CiviCRM Entity
 type: module
 description: 'Expose CiviCRM entities as Drupal entities.'
 package: CiviCRM
-core_version_requirement: ^10.1 || ^11
+container_rebuild_required: true
+core_version_requirement: ^10.3 || ^11
 dependencies:
   - civicrm
   - drupal:datetime
   - drupal:filter
   - drupal:options
 
-# Information added by Drupal.org packaging script on 2024-06-11
-version: '4.0.0-beta4'
+# Information added by Drupal.org packaging script on 2026-06-16
+version: '4.0.6'
 project: 'civicrm_entity'
-datestamp: 1718125055
+datestamp: 1781651382
