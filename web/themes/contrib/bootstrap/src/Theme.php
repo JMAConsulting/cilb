@@ -192,7 +192,7 @@ class Theme {
     $this->theme = $theme;
     $this->themeHandler = $theme_handler;
     $this->themes = $this->themeHandler->listInfo();
-    $this->info = $this->themes[$this->name]->info ?? [];
+    $this->info = isset($this->themes[$this->name]->info) ? $this->themes[$this->name]->info : [];
     $this->bootstrap = $this->subthemeOf('bootstrap');
 
     // Only install the theme if it's Bootstrap based and there are no schemas
@@ -371,25 +371,11 @@ class Theme {
    *   by machine name.
    */
   public function getAncestry($reverse = FALSE) {
-    $ancestry = [];
-    $themes = $this->themeHandler->listInfo();
-    $theme_name = $this->getName();
-
-    if (!isset($themes[$theme_name])) {
-      $ancestry[$theme_name] = $this;
-      return $reverse ? array_reverse($ancestry) : $ancestry;
+    $ancestry = $this->themeHandler->getBaseThemes($this->themes, $this->getName());
+    foreach (array_keys($ancestry) as $name) {
+      $ancestry[$name] = Bootstrap::getTheme($name, $this->themeHandler);
     }
-
-    if (!empty($themes[$theme_name]->base_themes) && is_array($themes[$theme_name]->base_themes)) {
-      foreach (array_keys($themes[$theme_name]->base_themes) as $name) {
-        if (isset($themes[$name])) {
-          $ancestry[$name] = Bootstrap::getTheme($name, $this->themeHandler);
-        }
-      }
-    }
-
-    $ancestry[$theme_name] = $this;
-
+    $ancestry[$this->getName()] = $this;
     return $reverse ? array_reverse($ancestry) : $ancestry;
   }
 
@@ -439,7 +425,7 @@ class Theme {
   public function getCdnProvider() {
     $provider = $this->getSetting('cdn_provider');
     $providers = $this->getCdnProviders();
-    return $providers[$provider] ?? ProviderManager::broken();
+    return isset($providers[$provider]) ? $providers[$provider] : ProviderManager::broken();
   }
 
   /**
@@ -478,7 +464,7 @@ class Theme {
    */
   public function getInfo($property = NULL) {
     if (isset($property)) {
-      return $this->info[$property] ?? NULL;
+      return isset($this->info[$property]) ? $this->info[$property] : NULL;
     }
     return $this->info;
   }
@@ -589,7 +575,7 @@ class Theme {
 
     // Return a specific setting plugin.
     if (isset($name)) {
-      return $this->settings[$name] ?? NULL;
+      return isset($this->settings[$name]) ? $this->settings[$name] : NULL;
     }
 
     // Return all setting plugins.

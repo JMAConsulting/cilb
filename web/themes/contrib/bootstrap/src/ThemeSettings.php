@@ -223,7 +223,7 @@ class ThemeSettings extends Config {
     else {
       $parts = explode('.', $key);
       if (count($parts) == 1) {
-        return $original_data[$key] ?? NULL;
+        return isset($original_data[$key]) ? $original_data[$key] : NULL;
       }
       else {
         $value = NestedArray::getValue($original_data, $parts, $key_exists);
@@ -318,8 +318,8 @@ class ThemeSettings extends Config {
 
     foreach ($all_complex_settings as $key) {
       $arrays = [];
-      $arrays[] = $this->defaults[$key] ?? [];
-      $arrays[] = $data[$key] ?? [];
+      $arrays[] = isset($this->defaults[$key]) ? $this->defaults[$key] : [];
+      $arrays[] = isset($data[$key]) ? $data[$key] : [];
       $diff[$key] = NestedArray::mergeDeepArray($arrays, TRUE);
     }
 

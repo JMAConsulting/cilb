@@ -66,7 +66,7 @@ class CdnVersion extends CdnProviderBase {
   public function processDeprecatedValues(array $values, array $deprecated) {
     // @todo Remove deprecated setting support in a future release.
     $deprecated = "cdn_{$this->getProvider()->getPluginId()}_version";
-    return $values[$deprecated] ?? NULL;
+    return isset($values[$deprecated]) ? $values[$deprecated] : NULL;
   }
 
 }

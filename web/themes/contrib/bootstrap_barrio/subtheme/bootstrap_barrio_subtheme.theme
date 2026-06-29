@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Functions to support theming in the SASS Starterkit subtheme.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+
+function bootstrap_barrio_subtheme_preprocess_field(array &$variables) {
+  if (
+    $variables['element']['#field_name'] === 'field_register' &&
+    $variables['element']['#bundle'] === 'registration_notification' &&
+    $variables['element']['#entity_type'] === 'block_content'
+  ) {
+    foreach ($variables['items'] as &$item) {
+      if (isset($item['content']['#options']['attributes']['class'])) {
+        $item['content']['#options']['attributes']['class'][] = 'btn btn-primary';
+      } else {
+        $item['content']['#options']['attributes']['class'] = ['btn btn-primary'];
+      }
+    }
+  }
+}

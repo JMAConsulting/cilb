@@ -153,6 +153,7 @@ drupal.batch:
     - core/once
 
 drupal.filter:
+  version: VERSION
   js:
     js/modules/filter/filter.js: {}
   dependencies:

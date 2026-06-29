@@ -24,14 +24,14 @@ abstract class CdnCacheTtlBase extends CdnProviderBase {
    *
    * @var \Drupal\Core\Datetime\DateFormatterInterface
    */
-  protected static $dateFormatter;
+  static protected $dateFormatter;
 
   /**
    * A list of TTL options.
    *
    * @var array
    */
-  protected static $ttlOptions;
+  static protected $ttlOptions;
 
   /**
    * {@inheritdoc}

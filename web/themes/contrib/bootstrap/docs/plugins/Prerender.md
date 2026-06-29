@@ -69,7 +69,7 @@ class Link extends BootstrapLink {
    * {@inheritdoc}
    */
   public static function preRender(array $element) {
-    $context = $element['#context'] ?? [];
+    $context = isset($element['#context']) ? $element['#context'] : [];
 
     // Make downloadButton links into buttons.
     if (!empty($context['downloadButton'])) {

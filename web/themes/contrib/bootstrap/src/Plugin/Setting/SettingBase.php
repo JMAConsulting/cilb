@@ -17,11 +17,6 @@ use Drupal\Core\Url;
  */
 class SettingBase extends PluginBase implements SettingInterface {
 
-  /**
-   * The type of user interface.
-   *
-   * @var autoUserInterface
-   */
   public static $autoUserInterface = TRUE;
 
   /**
@@ -99,14 +94,14 @@ class SettingBase extends PluginBase implements SettingInterface {
    * {@inheritdoc}
    */
   public function getDefaultValue() {
-    return $this->pluginDefinition['defaultValue'] ?? NULL;
+    return isset($this->pluginDefinition['defaultValue']) ? $this->pluginDefinition['defaultValue'] : NULL;
   }
 
   /**
    * {@inheritdoc}
    */
   public function getDescription() {
-    return $this->pluginDefinition['description'] ?? NULL;
+    return isset($this->pluginDefinition['description']) ? $this->pluginDefinition['description'] : NULL;
   }
 
   /**
