@@ -45,6 +45,7 @@ function cilb_exam_registration_civicrm_tabset($tabsetName, &$tabs, $context) {
   }
 
   // Get current Drupal user.
+  /** @var \Drupal\Core\Session\AccountProxyInterface $current_user */
   $current_user = \Drupal::currentUser();
   $roles = $current_user->getRoles();
 
@@ -337,32 +338,33 @@ function cilb_exam_registration_civicrm_postProcess($formName, $form) {
 
 
 function cilb_exam_registration_civicrm_alterMailParams(&$params, $context) {
-   if (in_array($params['valueName'], ['contribution_online_receipt', 'contribution_invoice_receipt'])) {
-     $participants = \Civi\Api4\Participant::get(FALSE)
-       ->addSelect('event_id.Exam_Details.Exam_Part:label', 'event_id.event_type_id:label', 'event_id.title')
-       ->addWhere('Participant_Webform.Candidate_Payment', '=', $params['tplParams']['contributionID'])
-       ->addWhere('contact_id', '=', $params['contactId'])
-       ->execute()
-       ->indexBy('id');
-     $events = [];
-     foreach ($participants as $participant) {
-       $events[$participant['id']] = [
-         'exam_part' => $participant['event_id.Exam_Details.Exam_Part:label'],
-         'exam_category' => ($participant['event_id.event_type_id:label'] === 'Business and Finance') ? '' : $participant['event_id.event_type_id:label'],
-       ];
-     }
-     $params['tplParams']['events'] = $events;
-     $lineItems = CRM_Price_BAO_LineItem::getLineItemsByContributionID($params['tplParams']['contributionID']);
-     foreach ($lineItems as $k => $lineItem) {
-       if ($lineItem['entity_table'] == 'civicrm_participant') {
-          $lineItems[$k]['title'] = $participants[$lineItem['entity_id']]['event_id.title'] . ' - ' . $lineItem['field_title'];
-       }
-       else {
-         $lineItems[$k]['title'] = $lineItems[$k]['label'];
-       }
-     }
-     $params['tplParams']['lineItems'] = $lineItems;
-   }
+  $workflow = ($params['workflow'] ?? ($params['valueName'] ?? ''));
+  if (in_array($workflow, ['contribution_online_receipt', 'contribution_invoice_receipt'])) {
+    $participants = \Civi\Api4\Participant::get(FALSE)
+      ->addSelect('event_id.Exam_Details.Exam_Part:label', 'event_id.event_type_id:label', 'event_id.title')
+      ->addWhere('Participant_Webform.Candidate_Payment', '=', $params['tplParams']['contributionID'])
+      ->addWhere('contact_id', '=', $params['contactId'])
+      ->execute()
+      ->indexBy('id');
+    $events = [];
+    foreach ($participants as $participant) {
+      $events[$participant['id']] = [
+        'exam_part' => $participant['event_id.Exam_Details.Exam_Part:label'],
+        'exam_category' => ($participant['event_id.event_type_id:label'] === 'Business and Finance') ? '' : $participant['event_id.event_type_id:label'],
+      ];
+    }
+    $params['tplParams']['events'] = $events;
+    $lineItems = CRM_Price_BAO_LineItem::getLineItemsByContributionID($params['tplParams']['contributionID']);
+    foreach ($lineItems as $k => $lineItem) {
+      if ($lineItem['entity_table'] == 'civicrm_participant') {
+        $lineItems[$k]['title'] = $participants[$lineItem['entity_id']]['event_id.title'] . ' - ' . $lineItem['field_title'];
+      }
+      else {
+        $lineItems[$k]['title'] = $lineItems[$k]['label'];
+      }
+    }
+    $params['tplParams']['lineItems'] = $lineItems;
+  }
 }
 
 function _cilb_exam_registration_external_identifier_set(\Civi\Core\Event\PreEvent $event) {
