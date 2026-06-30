@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'AllowDynamicProperties' => $vendorDir . '/symfony/polyfill-php82/Resources/stubs/AllowDynamicProperties.php',
+    'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'CURLStringFile' => $vendorDir . '/symfony/polyfill-php81/Resources/stubs/CURLStringFile.php',
     'Callback' => $vendorDir . '/rubobaquero/phpquery/phpQuery/phpQuery/Callback.php',
     'CallbackBody' => $vendorDir . '/rubobaquero/phpquery/phpQuery/phpQuery/Callback.php',
@@ -70,6 +71,7 @@ return array(
     'Pdo\\Odbc' => $vendorDir . '/symfony/polyfill-php84/Resources/stubs/Pdo/Odbc.php',
     'Pdo\\Pgsql' => $vendorDir . '/symfony/polyfill-php84/Resources/stubs/Pdo/Pgsql.php',
     'Pdo\\Sqlite' => $vendorDir . '/symfony/polyfill-php84/Resources/stubs/Pdo/Sqlite.php',
+    'PhpToken' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
     'QRcode' => $vendorDir . '/tecnickcom/tcpdf/include/barcodes/qrcode.php',
     'Random\\BrokenRandomEngineError' => $vendorDir . '/symfony/polyfill-php82/Resources/stubs/Random/BrokenRandomEngineError.php',
     'Random\\CryptoSafeEngine' => $vendorDir . '/symfony/polyfill-php82/Resources/stubs/Random/CryptoSafeEngine.php',
@@ -182,6 +184,7 @@ return array(
     'SebastianBergmann\\Diff\\TimeEfficientLongestCommonSubsequenceCalculator' => $vendorDir . '/sebastian/diff/src/TimeEfficientLongestCommonSubsequenceCalculator.php',
     'SensitiveParameter' => $vendorDir . '/symfony/polyfill-php82/Resources/stubs/SensitiveParameter.php',
     'SensitiveParameterValue' => $vendorDir . '/symfony/polyfill-php82/Resources/stubs/SensitiveParameterValue.php',
+    'Stringable' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
     'System' => $vendorDir . '/pear/pear-core-minimal/src/System.php',
     'TCPDF' => $vendorDir . '/tecnickcom/tcpdf/tcpdf.php',
     'TCPDF2DBarcode' => $vendorDir . '/tecnickcom/tcpdf/tcpdf_barcodes_2d.php',
@@ -192,6 +195,8 @@ return array(
     'TCPDF_FONT_DATA' => $vendorDir . '/tecnickcom/tcpdf/include/tcpdf_font_data.php',
     'TCPDF_IMAGES' => $vendorDir . '/tecnickcom/tcpdf/include/tcpdf_images.php',
     'TCPDF_STATIC' => $vendorDir . '/tecnickcom/tcpdf/include/tcpdf_static.php',
+    'UnhandledMatchError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
+    'ValueError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     'ezcBase' => $vendorDir . '/zetacomponents/base/src/base.php',
     'ezcBaseAutoloadException' => $vendorDir . '/zetacomponents/base/src/exceptions/autoload.php',
     'ezcBaseAutoloadOptions' => $vendorDir . '/zetacomponents/base/src/options/autoload.php',
