@@ -112,10 +112,10 @@ class CRM_CILB_Sync_AdvImport_PearsonVueWrapper extends CRM_CILB_Sync_AdvImport_
       else {
         $examItemsCorrect = BigDecimal::of((string) $params['examitemscorrect']);
         $examItemsIncorrect = BigDecimal::of((string) $params['examitemsincorrect']);
-        $examItemsSkipped = BigDecimal::of($params['examitemsskipped']);
+        $examItemsSkipped = BigDecimal::of((string) $params['examitemsskipped']);
         $denominator = $examItemsCorrect->plus($examItemsIncorrect)->plus($examItemsSkipped);
         $division = ($examScore / $denominator->toFloat());
-        $parsedExamScore = BigDecimal::of($division)->multipliedBy((string) 100)->dividedBy(1, 0, RoundingMode::HALF_UP);
+        $parsedExamScore = BigDecimal::of((string) $division)->multipliedBy((string) 100)->dividedBy(1, 0, RoundingMode::HALF_UP);
         $result = \Civi\Api4\Participant::update(FALSE)
           ->addValue('source', $examRegID)
           ->addValue('Candidate_Result.Candidate_Score', $parsedExamScore->toInt())
