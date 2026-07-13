@@ -1,0 +1,14 @@
+uuid: b2b86359-b6a2-48e0-be40-96ccdb016d94
+langcode: en
+status: true
+dependencies:
+  module:
+    - webform
+id: call_center_supervisor
+label: 'Supervisor - Full Time Call Center'
+weight: 5
+is_admin: null
+permissions:
+  - 'access user profiles'
+  - 'access webform overview'
+  - 'administer users'
