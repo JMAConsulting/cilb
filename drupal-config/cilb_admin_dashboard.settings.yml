@@ -16,7 +16,10 @@ links:
     url: /exam-registration
   -
     title: 'Update public registration screen text'
-    url: /admin/content/block/1/translations
+    url: /node/6/translations
+  -
+    title: 'Merge Contacts'
+    url: /civicrm/profile-merge
   -
     title: 'Operating Manual'
     url: /operating-manual
