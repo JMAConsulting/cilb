@@ -224,7 +224,16 @@ function cilb_exam_registration_civicrm_pre(string $op, string $objectName, ?int
 }
 
 function cilb_exam_registration_civicrm_post(string $op, string $objectName, ?int $objectId, &$objectRef): void {
-  if ($objectName !== 'Participant' || $op !== 'edit' || empty($objectId)) {
+  if ($objectName !== 'Participant' || empty($objectId)) {
+    return;
+  }
+
+  if ($op === 'create') {
+    CRM_CilbExamRegistration_CandidateNumber::schedule($objectId);
+    return;
+  }
+
+  if ($op !== 'edit') {
     return;
   }
 
@@ -285,6 +294,8 @@ function cilb_exam_registration_civicrm_post(string $op, string $objectName, ?in
       'id' => $objectId,
     ]);
   }
+
+  CRM_CilbExamRegistration_CandidateNumber::schedule($objectId);
 }
 
 function _cilb_exam_registration_candidate_number_meta(): ?array {
