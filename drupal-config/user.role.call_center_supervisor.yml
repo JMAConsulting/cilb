@@ -3,12 +3,28 @@ langcode: en
 status: true
 dependencies:
   module:
+    - civicrm
     - webform
 id: call_center_supervisor
 label: 'Supervisor - Full Time Call Center'
 weight: 5
 is_admin: null
 permissions:
+  - 'access CiviCRM'
+  - 'access CiviEvent'
+  - 'access all custom data'
+  - 'access contact reference fields'
   - 'access user profiles'
   - 'access webform overview'
+  - 'add contact notes'
+  - 'add contacts'
   - 'administer users'
+  - 'edit all contacts'
+  - 'edit event participants'
+  - 'edit my contact'
+  - 'profile listings'
+  - 'profile listings and forms'
+  - 'view all activities'
+  - 'view all contacts'
+  - 'view all notes'
+  - 'view my contact'
