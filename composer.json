@@ -48,6 +48,8 @@
         "drupal/webform_authorizenet": "^1.0",
         "drupal/webform_civicrm": "^6.3.3",
         "drush/drush": "^12.5",
+        "guzzlehttp/guzzle": "7.15.1 as 7.12.1",
+        "guzzlehttp/psr7": "2.13.0 as 2.12.1",
         "mpdf/mpdf": "^8.2"
     },
     "conflict": {
