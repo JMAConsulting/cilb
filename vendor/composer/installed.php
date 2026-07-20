@@ -3,7 +3,7 @@
         'name' => 'drupal/recommended-project',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '3e0bc54254818c2b372f1ea150165af9d936f35f',
+        'reference' => 'b1d44a20b01fdb64e9bee818382919d7856a01e0',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -661,7 +661,7 @@
         'drupal/recommended-project' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '3e0bc54254818c2b372f1ea150165af9d936f35f',
+            'reference' => 'b1d44a20b01fdb64e9bee818382919d7856a01e0',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -812,12 +812,14 @@
             'dev_requirement' => false,
         ),
         'guzzlehttp/guzzle' => array(
-            'pretty_version' => '7.12.3',
-            'version' => '7.12.3.0',
-            'reference' => '9aa17bcdd777ee31df9fc83c337ca4ca2340def3',
+            'pretty_version' => '7.15.1',
+            'version' => '7.15.1.0',
+            'reference' => '61443dfb33c62f308ee8add20f45b4d6e4bf8d2f',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/guzzle',
-            'aliases' => array(),
+            'aliases' => array(
+                0 => '7.12.1',
+            ),
             'dev_requirement' => false,
         ),
         'guzzlehttp/promises' => array(
@@ -830,12 +832,14 @@
             'dev_requirement' => false,
         ),
         'guzzlehttp/psr7' => array(
-            'pretty_version' => '2.12.5',
-            'version' => '2.12.5.0',
-            'reference' => '9365d578a9fd1552ad6ca9c3cb530708526feb09',
+            'pretty_version' => '2.13.0',
+            'version' => '2.13.0.0',
+            'reference' => 'dad89620b7a6edb60c15858442eb2e408b45d8f4',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/psr7',
-            'aliases' => array(),
+            'aliases' => array(
+                0 => '2.12.1',
+            ),
             'dev_requirement' => false,
         ),
         'henrikbjorn/lurker' => array(
