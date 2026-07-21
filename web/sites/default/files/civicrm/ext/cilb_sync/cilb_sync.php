@@ -126,3 +126,13 @@ function cilb_sync_civicrm_postProcess($formName, $form) {
   }
 }
 
+function cilb_sync_civicrm_merge($type, &$data, $mainId = NULL, $otherId = NULL, $tables = NULL) {
+  if ($type !== 'sqls' || empty($mainId) || empty($otherId)) {
+    return;
+  }
+  foreach ($data as $i => $sql) {
+    if (strpos($sql, 'UPDATE civicrm_account_contact') === 0) {
+      $data[$i] = 'UPDATE IGNORE ' . substr($sql, strlen('UPDATE '));
+    }
+  }
+}
