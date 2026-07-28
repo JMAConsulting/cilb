@@ -1,0 +1,10 @@
+uuid: 663a898d-72cb-4085-a454-49ca5a532ea6
+langcode: en
+status: true
+dependencies: {  }
+id: part_time
+label: 'Part Time'
+weight: 6
+is_admin: null
+permissions:
+  - 'administer users'

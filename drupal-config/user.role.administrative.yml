@@ -1,0 +1,60 @@
+uuid: 3c538124-a26b-4b75-b034-7cb84b2cd4d3
+langcode: en
+status: true
+dependencies:
+  config:
+    - block_content.type.registration_notification
+    - node.type.article
+    - node.type.page
+  module:
+    - block_content
+    - cilb_admin_dashboard
+    - civicrm
+    - config_translation
+    - content_translation
+    - webform
+id: administrative
+label: Administrative
+weight: 4
+is_admin: null
+permissions:
+  - 'access CiviCRM'
+  - 'access CiviContribute'
+  - 'access CiviEvent'
+  - 'access Contact Dashboard'
+  - 'access contact reference fields'
+  - 'access user profiles'
+  - 'access webform overview'
+  - 'add contact notes'
+  - 'add contacts'
+  - 'administer users'
+  - 'create content translations'
+  - 'delete any webform submission'
+  - 'delete content translations'
+  - 'delete in CiviContribute'
+  - 'edit all contacts'
+  - 'edit any registration_notification block content'
+  - 'edit any webform submission'
+  - 'edit contributions'
+  - 'edit event participants'
+  - 'edit message templates'
+  - 'edit my contact'
+  - 'edit system workflow message templates'
+  - 'edit user-driven message templates'
+  - 'profile listings'
+  - 'profile listings and forms'
+  - 'translate any entity'
+  - 'translate article node'
+  - 'translate block_content'
+  - 'translate configuration'
+  - 'translate editable entities'
+  - 'translate page node'
+  - 'update content translations'
+  - 'view all activities'
+  - 'view all contacts'
+  - 'view all notes'
+  - 'view any webform submission'
+  - 'view cilb dashboard'
+  - 'view my contact'
+  - 'view my invoices'
+  - 'view public CiviMail content'

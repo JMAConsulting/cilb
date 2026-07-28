@@ -293,11 +293,13 @@ access:
   view_any:
     roles:
       - administrator
+      - call_center_supervisor
     users: {  }
     permissions: {  }
   update_any:
     roles:
       - administrator
+      - call_center_supervisor
     users: {  }
     permissions: {  }
   delete_any:
