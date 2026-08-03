@@ -3,7 +3,7 @@
         'name' => 'drupal/recommended-project',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '3e0bc54254818c2b372f1ea150165af9d936f35f',
+        'reference' => '142e5c5126cd4b0442ae9558025e42fcc26d2f31',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -308,9 +308,9 @@
             'dev_requirement' => false,
         ),
         'dompdf/dompdf' => array(
-            'pretty_version' => 'v3.1.5',
-            'version' => '3.1.5.0',
-            'reference' => 'f11ead23a8a76d0ff9bbc6c7c8fd7e05ca328496',
+            'pretty_version' => 'v3.1.6',
+            'version' => '3.1.6.0',
+            'reference' => '6d4b4eb8500f7a786da8868ba463a71b725a4005',
             'type' => 'library',
             'install_path' => __DIR__ . '/../dompdf/dompdf',
             'aliases' => array(),
@@ -661,7 +661,7 @@
         'drupal/recommended-project' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '3e0bc54254818c2b372f1ea150165af9d936f35f',
+            'reference' => '142e5c5126cd4b0442ae9558025e42fcc26d2f31',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -812,12 +812,14 @@
             'dev_requirement' => false,
         ),
         'guzzlehttp/guzzle' => array(
-            'pretty_version' => '7.12.3',
-            'version' => '7.12.3.0',
-            'reference' => '9aa17bcdd777ee31df9fc83c337ca4ca2340def3',
+            'pretty_version' => '7.15.1',
+            'version' => '7.15.1.0',
+            'reference' => '61443dfb33c62f308ee8add20f45b4d6e4bf8d2f',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/guzzle',
-            'aliases' => array(),
+            'aliases' => array(
+                0 => '7.12.1',
+            ),
             'dev_requirement' => false,
         ),
         'guzzlehttp/promises' => array(
@@ -830,12 +832,14 @@
             'dev_requirement' => false,
         ),
         'guzzlehttp/psr7' => array(
-            'pretty_version' => '2.12.5',
-            'version' => '2.12.5.0',
-            'reference' => '9365d578a9fd1552ad6ca9c3cb530708526feb09',
+            'pretty_version' => '2.13.0',
+            'version' => '2.13.0.0',
+            'reference' => 'dad89620b7a6edb60c15858442eb2e408b45d8f4',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/psr7',
-            'aliases' => array(),
+            'aliases' => array(
+                0 => '2.12.5',
+            ),
             'dev_requirement' => false,
         ),
         'henrikbjorn/lurker' => array(
@@ -1190,9 +1194,9 @@
             'dev_requirement' => false,
         ),
         'phpoffice/phpspreadsheet' => array(
-            'pretty_version' => '2.4.6',
-            'version' => '2.4.6.0',
-            'reference' => '0bbef382b7d9c1dbda10c8113d564ff9159a7e79',
+            'pretty_version' => '2.4.7',
+            'version' => '2.4.7.0',
+            'reference' => '03e65f7c3399756d77f656118f75a61e0fca23c6',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpoffice/phpspreadsheet',
             'aliases' => array(),
@@ -1294,8 +1298,8 @@
         'psr/container-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.1|2.0',
-                1 => '^1.0',
+                0 => '^1.0',
+                1 => '1.1|2.0',
             ),
         ),
         'psr/event-dispatcher' => array(
