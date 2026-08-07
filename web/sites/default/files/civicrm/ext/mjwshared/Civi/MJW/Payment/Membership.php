@@ -17,7 +17,7 @@ class Membership extends AutoService implements EventSubscriberInterface {
   /**
    * @return array
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     return [
       'hook_civicrm_pre' => ['on_hook_civicrm_pre', 150],
     ];

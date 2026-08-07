@@ -9,6 +9,20 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## 2.10.0 (2027-07-20)
+**Breaking change: If you use Accept.js make sure you update the Payment Processor details.**
+
+For Acccept.js both a webhook "Signature" and a "Public Client Key" is required.
+Previously the "Public Client Key" was entered in the "Signature" field but now it is a separate field.
+So you need to update the "Signature" and "Public Client Key" in the payment processor configuration.
+No changes are required for Credit Card or eCheck/ACH payment processors.
+
+* [BC] Update login parameters for Accept.js.
+
+## 2.9.4 (2026-06-26)
+
+* [!48](https://lab.civicrm.org/extensions/authnet/-/merge_requests/48) Fix implicit nullable parameter.
+
 ## 2.9.3 (2026-06-02)
 
 * [!47](https://lab.civicrm.org/extensions/authnet/-/merge_requests/47) Send date in refund parameters.

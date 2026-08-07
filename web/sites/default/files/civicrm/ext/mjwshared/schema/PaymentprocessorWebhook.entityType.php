@@ -1,5 +1,6 @@
 <?php
 use CRM_Mjwshared_ExtensionUtil as E;
+
 return [
   'name' => 'PaymentprocessorWebhook',
   'table' => 'civicrm_paymentprocessor_webhook',

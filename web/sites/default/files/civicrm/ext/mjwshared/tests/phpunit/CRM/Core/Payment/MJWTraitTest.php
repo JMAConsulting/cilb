@@ -4,7 +4,7 @@ use CRM_Mjwshared_ExtensionUtil as E;
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
 
-require_once(__DIR__ . '/../../../../../CRM/Core/Payment/MJWTrait.php');
+require_once __DIR__ . '/../../../../../CRM/Core/Payment/MJWTrait.php';
 
 /**
  * Test trait functionalty
@@ -127,4 +127,5 @@ class CRM_Core_Payment_MJWTraitTest extends CiviUnitTestCase implements Headless
 
 class TheTrait {
   use \CRM_Core_Payment_MJWTrait;
+
 }

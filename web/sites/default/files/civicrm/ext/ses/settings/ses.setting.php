@@ -58,4 +58,40 @@ return [
       ],
     ],
   ],
+  'ses_suppression_list_removal' => [
+    'name' => 'ses_suppression_list_removal',
+    'type' => 'Boolean',
+    'html_type' => 'checkbox',
+    'default' => FALSE,
+    'add' => '1.4',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'title' => E::ts('Remove from SES suppression list on un-hold'),
+    'description' => E::ts('When enabled, taking a contact\'s email address off hold in CiviCRM will call the Amazon SES DeleteSuppressedDestination API to remove it from your SES account-level suppression list. Requires the ses:DeleteSuppressedDestination IAM permission to be granted to the configured IAM user, in addition to the existing sending permission.'),
+    'html_attributes' => [],
+    'settings_pages' => [
+      'ses' => [
+        'weight' => 20,
+      ],
+    ],
+  ],
+  'ses_sns_topic_arn' => [
+    'name' => 'ses_sns_topic_arn',
+    'type' => 'String',
+    'html_type' => 'text',
+    'default' => NULL,
+    'add' => '1.3',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'title' => E::ts('SNS Topic ARN (optional)'),
+    'description' => E::ts('If set, the bounce/complaint webhook only accepts SNS notifications whose TopicArn matches this exact value (e.g. arn:aws:sns:us-east-1:123456789012:my-topic). Recommended: it stops anyone from replaying validly-signed notifications published from a different SNS topic to your public webhook. Leave blank to accept any topic (previous behaviour).'),
+    'html_attributes' => [
+      'size' => 60,
+    ],
+    'settings_pages' => [
+      'ses' => [
+        'weight' => 25,
+      ],
+    ],
+  ],
 ];

@@ -23,7 +23,9 @@ use CRM_Mjwshared_ExtensionUtil as E;
 function mjwshared_civicrm_config(&$config) {
   _mjwshared_civix_civicrm_config($config);
 
-  if (isset(Civi::$statics[__FUNCTION__])) { return; }
+  if (isset(Civi::$statics[__FUNCTION__])) {
+    return;
+  }
   Civi::$statics[__FUNCTION__] = 1;
 
   // Symfony hook priorities - see https://docs.civicrm.org/dev/en/latest/hooks/usage/symfony/#priorities
@@ -96,7 +98,7 @@ function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &
             ->execute()
             ->first();
           if ($contribution['paid_amount'] > 0) {
-            if ((boolean) \Civi::settings()->get('mjwshared_refundpaymentui') === FALSE) {
+            if ((bool) \Civi::settings()->get('mjwshared_refundpaymentui') === FALSE) {
               // If our refund UI is disabled don't add buttons
               return;
             }
@@ -114,7 +116,7 @@ function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &
           break;
 
         case 'contribution.edit.action':
-          if ((boolean) \Civi::settings()->get('mjwshared_disablerecordrefund') === FALSE) {
+          if ((bool) \Civi::settings()->get('mjwshared_disablerecordrefund') === FALSE) {
             return;
           }
 
