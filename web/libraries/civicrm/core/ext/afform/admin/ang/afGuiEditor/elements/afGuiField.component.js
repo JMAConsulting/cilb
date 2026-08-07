@@ -93,6 +93,38 @@
         ));
       };
 
+      const defaultStyles = [{value: '', label: ts('Default')}];
+      const inputStylesByType = {};
+      for (const s of (CRM.afAdmin.field_styles || [])) {
+        if (!inputStylesByType[s.grouping]) {
+          inputStylesByType[s.grouping] = [{value: '', label: ts('Default')}];
+        }
+        inputStylesByType[s.grouping].push({value: s.value, label: s.label});
+      }
+
+      this.getInputStyles = function() {
+        return inputStylesByType[$scope.getProp('input_type')] || defaultStyles;
+      };
+
+      // This is a guard against an empty "other" selection.
+      let userChoseOther = false;
+
+      this.getSetStyleSelect = function(val) {
+        if (arguments.length) {
+          userChoseOther = (val === '_other_');
+          if (!userChoseOther) {
+            getSet('input_style', val);
+          }
+          return val;
+        }
+        const current = getSet('input_style');
+        const styles = ctrl.getInputStyles();
+        if (current && (!styles || !styles.some(s => s.value === current))) {
+          return '_other_';
+        }
+        return userChoseOther ? '_other_' : current;
+      };
+
       this.canBeMultiple = () => {
         if (!this.isSearch() ||
           ['Date', 'Timestamp'].includes(ctrl.getDefn().data_type) ||
@@ -122,21 +154,41 @@
             const searchDisplay = ctrl.container.getSearchDisplay();
             defn = _.findWhere(searchDisplay.calc_fields, {name: fieldName});
           }
+        } else if (ctrl.node.defn?.input_type) {
+          // Extra (non-entity) field: seed from the inputType's extra_defn
+          const inputType = afGui.meta.inputTypes.find((t) => t.name === ctrl.node.defn.input_type);
+          if (inputType?.extra_defn) {
+            defn = _.cloneDeep(inputType.extra_defn);
+          }
         }
         defn = defn || {
           label: ts('Untitled'),
           required: false
         };
+        // Clone to prevent mutating shared metadata objects
+        defn = _.cloneDeep(defn);
         if (_.isEmpty(defn.input_attrs)) {
           defn.input_attrs = {};
+        }
+        const suffix = this.getSuffix();
+        if (suffix) {
+          if (!defn || !defn.options) {
+            console.warn(`Invalid field with suffix but no options: ${fieldName}:${suffix}`);
+            return;
+          }
+          defn.options = defn.options.map((opt) => {
+            opt.id = opt[suffix];
+            return opt;
+          });
         }
         return defn;
       };
 
-      this.getFieldName = function() {
-        // Search filters can contain multiple field names joined by a comma. Return the first as the primary.
-        return ctrl.node.name?.split(',')[0];
-      };
+      // Search filters can contain multiple field names joined by a comma. Return the first as the primary.
+      // Strip any suffix
+      this.getFieldName = () => ctrl.node.name?.split(',')[0].split(':')[0];
+
+      this.getSuffix = () => ctrl.node.name?.split(',')[0].split(':')[1];
 
       // Get the api entity this field belongs to
       this.getEntity = function() {
@@ -174,12 +226,14 @@
         return this.getOriginalOptions();
       };
 
-      this.getOriginalOptions = function() {
+      this.getOriginalOptions = function () {
         if (ctrl.getDefn().input_type === 'EntityRef') {
           // Build a list of all entities in this form that can be referenced by this field.
-          const newOptions = _.map(ctrl.editor.getEntities({type: ctrl.getDefn().fk_entity}), (entity) => {
-            return {id: entity.name, label: entity.label};
-          }, []);
+          const fkEntity = ctrl.getDefn().fk_entity;
+          const allowedTypes = fkEntity === 'Contact' ? ['Individual', 'Household', 'Organization'] : [fkEntity];
+          const newOptions = ctrl.editor.getEntities()
+            .filter((entity) => allowedTypes.includes(entity.type))
+            .map((entity) => ({id: entity.name, label: entity.label}));
           // Store it in a stable variable for the sake of ng-repeat
           if (!angular.equals(newOptions, entityRefOptions)) {
             entityRefOptions = newOptions;

@@ -475,7 +475,7 @@ class CRM_Contribute_Form_Task_Invoice extends CRM_Contribute_Form_Task {
       elseif ($component === 'contribute') {
         $email = CRM_Contact_BAO_Contact::getPrimaryEmail($contribution->contact_id);
 
-        $sendTemplateParams['tplParams'] = array_merge($tplParams, ['email_comment' => $params['email_comment']]);
+        $sendTemplateParams['tplParams'] = $tplParams;
         $sendTemplateParams['from'] = $fromEmailAddress;
         $sendTemplateParams['toEmail'] = $email;
         $sendTemplateParams['cc'] = $contributionPage ? $contributionPage['cc_receipt'] : NULL;
@@ -645,7 +645,9 @@ class CRM_Contribute_Form_Task_Invoice extends CRM_Contribute_Form_Task {
     if ($contributionId) {
       $activityParams['source_record_id'] = $contributionId;
     }
-    civicrm_api3('Activity', 'create', $activityParams);
+    $activity = civicrm_api3('Activity', 'create', $activityParams);
+
+    CRM_Core_BAO_File::processAttachment($activityParams, 'civicrm_activity', $activity['id']);
   }
 
   /**
