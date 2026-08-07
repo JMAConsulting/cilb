@@ -620,8 +620,9 @@ trait CRM_Core_Payment_MJWIPNTrait {
     if ($this->exitOnException) {
       http_response_code(400);
       exit(1);
-    } else {
-      Throw new PaymentProcessorException($message);
+    }
+    else {
+      throw new PaymentProcessorException($message);
     }
   }
 

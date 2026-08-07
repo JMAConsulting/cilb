@@ -9,7 +9,7 @@
  +--------------------------------------------------------------------+
  */
 
-require_once('api/v3/Payment.php');
+require_once 'api/v3/Payment.php';
 
 /**
  * @todo mjwpayment.get_contribution is a replacement for Contribution.get
@@ -17,6 +17,7 @@ require_once('api/v3/Payment.php');
  *   - These API functions should be REMOVED once core has the above PR merged and we increment the min version for the extension.
  *   - The change is small, but to re-implement them here we have to copy quite a lot over.
  */
+
 /**
  * Adjust Metadata for Get action.
  *

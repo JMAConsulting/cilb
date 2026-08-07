@@ -75,6 +75,15 @@ abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
   }
 
   /**
+   * @param $paymentProcessor
+   *
+   * @return string
+   */
+  public static function getPublicClientKey($paymentProcessor) {
+    return trim($paymentProcessor['subject'] ?? '');
+  }
+
+  /**
    * This function checks to see if we have the right config values.
    *
    * @return string
@@ -521,7 +530,7 @@ abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
    *
    * @return \net\authorize\api\contract\v1\PaymentScheduleType
    */
-  protected function getRecurSchedule(PropertyBag $propertyBag, AnetAPI\PaymentScheduleType\IntervalAType $interval = NULL): AnetAPI\PaymentScheduleType {
+  protected function getRecurSchedule(PropertyBag $propertyBag, ?AnetAPI\PaymentScheduleType\IntervalAType $interval = NULL): AnetAPI\PaymentScheduleType {
     $paymentSchedule = new AnetAPI\PaymentScheduleType();
     if ($interval) {
       $paymentSchedule->setInterval($interval);

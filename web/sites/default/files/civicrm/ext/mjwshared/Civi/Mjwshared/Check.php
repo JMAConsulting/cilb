@@ -97,7 +97,7 @@ class Check extends AutoSubscriber {
             1 => ucfirst(E::SHORT_NAME),
             2 => $extensionName,
             3 => $minVersion,
-            4 => $actualVersion
+            4 => $actualVersion,
           ]),
         E::ts('%1: Missing Requirements', [1 => ucfirst(E::SHORT_NAME)]),
         \Psr\Log\LogLevel::ERROR,
@@ -112,7 +112,6 @@ class Check extends AutoSubscriber {
       $this->messages[] = $message;
     }
   }
-
 
   /**
    * @throws \CRM_Core_Exception

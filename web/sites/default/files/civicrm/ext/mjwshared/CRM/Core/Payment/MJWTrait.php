@@ -11,10 +11,10 @@
 
 use Civi\Api4\Contribution;
 use Civi\Api4\ContributionRecur;
-use Civi\Api4\Phone;
 use Civi\Payment\Exception\PaymentProcessorException;
 use Civi\Payment\PropertyBag;
 use CRM_Mjwshared_ExtensionUtil as E;
+
 /**
  * Shared payment functions that should one day be migrated to CiviCRM core
  * Trait CRM_Core_Payment_MJWTrait
@@ -247,7 +247,6 @@ trait CRM_Core_Payment_MJWTrait {
     return '';
   }
 
-
   /**
    * Are we using a test processor?
    *
@@ -302,6 +301,7 @@ trait CRM_Core_Payment_MJWTrait {
   public function setHandleErrorThrowsException(bool $value) {
     $this->handleErrorThrowsException = $value;
   }
+
   /**
    * Set the payment processor Transaction ID
    *

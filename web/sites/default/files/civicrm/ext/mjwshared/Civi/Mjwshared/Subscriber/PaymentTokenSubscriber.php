@@ -24,6 +24,14 @@ class PaymentTokenSubscriber extends AutoService implements EventSubscriberInter
    * @param \Civi\API\Event\AuthorizeEvent $e
    */
   public function onAuthorize(AuthorizeEvent $e): void {
+    $apiRequest = $e->getApiRequest();
+    if ($apiRequest['version'] !== 4) {
+      return;
+    }
+    if (!$apiRequest->getCheckPermissions()) {
+      return;
+    }
+
     if ($e->getEntityName() !== 'PaymentToken') {
       return;
     }

@@ -126,13 +126,13 @@ function _civicrm_api3_job_process_paymentprocessor_webhooks_spec(&$params) {
   $params['event_id'] = [
     'type' => CRM_Utils_Type::T_STRING,
     'title' => 'Event ID of PaymentprocessorWebhook record (for debugging)',
-    'description' => 'Specify an Event ID to force processing of only that event (and ignore status/processed_date fields)'
+    'description' => 'Specify an Event ID to force processing of only that event (and ignore status/processed_date fields)',
   ];
   $params['time_limit'] = [
     'type' => CRM_Utils_TYPE::T_INT,
     'title' => 'Time limit (seconds)',
     'description' => 'After each event has been processed, we stop to see whether the time limit is exceeded, and stop if so. Useful if your cron is http initiated. Default 1 hour',
-    'api.default' => 60*60,
+    'api.default' => 60 * 60,
   ];
   $params['queue_limit'] = [
     'type' => CRM_Utils_Type::T_INT,

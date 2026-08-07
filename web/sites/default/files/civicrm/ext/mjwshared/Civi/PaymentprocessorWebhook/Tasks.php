@@ -6,7 +6,7 @@ use CRM_Mjwshared_ExtensionUtil as E;
 
 class Tasks extends AutoSubscriber {
 
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     return [
       '&hook_civicrm_searchKitTasks' => 'onSearchKitTasks',
     ];

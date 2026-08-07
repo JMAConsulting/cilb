@@ -26,7 +26,7 @@ return [
     'settings_pages' => [
       'mjwshared' => [
         'weight' => 21,
-      ]
+      ],
     ],
   ],
   'mjwshared_disablerecordrefund' => [
@@ -42,7 +42,7 @@ return [
     'settings_pages' => [
       'mjwshared' => [
         'weight' => 22,
-      ]
+      ],
     ],
   ],
   'mjwshared_jsdebug' => [
@@ -58,7 +58,7 @@ return [
     'settings_pages' => [
       'mjwshared' => [
         'weight' => 99,
-      ]
+      ],
     ],
   ],
 ];

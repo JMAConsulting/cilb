@@ -3,11 +3,11 @@
         'name' => 'civicrm/ses',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '9f8c5ef22ade8d7f709ff4c8c744a592fc1ec074',
+        'reference' => 'e8d79c8966bc56587fe8749a5f539b709d7675ba',
         'type' => 'civicrm-extension',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => true,
+        'dev' => false,
     ),
     'versions' => array(
         'aws/aws-crt-php' => array(
@@ -31,7 +31,7 @@
         'civicrm/ses' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '9f8c5ef22ade8d7f709ff4c8c744a592fc1ec074',
+            'reference' => 'e8d79c8966bc56587fe8749a5f539b709d7675ba',
             'type' => 'civicrm-extension',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
