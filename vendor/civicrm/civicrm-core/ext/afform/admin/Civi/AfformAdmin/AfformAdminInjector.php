@@ -13,6 +13,7 @@ namespace Civi\AfformAdmin;
 
 use Civi\Api4\Afform;
 use Civi\Api4\SavedSearch;
+use Civi\Api4\SearchDisplay;
 use Civi\Core\Service\AutoSubscriber;
 use CRM_Afform_ExtensionUtil as E;
 
@@ -33,19 +34,31 @@ class AfformAdminInjector extends AutoSubscriber {
   /**
    * @param \Civi\Core\Event\GenericHookEvent $e
    *
-   * This injects static html to render a small admin-only menu at the top corner of each form.
-   * Permissions are checked client-side.
+   * Proprocess afform html code.
+   *
    * @see afCoreDirective.checkLinkPerm
    */
   public static function preprocess($e) {
     $changeSet = \Civi\Angular\ChangeSet::create('afformAdmin')
+      // Adjust default distance unit for Location input type in the FormBuilder preview template
+      ->alterHtml('~/afGuiEditor/inputType/Location.html', function($doc, $path) {
+        if (\CRM_Utils_Address::getDefaultDistanceUnit() === 'miles') {
+          pq($doc)->find('option[value="km"]')->insertAfter('option[value="miles"]');
+        }
+      })
+      // This injects static html to render a small admin-only menu at the top corner of each form.
+      // Permissions are checked client-side.
       ->alterHtml(';\\.aff\\.html$;', function($doc, $path) {
         try {
           // Inject gear menu with edit links which will be shown if the user has permission
           $afform = Afform::get(FALSE)
             ->addWhere('module_name', '=', basename($path, '.aff.html'))
+            ->addWhere('type', '!=', 'system')
             ->addSelect('name', 'search_displays', 'title', 'created_id', 'type', 'create_submission')
-            ->execute()->single();
+            ->execute()->first();
+          if (!$afform) {
+            return;
+          }
           // Create a link to edit the form, plus all embedded SavedSearches
           $links = [
             [
@@ -67,8 +80,21 @@ class AfformAdminInjector extends AutoSubscriber {
           }
           if ($afform['search_displays']) {
             $searchNames = [];
+            $displayNames = [];
             foreach ($afform['search_displays'] as $searchAndDisplayName) {
               $searchNames[] = explode('.', $searchAndDisplayName)[0];
+              $displayNames[] = explode('.', $searchAndDisplayName)[1];
+            }
+            $searchDisplays = SearchDisplay::get(FALSE)
+              ->addWhere('name', 'IN', $displayNames)
+              ->addSelect('settings')
+              ->execute();
+            foreach ($searchDisplays as $searchDisplay) {
+              foreach ($searchDisplay['settings']['columns'] ?? [] as $column) {
+                if ($column['type'] === 'subsearch' && !empty($column['subsearch']['search'])) {
+                  $searchNames[] = $column['subsearch']['search'];
+                }
+              }
             }
             $savedSearches = SavedSearch::get(FALSE)
               ->addWhere('name', 'IN', $searchNames)
@@ -106,7 +132,6 @@ class AfformAdminInjector extends AutoSubscriber {
             </div>
           HTML;
           // Append link to end of afform markup so it has the highest z-index and is clickable.
-          // afCore.css will control placement at the top of the form.
           pq($doc)->append($editMenu);
         }
         catch (\Exception $e) {

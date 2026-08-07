@@ -2,7 +2,6 @@
 
 namespace Civi\MJW;
 
-
 /**
  * Abstracts the Civi::log class so that we:
  *   - Don't have to specify channel each time we log.
@@ -72,4 +71,5 @@ class Logger {
     $prefix = $channel . '(' . $this->logEntity . '): ';
     \Civi::log($channel)->$level($prefix . $message);
   }
+
 }

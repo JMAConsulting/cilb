@@ -9,6 +9,27 @@ Releases use the following numbering system:
 
 **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.4.1 (2026-08-06)
+
+* [!27](https://lab.civicrm.org/extensions/ses/-/merge_requests/27) Fix bounce/complaint handling for sub-addressed (plus-addressed) recipients - `verify_email_address()` was stripping everything up to the last `+`, so e.g. `user+tag@example.org` matched against the wrong contact or failed to match the queue row at all.
+* [!28](https://lab.civicrm.org/extensions/ses/-/merge_requests/28) Fix webhook fataling on SNS notifications that carry no `mail` payload (e.g. the "Successfully validated SNS topic" notification sent when pointing an identity's Bounce/Complaint feedback at a topic) - these are now logged and ignored instead of causing a fatal and a 5xx response that SNS retries forever.
+
+## Release 1.4.0 (2026-08-04)
+
+* [!19](https://lab.civicrm.org/extensions/ses/-/merge_requests/19) Harden SNS webhook signature verification against SSRF - only fetch the signing cert from a fixed AWS-owned host and verify the TopicArn matches before trusting a notification.
+* Add a full PHPUnit test suite covering the webhook, suppression list and mail sending code.
+* Fix complaint handling to opt out *all* complained recipients, not just a single (undefined) email address.
+* Fix SES throttling retry logic so retries are actually exhausted (giving a `PEAR_Error`) instead of retrying forever.
+* [!24](https://lab.civicrm.org/extensions/ses/-/merge_requests/24) Fix fatal error recovering the VERP from the `X-CiviMail-Bounce` header fallback (SES sends `mail.headers` as a list of objects, not associative arrays).
+* Set up documentation publishing to [docs.civicrm.org](https://docs.civicrm.org/ses/en/latest/).
+
+## Release 1.3.16 (2026-08-03)
+
+* Use SES APIv2 for larger message size limits.
+* Add account-level suppression list removal when contacts are taken off hold.
+* Bump minimum CiviCRM version to 6.14 and declare PHP 8.1-8.5 compatibility.
+* Fix coding standards issues.
+
 ## Release 1.3.15 (2026-02-19)
 
 * [!16](https://lab.civicrm.org/extensions/ses/-/merge_requests/16) Fix missing 's' from variable.

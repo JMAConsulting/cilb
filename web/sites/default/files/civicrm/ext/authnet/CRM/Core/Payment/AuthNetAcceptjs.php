@@ -83,7 +83,7 @@ class CRM_Core_Payment_AuthNetAcceptjs extends CRM_Core_Payment_AuthorizeNetComm
         class="AcceptUI"
         data-billingAddressOptions=\'{"show":true, "required":false}\'
         data-apiLoginID="' . self::getApiLoginId($this->_paymentProcessor) . '"
-        data-clientKey="' . self::getSignature($this->_paymentProcessor) . '"
+        data-clientKey="' . self::getPublicClientKey($this->_paymentProcessor) . '"
         data-acceptUIFormBtnTxt="Submit"
         data-acceptUIFormHeaderTxt="Card Information"
         data-paymentOptions=\'{"showCreditCard": true, "showBankAccount": true}\'

@@ -6,12 +6,10 @@ use Civi\Api4\Membership;
 use Civi\Api4\Participant;
 use Civi\Api4\Payment;
 use Civi\Api4\PaymentProcessor;
-use Civi\Payment\Exception\PaymentProcessorException;
 use CRM_Mjwshared_ExtensionUtil as E;
 use Brick\Money\Money;
 use Brick\Money\Context\DefaultContext;
 use Brick\Math\RoundingMode;
-
 
 /**
  * Form controller class
@@ -21,17 +19,17 @@ use Brick\Math\RoundingMode;
 class CRM_Mjwshared_Form_PaymentRefund extends CRM_Core_Form {
 
   /**
-   * @var int $paymentID
+   * @var int
    */
   private $paymentID;
 
   /**
-   * @var int $contributionID
+   * @var int
    */
   private $contributionID;
 
   /**
-   * @var array $financialTrxn
+   * @var array
    */
   private $financialTrxn;
 

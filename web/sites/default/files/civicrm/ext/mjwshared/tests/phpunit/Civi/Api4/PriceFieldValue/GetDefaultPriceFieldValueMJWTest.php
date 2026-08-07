@@ -113,8 +113,8 @@ class GetDefaultPriceFieldValueMJWTest extends CiviUnitTestCase implements Headl
     $orderCreateParams['line_items'] = [
       [
         'params' => $lineItemParams,
-        'line_item' => [$lineItem]
-      ]
+        'line_item' => [$lineItem],
+      ],
     ];
     $contribution = civicrm_api3('Order', 'create', $orderCreateParams);
 

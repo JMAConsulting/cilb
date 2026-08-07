@@ -19,4 +19,3 @@ trait CRM_Mjwshared_WebhookTrait {
   }
 
 }
-

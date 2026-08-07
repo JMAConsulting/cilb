@@ -2,8 +2,6 @@
 
 use Civi\Api4\Contribution;
 use Civi\Api4\ContributionRecur;
-use Civi\Api4\PriceField;
-use Civi\Api4\PriceFieldValue;
 use Civi\Test\CiviEnvBuilder;
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
@@ -159,8 +157,8 @@ class UpdateAmountOnRecurMJWTest extends CiviUnitTestCase implements HeadlessInt
       $orderCreateParams['line_items'] = [
         [
           'params' => $lineItemParams,
-          'line_item' => [$lineItem]
-        ]
+          'line_item' => [$lineItem],
+        ],
       ];
       $this->contributionID = civicrm_api3('Order', 'create', $orderCreateParams)['id'];
 

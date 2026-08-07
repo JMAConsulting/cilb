@@ -31,7 +31,7 @@ function ses_civicrm_enable(): void {
 }
 
 /**
- * Implementation of hook_civicrm_alterMailer
+ * Implements hook_civicrm_alterMailer().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterMailParams
  */
@@ -48,6 +48,53 @@ function ses_civicrm_alterMailer(&$mailer, $driver, $params): void {
       \Civi::log('ses')->info('SES is not configured. Falling back to mail(). ' . $e->getMessage());
     }
 
+  }
+}
+
+/**
+ * Implements hook_civicrm_pre().
+ *
+ * When an Email record's on_hold flag transitions from 1 to 0, removes
+ * the address from the SES account-level suppression list (if enabled).
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_pre
+ */
+function ses_civicrm_pre(string $op, string $objectName, $id, &$params): void {
+  if ($objectName !== 'Email' || $op !== 'edit' || empty($id) || !array_key_exists('on_hold', $params)) {
+    return;
+  }
+  if ((int) $params['on_hold'] !== 0) {
+    return;
+  }
+
+  $enabled = (bool) Civi::settings()->get('ses_suppression_list_removal');
+  if (!$enabled) {
+    return;
+  }
+
+  $email = NULL;
+  try {
+    $existing = \Civi\Api4\Email::get(FALSE)
+      ->addSelect('on_hold', 'email')
+      ->addWhere('id', '=', $id)
+      ->execute()
+      ->first();
+    if (empty($existing)) {
+      return;
+    }
+
+    $email = $params['email'] ?? $existing['email'];
+
+    CRM_Ses_SuppressionList::maybeRemove(
+      $email,
+      $existing['on_hold'],
+      $params['on_hold'],
+      $enabled,
+      CRM_Ses_SesClient::getInstance()
+    );
+  }
+  catch (\Throwable $e) {
+    \Civi::log('ses')->error('SES: unable to initialize SES client to remove ' . $email . ' from the suppression list. ' . $e->getMessage());
   }
 }
 
@@ -150,7 +197,7 @@ function ses_civicrm_alterMailParams(&$params, $context = NULL): void {
           $params['toEmail'] = $email['email'];
         }
         elseif ($params['toEmail'] !== $email['email']) {
-          \Civi::log()->warning("SES: toEmail {$params['toEmail']} does not match contact email {$email['email']} for {$contactID}. Wrong email ID will be logged in MailingEventQueue. Context: {$context}. Params: " . print_r($params,TRUE));
+          \Civi::log()->warning("SES: toEmail {$params['toEmail']} does not match contact email {$email['email']} for {$contactID}. Wrong email ID will be logged in MailingEventQueue. Context: {$context}. Params: " . print_r($params, TRUE));
         }
         if (empty($emailID)) {
           \Civi::log()->warning("SES: emailID is NULL for {$contactID}");

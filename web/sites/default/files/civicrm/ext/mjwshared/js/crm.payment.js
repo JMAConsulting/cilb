@@ -67,6 +67,53 @@
     },
 
     /**
+     * Round a monetary amount to a fixed number of decimal places the way
+     * PHP's round() does.
+     *
+     * Number.prototype.toFixed() rounds directly from the underlying
+     * binary floating point value, which does not always match decimal
+     * expectations for a value that lands exactly on a rounding boundary.
+     * Eg. $20 with a 7.625% tax rate gives a total of exactly $21.525,
+     * but a double can only store this as very slightly above or below
+     * that (here, 21.524999999999998), so (21.524999999999998).toFixed(2)
+     * gives "21.52" instead of "21.53". PHP's round() does not have this
+     * problem, so without correcting for it here, the amount a payment
+     * processor uses to create/confirm a payment client-side can end up 1
+     * cent different from the amount CiviCRM calculates server-side for
+     * the same transaction - and once a payment has been confirmed with
+     * the processor, some (eg. Stripe) refuse to let its amount be
+     * corrected afterwards, so the payment fails.
+     * @see https://lab.civicrm.org/extensions/stripe/-/work_items/510
+     *
+     * @param {number} amount
+     * @param {number} decimals
+     * @returns {string}
+     */
+    roundMoney: function(amount, decimals) {
+      decimals = (typeof decimals === 'undefined') ? 2 : decimals;
+
+      // toFixed() gives a correctly-rounded decimal string of the
+      // underlying double (per spec) at high precision, recovering the
+      // "intended" value (eg. "21.52500000") that plain float rounding
+      // would otherwise lose to binary noise - eg. (21.525).toFixed(2)
+      // wrongly gives "21.52" because the nearest double to 21.525 is
+      // very slightly below it.
+      var str = amount.toFixed(decimals + 8);
+      var cut = str.indexOf('.') + decimals + 1;
+      var cents = Number(str.slice(0, cut).replace('.', ''));
+      if (str.charAt(cut) >= '5') {
+        cents += amount < 0 ? -1 : 1;
+      }
+
+      var digits = Math.abs(cents).toString();
+      while (digits.length <= decimals) {
+        digits = '0' + digits;
+      }
+      var split = digits.length - decimals;
+      return (cents < 0 ? '-' : '') + digits.slice(0, split) + '.' + digits.slice(split);
+    },
+
+    /**
      * This is calculated in CRM/Contribute/Form/Contribution.tpl and is used to calculate the total
      *   amount with tax on backend submit contribution forms.
      *   The only way we can get the amount is by parsing the text field and extracting the final bit after the space.

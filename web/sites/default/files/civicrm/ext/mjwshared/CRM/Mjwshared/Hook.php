@@ -32,7 +32,7 @@ class CRM_Mjwshared_Hook {
           'type',
           'object',
           'code',
-          'result'
+          'result',
         ], $type, $object, $code, $result, CRM_Utils_Hook::$_nullObject, CRM_Utils_Hook::$_nullObject,
           'civicrm_webhook_eventNotMatched'
         );

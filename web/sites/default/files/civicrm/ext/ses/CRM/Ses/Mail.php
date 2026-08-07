@@ -24,7 +24,7 @@ class CRM_Ses_Mail extends Mail {
     'RequestThrottled',
     'BandwidthLimitExceeded',
     'RequestThrottledException',
-    'TooManyRequestsException'
+    'TooManyRequestsException',
   ];
 
   /**
@@ -33,6 +33,28 @@ class CRM_Ses_Mail extends Mail {
    */
   public function getDriver() {
     return 'ses';
+  }
+
+  /**
+   * Isolated behind a method (rather than a literal in send()) so tests can
+   * override it to exercise the "retries exhausted" path without waiting out
+   * the full real exponential backoff.
+   *
+   * @return int
+   */
+  protected function getMaxSesRetries(): int {
+    return 10;
+  }
+
+  /**
+   * Base delay (microseconds) for the exponential backoff in send(). See
+   * getMaxSesRetries().
+   *
+   * @return int
+   */
+  protected function getSesRetryDelayMicroseconds(): int {
+    // 50ms
+    return 50000;
   }
 
   /**
@@ -78,9 +100,9 @@ class CRM_Ses_Mail extends Mail {
    * @param string $body The full text of the message body, including any
    *               Mime parts, etc.
    *
-   * @return mixed Returns true on success, or a PEAR_Error
-   *               containing a descriptive error message on
-   *               failure.
+   * @return mixed
+   *   Returns true on success, or a PEAR_Error containing a descriptive
+   *   error message on failure.
    */
   public function send($recipients, $headers, $body) {
     if (defined('CIVICRM_MAIL_LOG')) {
@@ -164,35 +186,40 @@ class CRM_Ses_Mail extends Mail {
 
     // Send using exponential backoff if SES responds with a ThrottlingException
     // cf. https://aws.amazon.com/blogs/messaging-and-targeting/how-to-handle-a-throttling-maximum-sending-rate-exceeded-error/
-    $maxRetries = 10;
-    $retries = 0;
-    $retryDelay = 50000; // 50ms delay
+    $maxRetries = $this->getMaxSesRetries();
+    $retryDelay = $this->getSesRetryDelayMicroseconds();
 
     for ($retries = 0; $retries < $maxRetries; $retries++) {
       try {
-        $result = $SesClient->sendRawEmail([
-          'RawMessage' => [
-            'Charset' => 'UTF-8',
-            'Data' => $raw_body,
+        $result = $SesClient->sendEmail([
+          'Content' => [
+            'Raw' => [
+              'Data' => $raw_body,
+            ],
           ],
         ]);
         return $result;
-      } catch (AwsException $e) {
+      }
+      catch (AwsException $e) {
         $errorCode = $e->getAwsErrorCode();
         if (in_array($errorCode, self::SES_THROTTLING_ERROR_CODES)) {
           Civi::log('ses')->warning('Amazon SES maximum send rate exceeded. Throttling detected.');
-          if ($retries < $maxRetries) {
+          // Only sleep and retry if another attempt remains; otherwise give up.
+          if ($retries < $maxRetries - 1) {
             usleep($retryDelay * (2 ** $retries));
-          } else {
+          }
+          else {
             Civi::log('ses')->error('Maximum throttling retries reached. Email delivery failed.');
             return new PEAR_Error($e->getMessage());
           }
-        } else {
+        }
+        else {
           // Handle other AWS exceptions
           Civi::log('ses')->error('AWS exception encountered: ' . $e->getAwsErrorCode() . ': ' . $e->getAwsErrorMessage());
           return new PEAR_Error($e->getMessage());
         }
-      } catch (Exception $e) {
+      }
+      catch (Exception $e) {
         // Handle other exceptions
         return new PEAR_Error($e->getMessage());
       }
@@ -240,7 +267,8 @@ class CRM_Ses_Mail extends Mail {
         if (!empty($match->personal)) {
           if ((substr($match->personal, 0, 1) == '"') && (substr($match->personal, -1) == '"')) {
             $address = $match->personal . ' <' . $address . '>';
-          } else {
+          }
+          else {
             $address = '"' . $match->personal . '" <' . $address . '>';
           }
         }

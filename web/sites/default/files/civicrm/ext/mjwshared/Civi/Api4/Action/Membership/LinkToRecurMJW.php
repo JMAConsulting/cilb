@@ -43,4 +43,5 @@ class LinkToRecurMJW extends \Civi\Api4\Generic\AbstractUpdateAction {
   protected function updateRecords(array $items): array {
     return $items;
   }
+
 }
