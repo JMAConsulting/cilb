@@ -19,6 +19,7 @@ permissions:
   - 'add contact notes'
   - 'add contacts'
   - 'administer users'
+  - 'delete contacts'
   - 'edit all contacts'
   - 'edit event participants'
   - 'edit my contact'
