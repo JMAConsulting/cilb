@@ -19,6 +19,7 @@
         "civicrm/civicrm-drupal-8": "6.17.2",
         "civicrm/civicrm-packages": "6.17.2",
         "composer/installers": "^2.0",
+        "dompdf/dompdf": "^3.1.6",
         "dragonmantank/cron-expression": "3.3.3",
         "drupal/bootstrap": "^3.40",
         "drupal/bootstrap_barrio": "^5.5.20",
@@ -49,8 +50,9 @@
         "drupal/webform_civicrm": "^6.3.3",
         "drush/drush": "^12.5",
         "guzzlehttp/guzzle": "7.15.1 as 7.12.1",
-        "guzzlehttp/psr7": "2.13.0 as 2.12.1",
-        "mpdf/mpdf": "^8.2"
+        "guzzlehttp/psr7": "2.13.0 as 2.12.5",
+        "mpdf/mpdf": "^8.2",
+        "phpoffice/phpspreadsheet": "^2.4.7"
     },
     "conflict": {
         "drupal/drupal": "*"
