@@ -1502,7 +1502,7 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       ->addClause('OR', ['max_participants', 'IS NULL'], ['remaining_participants', '>', 0])
       ->addWhere('event_type_id', 'IN', self::getBusinessAndFiannceExamCategories());
     if (!empty($selectedCategory)) {
-      $businessAndFinanceExams->addWhere('Exam_Details.Exam_Category_this_exam_applies_to', '=', $selectedCategory);
+      $businessAndFinanceExams->addWhere('Exam_Details.Exam_Category_this_exam_applies_to', 'CONTAINS', $selectedCategory);
     }
     elseif (!$isBackoffice) {
       $businessAndFinanceExams->addWhere('Exam_Details.Exam_Category_this_exam_applies_to', 'IS EMPTY');
