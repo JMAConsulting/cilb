@@ -5,13 +5,11 @@ return [
   [
     'name' => 'Job_UpdatePaperBasedExams',
     'entity' => 'Job',
-    'cleanup' => 'unused',
-    'update' => 'unmodified',
+    'cleanup' => 'never',
+    'update' => 'never',
     'params' => [
       'version' => 4,
       'values' => [
-        'last_run' => '',
-        'last_run_end' => '',
         'name' => 'Update Paper-Based Exams',
         'description' => E::ts('Generates Candidate Number for paper-based exams that don\'t have one assigned yet'),
         'api_entity' => 'Job',

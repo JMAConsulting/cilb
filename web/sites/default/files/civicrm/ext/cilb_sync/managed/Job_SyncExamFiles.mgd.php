@@ -5,22 +5,20 @@ return [
   [
     'name' => 'Job_SyncExameFiles',
     'entity' => 'Job',
-    'cleanup' => 'unused',
-    'update' => 'unmodified',
+    'cleanup' => 'never',
+    'update' => 'never',
     'params' => [
       'version' => 4,
       'values' => [
-        'last_run' => '',
-        'last_run_end' => '',
-        'name' => 'Sync Exam Files',
-        'description' => E::ts('Daily import of Candidate entity and score data.'),
+        'name' => 'Sync Entity ID File',
+        'description' => E::ts('Daily import of Candidate entity ID data.'),
         'api_entity' => 'Job',
         'api_action' => 'syncExamFiles',
         'run_frequency' => 'Daily',
         'parameters' => 'runInNonProductionEnvironment=1
 version=4
 dateToSync=yesterday',
-        'is_active' => FALSE,
+        'is_active' => TRUE,
       ],
     ],
   ],
