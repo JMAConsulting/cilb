@@ -11,6 +11,7 @@ weight: 5
 is_admin: null
 permissions:
   - 'access CiviCRM'
+  - 'access deleted contacts'
   - 'access CiviEvent'
   - 'access all custom data'
   - 'access contact reference fields'

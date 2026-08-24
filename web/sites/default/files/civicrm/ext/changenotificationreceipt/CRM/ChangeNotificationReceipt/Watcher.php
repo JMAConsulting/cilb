@@ -61,24 +61,10 @@ class CRM_ChangeNotificationReceipt_Watcher {
       'Participant' => [
         'table' => 'civicrm_participant',
         'contact' => FALSE,
-        'ops' => ['create', 'edit', 'delete'],
+        'ops' => ['edit'],
         'fields' => [
           'event_id' => 'Exam',
-          'status_id' => 'Registration Status',
           'register_date' => 'Registration Date',
-          'fee_amount' => 'Fee',
-        ],
-      ],
-      'Contribution' => [
-        'table' => 'civicrm_contribution',
-        'contact' => FALSE,
-        'ops' => ['create', 'edit', 'delete'],
-        'fields' => [
-          'financial_type_id' => 'Financial Type',
-          'total_amount' => 'Amount',
-          'contribution_status_id' => 'Payment Status',
-          'receive_date' => 'Received Date',
-          'trxn_id' => 'Transaction ID',
         ],
       ],
     ];
