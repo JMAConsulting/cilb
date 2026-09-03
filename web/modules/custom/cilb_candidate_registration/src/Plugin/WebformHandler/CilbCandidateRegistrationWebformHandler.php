@@ -384,29 +384,47 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
 
   /**
    * Submission hook to:
-   * - handle creation of new Drupal user
    * - register contact for selected events
+   * - handle creation of new Drupal user
    */
   public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     $this->civicrm->initialize();
 
-    $this->registerDrupalUser($webform_submission, $update);
-
     $this->registerEventParticipants($webform_submission, $update);
+
+    $this->registerDrupalUser($webform_submission, $update);
   }
 
   /**
-   * Registers a Drupal user if no other user with the submitted email exists
+   * Registers a Drupal user if the contact has no account and no other user
+   * with the submitted email exists
    */
   protected function registerDrupalUser(WebformSubmissionInterface $webform_submission, $update = TRUE): void {
     $webform_submission_data = $webform_submission->getData();
 
-    $email = $webform_submission_data['civicrm_1_contact_1_email_email'];
-    $firstName = $webform_submission_data['civicrm_1_contact_1_contact_first_name'];
-    $lastName = $webform_submission_data['civicrm_1_contact_1_contact_last_name'];
+    $email = trim($webform_submission_data['civicrm_1_contact_1_email_email'] ?? '');
+    $firstName = trim($webform_submission_data['civicrm_1_contact_1_contact_first_name'] ?? '');
+    $lastName = trim($webform_submission_data['civicrm_1_contact_1_contact_last_name'] ?? '');
     $baseUsername = $firstName . $lastName;
     $username = $baseUsername;
     $langcode = $webform_submission_data['civicrm_1_contact_1_cg1_custom_3'] == 2 ? 'es' : 'en';
+
+    $contactId = $webform_submission_data['civicrm_1_contact_1_contact_existing'] ?? NULL;
+    if (!is_numeric($contactId)) {
+      $contactId = NULL;
+    }
+
+    if ($contactId) {
+      $existingMatch = \Civi\Api4\UFMatch::get(FALSE)
+        ->addSelect('uf_id')
+        ->addWhere('domain_id', '=', 1)
+        ->addWhere('contact_id', '=', $contactId)
+        ->execute()
+        ->first();
+      if (!empty($existingMatch['uf_id'])) {
+        return;
+      }
+    }
 
     // Check if a user with the given email already exists
     //
@@ -428,21 +446,10 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
       return;
     }
 
-    // Check if a user with the same username already exists but has a different email
-    $user_storage = \Drupal::entityTypeManager()->getStorage('user');
-    $query = $user_storage->getQuery()
-      ->condition('name', $username)
-      ->condition('mail', $email, '<>')
-      ->accessCheck(FALSE)
-      ->execute();
-
-    if (!empty($query)) {
-      // User with the same username but a different email exists, increment username
-      $i = 1;
-      while (user_load_by_name($username)) {
-        $username = $baseUsername . $i;
-        $i++;
-      }
+    $i = 1;
+    while (user_load_by_name($username)) {
+      $username = $baseUsername . $i;
+      $i++;
     }
 
     // Create a new Drupal user
@@ -456,13 +463,24 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $user->activate();
     $user->enforceIsNew();
     $user->set('preferred_langcode', $langcode);
-    $user->save();
 
-    if (isset($webform_submission_data['civicrm_1_contact_1_contact_existing']) && is_numeric($webform_submission_data['civicrm_1_contact_1_contact_existing'])) {
-      $results = \Civi\Api4\UFMatch::create(FALSE)
+    try {
+      $user->save();
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('candidate_reg')->error('Failed to create account @name for contact @cid: @message', [
+        '@name' => $username,
+        '@cid' => $contactId ?? 'none',
+        '@message' => $e->getMessage(),
+      ]);
+      return;
+    }
+
+    if ($contactId) {
+      \Civi\Api4\UFMatch::create(FALSE)
         ->addValue('domain_id', 1)
         ->addValue('uf_id', $user->id())
-        ->addValue('contact_id', $webform_submission_data['civicrm_1_contact_1_contact_existing'])
+        ->addValue('contact_id', $contactId)
         ->addValue('uf_name', $email)
         ->execute();
     }
