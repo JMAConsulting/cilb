@@ -35,3 +35,39 @@ function cilb_candidate_registration_update_8003() {
   return t('Assigned candidate role to @count users.', ['@count' => $processed]);
 }
 
+/**
+ * Strips leading and trailing whitespace from usernames.
+ */
+function cilb_candidate_registration_update_8004() {
+  $padded = \Drupal::database()->query("SELECT uid, name FROM {users_field_data} WHERE LENGTH(name) <> LENGTH(TRIM(name))")->fetchAllKeyed();
+
+  $trimmed = 0;
+  $skipped = [];
+
+  foreach ($padded as $uid => $name) {
+    $newName = trim($name);
+    if ($newName === '') {
+      $skipped[] = $uid;
+      continue;
+    }
+
+    $clash = \Drupal::database()->query("SELECT uid FROM {users_field_data} WHERE name = :name AND uid <> :uid", [
+      ':name' => $newName,
+      ':uid' => $uid,
+    ])->fetchField();
+    if ($clash) {
+      $skipped[] = $uid;
+      continue;
+    }
+
+    $user = \Drupal\user\Entity\User::load($uid);
+    $user->setUsername($newName);
+    $user->save();
+    $trimmed++;
+  }
+
+  return t('Trimmed @count usernames. Skipped: @skipped', [
+    '@count' => $trimmed,
+    '@skipped' => $skipped ? implode(', ', $skipped) : 'none',
+  ]);
+}
