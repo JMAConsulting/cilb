@@ -4,6 +4,18 @@ use CRM_ChangeNotificationReceipt_ExtensionUtil as E;
 
 class CRM_ChangeNotificationReceipt_Watcher {
 
+  const IGNORED_CUSTOM_GROUPS = [
+    'cilb_candidate_entity',
+  ];
+
+  const IGNORED_CUSTOM_FIELDS = [
+    'Candidate_Result' => [
+      'Candidate_Score',
+      'Date_Exam_Taken',
+      'Bypass_Reregistration_Check',
+    ],
+  ];
+
   public static function config(): array {
     return [
       'Individual' => [
@@ -49,24 +61,10 @@ class CRM_ChangeNotificationReceipt_Watcher {
       'Participant' => [
         'table' => 'civicrm_participant',
         'contact' => FALSE,
-        'ops' => ['create', 'edit', 'delete'],
+        'ops' => ['edit'],
         'fields' => [
           'event_id' => 'Exam',
-          'status_id' => 'Registration Status',
           'register_date' => 'Registration Date',
-          'fee_amount' => 'Fee',
-        ],
-      ],
-      'Contribution' => [
-        'table' => 'civicrm_contribution',
-        'contact' => FALSE,
-        'ops' => ['create', 'edit', 'delete'],
-        'fields' => [
-          'financial_type_id' => 'Financial Type',
-          'total_amount' => 'Amount',
-          'contribution_status_id' => 'Payment Status',
-          'receive_date' => 'Received Date',
-          'trxn_id' => 'Transaction ID',
         ],
       ],
     ];
@@ -166,6 +164,9 @@ class CRM_ChangeNotificationReceipt_Watcher {
     foreach ($params as $param) {
       $fieldId = $param['custom_field_id'] ?? NULL;
       if (!$fieldId) {
+        continue;
+      }
+      if (self::isIgnoredCustomField((int) $fieldId)) {
         continue;
       }
       $label = self::customFieldLabel((int) $fieldId);
@@ -290,23 +291,42 @@ class CRM_ChangeNotificationReceipt_Watcher {
     }
   }
 
-  protected static function customFieldLabel(int $fieldId): string {
-    $cache = &\Civi::$statics[__CLASS__]['customLabels'];
+  protected static function customFieldInfo(int $fieldId): array {
+    $cache = &\Civi::$statics[__CLASS__]['customFields'];
     if (isset($cache[$fieldId])) {
       return $cache[$fieldId];
     }
     $row = CRM_Core_DAO::executeQuery(
-      'SELECT f.label AS field_label, g.title AS group_title
+      'SELECT f.name AS field_name, f.label AS field_label, g.name AS group_name, g.title AS group_title
        FROM civicrm_custom_field f
        JOIN civicrm_custom_group g ON g.id = f.custom_group_id
        WHERE f.id = %1',
       [1 => [$fieldId, 'Integer']]
     );
-    $label = "Custom field #{$fieldId}";
+    $info = [
+      'field_name' => '',
+      'group_name' => '',
+      'label' => "Custom field #{$fieldId}",
+    ];
     if ($row->fetch()) {
-      $label = trim(($row->group_title ? $row->group_title . ': ' : '') . $row->field_label);
+      $info['field_name'] = (string) $row->field_name;
+      $info['group_name'] = (string) $row->group_name;
+      $info['label'] = trim(($row->group_title ? $row->group_title . ': ' : '') . $row->field_label);
     }
-    return $cache[$fieldId] = $label;
+    return $cache[$fieldId] = $info;
+  }
+
+  protected static function isIgnoredCustomField(int $fieldId): bool {
+    $info = self::customFieldInfo($fieldId);
+    if ($info['group_name'] !== '' && in_array($info['group_name'], self::IGNORED_CUSTOM_GROUPS, TRUE)) {
+      return TRUE;
+    }
+    $fields = self::IGNORED_CUSTOM_FIELDS[$info['group_name']] ?? [];
+    return in_array($info['field_name'], $fields, TRUE);
+  }
+
+  protected static function customFieldLabel(int $fieldId): string {
+    return self::customFieldInfo($fieldId)['label'];
   }
 
   protected static function customDisplayValue(int $fieldId, $value): string {

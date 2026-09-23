@@ -37,7 +37,3 @@ function changenotificationreceipt_civicrm_pre(string $op, string $objectName, $
 function changenotificationreceipt_civicrm_post(string $op, string $objectName, $objectId, &$objectRef): void {
   CRM_ChangeNotificationReceipt_Watcher::post($op, $objectName, $objectId, $objectRef);
 }
-
-function changenotificationreceipt_civicrm_custom(string $op, $groupID, $entityID, &$params): void {
-  CRM_ChangeNotificationReceipt_Watcher::custom($op, $groupID, $entityID, $params);
-}
