@@ -3,7 +3,7 @@
         'name' => 'drupal/recommended-project',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '6c9a9022130e54f736c791f585de494847814f31',
+        'reference' => '7e92af8ce84dc12359a92d6c7dd06e65588ccc0a',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -685,7 +685,7 @@
         'drupal/recommended-project' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '6c9a9022130e54f736c791f585de494847814f31',
+            'reference' => '7e92af8ce84dc12359a92d6c7dd06e65588ccc0a',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -791,9 +791,9 @@
             'dev_requirement' => false,
         ),
         'drupal/webform' => array(
-            'pretty_version' => '6.2.10',
-            'version' => '6.2.10.0',
-            'reference' => '6.2.10',
+            'pretty_version' => '6.3.1',
+            'version' => '6.3.1.0',
+            'reference' => '6.3.1',
             'type' => 'drupal-module',
             'install_path' => __DIR__ . '/../../web/modules/contrib/webform',
             'aliases' => array(),
@@ -1354,8 +1354,8 @@
         'psr/container-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '^1.0',
-                1 => '1.1|2.0',
+                0 => '1.1|2.0',
+                1 => '^1.0',
             ),
         ),
         'psr/event-dispatcher' => array(
@@ -1935,9 +1935,9 @@
             'dev_requirement' => false,
         ),
         'twig/twig' => array(
-            'pretty_version' => 'v3.28.0',
-            'version' => '3.28.0.0',
-            'reference' => '597c12ed286fb9d1701a36684ce6e0cbe28ebc8b',
+            'pretty_version' => 'v3.29.0',
+            'version' => '3.29.0.0',
+            'reference' => '45a3c6e9224c3377a39c7b150bb29d5d97d2c75d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../twig/twig',
             'aliases' => array(),
