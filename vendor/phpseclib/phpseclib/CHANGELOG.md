@@ -1,9 +1,17 @@
 # Changelog
 
+## 3.0.57 - 2026-08-26
+
+- ASN1: fix tag matching for tagged CHOICE children (#2158)
+- RSA: fix for openssl_verify calls that error out (#2161)
+- RSA/PublicKey: implement salt length discovery for PSS verification (#2164)
+- BigInteger/PHP: don't return the divisor as the common residue (#2165)
+- Curve25519/448: improve timing attack resistance
+
 ## 3.0.56 - 2026-08-02
 
-- RSA: don't use OpenSSL for PSS on OpenSSL < 3.1.0 (#2156)
-- SFTP: throw TimeoutExceptions on timeout vs UnexpectedValueException (#2152)
+- RSA: don't use OpenSSL for PSS on OpenSSL < 3.1.0 (#2152)
+- SFTP: throw TimeoutExceptions on timeout vs UnexpectedValueException (#2156)
 - SFTP/Stream: use default context if one isn't explicitly provided (#2154)
 
 ## 3.0.55 - 2026-06-14
