@@ -288,4 +288,27 @@ Q3ADAIcv9LEmTBnSAOsCs1K9ExAmSv/T2/4+9dW28UYb+p/uV477d1wf+nCWS6VU
         $this->assertSame($expected, DH::computeSecret($alicePrivate, $bobPublic));
         $this->assertSame($expected, DH::computeSecret($bobPrivate, $alicePublic));
     }
+
+    public function testLowOrderCurve25519()
+    {
+        $theirsArr = [
+            '0000000000000000000000000000000000000000000000000000000000000000', // u=0 (order 2, v=0)
+            '4c9c95bca3508c24b1d0b1559c83ef5b04445cc4581c8e86d8224eddd09f11d7', // order 8, curve (b) +p
+        ];
+
+        $ours = EC::createKey('Curve25519');
+        foreach ($theirsArr as $theirs) {
+            $theirs = EC::loadFormat('MontgomeryPublic', hex2bin($theirs));
+            try {
+                $secret = DH::computeSecret($ours, $theirs);
+                $this->fail(sprintf(
+                    'expected rejection; got %d-byte secret (%s)',
+                    strlen($secret),
+                    $secret === str_repeat("\0", 32) ? 'all zero' : bin2hex($secret)
+                ));
+            } catch (\UnexpectedValueException $e) {
+                $this->assertTrue(true);
+            }
+        }
+    }
 }
