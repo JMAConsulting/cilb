@@ -25,7 +25,7 @@ class MenuLocalAction extends PreprocessBase implements PreprocessInterface {
     $link['localized_options']['set_active_class'] = TRUE;
 
     $icon = Bootstrap::glyphiconFromString($link['title']);
-    $options = isset($link['localized_options']) ? $link['localized_options'] : [];
+    $options = $link['localized_options'] ?? [];
 
     if (isset($link['url'])) {
       // Turn link into a mini-button and colorize based on title.
@@ -46,7 +46,7 @@ class MenuLocalAction extends PreprocessBase implements PreprocessInterface {
 
       $variables['link'] = [
         '#type' => 'link',
-        '#title' => $icon ? new FormattableMarkup(Element::create($icon)->renderPlain() . '@text', ['@text' => $link['title']]) : $link['title'],
+        '#title' => $icon ? new FormattableMarkup(Element::create($icon)->renderInIsolation() . '@text', ['@text' => $link['title']]) : $link['title'],
         '#options' => $options,
         '#url' => $link['url'],
       ];

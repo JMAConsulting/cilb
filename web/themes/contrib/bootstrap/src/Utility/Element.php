@@ -42,10 +42,10 @@ class Element extends DrupalAttributes {
    *
    * @param array|string $element
    *   A render array element.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface|null $form_state
    *   The current state of the form.
    */
-  public function __construct(&$element = [], FormStateInterface $form_state = NULL) {
+  public function __construct(&$element = [], ?FormStateInterface $form_state = NULL) {
     if (!is_array($element)) {
       $element = ['#markup' => $element instanceof MarkupInterface ? $element : new FormattableMarkup($element, [])];
     }
@@ -269,13 +269,13 @@ class Element extends DrupalAttributes {
    *
    * @param array|string $element
    *   A render array element or a string.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface|null $form_state
    *   A current FormState instance, if any.
    *
    * @return \Drupal\bootstrap\Utility\Element
    *   The newly created element instance.
    */
-  public static function create(&$element = [], FormStateInterface $form_state = NULL) {
+  public static function create(&$element = [], ?FormStateInterface $form_state = NULL) {
     return $element instanceof self ? $element : new self($element, $form_state);
   }
 
@@ -287,13 +287,13 @@ class Element extends DrupalAttributes {
    *
    * @param array|string|\Drupal\bootstrap\Utility\Element $element
    *   A render array element, string or Element instance.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface|null $form_state
    *   A current FormState instance, if any.
    *
    * @return \Drupal\bootstrap\Utility\Element
    *   The newly created element instance.
    */
-  public static function createStandalone($element = [], FormStateInterface $form_state = NULL) {
+  public static function createStandalone($element = [], ?FormStateInterface $form_state = NULL) {
     // Immediately return a cloned version if element is already an Element.
     if ($element instanceof self) {
       return clone $element;
@@ -571,20 +571,35 @@ class Element extends DrupalAttributes {
    */
   public function render() {
     /** @var \Drupal\Core\Render\Renderer $renderer */
-    $renderer = \Drupal::service('renderer');
+    $renderer = Bootstrap::renderer();
     return $renderer->render($this->array);
   }
 
   /**
-   * Renders the final element HTML.
+   * Renders the final element HTML in isolation.
    *
    * @return \Drupal\Component\Render\MarkupInterface
    *   The rendered HTML.
    */
-  public function renderPlain() {
+  public function renderInIsolation() {
     /** @var \Drupal\Core\Render\Renderer $renderer */
-    $renderer = \Drupal::service('renderer');
-    return $renderer->renderPlain($this->array);
+    $renderer = Bootstrap::renderer();
+    return $renderer->renderInIsolation($this->array);
+  }
+
+  /**
+   * Renders the final element HTML in isolation.
+   *
+   * @return \Drupal\Component\Render\MarkupInterface
+   *   The rendered HTML.
+   *
+   * @deprecated in bootstrap:8.x-3.x and is removed from bootstrap:4.0.0.
+   *   Use ::renderInIsolation() instead.
+   *
+   * @see https://www.drupal.org/node/3407994
+   */
+  public function renderPlain() {
+    return $this->renderInIsolation();
   }
 
   /**
@@ -597,7 +612,7 @@ class Element extends DrupalAttributes {
    */
   public function renderRoot() {
     /** @var \Drupal\Core\Render\Renderer $renderer */
-    $renderer = \Drupal::service('renderer');
+    $renderer = Bootstrap::renderer();
     return $renderer->renderRoot($this->array);
   }
 
@@ -659,7 +674,7 @@ class Element extends DrupalAttributes {
    *
    * @param string $message
    *   (optional) The error message to present to the user.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface|null $form_state
    *   Optional. The current state of the form. If not provided, it will attempt
    *   to use the form state passed when constructing the element.
    *
@@ -669,7 +684,7 @@ class Element extends DrupalAttributes {
    *   When the element instance was not constructed with a valid form state
    *   object.
    */
-  public function setError($message = '', FormStateInterface $form_state = NULL) {
+  public function setError($message = '', ?FormStateInterface $form_state = NULL) {
     if (!isset($form_state)) {
       if (!$this->formState) {
         throw new \BadMethodCallException('The element instance must be constructed with a valid form state object to use this method.');
@@ -682,7 +697,7 @@ class Element extends DrupalAttributes {
       $form_state->setError($this->array, $message);
     }
     else {
-      \Drupal::messenger()->addMessage($message, 'error');
+      Bootstrap::service('messenger')->addMessage($message, 'error');
     }
     return $this;
   }
@@ -690,12 +705,12 @@ class Element extends DrupalAttributes {
   /**
    * Sets the current form state for the element.
    *
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface|null $form_state
    *   Optional. The current state of the form.
    *
    * @return static
    */
-  public function setFormState(FormStateInterface $form_state = NULL) {
+  public function setFormState(?FormStateInterface $form_state = NULL) {
     $this->formState = $form_state;
     return $this;
   }
@@ -703,19 +718,19 @@ class Element extends DrupalAttributes {
   /**
    * Adds an icon to button element based on its text value.
    *
-   * @param array $icon
+   * @param array|null $icon
    *   An icon render array.
    *
    * @return static
    *
    * @see \Drupal\bootstrap\Bootstrap::glyphicon()
    */
-  public function setIcon(array $icon = NULL) {
+  public function setIcon(?array $icon = NULL) {
     if ($this->isButton() && !Bootstrap::getTheme()->getSetting('button_iconize')) {
       return $this;
     }
     if ($value = $this->getProperty('value', $this->getProperty('title'))) {
-      $icon = isset($icon) ? $icon : Bootstrap::glyphiconFromString($value);
+      $icon = $icon ?? Bootstrap::glyphiconFromString($value);
       $this->setProperty('icon', $icon);
     }
     return $this;
@@ -814,7 +829,7 @@ class Element extends DrupalAttributes {
     // it can be later passed to Unicode::isSimple() if needed.
     $description = $this->hasProperty('description') ? $this->getProperty('description') : FALSE;
     if (static::isRenderArray($description)) {
-      $description = static::createStandalone($description)->renderPlain();
+      $description = static::createStandalone($description)->renderInIsolation();
     }
 
     if (

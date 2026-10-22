@@ -2,7 +2,7 @@
 
 namespace Drupal\bootstrap\Annotation;
 
-use Doctrine\Common\Annotations\AnnotationException;
+use Drupal\Component\Annotation\Doctrine\AnnotationException;
 use Drupal\Component\Annotation\AnnotationBase;
 
 /**
@@ -25,11 +25,11 @@ class BootstrapConstant extends AnnotationBase {
    * {@inheritdoc}
    */
   public function __construct(array $values) {
-    $string = $values['value'];
+    $string = (string) $values['value'];
 
     // Handle classes.
     if (strpos($string, '::') !== FALSE) {
-      list($class, $constant) = explode('::', $string);
+      [$class, $constant] = explode('::', $string);
       try {
         $reflection = new \ReflectionClass($class);
         if ($reflection->hasConstant($constant)) {
@@ -47,7 +47,7 @@ class BootstrapConstant extends AnnotationBase {
       return;
     }
 
-    throw AnnotationException::semanticalErrorConstants($this->value);
+    throw AnnotationException::semanticalErrorConstants($string);
   }
 
   /**
