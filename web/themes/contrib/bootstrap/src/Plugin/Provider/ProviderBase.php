@@ -105,8 +105,8 @@ class ProviderBase extends PluginBase implements ProviderInterface {
 
     // Retrieve the cached value or build it if necessary.
     $framework = $this->cacheGet('library', $hash, [], function () use ($framework, $data) {
-      $version = isset($data['version']) ? $data['version'] : NULL;
-      $theme = isset($data['theme']) ? $data['theme'] : NULL;
+      $version = $data['version'] ?? NULL;
+      $theme = $data['theme'] ?? NULL;
       $assets = $this->getCdnAssets($version, $theme)->toLibraryArray($data['min']);
 
       // Immediately return if there are no theme CDN assets to use.
@@ -142,7 +142,7 @@ class ProviderBase extends PluginBase implements ProviderInterface {
    *   provided, the entire contents of $name will be returned.
    * @param mixed $default
    *   Optional. The default value to return if $key is not set.
-   * @param callable $builder
+   * @param callable|null $builder
    *   Optional. If provided, a builder will be invoked when there is no cache
    *   currently set. The return value of the build will be used to set the
    *   cached value, provided there are no CDN Provider exceptions generated.
@@ -152,7 +152,7 @@ class ProviderBase extends PluginBase implements ProviderInterface {
    * @return mixed
    *   The cached value if it's set or the value supplied to $default if not.
    */
-  protected function cacheGet($type, $key = NULL, $default = NULL, callable $builder = NULL) {
+  protected function cacheGet($type, $key = NULL, $default = NULL, ?callable $builder = NULL) {
     $ttl = $this->getCacheTtl($type);
     $never = $ttl === static::TTL_NEVER;
     $forever = $ttl === static::TTL_FOREVER;
@@ -209,6 +209,8 @@ class ProviderBase extends PluginBase implements ProviderInterface {
     $assets = [];
 
     // Convert the deprecated array structure into a proper CdnAssets object.
+    // This compatibility bridge is intentionally retained until Bootstrap 4.x.
+    // @phpstan-ignore-next-line
     $data = $this->getAssets();
     foreach (['css', 'js'] as $type) {
       if (isset($data[$type])) {
@@ -324,8 +326,8 @@ class ProviderBase extends PluginBase implements ProviderInterface {
     return [
       'ttl' => $this->getCacheTtl(static::CACHE_LIBRARY),
       'min' => [
-        'css' => !!\Drupal::config('system.performance')->get('css.preprocess'),
-        'js' => !!\Drupal::config('system.performance')->get('js.preprocess'),
+        'css' => !!Bootstrap::service('config.factory')->get('system.performance')->get('css.preprocess'),
+        'js' => !!Bootstrap::service('config.factory')->get('system.performance')->get('js.preprocess'),
       ],
       'provider' => $this->pluginId,
       'version' => $version,
@@ -449,7 +451,7 @@ class ProviderBase extends PluginBase implements ProviderInterface {
    */
   protected function getKeyValue() {
     if (!isset($this->keyValue)) {
-      $this->keyValue = \Drupal::keyValue($this->getCacheId());
+      $this->keyValue = Bootstrap::keyValue($this->getCacheId());
     }
     return $this->keyValue;
   }
@@ -462,7 +464,7 @@ class ProviderBase extends PluginBase implements ProviderInterface {
    */
   protected function getKeyValueExpirable() {
     if (!isset($this->keyValueExpirable)) {
-      $this->keyValueExpirable = \Drupal::keyValueExpirable($this->getCacheId());
+      $this->keyValueExpirable = Bootstrap::keyValueExpirable($this->getCacheId());
     }
     return $this->keyValueExpirable;
   }
@@ -530,7 +532,7 @@ class ProviderBase extends PluginBase implements ProviderInterface {
     // Invalidate library info if this provider is the one currently used.
     if ($this->theme->getCdnProvider()->getPluginId() === $this->pluginId) {
       /** @var \Drupal\Core\Cache\CacheTagsInvalidatorInterface $invalidator */
-      $invalidator = \Drupal::service('cache_tags.invalidator');
+      $invalidator = Bootstrap::service('cache_tags.invalidator');
       $invalidator->invalidateTags(['library_info']);
     }
   }
@@ -649,7 +651,7 @@ class ProviderBase extends PluginBase implements ProviderInterface {
         $fileSystem->prepareDirectory($provider_path, $options);
       }
       else {
-        \Drupal::service('file_system')->prepareDirectory($provider_path, $options);
+        Bootstrap::service('file_system')->prepareDirectory($provider_path, $options);
       }
 
       // Use manually imported API data, if it exists.

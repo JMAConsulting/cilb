@@ -8,6 +8,7 @@ namespace Drupal\bootstrap\Plugin\Setting\Advanced\Cdn;
  * @todo Move namespace up one.
  */
 
+use Drupal\bootstrap\Bootstrap;
 use Drupal\bootstrap\Plugin\Provider\ProviderInterface;
 use Drupal\bootstrap\Utility\Element;
 use Drupal\Core\Form\FormStateInterface;
@@ -24,14 +25,14 @@ abstract class CdnCacheTtlBase extends CdnProviderBase {
    *
    * @var \Drupal\Core\Datetime\DateFormatterInterface
    */
-  static protected $dateFormatter;
+  protected static $dateFormatter;
 
   /**
    * A list of TTL options.
    *
    * @var array
    */
-  static protected $ttlOptions;
+  protected static $ttlOptions;
 
   /**
    * {@inheritdoc}
@@ -89,7 +90,7 @@ abstract class CdnCacheTtlBase extends CdnProviderBase {
    */
   protected function getDateFormatter() {
     if (!isset(static::$dateFormatter)) {
-      static::$dateFormatter = \Drupal::service('date.formatter');
+      static::$dateFormatter = Bootstrap::service('date.formatter');
     }
     return static::$dateFormatter;
   }

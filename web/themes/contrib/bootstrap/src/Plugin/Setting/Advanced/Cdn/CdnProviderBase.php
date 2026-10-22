@@ -8,7 +8,7 @@ namespace Drupal\bootstrap\Plugin\Setting\Advanced\Cdn;
  * @todo Move namespace up one.
  */
 
-use Drupal\bootstrap\Bootstrap;
+use Drupal\Core\Utility\Error;
 use Drupal\bootstrap\Plugin\Provider\ProviderInterface;
 use Drupal\bootstrap\Plugin\ProviderManager;
 use Drupal\bootstrap\Plugin\Setting\SettingBase;
@@ -73,7 +73,7 @@ abstract class CdnProviderBase extends SettingBase {
         '@provider' => $provider->getLabel(),
       ]), 'error');
       foreach ($exceptions as $exception) {
-        \Drupal\Component\Utility\DeprecationHelper::backwardsCompatibleCall(\Drupal::VERSION, '10.1.0', fn() => \Drupal\Core\Utility\Error::logException(\Drupal::logger('bootstrap'), $exception), fn() => watchdog_exception('bootstrap', $exception));
+        Error::logException(\Drupal::logger('bootstrap'), $exception);
       }
     }
     return !!$exceptions;

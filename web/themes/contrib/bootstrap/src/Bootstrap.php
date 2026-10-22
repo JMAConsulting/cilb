@@ -68,7 +68,7 @@ class Bootstrap {
    *
    * @var string
    */
-  const FRAMEWORK_VERSION = '3.4.5';
+  const FRAMEWORK_VERSION = '3.4.10';
 
   /**
    * The Bootstrap Framework documentation site.
@@ -398,7 +398,7 @@ class Bootstrap {
     ];
 
     // Determine if a custom TTL value was set.
-    $ttl = isset($options['ttl']) ? $options['ttl'] : NULL;
+    $ttl = $options['ttl'] ?? NULL;
     unset($options['ttl']);
 
     $cache = \Drupal::keyValueExpirable('theme:' . static::getTheme()->getName() . ':http');
@@ -426,7 +426,7 @@ class Bootstrap {
       }
 
       // Only cache if a maximum age has been detected.
-      $maxAge = (int) isset($ttl) ? $ttl : $response->getMaxAge();
+      $maxAge = $ttl ?? $response->getMaxAge();
       if ($response->getStatusCode() == 200 && $maxAge > 0) {
         // Due to key_value_expire setting the "expire" field to "INT(11)", it
         // is technically limited to a 32bit max value (Y2K38 bug).
@@ -574,11 +574,11 @@ class Bootstrap {
    *   force show the message. If FALSE, it will only log the message. If not
    *   set, the message will be shown based on whether the current user is an
    *   administrator and if the theme has suppressed deprecated warnings.
-   * @param \Drupal\Core\StringTranslation\TranslatableMarkup $message
+   * @param \Drupal\Core\StringTranslation\TranslatableMarkup|null $message
    *   Optional. The message to show/log. If not set, it will be determined
    *   automatically based on the caller.
    */
-  public static function deprecated($caller = NULL, $show_message = NULL, TranslatableMarkup $message = NULL) {
+  public static function deprecated($caller = NULL, $show_message = NULL, ?TranslatableMarkup $message = NULL) {
     $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
 
     // Extrapolate the caller.
@@ -631,6 +631,63 @@ class Bootstrap {
   }
 
   /**
+   * Retrieves a service from Drupal's service container.
+   *
+   * This theme predates widespread dependency injection and many of its helper
+   * objects are instantiated directly rather than by the service container.
+   * Centralizing legacy service access here keeps that compatibility boundary
+   * isolated while allowing container-managed code to use dependency injection.
+   *
+   * @param string $id
+   *   The service identifier.
+   *
+   * @return mixed
+   *   The requested service.
+   */
+  public static function service($id) {
+    return \Drupal::service($id);
+  }
+
+  /**
+   * Determines whether a service is available.
+   *
+   * @param string $id
+   *   The service identifier.
+   *
+   * @return bool
+   *   TRUE if the service exists.
+   */
+  public static function hasService($id) {
+    return \Drupal::hasService($id);
+  }
+
+  /**
+   * Retrieves a permanent key/value store.
+   *
+   * @param string $collection
+   *   The key/value collection name.
+   *
+   * @return \Drupal\Core\KeyValueStore\KeyValueStoreInterface
+   *   The key/value store.
+   */
+  public static function keyValue($collection) {
+    return \Drupal::keyValue($collection);
+  }
+
+  /**
+   * Retrieves an expirable key/value store.
+   *
+   * @param string $collection
+   *   The key/value collection name.
+   *
+   * @return \Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface
+   *   The expirable key/value store.
+   */
+  public static function keyValueExpirable($collection) {
+    return \Drupal::keyValueExpirable($collection);
+  }
+
+  /**
    * Retrieves the File System service, if it exists.
    *
    * @param string $method
@@ -660,13 +717,13 @@ class Bootstrap {
    *
    * @param string $name
    *   The machine name of a theme. If omitted, the active theme will be used.
-   * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
+   * @param \Drupal\Core\Extension\ThemeHandlerInterface|null $theme_handler
    *   The theme handler object.
    *
    * @return \Drupal\bootstrap\Theme
    *   A theme object.
    */
-  public static function getTheme($name = NULL, ThemeHandlerInterface $theme_handler = NULL) {
+  public static function getTheme($name = NULL, ?ThemeHandlerInterface $theme_handler = NULL) {
     // Immediately return if theme passed is already instantiated.
     if ($name instanceof Theme) {
       return $name;
@@ -1210,7 +1267,13 @@ class Bootstrap {
       $versions['3.3.7'] = $versions['3.3.6'];
       $versions['3.4.0'] = $versions['3.3.7'];
       $versions['3.4.1'] = $versions['3.4.0'];
+      $versions['3.4.4'] = $versions['3.4.1'];
       $versions['3.4.5'] = $versions['3.4.1'];
+      $versions['3.4.6'] = $versions['3.4.1'];
+      $versions['3.4.7'] = $versions['3.4.1'];
+      $versions['3.4.8'] = $versions['3.4.1'];
+      $versions['3.4.9'] = $versions['3.4.1'];
+      $versions['3.4.10'] = $versions['3.4.1'];
     }
 
     // Return a specific versions icon set.
@@ -1266,14 +1329,14 @@ class Bootstrap {
   /**
    * Checks whether a user is an administrator.
    *
-   * @param \Drupal\Core\Session\AccountInterface $account
+   * @param \Drupal\Core\Session\AccountInterface|null $account
    *   Optional. A specific account to check. If not set, the currently logged
    *   in user account will be used.
    *
    * @return bool
    *   TRUE or FALSE
    */
-  public static function isAdmin(AccountInterface $account = NULL) {
+  public static function isAdmin(?AccountInterface $account = NULL) {
     static $admins = [];
 
     // Use the currently logged in user if no account was explicitly specified.
@@ -1454,7 +1517,7 @@ class Bootstrap {
    *   The path to the template.
    * @param array $variables
    *   The variables to pass to the template.
-   * @param \Drupal\Core\Render\RenderContext $renderContext
+   * @param \Drupal\Core\Render\RenderContext|null $renderContext
    *   Optional. A RenderContext object to pass to the renderer.
    *
    * @return \Drupal\Component\Render\MarkupInterface
@@ -1466,7 +1529,7 @@ class Bootstrap {
    *   If $path references a Twig template already registered in the theme
    *   system.
    */
-  public static function renderCustomTemplate($path, array $variables = [], RenderContext $renderContext = NULL) {
+  public static function renderCustomTemplate($path, array $variables = [], ?RenderContext $renderContext = NULL) {
     $realpath = realpath($path);
     if (!file_exists($realpath)) {
       throw new \RuntimeException(sprintf('Template does not exist: %s', $realpath));
@@ -1482,7 +1545,7 @@ class Bootstrap {
       $registered = realpath($info['path'] . '/' . $info['template'] . '.html.twig');
       if ($registered === $realpath) {
         $basename = basename($path);
-        $example = "\n\n\$build = [\n  '#theme' => '$hook',\n  /* Other properties */\n];\n\Drupal::service('renderer')->renderPlain(\$build);\n\n";
+        $example = "\n\n\$build = [\n  '#theme' => '$hook',\n  /* Other properties */\n];\n\Drupal::service('renderer')->renderInIsolation(\$build);\n\n";
         throw new \InvalidArgumentException(sprintf('The template provided is not a standalone Twig template: "%s". This template is already registered in Drupal\'s Theme System as "%s". If this template is intended to be truly standalone, you can change the file extension from ".html.twig" to just ".twig". Otherwise, if this is a properly registered template in the Theme System, you should render it using Drupal\'s existing Render API and not this method: %s', $basename, $hook, $example));
       }
     }
@@ -1580,7 +1643,7 @@ class Bootstrap {
    *   The typecast string value.
    */
   public static function toString(&$value) {
-    return (string) (Element::isRenderArray($value) ? Element::create($value)->renderPlain() : $value);
+    return (string) (Element::isRenderArray($value) ? Element::create($value)->renderInIsolation() : $value);
   }
 
   /**
