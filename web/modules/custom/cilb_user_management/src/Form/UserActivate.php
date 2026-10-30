@@ -159,11 +159,14 @@ class UserActivate extends FormBase implements ContainerInjectionInterface {
       return;
     }
 
-    $this->createCandidateUserAccount(
+    $created = $this->createCandidateUserAccount(
       $email,
       $contact['first_name'] . $contact['last_name'],
       $contact['id']
     );
+    if (!$created) {
+      return;
+    }
 
     // on successful submit, redirect to login form
     $this->messenger()->addStatus($this->t('User activation was successful. You should receive an email with a link to set a password shortly.'));
@@ -192,10 +195,23 @@ class UserActivate extends FormBase implements ContainerInjectionInterface {
     // In this case we throw an error to prevent any further processing
     $existingUser = user_load_by_mail($email);
     if ($existingUser) {
+        $linkedContact = \Civi\Api4\UFMatch::get(FALSE)
+          ->addWhere('uf_id', '=', $existingUser->id())
+          ->execute()
+          ->first();
+        if (!$linkedContact && $existingUser->isActive() && str_ends_with($existingUser->getAccountName(), '.' . $contactId) && !$this->isContactBlocked($contactId)) {
+          $this->logger('candidate_reg')->info('Linking unmatched user UID @uid to contact @cid', [
+            '@uid' => $existingUser->id(),
+            '@cid' => $contactId,
+          ]);
+          $this->linkUserToContact($existingUser, $contactId);
+          $this->sendAccountEmail($existingUser);
+          return TRUE;
+        }
         // User with this email already exists, log a message and stop further processing
         $this->logger('candidate_reg')->info('User with email ' . $email . ' already exists with UID: ' . $existingUser->id());
         $this->messenger()->addError($this->t('A user with this email address already exists.'));
-        return;
+        return FALSE;
     }
 
     $username = $baseUsername;
@@ -229,7 +245,12 @@ class UserActivate extends FormBase implements ContainerInjectionInterface {
     $user->enforceIsNew();
     $user->save();
 
-    // Send the email verification email
+    $this->sendAccountEmail($user);
+    $this->linkUserToContact($user, $contactId);
+    return TRUE;
+  }
+
+  protected function sendAccountEmail(User $user) {
     \Drupal::service('plugin.manager.mail')->mail(
       'user',
       'register_no_approval_required',
@@ -239,12 +260,27 @@ class UserActivate extends FormBase implements ContainerInjectionInterface {
       NULL,
       TRUE
     );
+  }
 
+  protected function isContactBlocked($contactId) {
+    $groupId = \Drupal::config('civicrm_blocked_users.settings')->get('group_id');
+    if (!$groupId) {
+      return FALSE;
+    }
+    return (bool) \Civi\Api4\GroupContact::get(FALSE)
+      ->addWhere('group_id', '=', $groupId)
+      ->addWhere('contact_id', '=', $contactId)
+      ->addWhere('status', '=', 'Added')
+      ->execute()
+      ->first();
+  }
+
+  protected function linkUserToContact(User $user, $contactId) {
     \Civi\Api4\UFMatch::create(FALSE)
       ->addValue('domain_id', 1)
       ->addValue('uf_id', $user->id())
       ->addValue('contact_id', $contactId)
-      ->addValue('uf_name', $email)
+      ->addValue('uf_name', $user->getEmail())
       ->execute();
   }
 
