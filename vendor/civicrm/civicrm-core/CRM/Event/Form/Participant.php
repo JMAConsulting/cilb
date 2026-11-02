@@ -391,7 +391,12 @@ class CRM_Event_Form_Participant extends CRM_Contribute_Form_AbstractEditPayment
       if (empty($defaults['payment_instrument_id'])) {
         $defaults['payment_instrument_id'] = key(CRM_Core_OptionGroup::values('payment_instrument', FALSE, FALSE, FALSE, 'AND is_default = 1'));
       }
-      return $defaults + CRM_Event_Form_EventFees::setDefaultValues($this);
+      $feeDefaults = CRM_Event_Form_EventFees::setDefaultValues($this);
+      // if the default contribution status is pending, uncheck the record payment box otherwise it doesn't make sense
+      if ($feeDefaults['contribution_status_id'] == CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Pending')) {
+        $defaults['record_contribution'] = 0;
+      }
+      return $defaults + $feeDefaults;
     }
 
     $defaults = [];
@@ -1579,13 +1584,25 @@ class CRM_Event_Form_Participant extends CRM_Contribute_Form_AbstractEditPayment
     if ($this->isDefined('ExistingContribution')) {
       return $this->lookup('ExistingContribution', 'id');
     }
-    // CRM-12615 - Get payment information from the primary registration if relevant.
-    $participantID = $this->getParticipantValue('registered_by_id') ?: $this->getParticipantID();
+    // dev/core#6813 - Look for the participant's own line items first; fall
+    // back to the registered_by_id record if this fails (CRM-12615).
     $lineItem = LineItem::get(FALSE)
       ->addWhere('entity_table', '=', 'civicrm_participant')
-      ->addWhere('entity_id', '=', $participantID)
+      ->addWhere('entity_id', '=', $this->getParticipantID())
       ->addWhere('contribution_id', 'IS NOT NULL')
       ->execute()->first();
+    if (empty($lineItem)) {
+      // CRM-12615 - Fall back to the primary registration's line item. Retained
+      // as a defensive/legacy-data safety net, not a confirmed-needed path.
+      $primaryParticipantID = $this->getParticipantValue('registered_by_id');
+      if ($primaryParticipantID) {
+        $lineItem = LineItem::get(FALSE)
+          ->addWhere('entity_table', '=', 'civicrm_participant')
+          ->addWhere('entity_id', '=', $primaryParticipantID)
+          ->addWhere('contribution_id', 'IS NOT NULL')
+          ->execute()->first();
+      }
+    }
     if (empty($lineItem)) {
       return NULL;
     }

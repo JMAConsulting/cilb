@@ -1,3 +1,4 @@
+/* global jsyaml, marked, prettyPrintOne */
 (function(angular, $, _) {
   "use strict";
 
@@ -196,8 +197,9 @@
               // Check if this is a symmetric bridge e.g. RelationshipCache joins Contact to Contact
               bridgePair = Object.keys(bridgeEntity.bridge),
               symmetric = getField(bridgePair[0], join.bridge).entity === getField(bridgePair[1], join.bridge).entity;
-            bridgeFields.forEach(field => {
+            bridgeFields.forEach((field) => {
               if (
+                field &&
                 // Only include bridge fields that link back to the original entity
                 (!bridgeEntity.bridge[field.name] || field.fk_entity !== join.entity || symmetric) &&
                 // Exclude fields with the same name as those in the original entity
@@ -218,8 +220,8 @@
         }
       });
       // Add implicit joins based on schema links
-      Object.values(entityFields($scope.entity, $scope.action)).forEach(field => {
-        if (field.fk_entity) {
+      Object.values(entityFields($scope.entity, $scope.action)).forEach((field) => {
+        if (field?.fk_entity) {
           let linkFields = _.cloneDeep(entityFields(field.fk_entity)) ?? [],
             wildCard = addWildcard ? [{id: field.name + '.*', text: field.name + '.*', 'description': 'All core ' + field.fk_entity + ' fields'}] : [];
           if (addPseudoconstant) {
@@ -507,7 +509,7 @@
         // jsyaml can't handle the string '>'
         const output = (input === '>') ? '>' : jsyaml.safeLoad(input);
         // We don't want dates parsed to js objects
-        return toString.call(output) === '[object Date]' ? input : output;
+        return Object.prototype.toString.call(output) === '[object Date]' ? input : output;
       } catch (e) {
         return input;
       }
@@ -589,12 +591,12 @@
               defaultVal = defaultValues(defaultVal);
             }
             if (name === 'loadOptions' && $scope.action === 'getFields') {
-              param.options = [
+              param.options = unflattenOptions([
                 false,
                 true,
                 ['id', 'name', 'label'],
                 CRM.vars.api4.suffixes
-              ];
+              ]);
               format = 'json';
               defaultVal = false;
               param.type = ['string'];
@@ -1086,7 +1088,8 @@ apiCalls.${results} = [${jsCall}];
 
         case 'php_ts':
           // Fields marked 'localizable' in the schema should get wrapped in ts() for the php_ts format
-          let localizable = _.pluck(_.filter(_.findWhere(getEntity().actions, {name: $scope.action}).fields, {localizable: true}), 'name') || [];
+          let action = getEntity().actions.find((a) => a.name === $scope.action);
+          let localizable = action.fields.filter((f) => f.localizable === true).map((f) => f.name) || [];
           // More field names that probably should be translated
           localizable = _.union(localizable, ['label', 'title', 'description', 'text']);
           // SearchKit settings are not needs to be translated at runtime and not once when the managed file is loaded in the database
@@ -1156,13 +1159,63 @@ apiCalls.${results} = [${jsCall}];
       return "'" + str.replace(/'/g, "'\\''") + "'";
     }
 
+    // Normalize a param option list
+    function unflattenOptions(options) {
+      if (!options) {
+        return options;
+      }
+      const result = [];
+      if (Array.isArray(options)) {
+        options.forEach((opt) => {
+          if (opt && typeof opt === 'object' && 'id' in opt && 'label' in opt) {
+            result.push(opt);
+          } else if (opt && typeof opt === 'object' && 'id' in opt) {
+            result.push({id: opt.id, label: opt.name || opt.id});
+          } else {
+            result.push({id: opt, label: String(opt)});
+          }
+        });
+      } else if (typeof options === 'object' && options !== null) {
+        Object.entries(options).forEach(([k, v]) => {
+          result.push({id: k, label: String(v)});
+        });
+      }
+      return result;
+    }
+
     function fetchMeta() {
       const getMetaParams = {
-        actions: [$scope.entity, 'getActions', {chain: {fields: [$scope.entity, 'getFields', {action: '$name'}]}}]
+        actions: [$scope.entity, 'getActions', {
+          select: ['*', 'ui_params'],
+          chain: {fields: [$scope.entity, 'getFields', {action: '$name'}]},
+        }],
       };
       crmApi4(getMetaParams)
         .then(function(data) {
           if (data.actions) {
+            data.actions.forEach((action) => {
+              // Normalize option lists
+              if (action.params) {
+                Object.values(action.params).forEach((param) => {
+                  if (param.options) {
+                    param.options = unflattenOptions(param.options);
+                  }
+                });
+              }
+              // Mix in ui_params which contain more metadata about how a param should be displayed
+              const uiParams = action.ui_params || [];
+              uiParams.forEach((uiParam) => {
+                if (action.params && action.params[uiParam.name]) {
+                  const param = action.params[uiParam.name];
+                  if (uiParam.title !== undefined) {
+                    param.title = uiParam.title;
+                  }
+                  if (uiParam.options) {
+                    param.options = unflattenOptions(uiParam.options);
+                  }
+                }
+              });
+            });
             getEntity().actions = data.actions;
             selectAction();
           }
@@ -1205,7 +1258,7 @@ apiCalls.${results} = [${jsCall}];
       if ($scope.entity && $routeParams.api4action !== newVal && !_.isUndefined(newVal)) {
         $location.url('/explorer/' + $scope.entity + '/' + newVal);
       } else if (newVal) {
-        setHelp($scope.entity + '::' + newVal, _.pick(_.findWhere(getEntity().actions, {name: newVal}), ['description', 'comment', 'see', 'deprecated']));
+        setHelp($scope.entity + '::' + newVal, _.pick(getEntity().actions.find((a) => a.name === newVal), ['description', 'comment', 'see', 'deprecated']));
       }
     });
 
@@ -1227,7 +1280,58 @@ apiCalls.${results} = [${jsCall}];
       return doc;
     };
 
-    $scope.$watch('params', writeCode, true);
+    let lastEntity = null;
+    let lastAction = null;
+    let lastDynamicValues = {};
+
+    $scope.$watch('params', function(newParams, oldParams) {
+      writeCode();
+      if (!newParams || !$scope.availableParams) {
+        return;
+      }
+      // When changing a "dynamicFieldControl" param, call getFields again.
+      if (lastEntity !== $scope.entity || lastAction !== $scope.action) {
+        lastEntity = $scope.entity;
+        lastAction = $scope.action;
+        lastDynamicValues = {};
+      }
+      let changed = false;
+      const getFieldsAction = getEntity()?.actions?.find(a => a.name === 'getFields');
+      const apiParams = {
+        action: $scope.action
+      };
+      Object.entries($scope.availableParams).forEach(([name, param]) => {
+        if (param.dynamicFieldControl) {
+          const val = newParams[name];
+          const isFirstRun = !(name in lastDynamicValues);
+
+          if (isFirstRun) {
+            if (val !== param.default) {
+              changed = true;
+            }
+          } else {
+            if (val !== lastDynamicValues[name]) {
+              changed = true;
+            }
+          }
+          lastDynamicValues[name] = val;
+
+          if (getFieldsAction && getFieldsAction.params && getFieldsAction.params[name]) {
+            apiParams[name] = val;
+          }
+        }
+      });
+      if (changed) {
+        crmApi4($scope.entity, 'getFields', apiParams)
+          .then((fields) => {
+            const actionInfo = getEntity().actions.find((a) => a && a.name === $scope.action);
+            if (actionInfo) {
+              actionInfo.fields = fields;
+              ctrl.buildFieldList();
+            }
+          });
+      }
+    }, true);
     $scope.$watch('index', writeCode);
     writeCode();
   });
@@ -1477,7 +1581,7 @@ apiCalls.${results} = [${jsCall}];
         }
 
         function setActions() {
-          scope.actions = [''].concat(_.pluck(getEntity(scope.chain[1][0]).actions, 'name'));
+          scope.actions = [''].concat(getEntity(scope.chain[1][0]).actions.map((a) => a.name));
         }
 
         // Set default params when choosing action
@@ -1489,14 +1593,14 @@ apiCalls.${results} = [${jsCall}];
             scope.chain[1][3] = '';
             // Look for links back to main entity
             _.each(entityFields(scope.chain[1][0]), function(field) {
-              if (field.fk_entity === scope.mainEntity) {
+              if (field && field.fk_entity === scope.mainEntity) {
                 link = [field.name, '$id'];
               }
             });
             // Look for links from main entity
             if (!link && newAction !== 'create') {
               _.each(entityFields(scope.mainEntity), function(field) {
-                if (field.fk_entity === scope.chain[1][0]) {
+                if (field && field.fk_entity === scope.chain[1][0]) {
                   link = ['id', '$' + field.name];
                   // Since we're specifying the id, set index to getsingle
                   scope.chain[1][3] = '0';

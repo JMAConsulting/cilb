@@ -98,10 +98,7 @@ class Submit extends AbstractProcessor {
       $submissionData = $this->combineValuesAndIds($this->getValues(), $this->_entityIds);
       // Update submission record with entity IDs.
       if (!empty($this->_afform['create_submission'])) {
-        $submissionId = $submission['id'];
-        if (!empty($this->args['sid'])) {
-          $submissionId = $this->args['sid'];
-        }
+        $submissionId = !empty($this->args['sid']) ? $this->args['sid'] : $submission['id'];
 
         AfformSubmission::update(FALSE)
           ->addWhere('id', '=', $submissionId)
@@ -254,6 +251,19 @@ class Submit extends AbstractProcessor {
    * If a required field is missing a value or exceeds the maxlength, return an error message
    */
   private static function getFieldInputError(AfformValidateEvent $event, string $fieldName, array $fieldDefn, array $attributes, $value) {
+    // Check if element is disabled
+    $isDisabled = FALSE;
+    $disabledConditionals = $attributes['af-disabled'] ?? [];
+    foreach ($disabledConditionals as $conditional) {
+      if (self::checkAfformConditional($conditional, $event->getSubmittedValues())) {
+        $isDisabled = TRUE;
+        break;
+      }
+    }
+    if ($isDisabled) {
+      return NULL;
+    }
+
     return self::getRequiredFieldError($event, $fieldName, $fieldDefn, $attributes, $value) ??
       self::getMaxlengthError($fieldName, $fieldDefn, $value) ??
       self::getMinMaxError($fieldName, $fieldDefn, $value);
@@ -263,8 +273,8 @@ class Submit extends AbstractProcessor {
    * If a required field is missing a value, return an error message
    */
   private static function getRequiredFieldError(AfformValidateEvent $event, string $fieldName, array $fieldDefn, array $attributes, $value) {
-    // If we have a value or field is not required, skip
-    if ($value || is_numeric($value) || is_bool($value) || empty($fieldDefn['required'])) {
+    // If we have a value, skip
+    if ($value || is_numeric($value) || is_bool($value)) {
       return NULL;
     }
     // InputType set to 'DisplayOnly' which skips validation
@@ -273,6 +283,21 @@ class Submit extends AbstractProcessor {
     }
     // we don't need to validate the file fields as it's handled separately
     if ($fieldDefn['input_type'] === 'File') {
+      return NULL;
+    }
+
+    $isRequired = !empty($fieldDefn['required']);
+    if (!$isRequired && !empty($attributes['af-required'])) {
+      $isRequired = TRUE;
+      foreach ($attributes['af-required'] as $conditional) {
+        if (!self::checkAfformConditional($conditional, $event->getSubmittedValues())) {
+          $isRequired = FALSE;
+          break;
+        }
+      }
+    }
+
+    if (!$isRequired) {
       return NULL;
     }
 
@@ -463,6 +488,68 @@ class Submit extends AbstractProcessor {
   }
 
   /**
+   * Preprocess submitted values to unset fields that are disabled.
+   *
+   * @param \Civi\Afform\Event\AfformSubmitEvent $event
+   */
+  public static function preprocessDisabledFields(AfformSubmitEvent $event): void {
+    $afEntityName = $event->getEntityName();
+    $afEntity = $event->getFormDataModel()->getEntity($afEntityName);
+    if (!$afEntity) {
+      return;
+    }
+
+    $records = $event->getRecords();
+    foreach ($records as $index => &$record) {
+      if (empty($record['fields'])) {
+        continue;
+      }
+      // Check main entity fields
+      foreach ($afEntity['fields'] as $fieldName => $attributes) {
+        if (isset($record['fields'][$fieldName])) {
+          $isDisabled = FALSE;
+          $disabledConditionals = $attributes['af-disabled'] ?? [];
+          foreach ($disabledConditionals as $conditional) {
+            if (self::checkAfformConditional($conditional, $event->getSubmittedValues())) {
+              $isDisabled = TRUE;
+              break;
+            }
+          }
+          if ($isDisabled) {
+            unset($record['fields'][$fieldName]);
+          }
+        }
+      }
+
+      // Check join entity fields
+      foreach ($afEntity['joins'] ?? [] as $joinEntity => $join) {
+        if (!empty($record['joins'][$joinEntity])) {
+          foreach ($record['joins'][$joinEntity] as $joinIndex => &$joinValues) {
+            foreach ($join['fields'] ?? [] as $fieldName => $attributes) {
+              if (isset($joinValues[$fieldName])) {
+                $isDisabled = FALSE;
+                $disabledConditionals = $attributes['af-disabled'] ?? [];
+                foreach ($disabledConditionals as $conditional) {
+                  if (self::checkAfformConditional($conditional, $event->getSubmittedValues())) {
+                    $isDisabled = TRUE;
+                    break;
+                  }
+                }
+                if ($isDisabled) {
+                  unset($joinValues[$fieldName]);
+                }
+              }
+            }
+          }
+          unset($joinValues);
+        }
+      }
+    }
+    unset($record);
+    $event->setRecords($records);
+  }
+
+  /**
    * @param \Civi\Afform\Event\AfformSubmitEvent $event
    * @throws \CRM_Core_Exception
    * @see afform_civicrm_config
@@ -597,9 +684,15 @@ class Submit extends AbstractProcessor {
       // Forward FK e.g. Event.loc_block_id => LocBlock
       $forwardFkField = self::getFkField($mainEntity['type'], $joinEntityName);
       if ($forwardFkField && $values) {
-        // Add id to values for update op, but only if id is not already on the form
-        if ($whereClause && $joinAllowedAction['update'] && empty($mainEntity['joins'][$joinEntityName]['fields'][$joinIdField])) {
-          $values[0][$joinIdField] = $whereClause[0][2];
+        $existingId = $whereClause[0][2] ?? NULL;
+        $hasOtherFields = count(array_diff(array_keys($values[0]), [$joinIdField])) > 0;
+        // Add id to values for update op if id is not on the form
+        if ($existingId && $joinAllowedAction['update'] && empty($mainEntity['joins'][$joinEntityName]['fields'][$joinIdField])) {
+          $values[0][$joinIdField] = $existingId;
+        }
+        // If modifying fields, do not allow updating a record that does not belong to this entity
+        if ($hasOtherFields && !empty($values[0][$joinIdField]) && (!$joinAllowedAction['update'] || $values[0][$joinIdField] != $existingId)) {
+          unset($values[0][$joinIdField]);
         }
         $result = civicrm_api4($joinEntityName, 'save', [
           // Disable permission checks because the main entity has already been vetted
@@ -620,9 +713,16 @@ class Submit extends AbstractProcessor {
         // In update mode, set ids of existing values
         if ($joinAllowedAction['update']) {
           $existingJoinValues = $event->getApiRequest()->loadJoins($joinEntityName, $mainEntity, $entityId, $index);
+          $existingIds = array_filter(array_column($existingJoinValues, $joinIdField));
           foreach ($existingJoinValues as $joinIndex => $existingJoin) {
             if (!empty($existingJoin[$joinIdField]) && !empty($values[$joinIndex])) {
               $values[$joinIndex][$joinIdField] = $existingJoin[$joinIdField];
+            }
+          }
+          // Do not allow updating a record that does not belong to this entity
+          foreach ($values as $key => $value) {
+            if (!empty($value[$joinIdField]) && !in_array($value[$joinIdField], $existingIds)) {
+              unset($values[$key][$joinIdField]);
             }
           }
         }
@@ -710,7 +810,7 @@ class Submit extends AbstractProcessor {
   /**
    * @return array
    */
-  public function getValues():array {
+  public function getValues(): ?array {
     return $this->values;
   }
 

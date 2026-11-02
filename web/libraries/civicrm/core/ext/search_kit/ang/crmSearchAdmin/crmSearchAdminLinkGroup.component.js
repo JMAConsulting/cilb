@@ -6,7 +6,8 @@
       group: '<',
       apiEntity: '<',
       apiParams: '<',
-      links: '<'
+      links: '<',
+      isToolbar: '<'
     },
     templateUrl: '~/crmSearchAdmin/crmSearchAdminLinkGroup.html',
     controller: function ($scope, $element, $timeout, searchMeta) {
@@ -17,7 +18,7 @@
       this.styles = CRM.crmSearchAdmin.styles;
 
       this.getStyle = function(item) {
-        return _.findWhere(this.styles, {key: item.style});
+        return this.styles.find((style) => style.key === item.style);
       };
 
       this.sortableOptions = {

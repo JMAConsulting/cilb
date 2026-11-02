@@ -682,12 +682,8 @@ class CRM_Contact_Form_Contact extends CRM_Core_Form {
     }
 
     // street number should be digit + suffix, CRM-5450
-    $parseStreetAddress = CRM_Utils_Array::value('street_address_parsing',
-      CRM_Core_BAO_Setting::valueOptions(CRM_Core_BAO_Setting::SYSTEM_PREFERENCES_NAME,
-        'address_options'
-      )
-    );
-    if ($parseStreetAddress) {
+    $addressOptions = CRM_Core_BAO_Setting::valueOptions(CRM_Core_BAO_Setting::SYSTEM_PREFERENCES_NAME, 'address_options');
+    if (!empty($addressOptions['street_address_parsing'])) {
       if (isset($fields['address']) &&
         is_array($fields['address'])
       ) {
@@ -745,6 +741,7 @@ class CRM_Contact_Form_Contact extends CRM_Core_Form {
           'name' => ts('Delete Contact Image'),
           'url' => 'civicrm/contact/image',
           'qs' => 'reset=1&cid=%%id%%&action=delete',
+          'weight' => 0,
         ],
       ];
       $deleteURL = CRM_Core_Action::formLink($deleteURL,

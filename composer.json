@@ -15,9 +15,9 @@
         }
     ],
     "require": {
-        "civicrm/civicrm-core": "6.17.2",
-        "civicrm/civicrm-drupal-8": "6.17.2",
-        "civicrm/civicrm-packages": "6.17.2",
+        "civicrm/civicrm-core": "6.19.4",
+        "civicrm/civicrm-drupal-8": "6.19.4",
+        "civicrm/civicrm-packages": "6.19.4",
         "composer/installers": "^2.0",
         "dompdf/dompdf": "^3.1.6",
         "dragonmantank/cron-expression": "3.3.3",
@@ -87,7 +87,6 @@
             "Apply patches to civicrm event to support backoffice form links": "patches/civicrm_participant_links.patch",
             "Apply patch to download invoice": "patches/civicrm_invoice.patch",
             "Apply patch to hide revert changes button on loggin report": "patches/hide_revert_changes.patch",
-            "Apply patch to allow for logging to be turned on and off": "./patches/civicrm_allow_logging_on_multilingual_environments.patch",
             "Apply patch to support date queries in Webform customisation": "patches/support_webform_civicrm_customisation.patch"
         },
         "drupal/entity_print": {

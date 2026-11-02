@@ -117,7 +117,7 @@
             // The $scope.data.entities has the selected data (but the fields are already filtered)
             var selected = $scope.data.entities[entity.entity_name].selected;
             if (selected.action !== 'ignore') {
-              availableEntity = _.clone(entity);
+              const availableEntity = _.clone(entity);
               availableEntity.children = filterEntityFields(entity.entity_type, entity.children, selected, entity.entity_name + '.');
               fields.push(availableEntity);
             }
@@ -375,6 +375,11 @@
               'label' : $scope.userJob.label,
             };
             if ($scope.mappingSaving.newFieldMapping) {
+              if (!$scope.mappingSaving.newFieldMappingName) {
+                userJobs.push($scope.userJob);
+                $scope.saveJobs(userJobs);
+                return;
+              }
               templateJob.name = 'import_' + $scope.mappingSaving.newFieldMappingName;
               crmApi4('UserJob', 'get', {where: [['name', '=', templateJob.name]]})
                 .then(function(result) {

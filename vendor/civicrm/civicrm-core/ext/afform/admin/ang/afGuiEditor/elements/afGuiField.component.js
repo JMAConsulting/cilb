@@ -152,7 +152,7 @@
           // Calc fields are specific to a search display, not part of the schema
           if (!defn && ctrl.container.getSearchDisplay()) {
             const searchDisplay = ctrl.container.getSearchDisplay();
-            defn = _.findWhere(searchDisplay.calc_fields, {name: fieldName});
+            defn = searchDisplay.calc_fields.find((field) => field.name === fieldName);
           }
         } else if (ctrl.node.defn?.input_type) {
           // Extra (non-entity) field: seed from the inputType's extra_defn
@@ -398,6 +398,19 @@
       $scope.toggleAttr = function(attr) {
         getSet(attr, !getSet(attr));
       };
+
+      $scope.deleteAttr = (name) => {
+        delete ctrl.node[name];
+      };
+
+      $scope.isDisplayOnly = () => {
+        return $scope.getProp('input_type') === 'DisplayOnly';
+      };
+
+      this.isReadOnly = () => {
+        return !!ctrl.getDefn().readonly || $scope.getProp('input_type') === 'DisplayOnly';
+      };
+      $scope.isReadOnly = this.isReadOnly;
 
       $scope.toggleHelp = function(position) {
         getSet('help_' + position, $scope.propIsset('help_' + position) ? null : (ctrl.getDefn()['help_' + position] || ts('Enter text')));

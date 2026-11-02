@@ -1059,7 +1059,7 @@ class CRM_Contribute_BAO_Contribution extends CRM_Contribute_DAO_Contribution im
           LEFT JOIN civicrm_financial_account fa ON fa.id = fi.financial_account_id
 
         WHERE con.id = %1 AND ft.is_payment = 1
-        GROUP BY ft.id";
+        GROUP BY ft.id ORDER BY ft.trxn_date";
     $queryParams = [
       1 => [$contributionId, 'Integer'],
       2 => [$feeFinancialAccount, 'Integer'],
@@ -2918,8 +2918,11 @@ INNER JOIN civicrm_activity ON civicrm_activity_contact.activity_id = civicrm_ac
    * @throws \CRM_Core_Exception
    */
   public static function isSingleLineItem($id) {
-    $lineItemCount = civicrm_api3('LineItem', 'getcount', ['contribution_id' => $id]);
-    return ($lineItemCount == 1);
+    $lineItems = \Civi\Api4\LineItem::get(FALSE)
+      ->selectRowCount()
+      ->addWhere('contribution_id', '=', $id)
+      ->execute();
+    return ($lineItems->count() === 1);
   }
 
   /**

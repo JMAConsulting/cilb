@@ -95,10 +95,11 @@ class ContactAutofill extends AbstractBehavior implements EventSubscriberInterfa
   }
 
   public static function onAfformSortPrefill(AfformEntitySortEvent $event): void {
-    foreach ($event->getFormDataModel()->getEntities() as $entityName => $entity) {
+    $entities = $event->getFormDataModel()->getEntities();
+    foreach ($entities as $entityName => $entity) {
       $autoFillMode = $entity['autofill'] ?? '';
       $relatedContact = $entity['autofill-relationship'] ?? NULL;
-      if ($relatedContact && str_starts_with($autoFillMode, 'relationship:')) {
+      if ($relatedContact && array_key_exists($relatedContact, $entities) && str_starts_with($autoFillMode, 'relationship:')) {
         $event->addDependency($entityName, $relatedContact);
       }
     }
@@ -114,7 +115,7 @@ class ContactAutofill extends AbstractBehavior implements EventSubscriberInterfa
       $relatedContact = $entity['autofill-relationship'] ?? NULL;
       // Autofill with current user, but only if this is an "entire form" prefill
       if (!$id && $autoFillMode === 'user' && $apiRequest->getFillMode() === 'form') {
-        $id = \CRM_Core_Session::getLoggedInContactID();
+        $id = $apiRequest->getSubmitterContactID();
         if ($id) {
           $apiRequest->loadEntity($entity, [['id' => $id]]);
         }
