@@ -405,13 +405,20 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     $email = trim($webform_submission_data['civicrm_1_contact_1_email_email'] ?? '');
     $firstName = trim($webform_submission_data['civicrm_1_contact_1_contact_first_name'] ?? '');
     $lastName = trim($webform_submission_data['civicrm_1_contact_1_contact_last_name'] ?? '');
-    $baseUsername = $firstName . $lastName;
+    $baseUsername = preg_replace('/\s+/', ' ', $firstName . $lastName);
     $username = $baseUsername;
     $langcode = $webform_submission_data['civicrm_1_contact_1_cg1_custom_3'] == 2 ? 'es' : 'en';
 
     $contactId = $webform_submission_data['civicrm_1_contact_1_contact_existing'] ?? NULL;
     if (!is_numeric($contactId)) {
       $contactId = NULL;
+    }
+
+    if ($email === '' || $baseUsername === '') {
+      \Drupal::logger('candidate_reg')->error('Missing email or name for account creation for contact @cid', [
+        '@cid' => $contactId ?? 'none',
+      ]);
+      return;
     }
 
     if ($contactId) {
@@ -511,7 +518,6 @@ class CilbCandidateRegistrationWebformHandler extends WebformHandlerBase {
     // need to know the webform contribution ID
     $webformCivicrmPostProcess = \Drupal::service('webform_civicrm.postprocess');
     $contributionId = $webform_submission_data['existing_payment'] ?? $webformCivicrmPostProcess->getContributionId();
-    $webform_submission->setData(['contribution_id' => $contributionId]);
     if (empty($webform_submission_data['existing_payment'])) {
     $contribution = \Civi\Api4\Contribution::get(FALSE)
       ->addWhere('id', '=', $contributionId)
