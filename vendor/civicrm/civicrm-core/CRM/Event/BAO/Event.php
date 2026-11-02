@@ -1157,7 +1157,7 @@ WHERE civicrm_event.is_active = 1
 
           if (Civi::settings()->get('invoice_is_email_pdf') && !empty($values['contributionId'])) {
             $sendTemplateParams['isEmailPdf'] = TRUE;
-            $sendTemplateParams['contributionId'] = $values['contributionId'];
+            $sendTemplateParams['modelProps']['contributionID'] = $values['contributionId'];
           }
           CRM_Core_BAO_MessageTemplate::sendTemplate($sendTemplateParams);
         }
@@ -1432,7 +1432,11 @@ WHERE  id = $cfID
                 $values[$index] = CRM_Utils_File::getFileURL($path, $fileType);
               }
               else {
-                if ($dao->data_type == 'Int' ||
+                // For checkboxes, change array of [key => bool] to array of [idx => key]
+                if ($dao->html_type == 'CheckBox') {
+                  $customVal = is_array($params[$name]) ? array_keys(array_filter($params[$name])) : $params[$name];
+                }
+                elseif ($dao->data_type == 'Int' ||
                   $dao->data_type == 'Boolean'
                 ) {
                   $v = $params[$name];
@@ -1450,10 +1454,6 @@ WHERE  id = $cfID
                   $customVal = $displayValue = CRM_Utils_Date::customFormat(
                     CRM_Utils_Date::processDate($params[$name]), $config->dateformatFull);
                   $skip = TRUE;
-                }
-                // for checkboxes, change array of [key => bool] to array of [idx => key]
-                elseif ($dao->html_type == 'CheckBox') {
-                  $customVal = array_keys(array_filter($params[$name]));
                 }
                 else {
                   $customVal = $params[$name];
@@ -1649,16 +1649,12 @@ WHERE  id = $cfID
       'loc_block_id.address_id.state_province_id.name',
     ];
 
-    $result = civicrm_api3('Event', 'get', [
-      'check_permissions' => TRUE,
-      'return' => $ret,
-      'loc_block_id.address_id' => ['IS NOT NULL' => 1],
-      'options' => [
-        'limit' => 0,
-      ],
-    ]);
+    $result = \Civi\Api4\Event::get(TRUE)
+      ->setSelect($ret)
+      ->addWhere('loc_block_id.address_id', 'IS NOT NULL')
+      ->execute();
 
-    foreach ($result['values'] as $event) {
+    foreach ($result as $event) {
       $address = '';
       foreach ($ret as $field) {
         if ($field != 'loc_block_id' && !empty($event[$field])) {

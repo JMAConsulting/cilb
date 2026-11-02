@@ -6,6 +6,7 @@
       require: ['afFieldset', '?^^afForm', '?afRepeat'],
       bindToController: {
         modelName: '@afFieldset',
+        fieldData: '<',
         storeValues: '<'
       },
       link: function($scope, $el, $attr, ctrls) {
@@ -49,7 +50,13 @@
         };
 
         this.getFormName = function() {
-          return ctrl.afFormCtrl ? ctrl.afFormCtrl.getFormMeta().name : $scope.meta.name;
+          if (ctrl.afFormCtrl) {
+            return ctrl.afFormCtrl.getFormMeta().name;
+          }
+          if ($scope.meta) {
+            return $scope.meta.name;
+          }
+          return $element.closest('form').attr('name');
         };
 
         this.getFieldMeta = () => {
@@ -84,8 +91,14 @@
           return this.reloadedStoredValues[fieldName];
         };
 
-        this.$onInit = function() {
-          $scope.$watch(ctrl.getFieldData, (newVal, oldVal) => {
+        this.$onInit = () => {
+          if (typeof this.fieldData === 'object') {
+            localData.push({
+              fields: this.fieldData,
+            });
+          }
+
+          $scope.$watch(this.getFieldData, (newVal, oldVal) => {
             $element[0].dispatchEvent(new Event('crmFormChangeFilters'));
             if (this.storeValues) {
               if (typeof newVal === 'object' && typeof oldVal === 'object' && Object.keys(newVal).length) {

@@ -44,6 +44,12 @@ class FormDataModel {
    */
   protected $secureApi4s = [];
 
+  /**
+   * @var string[]
+   *   Directive names of the embedded afforms currently being parsed, innermost last.
+   */
+  private $embedStack = [];
+
   public function __construct($layout) {
     $root = AHQ::makeRoot($layout);
     $this->entities = array_column(AHQ::getTags($root, 'af-entity'), NULL, 'name');
@@ -155,13 +161,25 @@ class FormDataModel {
       if (!is_array($node) || !isset($node['#tag'])) {
         continue;
       }
+      $nodeAfIfConditions = $afIfConditions;
       if (!empty($node['af-if'])) {
         $conditional = substr($node['af-if'], 1, -1);
-        $afIfConditions[] = json_decode(html_entity_decode($conditional));
+        $nodeAfIfConditions[] = json_decode(html_entity_decode($conditional));
       }
-      if ($node['#tag'] === 'af-field' && $afIfConditions) {
-        $node['af-if'] = $afIfConditions;
+      if ($node['#tag'] === 'af-field' && $nodeAfIfConditions) {
+        $node['af-if'] = $nodeAfIfConditions;
       }
+
+      if ($node['#tag'] === 'af-field' && !empty($node['af-required'])) {
+        $conditional = substr($node['af-required'], 1, -1);
+        $node['af-required'] = [json_decode(html_entity_decode($conditional))];
+      }
+
+      if ($node['#tag'] === 'af-field' && !empty($node['af-disabled'])) {
+        $conditional = substr($node['af-disabled'], 1, -1);
+        $node['af-disabled'] = [json_decode(html_entity_decode($conditional))];
+      }
+
       if (isset($node['af-fieldset'])) {
         $entity = $node['af-fieldset'] ?? NULL;
         $searchDisplay = $entity ? NULL : $this->findSearchDisplay($node);
@@ -169,7 +187,7 @@ class FormDataModel {
           $this->entities[$entity]['min'] = $node['min'] ?? 0;
           $this->entities[$entity]['max'] = $node['max'] ?? NULL;
         }
-        $this->parseFields($node['#children'] ?? [], $node['af-fieldset'], $join, $searchDisplay, $afIfConditions);
+        $this->parseFields($node['#children'] ?? [], $node['af-fieldset'], $join, $searchDisplay, $nodeAfIfConditions);
       }
       elseif ($searchDisplay && $node['#tag'] === 'af-field') {
         $this->searchDisplays[$searchDisplay]['fields'][$node['name']] = AHQ::getProps($node);
@@ -197,18 +215,21 @@ class FormDataModel {
           }
         }
         $this->entities[$entity]['joins'][$node['af-join']] = $joinProps + $existingJoin;
-        $this->parseFields($node['#children'] ?? [], $entity, $node['af-join'], NULL, $afIfConditions);
+        $this->parseFields($node['#children'] ?? [], $entity, $node['af-join'], NULL, $nodeAfIfConditions);
       }
       elseif (!empty($node['#children'])) {
-        $this->parseFields($node['#children'], $entity, $join, $searchDisplay, $afIfConditions);
+        $this->parseFields($node['#children'], $entity, $join, $searchDisplay, $nodeAfIfConditions);
       }
-      // Recurse into embedded blocks
-      if (isset($this->blocks[$node['#tag']])) {
+      // Recurse into embedded blocks, unless doing so would revisit a form that is
+      // already being parsed further up the stack, which would never terminate.
+      if (isset($this->blocks[$node['#tag']]) && !in_array($node['#tag'], $this->embedStack, TRUE)) {
         if (!isset($this->blocks[$node['#tag']]['layout'])) {
           $this->blocks[$node['#tag']] = Afform::get(FALSE)->setSelect(['name', 'layout'])->addWhere('name', '=', $this->blocks[$node['#tag']]['name'])->execute()->first();
         }
         if (!empty($this->blocks[$node['#tag']]['layout'])) {
-          $this->parseFields($this->blocks[$node['#tag']]['layout'], $entity, $join, $searchDisplay, $afIfConditions);
+          $this->embedStack[] = $node['#tag'];
+          $this->parseFields($this->blocks[$node['#tag']]['layout'], $entity, $join, $searchDisplay, $nodeAfIfConditions);
+          array_pop($this->embedStack);
         }
       }
     }
@@ -255,7 +276,6 @@ class FormDataModel {
       'select' => $select,
       'loadOptions' => [
         'id',
-        'label',
         ...array_keys(\CRM_Core_SelectValues::optionAttributes()),
       ],
       // If the admin included this field on the form, then it's OK to get metadata about the field regardless of user permissions.

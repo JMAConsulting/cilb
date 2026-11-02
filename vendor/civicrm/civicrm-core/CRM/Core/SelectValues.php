@@ -1173,6 +1173,7 @@ class CRM_Core_SelectValues {
       [
         'key' => 'id',
         'label' => ts('Contact ID'),
+        'op' => '=',
       ],
       [
         'key' => 'external_identifier',
@@ -1233,6 +1234,7 @@ class CRM_Core_SelectValues {
         'label' => ts('Contribution ID'),
         'join' => ['Contribution AS Contribution', 'LEFT', ['Contribution.contact_id', '=', 'id']],
         'adv_search_legacy' => 'contribution_id',
+        'op' => '=',
       ],
       [
         'key' => 'Contribution.trxn_id',
@@ -1247,6 +1249,15 @@ class CRM_Core_SelectValues {
         'adv_search_legacy' => 'invoice_number',
       ],
     ];
+
+    $ftsIndices = Civi::service('civi.schema.fts')->getIndicesForEntity('Contact');
+    foreach ($ftsIndices as $key => $defn) {
+      $options[] = [
+        'key' => $key,
+        'label' => ts('Full Text Search: %1', [1 => $defn['label']]),
+      ];
+    }
+
     $customGroups = CRM_Core_BAO_CustomGroup::getAll(['extends' => 'Contact', 'is_active' => TRUE], CRM_Core_Permission::VIEW);
     foreach ($customGroups as $group) {
       $join = NULL;
@@ -1261,13 +1272,27 @@ class CRM_Core_SelectValues {
         if (in_array($field['data_type'], ['Date', 'File', 'ContactReference', 'EntityReference'])) {
           continue;
         }
+        if ($field['option_group_id'] && $field['serialize']) {
+          $operator = 'CONTAINS';
+        }
+        elseif ($field['option_group_id'] || $field['data_type'] === 'Int') {
+          $operator = '=';
+        }
+        else {
+          $operator = 'LIKE';
+        }
         $options[] = [
           'key' => $group['name'] . '.' . $field['name'] . ($field['option_group_id'] ? ':label' : ''),
           'label' => $group['title'] . ': ' . $field['label'],
           'adv_search_legacy' => 'custom_' . $field['id'],
           'join' => $join,
+          'op' => $operator,
         ];
       }
+    }
+    // default operator is LIKE
+    foreach ($options as &$option) {
+      $option['op'] ??= 'LIKE';
     }
     return $options;
   }
@@ -1373,6 +1398,16 @@ class CRM_Core_SelectValues {
   }
 
   /**
+   * TODO: Support more ops like 'INTERSECT' & 'EXCEPT' when moving to MySQL 8.
+   */
+  public static function setOperations(): array {
+    return [
+      'UNION ALL' => ts('Union All'),
+      'UNION DISTINCT' => ts('Union Distinct'),
+    ];
+  }
+
+  /**
    * Callback for Role.permissions pseudoconstant values.
    *
    * Permissions for Civi Standalone, not used by CMS-based systems.
@@ -1402,6 +1437,17 @@ class CRM_Core_SelectValues {
       'combined' => ts('One combined activity'),
       'combined-attached' => ts('One combined activity plus one file attachment'),
       // 'multiple-attached' <== not worth the work
+    ];
+  }
+
+  /**
+   * Options for UFGroup.is_cms_user
+   */
+  public static function profileUserRegistrationMode(): array {
+    return [
+      0 => ts('Disabled'),
+      1 => ts('Enabled, but not required'),
+      2 => ts('Required'),
     ];
   }
 

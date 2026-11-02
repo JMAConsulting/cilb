@@ -77,7 +77,7 @@ class CRM_Contact_Form_Inline_OpenID extends CRM_Contact_Form_Inline {
     $this->applyFilter('__ALL__', 'trim');
 
     for ($blockId = 1; $blockId < $totalBlocks; $blockId++) {
-      $this->addOpenIDBlockFields($blockId);;
+      $this->addOpenIDBlockFields($blockId);
     }
 
     $this->addFormRule(['CRM_Contact_Form_Inline_OpenID', 'formRule']);
@@ -95,6 +95,7 @@ class CRM_Contact_Form_Inline_OpenID extends CRM_Contact_Form_Inline {
    */
   public static function formRule($fields, $errors) {
     $hasData = $hasPrimary = $errors = [];
+    $primaryID = 0;
     if (!empty($fields['openid']) && is_array($fields['openid'])) {
       foreach ($fields['openid'] as $instance => $blockValues) {
         $dataExists = CRM_Contact_Form_Contact::blockDataExists($blockValues);

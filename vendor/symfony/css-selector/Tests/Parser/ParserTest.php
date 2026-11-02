@@ -192,6 +192,51 @@ class ParserTest extends TestCase
         ];
     }
 
+    #[DataProvider('getNestedMatchingData')]
+    public function testMatchingNestingDepthLimit(int $depth, string $selector, string $message)
+    {
+        $parser = new Parser();
+        $property = new \ReflectionProperty(Parser::class, 'nestingDepth');
+        $property->setValue($parser, $depth);
+
+        $this->expectException(SyntaxErrorException::class);
+        $this->expectExceptionMessage($message);
+
+        $parser->parse($selector);
+    }
+
+    public static function getNestedMatchingData(): iterable
+    {
+        yield 'is at the limit' => [16, ':is(a)', 'Got too deeply nested :is().'];
+        yield 'where at the limit' => [16, ':where(a)', 'Got too deeply nested :where().'];
+        yield 'where nested in is' => [15, 'div:is(:where(a))', 'Got too deeply nested :where().'];
+    }
+
+    public function testMatchingNestingWithinLimitIsAccepted()
+    {
+        $parser = new Parser();
+        $property = new \ReflectionProperty(Parser::class, 'nestingDepth');
+        $property->setValue($parser, 15);
+
+        $this->assertCount(1, $parser->parse(':is(:where)'));
+        $this->assertSame(15, $property->getValue($parser));
+    }
+
+    #[DataProvider('getDeeplyNestedSelectorData')]
+    public function testDeeplyNestedSelectorsAreRejected(string $selector)
+    {
+        $this->expectException(SyntaxErrorException::class);
+
+        (new Parser())->parse($selector);
+    }
+
+    public static function getDeeplyNestedSelectorData(): iterable
+    {
+        yield 'nested is' => [str_repeat(':is(', 100).'a'.str_repeat(')', 100)];
+        yield 'nested where' => [':where('.str_repeat(':is(', 100).'a'.str_repeat(')', 100).')'];
+        yield 'nested is in not' => [str_repeat(':not(:is(', 100).'a'.str_repeat('))', 100)];
+    }
+
     public static function getPseudoElementsTestData()
     {
         return [
@@ -273,6 +318,12 @@ class ParserTest extends TestCase
             ['+n', 1, 0],
             ['-n', -1, 0],
             ['5', 0, 5],
+            ['ODD', 2, 1],
+            ['Even', 2, 0],
+            ['2N+1', 2, 1],
+            ['-N+3', -1, 3],
+            ['0n+1', 0, 1],
+            ['0n', 0, 0],
         ];
     }
 

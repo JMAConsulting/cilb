@@ -351,47 +351,8 @@ class Container {
       []
     ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
 
-    foreach (['Activity', 'Contact', 'Contribute', 'Event', 'Mailing', 'Member', 'Case', 'Pledge'] as $component) {
-      $container->setDefinition('crm_' . strtolower($component) . '_tokens', new Definition(
-        "CRM_{$component}_Tokens",
-        []
-      ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-    }
-    $container->setDefinition("crm_financial_trxn_tokens", new Definition(
-      'CRM_Financial_FinancialTrxnTokens',
-      []
-    ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-
     $container->setDefinition('civi_token_impliedcontext', new Definition(
       'Civi\Token\ImpliedContextSubscriber',
-      []
-    ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-    $container->setDefinition('crm_participant_tokens', new Definition(
-      'CRM_Event_ParticipantTokens',
-      []
-    ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-    $container->setDefinition('crm_contribution_recur_tokens', new Definition(
-      'CRM_Contribute_RecurTokens',
-      []
-    ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-    $container->setDefinition('crm_contribution_recur_tokens', new Definition(
-      'CRM_Contribute_RecurTokens',
-      []
-    ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-    $container->setDefinition('crm_contribution_product_tokens', new Definition(
-      'CRM_Contribute_ContributionProductTokens',
-      []
-    ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-    $container->setDefinition('crm_survey_tokens', new Definition(
-      'CRM_Campaign_SurveyTokens',
-      []
-    ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-    $container->setDefinition('crm_group_tokens', new Definition(
-      'CRM_Core_GroupTokens',
-      []
-    ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
-    $container->setDefinition('crm_domain_tokens', new Definition(
-      'CRM_Core_DomainTokens',
       []
     ))->addTag('kernel.event_subscriber')->setPublic(TRUE);
 
@@ -522,6 +483,43 @@ class Container {
       'CRM_Core_LegacyErrorHandler',
       'handleException',
     ], -200);
+
+    // Security checks for contact belongings (Address, Email, Phone, etc.)
+    foreach ([
+      'Address' => 'CRM_Core_BAO_Address',
+      'Email' => 'CRM_Core_BAO_Email',
+      'IM' => 'CRM_Core_BAO_IM',
+      'OpenID' => 'CRM_Core_BAO_OpenID',
+      'Phone' => 'CRM_Core_BAO_Phone',
+      'Website' => 'CRM_Core_BAO_Website',
+      'GroupContact' => 'CRM_Contact_BAO_GroupContact',
+    ] as $entity => $bao) {
+      $dispatcher->addListener("hook_civicrm_pre::{$entity}", [$bao, 'checkContactAccessPre']);
+      $dispatcher->addListener("civi.api4.authorizeRecord::{$entity}", [$bao, 'checkContactAccessAuthorizeRecord']);
+    }
+
+    // Security checks for record ownership (Batch, SavedSearch, Note, UserJob, ReportInstance, SearchParamSet)
+    foreach ([
+      'Batch' => 'CRM_Batch_BAO_Batch',
+      'SavedSearch' => 'CRM_Contact_BAO_SavedSearch',
+      'Note' => 'CRM_Core_BAO_Note',
+      'UserJob' => 'CRM_Core_BAO_UserJob',
+      'ReportInstance' => 'CRM_Report_BAO_ReportInstance',
+      'SearchParamSet' => 'CRM_Afform_BAO_SearchParamSet',
+    ] as $entity => $bao) {
+      $dispatcher->addListener("hook_civicrm_pre::{$entity}", [$bao, 'checkOwnershipAccessPre']);
+      $dispatcher->addListener("civi.api4.authorizeRecord::{$entity}", [$bao, 'checkOwnershipAccessAuthorizeRecord']);
+    }
+
+    // Security checks for dynamic foreign keys (EntityTag, Note, Translation)
+    foreach ([
+      'EntityTag' => 'CRM_Core_BAO_EntityTag',
+      'Note' => 'CRM_Core_BAO_Note',
+      'Translation' => 'CRM_Core_BAO_Translation',
+    ] as $entity => $bao) {
+      $dispatcher->addListener("hook_civicrm_pre::{$entity}", [$bao, 'checkDynamicFKAccessPre']);
+      $dispatcher->addListener("civi.api4.authorizeRecord::{$entity}", [$bao, 'checkDynamicFKAccessAuthorizeRecord']);
+    }
 
     return $dispatcher;
   }

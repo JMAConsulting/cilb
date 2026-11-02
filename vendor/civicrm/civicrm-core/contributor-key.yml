@@ -428,6 +428,10 @@
   name        : Angela Jackson
   organization: Circle Interactive
 
+- github      : darkdi
+  organization: Rant
+  name        : Dmitry Rantovov
+
 - github      : davialexandre
   name        : Davi Alexandre
   organization: CompuCorp
@@ -502,6 +506,10 @@
 
 - github      : dptarrant
   name        : Dave T
+
+- github      : dstorozhuk
+  name        : Dima
+  organization: iTech4Web
 
 - github      : duncan-s-white
   name        : Duncan Stanley White
@@ -855,6 +863,10 @@
 - github      : jeromelebleu
   name        : Jérôme Lebleu
 
+- github      : jfilter
+  name        : Johannes Filter
+  organization: civico GmbH
+
 - github      : JGaunt
   name        : Jade Gaunt
   organization: GMCVO Databases
@@ -891,6 +903,9 @@
   name        : John Twyman
   organization: Australian Greens
 
+- github      : jonathandhn
+  name        : Jonathan Dahan
+
 - github      : jorich-2000
   name        : Jonathan Richardson
 
@@ -916,6 +931,10 @@
 
 - github      : jonesinator
   name        : Aaron Jones
+
+- github      : joseltorres
+  name        : Jose Torres
+  organization: Professional Exchange Service Corporation
 
 - github      : joshgowans
   name        : Josh Gowans
@@ -1498,6 +1517,9 @@
 - github      : RexAK
   name        : Rex Keal
 
+- github      : RyanMorash
+  name        : Ryan Morash
+
 - name        : Lutz Frommberger
 
 - github      : RhiCircle
@@ -1507,6 +1529,9 @@
 - github      : rgilman
   name        : Robert Gilman
   organization: Context Institute
+
+- github      : RisingOrange
+  name        : Jakub Fidler
 
 - github      : robbrandt
   name        : Rob Brandt
@@ -1582,6 +1607,8 @@
 - github      : simonjohnparker
   name        : Simon John Parker
 
+- github      : Sinjinsmiley
+    
 - gitub       : sushantpaste
   organization: OSSeed Technologies LLP
   name        : Sushant Paste

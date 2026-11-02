@@ -18,7 +18,7 @@
       mode: '@'
     },
     controllerAs: 'editor',
-    controller: function($scope, $element, crmApi4, crmUiHelp, afGui, $parse, $timeout, $location, $route, $rootScope, formatForSelect2) {
+    controller: function($scope, $element, crmApi4, crmUiHelp, afGui, $parse, $timeout, $location, $route, $rootScope, crmEntityTagsCache) {
       const ts = $scope.ts = CRM.ts('org.civicrm.afform_admin');
       $scope.hs = crmUiHelp({file: 'CRM/AfformAdmin/afformBuilder'});
 
@@ -33,7 +33,41 @@
       let undoAction = null;
       let lastSaved = {};
       const sortableOptions = {};
-      this.afformTags = formatForSelect2(this.meta.afform_fields.tags.options || [], 'id', 'label', ['description', 'color']);
+      // crm-entity-tags works in terms of real tag ids; Afform.tags is stored as tag names for
+      // portability across sites (see AfformTags::getTagOptions). afformTagsList/afformTagIds
+      // bridge the two - populated once the shared tag list loads, then kept in sync below.
+      // afformTagsList stays the same array crmEntityTagsCache resolved, so a tag the widget
+      // creates inline (which is pushed into that array in place) is visible here too.
+      this.afformTagIds = [];
+      let afformTagsList = [];
+      function syncAfformTagIds() {
+        editor.afformTagIds = afformTagsList
+          .filter((tag) => (editor.afform.tags || []).includes(tag.name))
+          .map((tag) => tag.id);
+      }
+      // Loads (once, cached) the full list of tags used_for Afform, then computes the
+      // initial afformTagIds selection now that afformTagsList is populated.
+      crmEntityTagsCache.get('Afform').then(function(tags) {
+        afformTagsList = tags;
+        syncAfformTagIds();
+      });
+
+      // The widget mutates afformTagIds directly (toggle/create); mirror that back into
+      // editor.afform.tags (by name) so it's what actually gets saved & undo-tracked. The
+      // equality check avoids re-triggering the undo-history watch below when the names
+      // round-trip to the same set they started from.
+      $scope.$watchCollection('editor.afformTagIds', function(newIds, oldIds) {
+        if (newIds === oldIds) {
+          return;
+        }
+        const names = afformTagsList
+          .filter((tag) => newIds.includes(tag.id))
+          .map((tag) => tag.name)
+          .sort();
+        if (!_.isEqual(names, (editor.afform.tags || []).slice().sort())) {
+          editor.afform.tags = names;
+        }
+      });
 
       // ngModelOptions to debounce input
       // Used to prevent cluttering the undo history with every keystroke
@@ -110,8 +144,10 @@
         if (!editor.afform.placement_filters || Array.isArray(editor.afform.placement_filters)) {
           editor.afform.placement_filters = {};
         }
-        $scope.canvasTab = 'layout';
-        $scope.layoutHtml = '';
+        editor.canvasTab = 'layout';
+        editor.layoutHtml = '';
+        editor.markupEditMode = false;
+        editor.markupEditBaseline = '';
         $scope.entities = {};
         setEditorLayout();
         setLastSaved();
@@ -205,8 +241,9 @@
         undoPosition += direction;
         undoAction = 'change';
         editor.afform = _.cloneDeep(undoHistory[undoPosition].afform);
+        syncAfformTagIds();
         setEditorLayout();
-        $scope.canvasTab = 'layout';
+        editor.canvasTab = 'layout';
         $scope.selectedEntityName = undoHistory[undoPosition].selectedEntityName;
       }
 
@@ -222,15 +259,120 @@
         return editor.afform.type;
       };
 
+      this.getFormTypeLabel = () => {
+        const options = this.meta.afform_fields.type.options;
+        return options.find(option => option.id === editor.afform.type).label;
+      };
+
+      this.checkPerm = function(permissionName) {
+        return CRM.checkPerm(permissionName);
+      };
+
       $scope.updateLayoutHtml = function() {
-        $scope.layoutHtml = '...Loading...';
+        editor.layoutHtml = '...Loading...';
         crmApi4('Afform', 'convert', {layout: editor.afform.layout, from: 'deep', to: 'html', formatWhitespace: true})
           .then((r) => {
-            $scope.layoutHtml = r[0].layout || '(Error)';
+            editor.layoutHtml = r[0].layout || '(Error)';
           })
           .catch((r) => {
-            $scope.layoutHtml = '(Error)';
+            editor.layoutHtml = '(Error)';
           });
+      };
+
+      // Minimal sanity check - not full schema validation, just guards against the markup
+      // editor producing something obviously broken (e.g. a lost <af-form> wrapper).
+      function isValidLayout(layout) {
+        if (!Array.isArray(layout) || !layout.length) {
+          return false;
+        }
+        if (editor.getFormType() === 'form') {
+          return afGui.findRecursive(layout, {'#tag': 'af-form'}).length === 1;
+        }
+        return true;
+      }
+
+      // Converts the edited markup back into the layout tree and applies it to the working form.
+      // Returns a promise resolving true on success, false if the markup couldn't be applied.
+      function applyMarkupToLayout() {
+        return crmApi4('Afform', 'convert', {layout: editor.layoutHtml, from: 'html', to: 'deep', formatWhitespace: true})
+          .then((r) => {
+            const newLayout = r[0].layout;
+            if (!isValidLayout(newLayout)) {
+              CRM.alert(ts('The markup could not be applied because it produced an invalid layout structure.'), ts('Invalid markup'), 'error');
+              return false;
+            }
+            editor.afform.layout = newLayout;
+            setEditorLayout();
+            if (editor.getFormType() === 'form') {
+              $scope.entities = _.mapValues(afGui.findRecursive(editor.layout['#children'], {'#tag': 'af-entity'}, 'name'), backfillEntityDefaults);
+            }
+            else if (editor.getFormType() === 'search') {
+              editor.searchDisplays = getSearchDisplaysOnForm();
+            }
+            editor.markupEditMode = false;
+            return true;
+          })
+          .catch((error) => {
+            const message = error?.error_message ? error.error_message : ts('Unknown error');
+            CRM.alert(message, ts('Could not apply markup'), 'error');
+            return false;
+          });
+      }
+
+      $scope.hasUnappliedMarkupEdits = function() {
+        return editor.markupEditMode && editor.layoutHtml !== editor.markupEditBaseline;
+      };
+
+      // Prompts to apply or discard pending markup edits (e.g. before leaving edit mode
+      // or switching to the Layout tab). Does nothing if the user cancels.
+      function resolvePendingMarkupEdits(onDiscard, onApply) {
+        CRM.confirm({
+          title: ts('Unsaved markup changes'),
+          message: ts('You have made changes to the markup. Apply them to the layout, or discard them, before continuing.'),
+          options: {
+            cancel: ts('Cancel'),
+            discard: ts('Discard changes'),
+            apply: ts('Apply changes'),
+          },
+        })
+          .on('crmConfirm:discard', function() {
+            $scope.$apply(function() {
+              editor.layoutHtml = editor.markupEditBaseline;
+              editor.markupEditMode = false;
+              onDiscard();
+            });
+          })
+          .on('crmConfirm:apply', function() {
+            applyMarkupToLayout().then((applied) => {
+              if (applied) {
+                onApply();
+              }
+              // else: stay put, still in edit mode, so the user can fix their HTML
+            });
+          });
+      }
+
+      $scope.toggleMarkupEdit = function() {
+        if (!editor.markupEditMode) {
+          editor.markupEditBaseline = editor.layoutHtml;
+          editor.markupEditMode = true;
+          return;
+        }
+        if (!$scope.hasUnappliedMarkupEdits()) {
+          editor.markupEditMode = false;
+          return;
+        }
+        resolvePendingMarkupEdits(angular.noop, angular.noop);
+      };
+
+      $scope.switchToLayoutTab = function() {
+        if (!$scope.hasUnappliedMarkupEdits()) {
+          editor.markupEditMode = false;
+          editor.canvasTab = 'layout';
+          return;
+        }
+        const goToLayout = () => { editor.canvasTab = 'layout'; };
+        resolvePendingMarkupEdits(goToLayout, goToLayout);
       };
 
       this.addEntity = function(type, selectTab) {
@@ -472,7 +614,16 @@
       // Gets complete field defn, merging values from the field with default values
       function fillFieldDefn(entityType, field) {
         const spec = _.cloneDeep(afGui.getField(entityType, field.name));
-        return _.merge(spec, field.defn || {});
+        const defn = _.merge(spec, field.defn || {});
+        const suffix = field.name.split(':')[1];
+        if (suffix) {
+          // restore suffix in returned defn
+          defn.name = field.name;
+          // transform options so the correct suffix is in the id slot
+          // (typically option names rather than values)
+          defn.options = defn.options.map((o) => Object.assign({}, o, {id: o[suffix]}));
+        }
+        return defn;
       }
 
       // Get all fields on the form for a particular entity
@@ -711,6 +862,18 @@
       };
 
       $scope.save = function() {
+        if ($scope.hasUnappliedMarkupEdits()) {
+          applyMarkupToLayout().then((applied) => {
+            if (applied) {
+              doSave();
+            }
+          });
+          return;
+        }
+        doSave();
+      };
+
+      function doSave() {
         // save and close any open rich text elements
         $element[0].querySelectorAll('civi-rich-text-input[editing]').forEach((el) => el.saveAndCloseEditor());
 
@@ -750,7 +913,7 @@
             CRM.alert(message, ts('Save failed'), 'error');
             $scope.saving = false;
           });
-      };
+      }
 
       $scope.$watch('editor.afform.title', function(newTitle, oldTitle) {
         if (typeof oldTitle === 'string') {
@@ -843,6 +1006,11 @@
               });
             }
             // Tokens from entity fields on the form
+            // TODO: if we have fields with options on the form
+            // the current token is gender_id or gender_id:name
+            // when for messages we probably want gender_id:label
+            // though that value won't be immediately available from
+            // the form submission, so we'd need to ensure it was fetched
             this.getEntityFields(entity.name).fields.forEach((field) => {
               entityTokens.push({
                 id: entity.name + '.0.' + field.name,

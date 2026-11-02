@@ -46,10 +46,9 @@ return [
         'component_id' => NULL,
         'icon' => NULL,
         'color' => NULL,
-        'domain_id' => NULL,
         'visibility_id' => NULL,
       ],
-      'match' => ['name'],
+      'match' => ['name', 'option_group_id'],
     ],
   ],
   [
@@ -75,10 +74,9 @@ return [
         'component_id' => NULL,
         'icon' => NULL,
         'color' => NULL,
-        'domain_id' => NULL,
         'visibility_id' => NULL,
       ],
-      'match' => ['name'],
+      'match' => ['name', 'option_group_id'],
     ],
   ],
 ];

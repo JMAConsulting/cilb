@@ -125,14 +125,16 @@ class CRM_Core_Permission {
 
     foreach ($permissions as $permission) {
       if (is_array($permission)) {
+        $orGranted = FALSE;
         foreach ($permission as $orPerm) {
           if (self::check($orPerm, $contactId)) {
-            //one of our 'or' permissions has succeeded - stop checking this permission
-            return TRUE;
+            $orGranted = TRUE;
+            break;
           }
         }
-        //none of our our conditions was met
-        return FALSE;
+        if (!$orGranted) {
+          return FALSE;
+        }
       }
       else {
         // This is an individual permission
@@ -1268,6 +1270,7 @@ class CRM_Core_Permission {
     $permissions['financial_account']['get'] = $permissions['contribution']['get'];
     $permissions['financial_trxn']['get'] = $permissions['contribution']['get'];
     $permissions['contribution_soft'] = $permissions['contribution'];
+    $permissions['contribution_product'] = $permissions['contribution'];
 
     // Payment permissions
     $permissions['payment'] = [
@@ -1829,10 +1832,12 @@ class CRM_Core_Permission {
    *
    * @return string
    *   a comma separated list of email addresses
+   *
+   * @deprecated since 6.18 will be removed around 6.28
    */
   public static function permissionEmails($permissionName) {
-    $config = CRM_Core_Config::singleton();
-    return $config->userPermissionClass->permissionEmails($permissionName);
+    CRM_Core_Error::deprecatedFunctionWarning('use userPermissionClass');
+    return CRM_Core_Config::singleton()->userPermissionClass->permissionEmails($permissionName);
   }
 
   /**
@@ -1843,10 +1848,12 @@ class CRM_Core_Permission {
    *
    * @return string
    *   a comma separated list of email addresses
+   *
+   * @deprecated since 6.18 will be removed around 6.28
    */
   public static function roleEmails($roleName) {
-    $config = CRM_Core_Config::singleton();
-    return $config->userRoleClass->roleEmails($roleName);
+    CRM_Core_Error::deprecatedFunctionWarning('use userPermissionClass');
+    return CRM_Core_Config::singleton()->userRoleClass->roleEmails($roleName);
   }
 
   /**
