@@ -254,12 +254,43 @@ trait DAOActionTrait {
       }
       [$fieldName, $fkField] = explode('.', $key);
       $field = $this->entityFields()[$fieldName] ?? NULL;
-      if (!$field || $field['type'] !== 'Field' || empty($field['fk_entity'])) {
+      if (!$field || $field['type'] !== 'Field') {
         continue;
       }
-      $fkEntityName = $field['fk_entity'];
-      $fkColumnName = $field['fk_column'];
+      $fkEntityName = $field['fk_entity'] ?? NULL;
+      $fkColumnName = $field['fk_column'] ?? 'id';
+      // Dynamic FK (e.g. `entity_id` paired with `entity_table`): the target entity
+      // isn't fixed, so resolve it from the sibling discriminator column's value,
+      // which must already be present (as a plain value) in this same record.
+      if (!$fkEntityName && !empty($field['dfk_entities'])) {
+        $controlField = $field['input_attrs']['control_field'] ?? NULL;
+        if (empty($record[$controlField])) {
+          continue;
+        }
+        $fkEntityName = CoreUtil::getApiNameFromTableName($record[$controlField]);
+      }
+      if (!$fkEntityName) {
+        continue;
+      }
       $fkEntity = \Civi::entity($fkEntityName);
+      // Ensure specified field is unique
+      $uniqueIndex = FALSE;
+      // TODO: 'name' and 'iso_code' are grandfathered in but we should remove this exception and add missing indices
+      if (in_array($fkField, ['name', 'iso_code'], TRUE)) {
+        $uniqueIndex = TRUE;
+      }
+      else {
+        $indices = $fkEntity->getMeta('indices') ?: [];
+        foreach ($indices as $index) {
+          // Index should only include the field and maybe domain_id
+          if (!empty($index['unique']) && !array_diff(array_keys($index['fields']), [$fkField, 'domain_id'])) {
+            $uniqueIndex = TRUE;
+          }
+        }
+      }
+      if (!$uniqueIndex) {
+        throw new \CRM_Core_Exception('No unique index on ' . $field['fk_entity'] . '.' . $fkField);
+      }
       // Constrain search to the domain of the current entity
       $domainConstraint = NULL;
       if ($fkEntity->getField('domain_id')) {
@@ -270,12 +301,12 @@ trait DAOActionTrait {
           $domainConstraint = \CRM_Core_DAO::getFieldValue($this->getBaoName(), $record['id'], 'domain_id');
         }
       }
-      $conditions = [[$fkField, '=', $value]];
-      if ($domainConstraint) {
-        $conditions[] = ['domain_id', '=', $domainConstraint];
-      }
       $resolvedId = NULL;
       if (CoreUtil::entityExists($fkEntityName)) {
+        $conditions = [[$fkField, '=', $value]];
+        if ($domainConstraint) {
+          $conditions[] = ['domain_id', '=', $domainConstraint];
+        }
         $fkResult = civicrm_api4($fkEntityName, 'get', [
           'select' => [$fkColumnName],
           'where' => $conditions,

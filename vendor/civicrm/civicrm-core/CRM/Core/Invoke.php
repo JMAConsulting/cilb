@@ -79,6 +79,10 @@ class CRM_Core_Invoke {
     self::init($args);
     Civi::dispatcher()->dispatch('civi.invoke.auth', \Civi\Core\Event\GenericHookEvent::create(['args' => $args]));
     $item = self::getItem($args);
+    // Guard against CSRF for ajax routes
+    if (!empty($item['is_ajax'])) {
+      CRM_Core_Page_AJAX::validateAjaxRequestMethod();
+    }
     return self::runItem($item);
     // NOTE: runItem() may return HTML, or it may call print+exit.
   }
@@ -141,14 +145,7 @@ class CRM_Core_Invoke {
     else {
       $path = $args;
     }
-    $item = CRM_Core_Menu::get($path);
-
-    // we should try to compute menus, if item is empty and stay on the same page,
-    // rather than compute and redirect to dashboard.
-    if (!$item) {
-      CRM_Core_Menu::store(FALSE);
-      $item = CRM_Core_Menu::get($path);
-    }
+    $item = \Civi::router()->get($path);
 
     return $item;
   }
@@ -233,9 +230,9 @@ class CRM_Core_Invoke {
         self::statusCheck($template);
       }
 
-      if (isset($item['return_url'])) {
+      if (!empty($item['return_url'])) {
         $session = CRM_Core_Session::singleton();
-        $args = $item['return_url_args'] ?? 'reset=1';
+        $args = !empty($item['return_url_args']) ? $item['return_url_args'] : 'reset=1';
         $session->pushUserContext(CRM_Utils_System::url($item['return_url'], $args));
       }
 
@@ -249,35 +246,11 @@ class CRM_Core_Invoke {
       return $result;
     }
 
-    CRM_Core_Menu::store();
+    // TODO: remove this handling, it is already happening in CRM_Core_Menu::get
+    \Civi::router()->clear()
+      ->rebuild();
     CRM_Core_Session::setStatus(ts('Menu has been rebuilt'), ts('Complete'), 'success');
     return CRM_Utils_System::redirect();
-  }
-
-  /**
-   * This function contains the default action.
-   *
-   * Unused function.
-   *
-   * @param $action
-   *
-   * @param $contact_type
-   * @param $contact_sub_type
-   *
-   * @Deprecated
-   */
-  public static function form($action, $contact_type, $contact_sub_type) {
-    CRM_Core_Error::deprecatedWarning('unused');
-    CRM_Utils_System::setUserContext(['civicrm/contact/search/basic', 'civicrm/contact/view']);
-    $wrapper = new CRM_Utils_Wrapper();
-
-    $properties = CRM_Core_Component::contactSubTypeProperties($contact_sub_type, 'Edit');
-    if ($properties) {
-      $wrapper->run($properties['class'], ts('New %1', [1 => $contact_sub_type]), $action, TRUE);
-    }
-    else {
-      $wrapper->run('CRM_Contact_Form_Contact', ts('New Contact'), $action, TRUE);
-    }
   }
 
   /**

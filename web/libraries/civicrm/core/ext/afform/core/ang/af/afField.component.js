@@ -92,9 +92,31 @@
           }, true);
         }
 
+        // Watch conditional required attribute
+        const afRequiredAttr = $element.attr('af-required');
+        if (afRequiredAttr) {
+          $scope.$watch(() => {
+            const conditions = $scope.$eval(afRequiredAttr);
+            return ctrl.afForm.checkConditions(conditions);
+          }, (value) => {
+            ctrl.defn.required = value;
+          });
+        }
+
+        // Watch conditional disabled attribute
+        const afDisabledAttr = $element.attr('af-disabled');
+        if (afDisabledAttr) {
+          $scope.$watch(() => {
+            const conditions = $scope.$eval(afDisabledAttr);
+            return ctrl.afForm.checkConditions(conditions);
+          }, (value) => {
+            ctrl.defn.disabled = value;
+          });
+        }
+
         // check for tokens in the default value
         const tokens = this.afForm?.identifyTokens(this.defn.afform_default);
-        if (tokens && tokens.length) {
+        if (tokens && tokens.size) {
           const calculateValueWatcher = $scope.$watchCollection(() => Object.values(this.afForm.getTokenValues(tokens)), () => {
             if ($element[0].querySelector('.ng-touched')) {
               // user has touched this input, stop calculating
@@ -123,11 +145,20 @@
               };
               crmApi4('Afform', 'getOptions', params)
                 .then((data) => {
-                  $('input[crm-ui-select]', $element).removeClass('loading').prop('disabled', !data.length);
+                  $('input[crm-ui-select]', $element)
+                    .removeClass('loading')
+                    .attr('placeholder', data.length ? ts('Select') : ts('None Found'))
+                    .prop('disabled', !data.length);
                   fieldOptions = data;
                 });
             } else {
               fieldOptions = null;
+              // When control field is deselected, disable this field and set appropriate placeholder
+              const ctrlFieldCtrl = $element.closest('[af-repeat-item], [af-join], [af-fieldset], form')
+                .find(`af-field[name="${controlField}"]`).controller('afField');
+              $('input[crm-ui-select]', $element)
+                .attr('placeholder', ts('Choose %1 first', {1: ctrlFieldCtrl?.defn?.label}))
+                .prop('disabled', true);
             }
           }, true);
         }
@@ -190,8 +221,9 @@
           }
         }
 
+        // Value precedence, lowest first: afform_default, stored value (first load only),
+        // SearchParamSet, route params. On first load the routeParams watch applies the last two.
         function initializeValue(firstLoad) {
-          // Set default value if specified. Note that setValueFromUrl() will override this.
           if (firstLoad && ctrl.afFieldset?.getStoredValue(ctrl.fieldName) !== undefined) {
             setValue(ctrl.afFieldset.getStoredValue(ctrl.fieldName));
           }
@@ -223,6 +255,11 @@
                 ctrl.inputAttrs.push(attrs);
               }
             }
+          }
+
+          // On reset, a loaded SearchParamSet replaces the defaults, as its columns do in crmSearchDisplayTable
+          if (!firstLoad && ctrl.afFieldset?.selectedSearchParamSet?.filters) {
+            setValueFromRouteParams($scope.$parent.routeParams);
           }
         }
 
@@ -341,7 +378,7 @@
         if (ctrl.isReadonly()) {
           return true;
         }
-        return ctrl.defn.input_type === 'EntityRef' && !ctrl.fkEntity;
+        return (ctrl.defn.input_type === 'EntityRef' && !ctrl.fkEntity) || !!ctrl.defn.disabled;
       };
 
       ctrl.getDisplayValue = function(value) {
@@ -447,18 +484,18 @@
         if (Array.isArray(current)) {
           // Remove any invalid options from value array
           const valid = current.filter((v) => options.includes(v));
-          // If any options were removed, update the model and input
+          // If any options were removed, update the model
           if (valid.length < current.length) {
             $scope.dataProvider.getFieldData()[this.fieldName] = valid;
-            $('input[crm-ui-select]', $element).val(valid).change();
           }
         } else {
           // Unset single value if invalid
           if (!options.includes(current)) {
-            $('input[crm-ui-select]', $element).val('').change();
             delete $scope.dataProvider.getFieldData()[this.fieldName];
           }
         }
+        // Re-render Select2 with the current valid selection
+        $element.find('input[crm-ui-select]').controller('ngModel')?.$render();
       };
 
       $scope.select2Options = function() {

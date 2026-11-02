@@ -44,6 +44,14 @@
       "civicrm/composer-compile-plugin": true,
       "civicrm/composer-downloads-plugin": true,
       "cweagans/composer-patches": true
+    },
+    "audit": {
+      "ignore": {
+        "PKSA-r15m-kszr-8n8q": "manually patched",
+        "PKSA-dxd5-wy68-pq29": "manually patched",
+        "PKSA-96jv-mtjg-g2v8": "manually patched",
+        "PKSA-zb3c-6qhx-m249": "manually patched"
+      }
     }
   },
   "require": {
@@ -104,10 +112,10 @@
     "pear/db": "~1.12.2",
     "civicrm/composer-compile-lib": "~0.6 || ~1.0",
     "ezyang/htmlpurifier": "^4.13",
-    "phpoffice/phpspreadsheet": "^5",
-    "symfony/polyfill-php82": "^1.0",
+    "phpoffice/phpspreadsheet": "^5 < 5.10",
+    "symfony/polyfill-php82": "^1.28",
     "symfony/polyfill-php83": "^1.0",
-    "symfony/polyfill-php84": "^1.0",
+    "symfony/polyfill-php84": "^1.30",
     "symfony/polyfill-php85": "^1.0",
     "soundasleep/html2text": "^2.1",
     "psr/container": "~1.0 || ~2.0",
@@ -115,7 +123,8 @@
     "dmore/chrome-mink-driver": "^2.9",
     "pontedilana/php-weasyprint": "^0.13.0 || ^1 || ^2",
     "knplabs/knp-snappy": "^1.4",
-    "phpseclib/phpseclib2_compat": "^1.0"
+    "phpseclib/phpseclib2_compat": "^1.0",
+    "smarty/smarty": "^5.8.4"
   },
   "scripts": {
     "post-install-cmd": [
@@ -180,7 +189,7 @@
         "ignore": [".*", "node_modules", "docs", "Gruntfile.js", "index.html", "package.json", "test"]
       },
       "ckeditor": {
-        "url": "https://github.com/ckeditor/ckeditor-releases/archive/4.18.0.zip"
+        "url": "https://github.com/ckeditor/ckeditor-releases/archive/4.22.1.zip"
       },
       "crossfilter-1.4.x": {
         "url": "https://github.com/crossfilter/crossfilter/archive/1.4.7.zip",
@@ -225,6 +234,16 @@
         "path": "ext/greenwich/extern/bootstrap3",
         "version": "3.4.1",
         "ignore": ["fonts", "test", "tasks", "lib"]
+      },
+      "ext-iframe-resizer-child": {
+        "url": "https://raw.githubusercontent.com/davidjbradshaw/iframe-resizer/refs/tags/v4.3.11/js/iframeResizer.contentWindow.js",
+        "path": "ext/iframe/packages/iframe-resizer.child.js",
+        "version": "4.3.11"
+      },
+      "ext-iframe-resizer-parent": {
+        "url": "https://raw.githubusercontent.com/davidjbradshaw/iframe-resizer/refs/tags/v4.3.11/js/iframeResizer.js",
+        "path": "ext/iframe/packages/iframe-resizer.parent.js",
+        "version": "4.3.11"
       },
       "font-awesome": {
         "url": "https://github.com/FortAwesome/Font-Awesome/releases/download/6.6.0/fontawesome-free-6.6.0-web.zip",
@@ -304,6 +323,9 @@
       },
       "pear/net_smtp": {
         "Add in CiviCRM custom error message for CRM-8744": "https://download.civicrm.org/patches/ee02d81d09432e524b249c9d874c9756b88924df8f5a8d69b19e8b4d6f532327/error-msg.patch"
+      },
+      "phpoffice/phpspreadsheet": {
+        "Apply backported security packages": "https://download.civicrm.org/patches/929f65845c4348d553997babe80d471ff3ad48237c91f0b9b0055757457bceba/security_patches.patch"
       },
       "xkerman/restricted-unserialize": {
         "Fix warnings on PHP 8.4 and PHP 8.5": "https://download.civicrm.org/patches/1f01239f400e9aff4e59c2e744fc73bdfb48c6c3b0e93665851b7be763b2716b/php84-php85.patch"

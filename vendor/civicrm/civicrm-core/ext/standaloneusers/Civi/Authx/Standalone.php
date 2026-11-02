@@ -11,7 +11,42 @@
 
 namespace Civi\Authx;
 
-class Standalone implements AuthxInterface {
+use Civi\Core\Service\AutoService;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Civi\Standalone\MFA\Base as MFABase;
+use Civi\Standalone\Security;
+use Civi\Standalone\Event\LogoutEvent;
+
+/**
+ * @class
+ * This provides the Authx interface for Standalone.
+ *
+ * @service authx_standalone
+ */
+class Standalone extends AutoService implements AuthxInterface, EventSubscriberInterface {
+
+  /**
+   * @inheritdoc
+   */
+  public static function getSubscribedEvents(): array {
+    $events = [];
+    // Priority is for this to be called before the password check.
+    $events['civi.authx.checkCredential'][] = ['disallowBasicAuthIfMFAEnabled', CheckCredential::PRIORITY_BASIC_USER + 1];
+    return $events;
+  }
+
+  /**
+   * Disallow HTTP "Basic" credential as `username:password` when MFA is required.
+   *
+   * @param \Civi\Authx\CheckCredentialEvent $check
+   */
+  public function disallowBasicAuthIfMFAEnabled(CheckCredentialEvent $check): void {
+    if ($check->credFormat === 'Basic') {
+      if (MFABase::getAvailableClasses()) {
+        $check->reject("Basic credentials not supported on systems with MFA enabled.");
+      }
+    }
+  }
 
   /**
    * @inheritDoc
@@ -97,8 +132,15 @@ class Standalone implements AuthxInterface {
    * @inheritDoc
    */
   public function getUserIsBlocked($userId) {
-    // ToDo
-    return FALSE;
+    $user = \Civi\Api4\User::get(FALSE)
+      ->addSelect('is_active')
+      ->addWhere('id', '=', $userId)
+      ->execute()
+      ->first();
+
+    // An unknown user is handled by the normal invalid-principal checks, while
+    // an inactive Standalone user is blocked.
+    return $user !== NULL && !$user['is_active'];
   }
 
 }

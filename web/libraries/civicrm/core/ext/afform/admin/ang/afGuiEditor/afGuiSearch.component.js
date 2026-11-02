@@ -50,9 +50,14 @@
       };
 
       function fieldDefaults(field, prefix) {
+        let name = prefix + field.name;
+        // Use :name suffix if available (improves form portability)
+        if (field.options && Array.isArray(field.suffixes) && field.suffixes.includes('name')) {
+          name += ':name';
+        }
         const tag = {
           "#tag": "af-field",
-          name: prefix + field.name
+          name: name
         };
         if (field.input_type === 'Select' || field.input_type === 'ChainSelect') {
           tag.defn = {input_attrs: {multiple: true}};
@@ -137,7 +142,7 @@
         if (block['af-join']) {
           return !!getElement(ctrl.display.fieldset['#children'], {'af-join': block['af-join']});
         }
-        const fieldsInBlock = _.pluck(afGui.findRecursive(afGui.meta.blocks[block['#tag']].layout, {'#tag': 'af-field'}), 'name');
+        const fieldsInBlock = afGui.findRecursive(afGui.meta.blocks[block['#tag']].layout, {'#tag': 'af-field'}).map((field) => field.name);
         return !!getElement(ctrl.display.fieldset['#children'], function(item) {
           return item['#tag'] === 'af-field' && fieldsInBlock.includes(item.name);
         });
