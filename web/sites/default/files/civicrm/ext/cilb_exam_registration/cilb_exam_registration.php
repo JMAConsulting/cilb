@@ -359,12 +359,16 @@ function cilb_exam_registration_civicrm_alterMailParams(&$params, $context) {
       ->indexBy('id');
     $events = [];
     foreach ($participants as $participant) {
+      $eventTitle = (string) $participant['event_id.title'];
+      preg_match('/\d{4}-\d{2}-\d{2}/', $eventTitle, $examDate);
       $events[$participant['id']] = [
         'exam_part' => $participant['event_id.Exam_Details.Exam_Part:label'],
         'exam_category' => ($participant['event_id.event_type_id:label'] === 'Business and Finance') ? '' : $participant['event_id.event_type_id:label'],
+        'exam_date' => $examDate[0] ?? (stripos($eventTitle, 'TBD') !== FALSE ? 'TBD' : ''),
       ];
     }
     $params['tplParams']['events'] = $events;
+    $params['tplParams']['eventsHaveDates'] = (bool) array_filter(array_column($events, 'exam_date'));
     $lineItems = CRM_Price_BAO_LineItem::getLineItemsByContributionID($params['tplParams']['contributionID']);
     foreach ($lineItems as $k => $lineItem) {
       if ($lineItem['entity_table'] == 'civicrm_participant') {
