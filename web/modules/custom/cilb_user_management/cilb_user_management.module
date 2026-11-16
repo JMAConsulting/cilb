@@ -23,6 +23,15 @@ function cilb_user_management_form_alter(&$form, \Drupal\Core\Form\FormStateInte
     // add our custom validator
     $form['#validate'][] = 'cilb_user_management_user_pass_form_validate';
   }
+
+  if ($form_id === 'user_login_form') {
+    $form['activate_account'] = [
+      '#markup' => '<p>' . t('Have a record with us but no online account yet? <a href=":url">Activate your account</a>.', [
+        ':url' => \Drupal\Core\Url::fromRoute('example.form')->toString(),
+      ]) . '</p>',
+      '#weight' => 100,
+    ];
+  }
 }
 
 function cilb_user_management_user_pass_form_validate($form, \Drupal\Core\Form\FormStateInterface $form_state) {
