@@ -7,7 +7,7 @@ class CRM_CilbReports_BAO_ReportHook extends CRM_Report_BAO_HookInterface {
    * @param $logTables
    */
   public function alterLogTables(&$reportObj, &$logTables) {
-    if (get_class($reportObj) === 'CRM_Logging_ReportSummary' || get_class($reportObj) === 'CRM_Report_Form_Contact_LoggingSummary') {
+    if ($reportObj instanceof CRM_Logging_ReportSummary) {
       $logTables['log_civicrm_participant'] = [
         'fk' => 'contact_id',
         'log_type' => 'Exam',
