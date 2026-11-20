@@ -1,4 +1,5 @@
 /*jshint esversion: 6 */
+/* global calculateTotalFee, separator, Swal */
 (function($, ts) {
   var payment = {
     name: 'CRM.payment',
@@ -44,8 +45,9 @@
         });
       }
       else if (document.getElementById('total_amount')) {
-        // The input#total_amount field exists on backend contribution forms
-        totalAmount = parseFloat(document.getElementById('total_amount').value);
+        // The input#total_amount field exists on backend contribution forms, and on contribution
+        // pages paying an existing contribution (ccid) where core fills it with a formatted amount.
+        totalAmount = this.parseMoney(document.getElementById('total_amount').value);
       }
       if (this.isEventAdditionalParticipants()) {
         // The amount shown on the initial page is the total amount for 1 registration.
@@ -114,6 +116,37 @@
     },
 
     /**
+     * Convert an amount formatted with the site's monetary separators (eg. "1,000.00" or "1.000,00")
+     * to a number the same way CiviCRM's CRM_Utils_Rule::cleanMoney() does server-side.
+     *
+     * parseFloat() alone stops at the first thousands separator, so "1,000.00" gives 1 and the
+     * processor authorises a different amount from the one CiviCRM then tries to charge.
+     * @see https://lab.civicrm.org/extensions/stripe/-/work_items/524
+     *
+     * @param {string|number} amount
+     * @returns {number} NaN if the amount is not numeric
+     */
+    parseMoney: function(amount) {
+      if (typeof amount === 'number') {
+        return amount;
+      }
+      // CRM.formatMoney is initialised with the separators core uses to format amounts in form fields.
+      const format = (typeof CRM.formatMoney === 'function') ? CRM.formatMoney(1234.56, true) : '';
+      const separators = /^1(\D*)23[45](\D*)\d*$/.exec(format) || [null, ',', '.'];
+      const stripSpaces = (value) => String(value).replace(/\s/g, '');
+      const thousands = stripSpaces(separators[1]);
+      const decimal = stripSpaces(separators[2]) || '.';
+
+      let value = stripSpaces(amount);
+      // Matches cleanMoney(): with a "." thousands separator, a value that looks like it already
+      // has a "." decimal part (eg. "150.5", "150.50") keeps it.
+      if (thousands && (thousands !== '.' || (value.slice(-3, -2) !== '.' && value.slice(-2, -1) !== '.'))) {
+        value = value.split(thousands).join('');
+      }
+      return parseFloat(value.replace(decimal, '.'));
+    },
+
+    /**
      * This is calculated in CRM/Contribute/Form/Contribution.tpl and is used to calculate the total
      *   amount with tax on backend submit contribution forms.
      *   The only way we can get the amount is by parsing the text field and extracting the final bit after the space.
@@ -130,7 +163,7 @@
 
       // If tax and invoicing is disabled totalTaxAmount div exists but is empty
       if (document.getElementById('totalTaxAmount').textContent.length === 0) {
-        totalTaxAmount = document.getElementById('total_amount').value;
+        totalTaxAmount = this.parseMoney(document.getElementById('total_amount').value);
       }
       else {
         // Otherwise totalTaxAmount div contains a textual amount including currency symbol
@@ -458,7 +491,7 @@
      */
     doStandardFormSubmit: function() {
       // Disable the submit button to prevent repeated clicks
-      for (i = 0; i < this.submitButtons.length; ++i) {
+      for (let i = 0; i < this.submitButtons.length; ++i) {
         this.submitButtons[i].setAttribute('disabled', true);
       }
       this.resetBillingFieldsRequiredForJQueryValidate();
@@ -552,10 +585,10 @@
       var nonPaymentSubmitButtons = this.form.querySelectorAll('[type="submit"][formnovalidate="1"], ' +
         '[type="submit"][formnovalidate="formnovalidate"], ' +
         '[type="submit"].cancel, ' +
-        '[type="submit"].webform-previous'), i;
-      for (i = 0; i < nonPaymentSubmitButtons.length; ++i) {
-        nonPaymentSubmitButtons[i].addEventListener('click', submitDontProcess(nonPaymentSubmitButtons[i]));
-      }
+        '[type="submit"].webform-previous');
+      nonPaymentSubmitButtons.forEach((button) => {
+        button.addEventListener('click', () => submitDontProcess(button));
+      });
 
       function submitDontProcess(element) {
         CRM.payment.debugging(CRM.payment.scriptName, 'adding submitdontprocess: ' + element.id);
@@ -578,7 +611,7 @@
         }
       };
 
-      for (i = 0; i < cividiscountElements.length; ++i) {
+      for (let i = 0; i < cividiscountElements.length; ++i) {
         cividiscountElements[i].addEventListener('keydown', cividiscountHandleKeydown);
       }
     },
@@ -599,7 +632,7 @@
       errorElement.textContent = errorMessage;
       this.form.dataset.submitted = 'false';
       if (this.submitButtons !== null) {
-        for (i = 0; i < this.submitButtons.length; ++i) {
+        for (let i = 0; i < this.submitButtons.length; ++i) {
           this.submitButtons[i].removeAttribute('disabled');
         }
       }

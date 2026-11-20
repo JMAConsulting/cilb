@@ -67,7 +67,7 @@ class LinkRecurMJWTest extends CiviUnitTestCase implements HeadlessInterface, Ho
       ->addValue('contact_id', $cid)
       ->addValue('total_amount', 5)
       ->addValue('contribution_recur_id', $crid)
-      ->addValue('financial_type_id', 1)
+      ->addValue('financial_type_id:name', 'Donation')
       ->execute()
       ->first()['id'];
     $lineItemID = LineItem::get(FALSE)
@@ -138,7 +138,7 @@ class LinkRecurMJWTest extends CiviUnitTestCase implements HeadlessInterface, Ho
       ->addValue('contact_id', $cid)
       ->addValue('total_amount', 5)
       ->addValue('contribution_recur_id', $crid)
-      ->addValue('financial_type_id', 1)
+      ->addValue('financial_type_id:name', 'Donation')
       ->execute()
       ->first()['id'];
     $lineItemID = LineItem::get(FALSE)

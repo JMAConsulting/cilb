@@ -139,7 +139,7 @@ class Create extends \Civi\Api4\Generic\AbstractCreateAction {
       civicrm_api3('CustomValue', 'create', $customParams);
     }
 
-    $result->exchangeArray($trxn);
+    $result->exchangeArray(get_object_vars($trxn));
     return $result;
   }
 

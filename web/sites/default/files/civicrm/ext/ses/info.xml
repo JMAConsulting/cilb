@@ -18,11 +18,11 @@
     <url desc="Documentation">https://docs.civicrm.org/ses/en/latest/</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2026-08-06</releaseDate>
-  <version>1.4.1</version>
+  <releaseDate>2026-10-08</releaseDate>
+  <version>1.6.0</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>6.14</ver>
+    <ver>6.16</ver>
   </compatibility>
   <php_compatibility>
     <ver>8.1</ver>

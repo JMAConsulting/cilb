@@ -1,0 +1,6 @@
+include:
+  - project: 'infra/extension-ci'
+    ref: main
+    file:
+      - '/lint.yml'
+      - '/composer.yml'

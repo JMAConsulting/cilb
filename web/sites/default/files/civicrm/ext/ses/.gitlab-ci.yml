@@ -1,0 +1,17 @@
+# Templates are shared; see https://lab.civicrm.org/infra/extension-ci
+include:
+  - project: 'infra/extension-ci'
+    ref: main
+    file:
+      - '/lint.yml'
+      - '/phpunit.yml'
+      - '/composer.yml'
+
+# Oldest supported stack. Must pass.
+phpunit:min:
+  extends: .phpunit-min
+
+# Early warning of core drift. Never blocks a merge request.
+phpunit:max:
+  extends: .phpunit-max
+  allow_failure: true

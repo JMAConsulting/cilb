@@ -1,0 +1,2 @@
+# The docs are edited on multiple platforms; keep them LF so patches apply
+*.md text eol=lf

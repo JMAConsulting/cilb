@@ -710,7 +710,7 @@
 
 - github      : GuillaumeSorel
   name        : Guillaume Sorel
-  organization: All In Appli.com
+  organization: GESTAD - gestad.fr
 
 - github      : guyiac
   name        : Guy Iaccarino
@@ -741,9 +741,16 @@
 - github      : khorporative
   name        : Aivars
 
+- github      : hansrossel
+  name        : Hans Rossel
+
 - github      : h-c-c
   name        : Peter Hartmann
   organization: Hartmann Computer Consulting
+
+- github      : hansrossel
+  name        : Hans Rossel
+  organization: KOBA
 
 - name        : Heather Oliver
   organization: Red Hot Irons
@@ -949,6 +956,9 @@
   name        : Jeremy Proffitt
   organization: Ezodesign
 
+- github      : JuanSartor
+  name        : Juan Ignacio Sartor
+
 - name        : Julian Libor
 
 - name        : Julie Hall
@@ -1005,6 +1015,9 @@
 - github      : kcristiano
   name        : Kevin Cristiano
   organization: Tadpole Collective
+
+- github      : kgoess
+  name        : Kevin Goess
 
 - github      : kenwest
   name        : Ken West
@@ -1608,7 +1621,7 @@
   name        : Simon John Parker
 
 - github      : Sinjinsmiley
-    
+
 - gitub       : sushantpaste
   organization: OSSeed Technologies LLP
   name        : Sushant Paste
@@ -1672,6 +1685,10 @@
 
 - name        : Shira Miller
 
+- github      : Sinjinsmiley
+  name        : Simon East
+  organization: North Essex Heritage
+
 - github      : spalmstr
   name        : Stephen Palmstrom
 
@@ -1714,6 +1731,9 @@
   name        : Swastik Pareek
   organization: QED42
 
+- github      : syxys1
+  name        : Sylvain Plante
+
 - github      : systopia
   name        : SYSTOPIA
   organization: SYSTOPIA
@@ -1754,6 +1774,10 @@
   name        : Tycho Schottelius
   organization: SYSTOPIA
 
+- github      : tacman
+  name        : Tac Tacelosky
+  organization: Survos
+  
 - github      : tamarmeir
   name        : Tamar Meir
   organization: Forest CRM Consulting

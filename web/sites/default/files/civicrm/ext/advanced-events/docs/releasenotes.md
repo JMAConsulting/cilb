@@ -9,6 +9,14 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 2.4.0 (2026-10-26)
+
+* **[BC]** Requires CiviCRM 6.19+.
+* [!7](https://lab.civicrm.org/extensions/civicrm-advanced-events/-/merge_requests/7) Fix possible data loss when matching managed entities.
+* [!6](https://lab.civicrm.org/extensions/civicrm-advanced-events/-/merge_requests/6) Replace call to deprecated `CRM_Core_BAO_OptionGroup::add()`.
+* Coding-standard fixes and civix upgrade.
+* Add GitLab CI (lint and PHP compatibility checks).
+
 ## Release 2.3.1 (2025-11-27)
 
 * Minor update. No changes.

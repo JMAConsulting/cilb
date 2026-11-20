@@ -34,13 +34,13 @@ class CRM_AuthorizeNet_Form_UpdateWebhook extends CRM_Core_Form {
       $this->assign('shouldOfferToFix', 1);
       $this->assignMessages($messages);
 
-      $this->addButtons(array(
-        array(
+      $this->addButtons([
+        [
           'type' => 'submit',
           'name' => E::ts('Update / Create webhook'),
           'isDefault' => TRUE,
-        ),
-      ));
+        ],
+      ]);
     }
 
     // export form elements
@@ -92,7 +92,7 @@ class CRM_AuthorizeNet_Form_UpdateWebhook extends CRM_Core_Form {
     // auto-rendered in the loop -- such as "qfKey" and "buttons".  These
     // items don't have labels.  We'll identify renderable by filtering on
     // the 'label'.
-    $elementNames = array();
+    $elementNames = [];
     foreach ($this->_elements as $element) {
       /** @var HTML_QuickForm_Element $element */
       $label = $element->getLabel();

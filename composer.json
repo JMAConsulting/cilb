@@ -15,9 +15,9 @@
         }
     ],
     "require": {
-        "civicrm/civicrm-core": "6.19.4",
-        "civicrm/civicrm-drupal-8": "6.19.4",
-        "civicrm/civicrm-packages": "6.19.4",
+        "civicrm/civicrm-core": "6.20.1",
+        "civicrm/civicrm-drupal-8": "6.20.1",
+        "civicrm/civicrm-packages": "6.20.1",
         "composer/installers": "^2.0",
         "dompdf/dompdf": "^3.1.6",
         "dragonmantank/cron-expression": "3.3.3",
@@ -71,6 +71,14 @@
             "civicrm/civicrm-asset-plugin": true,
             "civicrm/composer-downloads-plugin": true,
             "civicrm/composer-compile-plugin": true
+        },
+        "audit": {
+            "ignore": {
+                "PKSA-r15m-kszr-8n8q": "phpspreadsheet 5.9.0 patched by civicrm-core backport (security_patches.patch)",
+                "PKSA-dxd5-wy68-pq29": "phpspreadsheet 5.9.0 patched by civicrm-core backport (security_patches.patch)",
+                "PKSA-96jv-mtjg-g2v8": "phpspreadsheet 5.9.0 patched by civicrm-core backport (security_patches.patch)",
+                "PKSA-zb3c-6qhx-m249": "phpspreadsheet 5.9.0 patched by civicrm-core backport (security_patches.patch)"
+            }
         },
         "sort-packages": true
     },

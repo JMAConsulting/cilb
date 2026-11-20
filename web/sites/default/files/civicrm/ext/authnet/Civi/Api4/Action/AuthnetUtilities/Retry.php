@@ -1,14 +1,13 @@
 <?php
 
 namespace Civi\Api4\Action\AuthnetUtilities;
+
 use CRM_Authnet_ExtensionUtil as E;
 
 /**
  * https://civicrm.org/licensing
  */
 
-use \Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
-use \Authnetjson\AuthnetWebhooksResponse as AuthnetWebhooksResponse;
 
 /**
  * Retry a IPN
@@ -20,8 +19,8 @@ class Retry extends \Civi\Api4\Generic\AbstractAction {
    * paymentProcessorId
    *
    * Payment processor ID
-   * @required
    * @var int
+   * @required
    */
   protected $paymentProcessorId;
 
@@ -30,8 +29,8 @@ class Retry extends \Civi\Api4\Generic\AbstractAction {
    *
    * Authnet notification id
    *
-   * @required
    * @var string
+   * @required
    */
   protected $notificationId;
 
@@ -66,7 +65,7 @@ class Retry extends \Civi\Api4\Generic\AbstractAction {
     $response = $client->get($endPoint, $headers);
     $dataRaw = $response->getBody()->getContents();
     if (!$dataRaw) {
-      throw new \API_Exception("Failed to get payload for notification id {$notificationId}");
+      throw new \CRM_Core_Exception("Failed to get payload for notification id {$notificationId}");
     }
     $data = json_decode($dataRaw);
     $eventType = $data->eventType ?? NULL;
@@ -108,4 +107,5 @@ class Retry extends \Civi\Api4\Generic\AbstractAction {
     $result[] = "Successfully retried notification";
 
   }
+
 }

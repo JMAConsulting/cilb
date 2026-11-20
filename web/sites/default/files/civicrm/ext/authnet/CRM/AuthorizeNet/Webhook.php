@@ -11,7 +11,7 @@
 
 use Civi\Api4\PaymentProcessor;
 use CRM_AuthNetEcheck_ExtensionUtil as E;
-use \Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
+use Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
 
 class CRM_AuthorizeNet_Webhook {
 
@@ -29,7 +29,7 @@ class CRM_AuthorizeNet_Webhook {
    *
    * @param array $paymentProcessor
    */
-  function __construct(array $paymentProcessor) {
+  public function __construct(array $paymentProcessor) {
     $this->_paymentProcessor = $paymentProcessor;
   }
 
@@ -78,9 +78,6 @@ class CRM_AuthorizeNet_Webhook {
   /**
    * Check and update existing webhook
    *
-   * @param array $webhook
-   */
-  /**
    * @param \Authnetjson\AuthnetWebhooksResponse $webhook
    *
    * @throws \Authnetjson\Exception\AuthnetCurlException
@@ -98,7 +95,7 @@ class CRM_AuthorizeNet_Webhook {
     }
     if ($update) {
       $request = $this->getRequest();
-      $request->updateWebhook($webhook->getWebhooksId(), CRM_Mjwshared_Webhook::getWebhookPath($this->_paymentProcessor['id']), self::getDefaultEnabledEvents(),'active');
+      $request->updateWebhook($webhook->getWebhooksId(), CRM_Mjwshared_Webhook::getWebhookPath($this->_paymentProcessor['id']), self::getDefaultEnabledEvents(), 'active');
     }
   }
 
@@ -172,15 +169,12 @@ class CRM_AuthorizeNet_Webhook {
         catch (Exception $e) {
           $messages[] = new CRM_Utils_Check_Message(
             "{$checkMessage['name']}_webhook",
-            E::ts('Could not update webhook. You can review from your account dashboard.<br/>The webhook URL is: %3', [
+            E::ts('Could not update webhook. You can review from your account dashboard.') . '<br/>'
+            . E::ts('The webhook URL is: %1', [1 => urldecode($webhook_path)]) . ".<br/>Error from {$checkMessage['label']}: <em>" . $e->getMessage() . '</em>',
+            "{$checkMessage['label']} " . E::ts('Webhook: %1 (%2)', [
               1 => $paymentProcessor['name'],
               2 => $paymentProcessor['id'],
-              3 => urldecode($webhook_path),
-            ]) . ".<br/>Error from {$checkMessage['label']}: <em>" . $e->getMessage() . '</em>',
-            "{$checkMessage['label']} " . E::ts('Webhook: %1 (%2)', [
-                1 => $paymentProcessor['name'],
-                2 => $paymentProcessor['id'],
-              ]
+            ]
             ),
             \Psr\Log\LogLevel::WARNING,
             'fa-money'
@@ -196,15 +190,12 @@ class CRM_AuthorizeNet_Webhook {
           catch (Exception $e) {
             $messages[] = new CRM_Utils_Check_Message(
               "{$checkMessage['name']}_webhook",
-              E::ts('Could not create webhook. You can review from your account dashboard.<br/>The webhook URL is: %3', [
+              E::ts('Could not create webhook. You can review from your account dashboard.') . '<br/>'
+              . E::ts('The webhook URL is: %1', [1 => urldecode($webhook_path)]) . ".<br/>Error from {$checkMessage['label']}: <em>" . $e->getMessage() . '</em>',
+              "{$checkMessage['label']} " . E::ts('Webhook: %1 (%2)', [
                 1 => $paymentProcessor['name'],
                 2 => $paymentProcessor['id'],
-                3 => urldecode($webhook_path),
-              ]) . ".<br/>Error from {$checkMessage['label']}: <em>" . $e->getMessage() . '</em>',
-              "{$checkMessage['label']} " . E::ts('Webhook: %1 (%2)', [
-                  1 => $paymentProcessor['name'],
-                  2 => $paymentProcessor['id'],
-                ]
+              ]
               ),
               \Psr\Log\LogLevel::WARNING,
               'fa-money'
@@ -215,8 +206,8 @@ class CRM_AuthorizeNet_Webhook {
           $message = new CRM_Utils_Check_Message(
             __FUNCTION__ . $paymentProcessor['id'] . "{$checkMessage['name']}_webhook",
             E::ts(
-              "{$checkMessage['label']} Webhook missing or needs update! <em>Expected webhook path is: <a href='%1' target='_blank'>%1</a></em>",
-              [1 => urldecode($webhook_path)]
+              "%2 Webhook missing or needs update! <em>Expected webhook path is: <a href='%1' target='_blank'>%1</a></em>",
+              [1 => urldecode($webhook_path), 2 => $checkMessage['label']]
             ),
             self::getTitle($paymentProcessor),
             \Psr\Log\LogLevel::WARNING,
@@ -258,20 +249,28 @@ class CRM_AuthorizeNet_Webhook {
   public static function getDefaultEnabledEvents(): array {
     // See https://developer.authorize.net/api/reference/features/webhooks.html#Event_Types_and_Payloads
     return [
-      'net.authorize.payment.authcapture.created', // Notifies you that an authorization and capture transaction was created.
-      'net.authorize.payment.refund.created', // Notifies you that a successfully settled transaction was refunded.
-      'net.authorize.payment.void.created', // Notifies you that an unsettled transaction was voided.
+    // Notifies you that an authorization and capture transaction was created.
+      'net.authorize.payment.authcapture.created',
+    // Notifies you that a successfully settled transaction was refunded.
+      'net.authorize.payment.refund.created',
+    // Notifies you that an unsettled transaction was voided.
+      'net.authorize.payment.void.created',
 
       //'net.authorize.customer.subscription.created', // Notifies you that a subscription was created.
       //'net.authorize.customer.subscription.updated', // Notifies you that a subscription was updated.
       //'net.authorize.customer.subscription.suspended',// Notifies you that a subscription was suspended.
-      'net.authorize.customer.subscription.terminated',// Notifies you that a subscription was terminated.
-      'net.authorize.customer.subscription.cancelled', // Notifies you that a subscription was cancelled.
+    // Notifies you that a subscription was terminated.
+      'net.authorize.customer.subscription.terminated',
+    // Notifies you that a subscription was cancelled.
+      'net.authorize.customer.subscription.cancelled',
       //'net.authorize.customer.subscription.expiring', // Notifies you when a subscription has only one recurrence left to be charged.
 
-      'net.authorize.payment.fraud.held', // Notifies you that a transaction was held as suspicious.
-      'net.authorize.payment.fraud.approved', // Notifies you that a previously held transaction was approved.
-      'net.authorize.payment.fraud.declined', // Notifies you that a previously held transaction was declined.
+    // Notifies you that a transaction was held as suspicious.
+      'net.authorize.payment.fraud.held',
+    // Notifies you that a previously held transaction was approved.
+      'net.authorize.payment.fraud.approved',
+    // Notifies you that a previously held transaction was declined.
+      'net.authorize.payment.fraud.declined',
     ];
   }
 

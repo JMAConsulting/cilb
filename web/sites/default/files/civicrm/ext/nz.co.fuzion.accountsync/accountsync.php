@@ -1,5 +1,6 @@
 <?php
 
+use Civi\Api4\Contribution;
 use Civi\Hooks\SearchKitTasks;
 
 require_once 'accountsync.civix.php';
@@ -36,8 +37,14 @@ function accountsync_civicrm_enable() {
  * @param string $objectName
  * @param int $objectId
  * @param object $objectRef
+ * @param array|null $params
+ *   The same $params array hook_civicrm_pre() received for this save (CiviCRM
+ *   passes it through unchanged as the 5th hook_civicrm_post argument for
+ *   every entity accountsync tracks). Used to read back the pre-save
+ *   snapshot _accountsync_capture_pre_save_values() stashed on it - see that
+ *   function for why.
  */
-function accountsync_civicrm_post(string $op, string $objectName, $objectId, &$objectRef) {
+function accountsync_civicrm_post(string $op, string $objectName, $objectId, &$objectRef, $params = NULL) {
   $whitelistOps = ['update', 'create', 'restore', 'edit'];
 
   if (!in_array($op, $whitelistOps)) {
@@ -49,12 +56,23 @@ function accountsync_civicrm_post(string $op, string $objectName, $objectId, &$o
   //   which will cause it to create a new AccountsInvoice record before the code has chance to update an existing AccountsInvoice record
   //   if one already exists but does not yet contain a CiviCRM contribution ID.
   // By setting this flag to FALSE we can prevent this hook from triggering the AccountsInvoice create action.
-  if (isset(\Civi::$statics['data.accountsync.createcontribution']['createnew']) && (\Civi::$statics['data.accountsync.createcontribution']['createnew'] === FALSE)) {
+  if (_accountsync_is_post_hook_suppressed()) {
     return;
   }
 
   $connectors = _accountsync_get_connectors();
   $objectName = _accountsync_map_object_name_to_entity($objectName);
+  // CiviCRM's post hook fires whenever an entity is saved, even if nothing
+  // actually changed (e.g. a routine background resave by an unrelated
+  // scheduled job). Without this check we would flag the contact for
+  // accounts sync every time, regardless of whether there is anything new
+  // to push.
+  $hasRelevantChange = _accountsync_entity_has_relevant_change('contact', $op, $objectName, $objectId, $params);
+  // Same "did anything actually change" problem, but for the separate
+  // invoice-creation trigger below - a no-op resave of a Contribution
+  // (e.g. by an unrelated scheduled job) would otherwise re-queue its
+  // invoice for push every time, indistinguishably from a real edit.
+  $hasInvoiceRelevantChange = _accountsync_entity_has_relevant_change('invoice', $op, $objectName, $objectId, $params);
 
   foreach ($connectors as $connector_id) {
     $createEntities = _accountsync_get_contact_create_entities($connector_id);
@@ -86,18 +104,20 @@ function accountsync_civicrm_post(string $op, string $objectName, $objectId, &$o
               // @todo refine when we return early in case of odd cases where we DO want to know.
               return;
             }
-            $contactID = civicrm_api3('Contribution', 'getvalue', [
-              'id' => $contribution_id,
-              'return' => 'contact_id',
-            ]);
+            $contactID = Contribution::get(FALSE)
+              ->addSelect('contact_id')
+              ->addWhere('id', '=', $contribution_id)
+              ->execute()->single()['contact_id'];
+
             break;
 
           case 'Contribution':
             $contribution_id = $objectRef->id;
-            $contactID = civicrm_api3('Contribution', 'getvalue', [
-              'id' => $contribution_id,
-              'return' => 'contact_id',
-            ]);
+            $contactID = Contribution::get(FALSE)
+              ->addSelect('contact_id')
+              ->addWhere('id', '=', $contribution_id)
+              ->execute()->single()['contact_id'];
+
             break;
           case 'Contact':
             $contactID = $objectRef->id;
@@ -105,12 +125,15 @@ function accountsync_civicrm_post(string $op, string $objectName, $objectId, &$o
         }
       }
 
-      if (isset($contactID)) {
+      if (isset($contactID) && $hasRelevantChange) {
         _accountsync_create_account_contact($contactID, in_array($objectName, $createEntities), $connector_id);
       }
     }
 
-    if (in_array($objectName, $invoiceEntities)) {
+    // Gate the whole block on $hasInvoiceRelevantChange, not just the final
+    // call - otherwise a no-op resave still pays for the day-zero check and
+    // an extra Contribution.getsingle API call below for nothing.
+    if (in_array($objectName, $invoiceEntities) && $hasInvoiceRelevantChange) {
       $contribution_id = ($objectName == 'LineItem') ? (is_array($objectRef) ? $objectRef['contribution_id'] : $objectRef->contribution_id) : $objectRef->id;
       if (isBeforeDayZero($objectName, $objectRef, $contribution_id, $invoiceDayZero)) {
         return;
@@ -141,7 +164,7 @@ function accountsync_civicrm_post(string $op, string $objectName, $objectId, &$o
         continue;
       }
       // we won't do updates as the invoices get 'locked' in the accounts system
-      _accountsync_create_account_invoice($contribution_id, TRUE, $connector_id);
+      _accountsync_create_account_invoice($contribution_id, $connector_id);
     }
   }
 
@@ -150,7 +173,7 @@ function accountsync_civicrm_post(string $op, string $objectName, $objectId, &$o
 /**
  * Is the invoice before the day zero.
  *
- * We only sync contributions afer the day zero date.
+ * We only sync contributions after the day zero date.
  *
  * @param string $objectName
  * @param CRM_Contribute_BAO_Contribution|CRM_Price_BAO_LineItem $objectRef
@@ -188,40 +211,43 @@ function isBeforeDayZero($objectName, $objectRef, $contribution_id, $invoiceDayZ
  *   Array of ids from civicrm_connectors or 0 for settings only.
  */
 function _accountsync_get_connectors() {
-  $connectors = [];
-  $entities = civicrm_api3('Entity', 'get')['values'];
-  if (!in_array('ConnectorType', $entities, TRUE)) {
-    return [0];
-  }
-  if (empty($connectors)) {
-    try {
-      $result = civicrm_api3('connector_type', 'get', [
-        'module' => 'accountsync',
-        'function' => 'credentials',
-        'api.connector.get' => 1,
-      ]);
+  if (!isset(\Civi::$statics[__FUNCTION__])) {
+    $connectors = [];
+    $entities = civicrm_api3('Entity', 'get')['values'];
+    if (!in_array('ConnectorType', $entities, TRUE)) {
+      \Civi::$statics[__FUNCTION__] = [0];
+      return \Civi::$statics[__FUNCTION__];
+    }
+    if (empty($connectors)) {
+      try {
+        $result = civicrm_api3('connector_type', 'get', [
+          'module' => 'accountsync',
+          'function' => 'credentials',
+          'api.connector.get' => 1,
+        ]);
 
-      if (!$result['count']) {
-        throw new Exception('No connector types found. Fallback to settings');
-      }
-      foreach ($result['values'] as $id => $connector_type) {
-        $connectorResults = $connector_type['api.connector.get'];
-        if (!empty($connectorResults['count'])) {
-          foreach ($connectorResults['values'] as $connectorResult) {
-            $connectors[] = $connectorResult['id'];
+        if (!$result['count']) {
+          throw new Exception('No connector types found. Fallback to settings');
+        }
+        foreach ($result['values'] as $id => $connector_type) {
+          $connectorResults = $connector_type['api.connector.get'];
+          if (!empty($connectorResults['count'])) {
+            foreach ($connectorResults['values'] as $connectorResult) {
+              $connectors[] = $connectorResult['id'];
+            }
           }
         }
+        if (empty($connectors)) {
+          throw new Exception('No connectors found. Fallback to settings');
+        }
       }
-      if (empty($connectors)) {
-        throw new Exception('No connectors found. Fallback to settings');
+      catch (Exception $e) {
+        $connectors = [0];
       }
-
     }
-    catch (Exception $e) {
-      $connectors = [0];
-    }
+    \Civi::$statics[__FUNCTION__] = $connectors;
   }
-  return $connectors;
+  return \Civi::$statics[__FUNCTION__];
 }
 
 /**
@@ -244,7 +270,7 @@ function _accountsync_validate_for_connector($connector_id, $financial_type_id) 
   if (!isset($connector_financial_types[$financial_type_id])) {
     $connector_financial_types[$financial_type_id] = CRM_Accountsync_BAO_AccountInvoice::getAccountsContact($financial_type_id);
   }
-  if ($accounts_contact_id == CRM_Utils_Array::value($financial_type_id, $connector_financial_types)) {
+  if ($accounts_contact_id == ($connector_financial_types[$financial_type_id] ?? NULL)) {
     return TRUE;
   }
   else {
@@ -279,9 +305,9 @@ function _accountsync_get_contact_create_entities(int $connector_id): array {
  *
  * @throws \CRM_Core_Exception
  */
-function _accountsync_get_contact_update_entities($connector_id) {
+function _accountsync_get_contact_update_entities($connector_id): array {
   $entities = _accountsync_get_entity_action_settings($connector_id);
-  $createEntities = CRM_Utils_Array::value('account_sync_queue_update_contacts', $entities, []);
+  $createEntities = CRM_Utils_Array::value('account_sync_queue_update_contacts', $entities, []) ?? [];
   return $createEntities;
 }
 
@@ -313,7 +339,7 @@ function _accountsync_get_invoice_create_entities($connector_id) {
  *
  * @throws \CRM_Core_Exception
  */
-function _accountsync_get_skip_invoice_create_entities($connector_id) {
+function _accountsync_get_skip_invoice_create_entities($connector_id): array {
   $entities = _accountsync_get_entity_action_settings($connector_id);
   $skipEntities = $entities['account_sync_skip_inv_by_pymt_processor'] ?? [];
   if ($skipEntities === ['']) {
@@ -420,6 +446,29 @@ function accountsync_civicrm_pre($op, $objectName, $id, &$params) {
   $objectName = _accountsync_map_object_name_to_entity($objectName);
   _accountsync_handle_contact_deletion($op, $objectName, $id, $params);
   _accountsync_handle_contribution_deletion($op, $objectName, $id, $params);
+  if (_accountsync_is_post_hook_suppressed()) {
+    // accountsync_civicrm_post() is about to bail out for this save (see
+    // PR #62) before ever reading a snapshot captured here - skip the
+    // pointless "before" lookup rather than doing work nothing will use.
+    return;
+  }
+  _accountsync_capture_pre_save_values('contact', $op, $objectName, $id, $params);
+  _accountsync_capture_pre_save_values('invoice', $op, $objectName, $id, $params);
+}
+
+/**
+ * Is accountsync_civicrm_post() currently suppressed for the "accounts
+ * provider created a Contribution" case (see PR #62's
+ * data.accountsync.createcontribution static)? Shared by
+ * accountsync_civicrm_pre() and accountsync_civicrm_post() so the two stay
+ * in sync: hook_civicrm_pre() must never do work whose only consumer is a
+ * hook_civicrm_post() call that's about to bail out before reading it.
+ *
+ * @return bool
+ */
+function _accountsync_is_post_hook_suppressed(): bool {
+  return isset(\Civi::$statics['data.accountsync.createcontribution']['createnew'])
+    && (\Civi::$statics['data.accountsync.createcontribution']['createnew'] === FALSE);
 }
 
 /**
@@ -507,6 +556,205 @@ function _accountsync_map_object_name_to_entity($objectName) {
     return 'Contact';
   }
   return $objectName;
+}
+
+/**
+ * Fields, per sync "purpose" and entity, whose value actually affects what
+ * gets synced to an accounts package. Only entities listed for the given
+ * purpose get a "did it really change" check before being flagged (see
+ * _accountsync_entity_has_relevant_change()) - anything else (e.g.
+ * LineItem) is always treated as changed, same as before this whole
+ * mechanism existed.
+ *
+ * These lists are necessarily a best-effort guess at what a connector
+ * plugin (e.g. nz.co.fuzion.civixero) actually maps into the accounts
+ * package: accountsync has no visibility into that, since a plugin can
+ * alter the mapped payload arbitrarily via the accountPushAlterMapped
+ * hook. A field a real connector syncs but this list omits would cause
+ * that field's changes to go undetected (silent, permanent sync drift)
+ * rather than the over-flagging this whole mechanism exists to prevent -
+ * so any field a plugin starts pushing needs a matching addition here.
+ * A more robust long-term fix would let connector plugins register their
+ * own relevant fields (e.g. via a dedicated hook) rather than accountsync
+ * guessing on their behalf, but that's a larger, cross-extension change.
+ *
+ * @param string $purpose
+ *   'contact' or 'invoice'.
+ *
+ * @return array
+ *
+ * @throws \InvalidArgumentException
+ *   If $purpose isn't a recognised value. Every call site in this file
+ *   passes a literal 'contact' or 'invoice', so this can only fire if a
+ *   future change introduces a typo - an immediate, clearly-attributed
+ *   exception here is far easier to diagnose than the "trying to access
+ *   array offset on null" warning that indexing a missing purpose key
+ *   would otherwise produce a level down in the caller.
+ */
+function _accountsync_get_sync_relevant_fields(string $purpose): array {
+  $fields = [
+    'contact' => [
+      'Contact' => ['first_name', 'last_name', 'display_name', 'organization_name', 'household_name'],
+      'Email' => ['email', 'is_primary', 'location_type_id'],
+      'Phone' => ['phone', 'is_primary', 'location_type_id'],
+      'Address' => [
+        'street_address', 'city', 'postal_code',
+        'supplemental_address_1', 'supplemental_address_2', 'supplemental_address_3',
+        'country_id', 'state_province_id', 'is_primary', 'location_type_id',
+      ],
+    ],
+    // 'LineItem' is deliberately not covered here - it only appears via an
+    // internal per-connector substitution, not a directly selectable
+    // setting, so it always falls through to "treat as changed".
+    'invoice' => [
+      'Contribution' => [
+        'contact_id', 'total_amount', 'contribution_status_id', 'receive_date',
+        'financial_type_id', 'trxn_id', 'currency', 'source',
+      ],
+    ],
+  ];
+  if (!isset($fields[$purpose])) {
+    throw new \InvalidArgumentException("Unrecognised accountsync sync purpose '$purpose' - expected 'contact' or 'invoice'.");
+  }
+  return $fields[$purpose];
+}
+
+/**
+ * Is $objectName configured, for any connector, to trigger a contact
+ * create/update ($purpose = 'contact') or an invoice create ($purpose =
+ * 'invoice')? Used to avoid the extra "before" lookup in
+ * _accountsync_capture_pre_save_values() for entities accountsync isn't
+ * even watching for the given purpose.
+ *
+ * @param string $purpose
+ *   'contact' or 'invoice'.
+ * @param string $objectName
+ *
+ * @return bool
+ */
+function _accountsync_entity_triggers_sync(string $purpose, string $objectName): bool {
+  foreach (_accountsync_get_connectors() as $connector_id) {
+    $trackedEntities = ($purpose === 'invoice')
+      ? _accountsync_get_invoice_create_entities($connector_id)
+      : array_merge(
+        _accountsync_get_contact_create_entities($connector_id),
+        _accountsync_get_contact_update_entities($connector_id)
+      );
+    if (in_array($objectName, $trackedEntities, TRUE)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Capture the current (pre-save) values of any sync-relevant fields for an
+ * entity that hook_civicrm_post might otherwise unconditionally flag for
+ * accounts sync ($purpose = 'contact') or queue for invoice creation
+ * ($purpose = 'invoice').
+ *
+ * We only need this for an 'edit'/'update' of an entity we know how to diff
+ * (see _accountsync_get_sync_relevant_fields()) - 'create'/'restore' are
+ * always a real change, so there's nothing to capture for them.
+ *
+ * The snapshot is stashed directly on $params - the same array
+ * hook_civicrm_pre() received here - rather than in a static registry keyed
+ * by entity+id. CiviCRM passes this exact $params array through unchanged
+ * to hook_civicrm_post() as its 5th argument, for every entity accountsync
+ * tracks (verified against CRM_Contact_BAO_Contact::create(),
+ * CRM_Contribute_BAO_Contribution::create() and CRM_Core_DAO::writeRecord(),
+ * which Email/Phone/Address all funnel through) - so this snapshot is
+ * inherently scoped to this one save, with no cross-save state to leak if
+ * hook_civicrm_post() never reads it, and no assumption about the relative
+ * order in which concurrent saves of the same entity id are processed.
+ *
+ * @param string $purpose
+ *   'contact' or 'invoice'.
+ * @param string $op
+ * @param string $objectName
+ * @param int $id
+ * @param array $params
+ */
+function _accountsync_capture_pre_save_values(string $purpose, $op, $objectName, $id, &$params) {
+  if (!in_array($op, ['edit', 'update'], TRUE) || empty($id)) {
+    return;
+  }
+  $relevantFields = _accountsync_get_sync_relevant_fields($purpose)[$objectName] ?? NULL;
+  if ($relevantFields === NULL || !_accountsync_entity_triggers_sync($purpose, $objectName)) {
+    return;
+  }
+  try {
+    $before = civicrm_api4($objectName, 'get', [
+      'checkPermissions' => FALSE,
+      'select' => $relevantFields,
+      'where' => [['id', '=', $id]],
+    ])->single();
+    $params['_accountsync_before'][$purpose] = $before;
+  }
+  catch (CRM_Core_Exception $e) {
+    // No snapshot means _accountsync_entity_has_relevant_change() will fail
+    // safe below and treat this save as a real change.
+  }
+}
+
+/**
+ * Did a just-saved entity actually change in a way relevant to accounts
+ * sync ($purpose = 'contact') or invoice sync ($purpose = 'invoice'),
+ * compared with the snapshot captured in
+ * _accountsync_capture_pre_save_values()?
+ *
+ * Deliberately re-fetches the saved record via API rather than reading
+ * fields off hook_civicrm_post's $objectRef: $objectRef only carries
+ * properties for whatever fields happened to be present in that save's
+ * own params, not a full row. A partial update that omits one of our
+ * tracked fields would otherwise read as NULL there and be misread as
+ * "changed" even when nothing was touched.
+ *
+ * This fails "open" (returns TRUE, i.e. assume changed) whenever we cannot
+ * be sure - no snapshot was captured, the entity type isn't one we know how
+ * to diff, the op is create/restore, or the post-save fetch fails - so it
+ * can only ever suppress an unnecessary sync flag, never miss a real one.
+ *
+ * @param string $purpose
+ *   'contact' or 'invoice'.
+ * @param string $op
+ * @param string $objectName
+ * @param int $objectId
+ * @param array|null $params
+ *   hook_civicrm_post()'s own 5th argument - the same array
+ *   _accountsync_capture_pre_save_values() stashed the snapshot on.
+ *
+ * @return bool
+ */
+function _accountsync_entity_has_relevant_change(string $purpose, $op, $objectName, $objectId, $params = NULL): bool {
+  if (!in_array($op, ['edit', 'update'], TRUE)) {
+    return TRUE;
+  }
+  $relevantFields = _accountsync_get_sync_relevant_fields($purpose)[$objectName] ?? NULL;
+  if ($relevantFields === NULL) {
+    return TRUE;
+  }
+  $before = $params['_accountsync_before'][$purpose] ?? NULL;
+  if ($before === NULL) {
+    return TRUE;
+  }
+  try {
+    $after = civicrm_api4($objectName, 'get', [
+      'checkPermissions' => FALSE,
+      'select' => $relevantFields,
+      'where' => [['id', '=', $objectId]],
+    ])->single();
+  }
+  catch (CRM_Core_Exception $e) {
+    // Can't confirm the saved state - fail safe and treat as changed.
+    return TRUE;
+  }
+  foreach ($relevantFields as $field) {
+    if ((string) ($before[$field] ?? '') !== (string) ($after[$field] ?? '')) {
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 
 /**
@@ -609,44 +857,52 @@ function _accountsync_create_account_contact($contactID, $createNew, $connector_
  * Create account invoice record or set needs_update flag.
  *
  * @param int $contributionID
- * @param bool $createNew
  * @param int $connector_id
  *   ID of connector for civicrm_connector if nz.co.fuzion.connectors enabled.
  *   Otherwise this will be 0.
+ *
+ * @return void
  */
-function _accountsync_create_account_invoice($contributionID, $createNew, $connector_id) {
-  $accountInvoice = [
-    'contribution_id' => $contributionID,
-    'accounts_needs_update' => 1,
-    // Do not rollback on fail.
-    'is_transactional' => FALSE,
-  ];
+function _accountsync_create_account_invoice(int $contributionID, int $connector_id): void {
   foreach (_accountsync_get_enabled_plugins() as $plugin) {
-    unset($accountInvoice['id']); // Ensure id is not set in case of multiple plugins
-
-    if ($connector_id) {
-      $accountInvoice['connector_id'] = $connector_id;
-    }
+    // Check for existing AccountInvoice
+    $existingAccountInvoiceWheres = [
+      ['plugin', '=', $plugin],
+      ['connector_id', '=', $connector_id],
+      ['contribution_id', '=', $contributionID],
+    ];
     try {
-      $accountInvoice['id'] = civicrm_api3('AccountInvoice', 'getvalue', [
-        'plugin' => $plugin,
-        'return' => 'id',
-        'contribution_id' => $contributionID,
-        'connector_id' => $connector_id,
-      ]);
-    }
-    catch (CRM_Core_Exception $e) {
-      // new invoice
-      if (!$createNew) {
-        continue;
+      $existingAccountInvoice = \Civi\Api4\AccountInvoice::get(FALSE)
+        ->addSelect('id')
+        ->setWhere($existingAccountInvoiceWheres)
+        ->execute()
+        ->first();
+      if (empty($existingAccountInvoice)) {
+        // Create new AccountInvoice record and flag as needing sync with accounts system
+        \Civi\Api4\AccountInvoice::create(FALSE)
+          ->addValue('plugin', $plugin)
+          ->addValue('connector_id', $connector_id)
+          ->addValue('contribution_id', $contributionID)
+          ->addValue('accounts_needs_update', TRUE)
+          ->execute();
+      }
+      else {
+        // We have an existing AccountInvoice record
+        // Flag existing AccountInvoice as needing sync with accounts system.
+        \Civi\Api4\AccountInvoice::update(FALSE)
+          ->setWhere($existingAccountInvoiceWheres)
+          ->addValue('accounts_needs_update', TRUE)
+          ->execute();
       }
     }
-    $accountInvoice['plugin'] = $plugin;
-    try {
-      civicrm_api3('AccountInvoice', 'create', $accountInvoice);
-    }
-    catch (CRM_Core_Exception $e) {
-      // Unknown failure.
+    catch (Throwable $e) {
+      // We are in hook_civicrm_post for the contribution, so anything thrown here would
+      // propagate out and roll back the contribution/payment the user just made. Failing
+      // to flag for accounts sync must never do that - log it and carry on.
+      \Civi::log('account_sync')->error('issue creating account invoice for contributionID {contributionID}: {message}', [
+        'contributionID' => $contributionID,
+        'message' => $e->getMessage(),
+      ]);
     }
   }
 }
@@ -703,4 +959,19 @@ function accountsync_civicrm_merge($type, &$data, $new_id = NULL, $old_id = NULL
 function accountsync_civicrm_check(array &$messages): void {
   $checks = new CRM_Accountsync_Check($messages);
   $messages = $checks->checkRequirements();
+}
+
+/**
+ * Implements hook_civicrm_alterLogTables().
+ *
+ * MariaDB gives last_sync_date (ON UPDATE CURRENT_TIMESTAMP) a new value in
+ * the logging trigger even when an UPDATE changes nothing, so comparing it
+ * would log a row for every no-op save.
+ */
+function accountsync_civicrm_alterLogTables(array &$logTableSpec): void {
+  foreach (['civicrm_account_contact', 'civicrm_account_invoice'] as $table) {
+    if (isset($logTableSpec[$table])) {
+      $logTableSpec[$table]['exceptions'][] = 'last_sync_date';
+    }
+  }
 }

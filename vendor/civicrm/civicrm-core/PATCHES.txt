@@ -41,10 +41,6 @@ Apply patch to hide revert changes button on loggin report
 Source: patches/hide_revert_changes.patch
 
 
-Apply patch to allow for logging to be turned on and off
-Source: ./patches/civicrm_allow_logging_on_multilingual_environments.patch
-
-
 Apply patch to support date queries in Webform customisation
 Source: patches/support_webform_civicrm_customisation.patch
 

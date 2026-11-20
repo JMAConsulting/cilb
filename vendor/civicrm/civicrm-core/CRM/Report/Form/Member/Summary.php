@@ -305,22 +305,10 @@ class CRM_Report_Form_Member_Summary extends CRM_Report_Form {
 
               LEFT JOIN civicrm_membership_status
                         ON ({$this->_aliases['civicrm_membership']}.status_id = civicrm_membership_status.id  )
-        ";
-    if (CRM_Price_BAO_LineItem::siteHasMembershipPaymentRecordsNotReflectedInLineItems()) {
-      \Civi::log('data')->warning('not all membership payment records reflected in line items');
-      // Ideally we would probably create a temp table combining the 2 here, rather than assume the error is only one way.
-      $this->_from .= "LEFT JOIN civicrm_membership_payment payment
+              LEFT JOIN " . $this->getMembershipContributionTableSql() . " payment
                         ON ( {$this->_aliases['civicrm_membership']}.id = payment.membership_id )
               LEFT JOIN civicrm_contribution {$this->_aliases['civicrm_contribution']}
                          ON payment.contribution_id = {$this->_aliases['civicrm_contribution']}.id";
-    }
-    else {
-      $this->_from .= "LEFT JOIN civicrm_line_item line
-                        ON ( {$this->_aliases['civicrm_membership']}.id = line.entity_id AND line.entity_table = 'civicrm_membership')
-              LEFT JOIN civicrm_contribution {$this->_aliases['civicrm_contribution']}
-                         ON line.contribution_id = {$this->_aliases['civicrm_contribution']}.id";
-    }
-
   }
 
   public function where() {
@@ -346,15 +334,16 @@ class CRM_Report_Form_Member_Summary extends CRM_Report_Form {
               if (!empty($table['group_bys'][$fieldName]['frequency']) &&
                 !empty($this->_params['group_bys_freq'][$fieldName])
               ) {
-
+                $freq = strtoupper($this->_params['group_bys_freq'][$fieldName]);
+                if (!array_key_exists($freq, $this->_groupByDateFreq)) {
+                  throw new CRM_Core_Exception(ts('Invalid frequency'));
+                }
                 $append = "YEAR({$field['dbAlias']})";
-                if (in_array(strtolower($this->_params['group_bys_freq'][$fieldName]),
-                  ['year']
-                )) {
+                if ($freq === 'YEAR') {
                   $append = '';
                 }
                 $this->_groupByArray[] = $append;
-                $this->_groupByArray[] = "{$this->_params['group_bys_freq'][$fieldName]}({$field['dbAlias']})";
+                $this->_groupByArray[] = "{$freq}({$field['dbAlias']})";
                 $append = TRUE;
               }
               else {

@@ -7,7 +7,7 @@
  *
  * @return array
  *   API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_account_invoice_create($params) {
   return _civicrm_api3_basic_create('CRM_Accountsync_BAO_AccountInvoice', $params);
@@ -21,7 +21,7 @@ function civicrm_api3_account_invoice_create($params) {
  * @return array
  *   API result descriptor
  *
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_account_invoice_delete($params) {
   return _civicrm_api3_basic_delete('CRM_Accountsync_BAO_AccountInvoice', $params);
@@ -35,7 +35,7 @@ function civicrm_api3_account_invoice_delete($params) {
  * @return array
  *   API result descriptor
  *
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_account_invoice_get($params) {
   return _civicrm_api3_basic_get('CRM_Accountsync_BAO_AccountInvoice', $params);
@@ -67,7 +67,7 @@ function _civicrm_api3_account_invoice_getderived_spec(&$spec) {
  *
  * @return array
  *   API result descriptor
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_account_invoice_getderived($params) {
   return civicrm_api3_create_success(CRM_Accountsync_BAO_AccountInvoice::getDerived($params));
@@ -95,15 +95,19 @@ function _civicrm_api3_account_invoice_update_contribution_spec(&$spec) {
  *
  * @throws \Exception
  */
-function civicrm_api3_account_invoice_update_contribution($params) {
-  if ($params['accounts_status_id'] == CRM_Core_PseudoConstant::getKey('CRM_Accountsync_BAO_AccountInvoice', 'accounts_status_id', 'completed')) {
-    CRM_Accountsync_BAO_AccountInvoice::completeContributionFromAccountsStatus();
-  }
-  elseif ($params['accounts_status_id'] == CRM_Core_PseudoConstant::getKey('CRM_Accountsync_BAO_AccountInvoice', 'accounts_status_id', 'cancelled')) {
-    CRM_Accountsync_BAO_AccountInvoice::cancelContributionFromAccountsStatus();
-  }
-  else {
-    throw new Exception('Currently only completed/cancelled is supported');
+function civicrm_api3_account_invoice_update_contribution(array $params): array {
+  $accountsStatus = CRM_Core_PseudoConstant::getName('CRM_Accountsync_BAO_AccountInvoice', 'accounts_status_id', $params['accounts_status_id'] ?? '');
+  switch ($accountsStatus) {
+    case 'completed':
+      CRM_Accountsync_BAO_AccountInvoice::completeContributionFromAccountsStatus();
+      break;
+
+    case 'cancelled':
+      CRM_Accountsync_BAO_AccountInvoice::cancelContributionFromAccountsStatus();
+      break;
+
+    default:
+      throw new CRM_Core_Exception('Currently only completed/cancelled is supported');
   }
   return civicrm_api3_create_success();
 }

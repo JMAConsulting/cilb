@@ -109,7 +109,7 @@ function advanced_events_civicrm_pre($op, $objectName, $id, &$params) {
             $params['template_title'] = '';
             $params['parent_event_id'] = NULL;
           }
-        // Fall through to edit so we can make sure the title is set.
+          // Fall through to edit so we can make sure the title is set.
         case 'edit':
           // Templates do not get a title, but we need them to have one to use RecurringEntity to create events from them
           if (!empty($params['template_title']) && empty($params['title'])) {
@@ -180,7 +180,9 @@ function advanced_events_civicrm_pageRun(&$page) {
     $method = 'getTemplateVars';
     $rows = $page->$method()['rows'];
     foreach ($rows as $eventId => &$details) {
-      if ($eventId === 'tab') { continue; }
+      if ($eventId === 'tab') {
+        continue;
+      }
       $details['template'] = '';
       // Get the url/details for the template for the event
       if (is_numeric($eventId)) {
@@ -249,12 +251,15 @@ function advanced_events_civicrm_postProcess($formName, &$form) {
 
 /**
  * Implements hook_civicrm_entity_supported_info().
+ *
  * This allows EventTemplate entity to be used in Drupal Views etc.
  */
 function advanced_events_civicrm_entity_supported_info(&$civicrm_entity_info) {
   $civicrm_entity_info['civicrm_event_template'] = [
-    'civicrm entity name' => 'event_template', // the api entity name
-    'label property' => 'title', // name is the property we want to use for the entity label
+    // The API entity name.
+    'civicrm entity name' => 'event_template',
+    // The property to use for the entity label.
+    'label property' => 'title',
     'permissions' => [
       'view' => ['view event info'],
       'edit' => ['edit all events'],
@@ -266,16 +271,13 @@ function advanced_events_civicrm_entity_supported_info(&$civicrm_entity_info) {
       'link fields' => [
         ['link_field' => 'event_id', 'target' => 'civicrm_event'],
         ['link_field' => 'template_id', 'target' => 'civicrm_event'],
-      ]
-    ]
+      ],
+    ],
   ];
 }
 
 /**
- * Implementation of hook_civicrm_permission
- *
- * @param array $permissions
- * @return void
+ * Implements hook_civicrm_permission().
  */
 function advanced_events_civicrm_permission(&$permissions) {
   $permissions['create event'] = [

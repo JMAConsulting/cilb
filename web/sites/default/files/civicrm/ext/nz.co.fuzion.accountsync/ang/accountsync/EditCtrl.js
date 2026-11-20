@@ -1,4 +1,4 @@
-(function(angular, $, _) {
+(function(angular, $) {
 
   angular.module('accountsync', CRM.angular.modules)
 
@@ -156,11 +156,11 @@
     };
 
     $scope.removeItem = function(array, item) {
-      var idx = _.indexOf(array, item);
+      var idx = array.indexOf(item);
       if (idx != -1) {
         array.splice(idx, 1);
       }
     };
   });
 
-})(angular, CRM.$, CRM._);
+})(angular, CRM.$);

@@ -5,7 +5,7 @@
   <description>Authorize.net Payment Processor</description>
   <urls>
     <url desc="Main Extension Page">https://lab.civicrm.org/extensions/authnet</url>
-    <url desc="Documentation">https://lab.civicrm.org/extensions/authnet/-/blob/master/README.md</url>
+    <url desc="Documentation">https://docs.civicrm.org/authnetecheck/en/latest/</url>
     <url desc="Release Notes">https://docs.civicrm.org/authnetecheck/en/latest/releasenotes/</url>
     <url desc="Support">https://mjw.pt/support/authnet</url>
     <url desc="Licensing">http://civicrm.org/licensing</url>
@@ -18,24 +18,25 @@
       <role>Maintainer</role>
     </author>
   </authors>
-  <releaseDate>2026-07-20</releaseDate>
-  <version>2.10.0</version>
+  <releaseDate>2026-11-18</releaseDate>
+  <version>2.11.0</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>6.14</ver>
+    <ver>6.19</ver>
   </compatibility>
   <requires>
     <ext>mjwshared</ext>
   </requires>
   <civix>
     <namespace>CRM/AuthNetEcheck</namespace>
-    <format>25.10.2</format>
+    <format>26.10.3</format>
   </civix>
   <mixins>
     <mixin>menu-xml@1.0.0</mixin>
     <mixin>mgd-php@2.0.0</mixin>
     <mixin>smarty@1.0.3</mixin>
     <mixin>scan-classes@1.0.0</mixin>
+    <mixin>ang-php@1.0.0</mixin>
   </mixins>
   <classloader>
     <psr0 prefix="CRM_" path="."/>

@@ -46,6 +46,14 @@ $columns = [
     'label' => E::ts('Last Synchronization Date'),
     'sortable' => TRUE,
   ],
+  [
+    'type' => 'field',
+    'key' => 'accounts_needs_update',
+    'dataType' => 'Boolean',
+    'label' => E::ts('Accounts Needs Update'),
+    'sortable' => TRUE,
+    'editable' => TRUE,
+  ],
 ];
 $connectors = _accountsync_get_connectors();
 if (count($connectors) > 1) {
@@ -125,7 +133,9 @@ $searches = [
           ],
           'pager' => [],
           'placeholder' => 5,
-          'sort' => [],
+          'sort' => [
+            ['last_sync_date', 'DESC'],
+          ],
           'columns' => $columns,
         ],
       ],

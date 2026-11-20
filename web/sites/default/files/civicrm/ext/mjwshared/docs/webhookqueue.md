@@ -53,6 +53,8 @@ Use the API4 `PaymentprocessorWebhook` entity.
 
 Your payment processor will have a subclass of `CRM_Core_Payment` with all its specific code in. This is referred to as the "payment class" throughout this section of documentation.
 
+Implement `Civi\Mjwshared\PaymentProcessorWebhookInterface` on your payment class. This formalises the two methods described below and lets both core's IPN dispatcher and mjwshared's scheduled job recognise your class reliably (they fall back to checking whether the methods merely exist, for older processors that predate the interface, but new implementations should declare it).
+
 ### First, edit your payment class's `handlePaymentNotification()` method. This should
 
 1. examine, unpack, verify, authenticate etc. the incoming webhook request. (We assume that you already have this code written).
@@ -65,9 +67,11 @@ Your payment processor will have a subclass of `CRM_Core_Payment` with all its s
 
 5. Create a suitable http response. Typically a blank response with a suitable `http_response_code()`.
 
+6. **Return** rather than calling `exit`/`die`/`CRM_Utils_System::civiExit()` yourself. Core's `CRM_Core_Payment::handleIPN()` is the caller of this method; it still needs to run `CRM_Utils_Hook::postIPNProcess()` and its own final exit once every matching payment processor instance has had a turn. Exiting from inside `handlePaymentNotification()` skips that hook entirely for your processor.
+
 ```php
 <?php
-public function handlePaymentNotification() {
+public function handlePaymentNotification(): void {
 
   try {
     /** @var array of whatever the 3rd party events look like (must be JSON serializable) */
@@ -120,23 +124,29 @@ public function handlePaymentNotification() {
     http_response_code(400);
   }
 
-  // Assuming you don't need to provide any http body to the 3rd party...
-  exit;
+  // Do NOT call exit/die/civiExit() here - let CRM_Core_Payment::handleIPN()
+  // finish its own postIPNProcess hook + exit once it's done calling every
+  // matching processor instance.
 }
 ```
 
-### Then, create a `processWebhookEvent(array $webhookEvent)` method in your payment class.
+### Then, create a `processWebhookEvent(array $webhookEvent): bool` method in your payment class.
 
 This receives the row from `civicrm_paymentprocessor_webhook` (from `PaymentprocessorWebhook`) as an array. It should:
 
-1. attempt to process the data however it needs to.
-2. catch all exceptions
-3. update the webhook event entity recording the status success/error and any message
-4. return TRUE for success, FALSE for error
+1. reject the event if it's a duplicate of one already recorded under a lower ID - use `\Civi\Mjwshared\PaymentProcessorWebhook::rejectIfDuplicate($webhookEvent)` rather than re-deriving this query yourself.
+2. attempt to process the data however it needs to.
+3. catch all exceptions
+4. update the webhook event entity recording the status success/error and any message
+5. return TRUE for success, FALSE for error
 
 ```php
 <?php
-public function processWebhookEvent(array $webhookEvent) :bool {
+public function processWebhookEvent(array $webhookEvent): bool {
+  if (\Civi\Mjwshared\PaymentProcessorWebhook::rejectIfDuplicate($webhookEvent)) {
+    return FALSE;
+  }
+
   try {
     $webhookEvent['processed_date'] = 'now';
     // Pseudo code (doesn't have to be a separate method)
@@ -158,8 +168,11 @@ public function processWebhookEvent(array $webhookEvent) :bool {
 }
 ```
 
+Always call `CRM_Mjwshared_Webhook::getWebhookPath($paymentProcessorID)` to build your webhook URL rather than reimplementing it - it's a one-line wrapper around `CRM_Utils_System::url()`, but reimplementing it risks drifting from the canonical `civicrm/payment/ipn/<id>` route if that ever changes.
+
 # Legacy notes.
 
+The examples below predate `Civi\Mjwshared\PaymentProcessorWebhookInterface` and the `rejectIfDuplicate()` helper described above - kept for historical reference, not as a pattern to copy for new implementations.
 
 Currently it is only implemented for Stripe and `civicrm_api3_job_process_paymentprocessor_webhooks` function
 would need to be modified to call the appropriate API method for that processor instead of `Stripe.Ipn`. The

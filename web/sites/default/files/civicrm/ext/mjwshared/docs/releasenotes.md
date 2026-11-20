@@ -9,6 +9,33 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.8.0 (2026-11-16)
+
+* [!91](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/91) Add `Civi\Mjwshared\Checkout\BillingUtils` with `getBillingEmail()`, `getBillingAddress()` and `getBillingName()`, so payment processors using FormBuilder (Afform) checkout can look up billing details the same way until core provides equivalent helpers. `getBillingAddress()` returns an empty array when the contact has no billing or primary address.
+
+## Release 1.7.1 (2026-11-11)
+
+* [!90](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/90) Fix amounts of 1,000 or more being read as 1 when paying an existing contribution: the total was parsed without allowing for the thousands separator, so Stripe authorised the wrong amount and the payment failed ([stripe#524](https://lab.civicrm.org/extensions/stripe/-/issues/524)). Adds `CRM.payment.parseMoney()`, which uses the site's separators.
+* Now requires CiviCRM 6.16 or later (the extended security release); civix scaffolding upgraded to 26.10.3.
+* [!92](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/92) Fix coding-standard warnings: keep translatable strings on one line and don't pass NULL to `ts()`.
+
+## Release 1.7.0 (2026-11-07)
+
+* [!84](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/84) API4 `PaymentMJW.refund` now requires the "refund contributions" permission, matching the refund form and link. Previously it fell back to "administer CiviCRM", so only full administrators could call it - users with "refund contributions" can now refund through the API too.
+* [!85](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/85) Fix forms with a Cancel or webform "Previous" button being flagged on page load as "don't process payment"; the flag is now set only when one of those buttons is actually clicked.
+* [!83](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/83) Fix an "Undefined array key weight" warning for every payment row on the contribution edit form.
+* [!88](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/88) Move CI from CiviCARROT to native GitLab pipelines; fix coding-standard and jshint warnings (including loops leaking a global `i` in `crm.payment.js`), a PHP 8.5 deprecation in `PaymentMJW.create`, and use of the deprecated `CRM_Utils_Hook::$_nullObject`.
+
+## Release 1.6.1 (2026-08-22)
+
+* [!80](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/80) Fixed a crash processing queued webhooks if a payment processor referenced by one could no longer be loaded (e.g. its extension had been removed) - that event is now skipped and logged instead of failing the whole batch.
+* [!81](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/81) Improved field descriptions on the PaymentprocessorWebhook entity and tidied up the interface documentation introduced in 1.6.0. No functional change.
+
+## Release 1.6.0 (2026-08-19)
+
+* [!77](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/77) Tidied up how payment processor webhooks are handled behind the scenes, introducing a proper `Civi\Mjwshared\PaymentProcessorWebhookInterface` so extensions like Stripe and AuthNet can rely on shared, consistent code instead of each doing their own thing. No action needed for normal use - existing sites keep working as before. See [docs/webhookqueue.md](https://lab.civicrm.org/extensions/mjwshared/-/blob/master/docs/webhookqueue.md) if you're implementing this in your own payment processor.
+* [!78](https://lab.civicrm.org/extensions/mjwshared/-/merge_requests/78) Fixed a display glitch: a duplicate webhook that gets rejected now correctly shows as fully processed in the Payment Processor Webhooks admin screen, instead of looking stuck.
+
 ## Release 1.5.11 (2026-08-07)
 
 * Guard `refund_trxn_id` and `fee_amount` when refunding a manual / refund-unsupported payment (fixes an undefined-array-key warning on every such refund) plus a regression test.

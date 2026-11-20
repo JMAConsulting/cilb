@@ -22,27 +22,37 @@ use CRM_Mjwshared_ExtensionUtil as E;
 trait CRM_Core_Payment_MJWTrait {
 
   /**
-   * @var array params passed for payment
+   * Params passed for payment.
+   *
+   * @var array
    */
   protected $_params = [];
 
   /**
-   * @var string The unique charge/trxn reference from the payment processor
+   * The unique charge/trxn reference from the payment processor.
+   *
+   * @var string
    */
   private $paymentProcessorTrxnID;
 
   /**
-   * @var string The unique invoice/order reference from the payment processor
+   * The unique invoice/order reference from the payment processor.
+   *
+   * @var string
    */
   private $paymentProcessorOrderID;
 
   /**
-   * @var string The unique subscription reference from the payment processor
+   * The unique subscription reference from the payment processor.
+   *
+   * @var string
    */
   private $paymentProcessorSubscriptionID;
 
   /**
-   * @var bool Throw an exception in handleError.
+   * Throw an exception in handleError.
+   *
+   * @var bool
    */
   public $handleErrorThrowsException = FALSE;
 
@@ -265,7 +275,7 @@ trait CRM_Core_Payment_MJWTrait {
    * @param bool $log
    *
    * @throws \Civi\Payment\Exception\PaymentProcessorException
-   *   (or CRM_Core_Error::statusBounce if URL is specified)
+   *   Or CRM_Core_Error::statusBounce if URL is specified.
    */
   private function handleError(string $errorCode = '', string $errorMessage = '', string $bounceURL = '', bool $log = TRUE) {
     $errorMessage = empty($errorMessage) ? E::ts('Unknown System Error.') : $errorMessage;

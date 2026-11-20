@@ -4,10 +4,13 @@
   <name>Advanced Events</name>
   <description>Improved Event and event template functionality for CiviCRM</description>
   <license>AGPL-3.0</license>
-  <maintainer>
-    <author>Matthew Wire</author>
-    <email>mjw@mjwconsult.co.uk</email>
-  </maintainer>
+  <authors>
+    <author>
+      <name>MJW</name>
+      <email>info@mjwconsult.co.uk</email>
+      <role>Maintainer</role>
+    </author>
+  </authors>
   <urls>
     <url desc="Main Extension Page">https://lab.civicrm.org/extensions/civicrm-advanced-events</url>
     <url desc="Support">https://mjw.pt/support/advancedevents</url>
@@ -15,16 +18,15 @@
     <url desc="Release Notes">https://docs.civicrm.org/advancedevents/en/latest/releasenotes/</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2025-11-27</releaseDate>
-  <version>2.3.1</version>
+  <releaseDate>2026-10-26</releaseDate>
+  <version>2.4.0</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>6.4</ver>
+    <ver>6.19</ver>
   </compatibility>
-  <comments>Advanced functionality for Events</comments>
   <civix>
     <namespace>CRM/AdvancedEvents</namespace>
-    <format>25.10.2</format>
+    <format>26.10.2</format>
   </civix>
   <mixins>
     <mixin>menu-xml@1.0.0</mixin>
@@ -34,6 +36,7 @@
     <mixin>entity-types-php@2.0.0</mixin>
     <mixin>smarty@1.0.3</mixin>
     <mixin>scan-classes@1.0.0</mixin>
+    <mixin>include-path@1.0.0</mixin>
   </mixins>
   <classloader>
     <psr0 prefix="CRM_" path="."/>

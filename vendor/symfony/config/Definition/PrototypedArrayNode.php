@@ -23,12 +23,12 @@ use Symfony\Component\Config\Definition\Exception\UnsetKeyException;
  */
 class PrototypedArrayNode extends ArrayNode
 {
-    protected PrototypeNodeInterface $prototype;
-    protected ?string $keyAttribute = null;
-    protected bool $removeKeyAttribute = false;
-    protected int $minNumberOfElements = 0;
-    protected array $defaultValue = [];
-    protected ?array $defaultChildren = null;
+    protected $prototype;
+    protected $keyAttribute;
+    protected $removeKeyAttribute = false;
+    protected $minNumberOfElements = 0;
+    protected $defaultValue = [];
+    protected $defaultChildren;
     /**
      * @var NodeInterface[] An array of the prototypes of the simplified value children
      */
@@ -37,8 +37,10 @@ class PrototypedArrayNode extends ArrayNode
     /**
      * Sets the minimum number of elements that a prototype based node must
      * contain. By default this is zero, meaning no elements.
+     *
+     * @return void
      */
-    public function setMinNumberOfElements(int $number): void
+    public function setMinNumberOfElements(int $number)
     {
         $this->minNumberOfElements = $number;
     }
@@ -66,8 +68,10 @@ class PrototypedArrayNode extends ArrayNode
      *
      * @param string $attribute The name of the attribute which value is to be used as a key
      * @param bool   $remove    Whether or not to remove the key
+     *
+     * @return void
      */
-    public function setKeyAttribute(string $attribute, bool $remove = true): void
+    public function setKeyAttribute(string $attribute, bool $remove = true)
     {
         $this->keyAttribute = $attribute;
         $this->removeKeyAttribute = $remove;
@@ -83,8 +87,10 @@ class PrototypedArrayNode extends ArrayNode
 
     /**
      * Sets the default value of this node.
+     *
+     * @return void
      */
-    public function setDefaultValue(array $value): void
+    public function setDefaultValue(array $value)
     {
         $this->defaultValue = $value;
     }
@@ -98,8 +104,10 @@ class PrototypedArrayNode extends ArrayNode
      * Adds default children when none are set.
      *
      * @param int|string|array|null $children The number of children|The child name|The children names to be added
+     *
+     * @return void
      */
-    public function setAddChildrenIfNoneSet(int|string|array|null $children = ['defaults']): void
+    public function setAddChildrenIfNoneSet(int|string|array|null $children = ['defaults'])
     {
         if (null === $children) {
             $this->defaultChildren = ['defaults'];
@@ -129,8 +137,10 @@ class PrototypedArrayNode extends ArrayNode
 
     /**
      * Sets the node prototype.
+     *
+     * @return void
      */
-    public function setPrototype(PrototypeNodeInterface $node): void
+    public function setPrototype(PrototypeNodeInterface $node)
     {
         $this->prototype = $node;
     }
@@ -146,9 +156,11 @@ class PrototypedArrayNode extends ArrayNode
     /**
      * Disable adding concrete children for prototyped nodes.
      *
+     * @return never
+     *
      * @throws Exception
      */
-    public function addChild(NodeInterface $node): never
+    public function addChild(NodeInterface $node)
     {
         throw new Exception('A prototyped array node cannot have concrete children.');
     }
@@ -156,7 +168,7 @@ class PrototypedArrayNode extends ArrayNode
     protected function finalizeValue(mixed $value): mixed
     {
         if (false === $value) {
-            throw new UnsetKeyException(sprintf('Unsetting key for path "%s", value: %s.', $this->getPath(), json_encode($value)));
+            throw new UnsetKeyException(\sprintf('Unsetting key for path "%s", value: %s.', $this->getPath(), json_encode($value)));
         }
 
         foreach ($value as $k => $v) {
@@ -169,7 +181,7 @@ class PrototypedArrayNode extends ArrayNode
         }
 
         if (\count($value) < $this->minNumberOfElements) {
-            $ex = new InvalidConfigurationException(sprintf('The path "%s" should have at least %d element(s) defined.', $this->getPath(), $this->minNumberOfElements));
+            $ex = new InvalidConfigurationException(\sprintf('The path "%s" should have at least %d element(s) defined.', $this->getPath(), $this->minNumberOfElements));
             $ex->setPath($this->getPath());
 
             throw $ex;
@@ -194,7 +206,7 @@ class PrototypedArrayNode extends ArrayNode
         foreach ($value as $k => $v) {
             if (null !== $this->keyAttribute && \is_array($v)) {
                 if (!isset($v[$this->keyAttribute]) && \is_int($k) && $isList) {
-                    $ex = new InvalidConfigurationException(sprintf('The attribute "%s" must be set for path "%s".', $this->keyAttribute, $this->getPath()));
+                    $ex = new InvalidConfigurationException(\sprintf('The attribute "%s" must be set for path "%s".', $this->keyAttribute, $this->getPath()));
                     $ex->setPath($this->getPath());
 
                     throw $ex;
@@ -227,7 +239,7 @@ class PrototypedArrayNode extends ArrayNode
                 }
 
                 if (\array_key_exists($k, $normalized)) {
-                    $ex = new DuplicateKeyException(sprintf('Duplicate key "%s" for path "%s".', $k, $this->getPath()));
+                    $ex = new DuplicateKeyException(\sprintf('Duplicate key "%s" for path "%s".', $k, $this->getPath()));
                     $ex->setPath($this->getPath());
 
                     throw $ex;
@@ -268,7 +280,7 @@ class PrototypedArrayNode extends ArrayNode
             // no conflict
             if (!\array_key_exists($k, $leftSide)) {
                 if (!$this->allowNewKeys) {
-                    $ex = new InvalidConfigurationException(sprintf('You are not allowed to define new elements for path "%s". Please define all elements for this path in one config file.', $this->getPath()));
+                    $ex = new InvalidConfigurationException(\sprintf('You are not allowed to define new elements for path "%s". Please define all elements for this path in one config file.', $this->getPath()));
                     $ex->setPath($this->getPath());
 
                     throw $ex;

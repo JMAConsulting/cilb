@@ -3,7 +3,7 @@
         'name' => 'civicrm/ses',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'e8d79c8966bc56587fe8749a5f539b709d7675ba',
+        'reference' => '7d0147251a109f117aa93f5a8535a1b0c5352299',
         'type' => 'civicrm-extension',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -20,9 +20,9 @@
             'dev_requirement' => false,
         ),
         'aws/aws-sdk-php' => array(
-            'pretty_version' => '3.337.3',
-            'version' => '3.337.3.0',
-            'reference' => '06dfc8f76423b49aaa181debd25bbdc724c346d6',
+            'pretty_version' => '3.394.10',
+            'version' => '3.394.10.0',
+            'reference' => '3b7cbf17b8ba568f77546d1e5edd3f2071861c8f',
             'type' => 'library',
             'install_path' => __DIR__ . '/../aws/aws-sdk-php',
             'aliases' => array(),
@@ -31,7 +31,7 @@
         'civicrm/ses' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'e8d79c8966bc56587fe8749a5f539b709d7675ba',
+            'reference' => '7d0147251a109f117aa93f5a8535a1b0c5352299',
             'type' => 'civicrm-extension',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -44,13 +44,10 @@
             ),
         ),
         'guzzlehttp/promises' => array(
-            'pretty_version' => '2.3.0',
-            'version' => '2.3.0.0',
-            'reference' => '481557b130ef3790cf82b713667b43030dc9c957',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../guzzlehttp/promises',
-            'aliases' => array(),
             'dev_requirement' => false,
+            'replaced' => array(
+                0 => '^2.0',
+            ),
         ),
         'guzzlehttp/psr7' => array(
             'dev_requirement' => false,
@@ -59,9 +56,9 @@
             ),
         ),
         'mtdowling/jmespath.php' => array(
-            'pretty_version' => '2.8.0',
-            'version' => '2.8.0.0',
-            'reference' => 'a2a865e05d5f420b50cc2f85bb78d565db12a6bc',
+            'pretty_version' => '2.9.2',
+            'version' => '2.9.2.0',
+            'reference' => '2157c5e50e813ec6a96c1eed3be7f64a20fb32a8',
             'type' => 'library',
             'install_path' => __DIR__ . '/../mtdowling/jmespath.php',
             'aliases' => array(),
@@ -73,14 +70,23 @@
                 0 => '^1.1 || ^2.0',
             ),
         ),
-        'symfony/polyfill-mbstring' => array(
-            'pretty_version' => 'v1.33.0',
-            'version' => '1.33.0.0',
-            'reference' => '6d857f4d76bd4b343eac26d6b539585d2bc56493',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../symfony/polyfill-mbstring',
-            'aliases' => array(),
+        'symfony/filesystem' => array(
             'dev_requirement' => false,
+            'replaced' => array(
+                0 => '^6.4',
+            ),
+        ),
+        'symfony/polyfill-ctype' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => '^1.8',
+            ),
+        ),
+        'symfony/polyfill-mbstring' => array(
+            'dev_requirement' => false,
+            'replaced' => array(
+                0 => '^1.17',
+            ),
         ),
     ),
 );

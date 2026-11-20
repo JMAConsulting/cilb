@@ -21,10 +21,11 @@ class CRM_Core_Payment_AuthNetEcheck extends CRM_Core_Payment_AuthorizeNetCommon
    * Constructor
    *
    * @param string $mode the mode of operation: live or test
+   * @param array $paymentProcessor
    *
    * @return void
    */
-  function __construct($mode, &$paymentProcessor) {
+  public function __construct($mode, &$paymentProcessor) {
     parent::__construct($mode, $paymentProcessor);
   }
 
@@ -43,7 +44,7 @@ class CRM_Core_Payment_AuthNetEcheck extends CRM_Core_Payment_AuthorizeNetCommon
    * @return string
    */
   public function getPaymentTypeLabel() {
-    return E::ts('Authorize.net (eCheck.Net)');
+    return E::ts('eCheck');
   }
 
   /**

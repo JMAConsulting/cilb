@@ -6,13 +6,14 @@ return [
   'ses_access_key' => [
     'name' => 'ses_access_key',
     'type' => 'String',
+    'validate_callback' => 'CRM_Ses::validateAccessKey',
     'html_type' => 'text',
     'default' => NULL,
     'add' => '1.0',
     'is_domain' => 1,
     'is_contact' => 0,
     'title' => E::ts('SES Access Key'),
-    'description' => E::ts('Usually a 20-ish character alphanumeric key.'),
+    'description' => E::ts('The IAM Access Key ID, typically 20 characters beginning "AKIA".'),
     'html_attributes' => [
       'size' => 60,
     ],
@@ -25,13 +26,14 @@ return [
   'ses_secret_key' => [
     'name' => 'ses_secret_key',
     'type' => 'String',
+    'validate_callback' => 'CRM_Ses::validateSecretKey',
     'html_type' => 'text',
     'default' => NULL,
     'add' => '1.0',
     'is_domain' => 1,
     'is_contact' => 0,
     'title' => E::ts('SES Secret Key'),
-    'description' => E::ts('Usually a 40-ish character alphanumeric key.'),
+    'description' => E::ts('The IAM Secret Access Key, typically 40 characters. Not the SES SMTP password - that only works over SMTP, not for the API.'),
     'html_attributes' => [
       'size' => 60,
     ],
