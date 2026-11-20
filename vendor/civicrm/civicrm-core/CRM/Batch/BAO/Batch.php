@@ -730,10 +730,7 @@ LEFT JOIN civicrm_contribution_soft ON civicrm_contribution_soft.contribution_id
       if (isset($params[$field])) {
         $values[$field] = $params[$field];
         if ($field == 'receive_date_relative') {
-          $relativeDate = explode('.', $params[$field]);
-          $date = CRM_Utils_Date::relativeToAbsolute($relativeDate[0], $relativeDate[1]);
-          $values['receive_date_low'] = $date['from'];
-          $values['receive_date_high'] = $date['to'];
+          [$values['receive_date_low'], $values['receive_date_high']] = CRM_Utils_Date::getFromTo($params[$field]);
         }
 
         // Add left joins as they're needed to consider
@@ -783,8 +780,15 @@ LEFT JOIN civicrm_contribution_soft ON civicrm_contribution_soft.contribution_id
       $from .= " " . implode(" ", $customJoins);
     }
 
-    $whereTables = $query->_whereTables;
-    unset($whereTables['civicrm_contact'], $whereTables['civicrm_contribution']);
+    // Tables the FROM above already joins; joining them again is a SQL error or duplicates rows.
+    $whereTables = array_diff_key($query->_whereTables, array_flip([
+      'civicrm_contact',
+      'civicrm_contribution',
+      'civicrm_contribution_recur',
+      'civicrm_contribution_soft',
+      'civicrm_entity_financial_trxn',
+      'civicrm_financial_trxn',
+    ]));
     $fromExtra = trim(str_replace('FROM civicrm_contact contact_a', '', CRM_Contact_BAO_Query::fromClause($whereTables)));
     if ($fromExtra) {
       $from .= ' ' . $fromExtra;

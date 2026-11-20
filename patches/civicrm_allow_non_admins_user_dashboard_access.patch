@@ -1,8 +1,7 @@
 diff --git a/vendor/civicrm/civicrm-core/CRM/Activity/Selector/Search.php b/vendor/civicrm/civicrm-core/CRM/Activity/Selector/Search.php
-index 6076e405a..fd9904f5d 100644
 --- a/vendor/civicrm/civicrm-core/CRM/Activity/Selector/Search.php
 +++ b/vendor/civicrm/civicrm-core/CRM/Activity/Selector/Search.php
-@@ -222,7 +222,12 @@ public function &getRows($action, $offset, $rowCount, $sort, $output = NULL) {
+@@ -222,7 +222,12 @@
        $this->_activityClause
      );
      $rows = [];
@@ -15,4 +14,4 @@ index 6076e405a..fd9904f5d 100644
 +    }
      $accessCiviMail = CRM_Core_Permission::check('access CiviMail');
  
-     // Get all campaigns.
+     $engagementLevels = CRM_Campaign_PseudoConstant::engagementLevel();
