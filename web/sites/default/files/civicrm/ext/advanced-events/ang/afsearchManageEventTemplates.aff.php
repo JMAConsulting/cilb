@@ -1,5 +1,6 @@
 <?php
 use CRM_AdvancedEvents_ExtensionUtil as E;
+
 return [
   'type' => 'search',
   'title' => E::ts('Manage Event Templates'),

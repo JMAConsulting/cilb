@@ -42,7 +42,7 @@ class Check extends AutoSubscriber {
   private array $messages;
 
   /**
-   * Implements hook_civicrm_check()
+   * Called from hook_civicrm_check().
    *
    * @param array $messages
    *
@@ -124,9 +124,7 @@ class Check extends AutoSubscriber {
     if (!empty($extensions['id']) && ($extensions['values'][$extensions['id']]['status'] === 'installed')) {
       $this->messages[] = new \CRM_Utils_Check_Message(
         __FUNCTION__ . 'mjwshared_incompatible',
-        E::ts('You have the uk.co.nfpservice.onlineworldpay extension installed.
-        There are multiple versions of this extension on various sites and the source code has not been released.
-        It is known to be cause issues with other payment processors and should be disabled'),
+        E::ts('You have the uk.co.nfpservice.onlineworldpay extension installed. There are multiple versions of this extension on various sites and the source code has not been released. It is known to be cause issues with other payment processors and should be disabled'),
         E::ts('Incompatible Extension: uk.co.nfpservice.onlineworldpay'),
         \Psr\Log\LogLevel::WARNING,
         'fa-money'
@@ -148,9 +146,7 @@ class Check extends AutoSubscriber {
       if (module_exists('webform_civicrm') && (empty($extensions['id']) || ($extensions['values'][$extensions['id']]['status'] !== 'installed'))) {
         $message = new \CRM_Utils_Check_Message(
           __FUNCTION__ . 'mjwshared_recommended',
-          E::ts('If you are using Drupal webform_civicrm to accept payments you should download and install the
-            <strong><a href="https://civicrm.org/extensions/contribution-transact-api">contributiontransactlegacy</a></strong> extension.
-            This fixes a number of issues that cause payments to fail with extensions such as <strong><a href="https://civicrm.org/extensions/stripe-payment-processor">Stripe</a></strong>.'),
+          E::ts('If you are using Drupal webform_civicrm to accept payments you should download and install the <strong><a href="https://civicrm.org/extensions/contribution-transact-api">contributiontransactlegacy</a></strong> extension. This fixes a number of issues that cause payments to fail with extensions such as <strong><a href="https://civicrm.org/extensions/stripe-payment-processor">Stripe</a></strong>.'),
           E::ts('Recommended Extension: contributiontransactlegacy'),
           \Psr\Log\LogLevel::WARNING,
           'fa-lightbulb-o'
@@ -205,8 +201,7 @@ class Check extends AutoSubscriber {
             if (in_array($enabledID, $paymentProcessorIDs)) {
               $message = new \CRM_Utils_Check_Message(
                 __FUNCTION__ . 'mjwshared_requirements',
-                E::ts('You need to disable "Separate Membership Payment" or disable the payment processors: %2 on contribution page %1 because it is not supported and will not work.
-                See <a href="https://lab.civicrm.org/extensions/stripe/-/issues/134">Stripe#134</a>.',
+                E::ts('You need to disable "Separate Membership Payment" or disable the payment processors: %2 on contribution page %1 because it is not supported and will not work. See <a href="https://lab.civicrm.org/extensions/stripe/-/issues/134">Stripe#134</a>.',
                   [
                     1 => $contributionPage['id'],
                     2 => implode(', ', $separateMembershipPaymentNotSupportedProcessors),
@@ -237,10 +232,7 @@ class Check extends AutoSubscriber {
     if (empty($extensions['count']) || ($extensions['values'][$extensions['id']]['status'] !== 'installed')) {
       $message = new \CRM_Utils_Check_Message(
         __FUNCTION__ . 'mjwshared_recommended',
-        E::ts('It is recommended that you install the <strong><a href="https://civicrm.org/extensions/sweetalert">sweetalert</a></strong> extension.
-        This allows extensions such as Stripe to show useful messages to the user when processing payment.
-        If this is not installed it will fallback to the browser "alert" message but you will
-        not see some messages (such as <em>we are pre-authorizing your card</em> and <em>please wait</em>) and the feedback to the user will not be as helpful.'),
+        E::ts('It is recommended that you install the <strong><a href="https://civicrm.org/extensions/sweetalert">sweetalert</a></strong> extension. This allows extensions such as Stripe to show useful messages to the user when processing payment. If this is not installed it will fallback to the browser "alert" message but you will not see some messages (such as <em>we are pre-authorizing your card</em> and <em>please wait</em>) and the feedback to the user will not be as helpful.'),
         E::ts('Recommended Extension: sweetalert'),
         \Psr\Log\LogLevel::NOTICE,
         'fa-lightbulb-o'
@@ -328,9 +320,7 @@ class Check extends AutoSubscriber {
       }
       $message = new \CRM_Utils_Check_Message(
         __FUNCTION__ . 'mjwshared_paymentprocessorwebhooks',
-        E::ts('You have %1 payment processor webhooks in "processing" status for %2 payment processors.
-        This means that the system started processing them but something went wrong that can\'t be fixed automatically.
-        Please check and identify the problem. Then you can mark them for retry.',
+        E::ts('You have %1 payment processor webhooks in "processing" status for %2 payment processors. This means that the system started processing them but something went wrong that can\'t be fixed automatically. Please check and identify the problem. Then you can mark them for retry.',
           [1 => $paymentprocessorWebhooksProcessingCount, 2 => implode(',', $paymentProcessorLabels ?? [])]
         ),
         E::ts('Payment Processor Webhooks: Processing failed'),

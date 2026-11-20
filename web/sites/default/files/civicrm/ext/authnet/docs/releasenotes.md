@@ -9,7 +9,17 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
-## 2.10.0 (2027-07-20)
+## 2.11.0 (2026-11-18)
+
+**Requires CiviCRM 6.19 and Payment Shared (MJWShared) 1.8.0.**
+
+* [!45](https://lab.civicrm.org/extensions/authnet/-/merge_requests/45) Support FormBuilder (Afform) checkout for Accept.js and Credit Card payment processors.
+* [!51](https://lab.civicrm.org/extensions/authnet/-/merge_requests/51) Don't show "Authorize.net" in the billing block legend.
+* [!52](https://lab.civicrm.org/extensions/authnet/-/merge_requests/52) Fix fatal error when accepted credit card types are already decoded.
+* [!55](https://lab.civicrm.org/extensions/authnet/-/merge_requests/55) Fix the upgrade link in the Payment Shared version check.
+* [!50](https://lab.civicrm.org/extensions/authnet/-/merge_requests/50), [!54](https://lab.civicrm.org/extensions/authnet/-/merge_requests/54) Code cleanup and shared CI (coding standards, security and legacy scans).
+
+## 2.10.0 (2026-07-20)
 **Breaking change: If you use Accept.js make sure you update the Payment Processor details.**
 
 For Acccept.js both a webhook "Signature" and a "Public Client Key" is required.

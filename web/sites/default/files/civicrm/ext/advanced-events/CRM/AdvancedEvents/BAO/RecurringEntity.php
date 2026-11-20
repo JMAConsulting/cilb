@@ -26,7 +26,7 @@ class CRM_AdvancedEvents_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntit
   public $excludeDates = [];
 
   /**
-   * @var When
+   * @var \When\When
    */
   protected $recursion = NULL;
   protected $recursion_start_date = NULL;
@@ -35,7 +35,7 @@ class CRM_AdvancedEvents_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntit
 
   public static $status = NULL;
 
-  static $_dateColumns
+  public static $_dateColumns
     = [
       'civicrm_event' => [
         'dateColumns' => ['start_date'],
@@ -44,7 +44,7 @@ class CRM_AdvancedEvents_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntit
       ],
     ];
 
-  static $_tableDAOMapper
+  public static $_tableDAOMapper
     = [
       'civicrm_event' => 'CRM_Event_DAO_Event',
       'civicrm_price_set_entity' => 'CRM_Price_DAO_PriceSetEntity',
@@ -342,7 +342,7 @@ class CRM_AdvancedEvents_BAO_RecurringEntity extends CRM_Core_DAO_RecurringEntit
    *
    * @return object
    */
-  static public function getScheduleReminderDetailsById($scheduleReminderId) {
+  public static function getScheduleReminderDetailsById($scheduleReminderId) {
     $query = "SELECT *
       FROM civicrm_action_schedule WHERE 1";
     if ($scheduleReminderId) {

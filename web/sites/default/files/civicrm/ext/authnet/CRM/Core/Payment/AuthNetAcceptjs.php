@@ -9,12 +9,9 @@
  +--------------------------------------------------------------------+
  */
 
-use Civi\Payment\Exception\PaymentProcessorException;
 use Civi\Payment\PropertyBag;
 use CRM_AuthNetEcheck_ExtensionUtil as E;
 use net\authorize\api\contract\v1 as AnetAPI;
-use net\authorize\api\controller as AnetController;
-use net\authorize\api\constants\ANetEnvironment as AnetEnvironment;
 
 class CRM_Core_Payment_AuthNetAcceptjs extends CRM_Core_Payment_AuthorizeNetCommon {
 
@@ -24,10 +21,11 @@ class CRM_Core_Payment_AuthNetAcceptjs extends CRM_Core_Payment_AuthorizeNetComm
    * Constructor
    *
    * @param string $mode the mode of operation: live or test
+   * @param array $paymentProcessor
    *
    * @return void
    */
-  function __construct($mode, &$paymentProcessor) {
+  public function __construct($mode, &$paymentProcessor) {
     parent::__construct($mode, $paymentProcessor);
   }
 
@@ -43,18 +41,16 @@ class CRM_Core_Payment_AuthNetAcceptjs extends CRM_Core_Payment_AuthorizeNetComm
   /**
    * Override CRM_Core_Payment function
    *
-   * @return string
+   * @return array
    */
-  public function getPaymentTypeLabel() {
-    return E::ts('Authorize.net (Accept.js)');
+  public function getPaymentFormFields() {
+    return [];
   }
 
   /**
    * Override CRM_Core_Payment function
-   *
-   * @return array
    */
-  public function getPaymentFormFields() {
+  public function getBillingAddressFields($billingLocationID = NULL): array {
     return [];
   }
 
@@ -122,7 +118,6 @@ class CRM_Core_Payment_AuthNetAcceptjs extends CRM_Core_Payment_AuthorizeNetComm
     // Enable JS validation for forms so we only (submit) create a paymentIntent when the form has all fields validated.
     $form->assign('isJsValidate', TRUE);
   }
-
 
   /**
    * Function to action pre-approval if supported

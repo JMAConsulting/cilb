@@ -27,13 +27,14 @@ class CRM_Mjwshared_Hook {
   public static function webhookEventNotMatched(string $type, $object, string $code = '', array &$result = []) {
     // Wrap in a try/catch to guard against coding errors in extensions.
     try {
+      $null = NULL;
       return CRM_Utils_Hook::singleton()
         ->invoke([
           'type',
           'object',
           'code',
           'result',
-        ], $type, $object, $code, $result, CRM_Utils_Hook::$_nullObject, CRM_Utils_Hook::$_nullObject,
+        ], $type, $object, $code, $result, $null, $null,
           'civicrm_webhook_eventNotMatched'
         );
     }

@@ -1,5 +1,6 @@
 <?php
 use CRM_AdvancedEvents_ExtensionUtil as E;
+
 return [
   [
     'name' => 'SavedSearch_AdvancedEvents_Linked_Events',

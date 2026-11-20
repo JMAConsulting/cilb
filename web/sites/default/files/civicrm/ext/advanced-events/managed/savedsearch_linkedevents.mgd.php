@@ -175,6 +175,7 @@ return [
         ],
       ],
       'match' => [
+        'saved_search_id',
         'name',
       ],
     ],

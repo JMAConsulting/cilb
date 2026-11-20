@@ -34,7 +34,8 @@ class CRM_AdvancedEvents_AdditionalParticipant {
         $buttonsGroup->setElements($buttonElements);
       }
     }
-    catch (Exception $e) {}
+    catch (Exception $e) {
+    }
   }
 
   /**

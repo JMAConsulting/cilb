@@ -18,7 +18,7 @@ class UpdateAmountOnRecurMJW extends AbstractBatchAction {
   /**
    * The amount to update
    *
-   * @var float amount
+   * @var float
    * @required
    */
   protected float $amount;

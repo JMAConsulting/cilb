@@ -20,8 +20,7 @@ return [
     'is_domain' => 1,
     'is_contact' => 0,
     'title' => E::ts('Enable refund payment via UI?'),
-    'description' => E::ts('Enables a "Refund payment" option next to the edit payment option on Payments. Find payments by expanding contributions.
-    For more detail see the <a href="%1">Refund documentation</a>', [1 => 'https://docs.civicrm.org/mjwshared/en/latest/refunds/']),
+    'description' => E::ts('Enables a "Refund payment" option next to the edit payment option on Payments. Find payments by expanding contributions. For more detail see the <a href="%1">Refund documentation</a>', [1 => 'https://docs.civicrm.org/mjwshared/en/latest/refunds/']),
     'html_attributes' => [],
     'settings_pages' => [
       'mjwshared' => [

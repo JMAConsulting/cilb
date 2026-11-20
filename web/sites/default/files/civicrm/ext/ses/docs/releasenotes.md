@@ -9,6 +9,22 @@ Releases use the following numbering system:
 
 **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.6.0 (2026-10-08)
+
+* **[BC]** [!37](https://lab.civicrm.org/extensions/ses/-/merge_requests/37) Requires CiviCRM 6.16+.
+* [!37](https://lab.civicrm.org/extensions/ses/-/merge_requests/37) Update the bundled AWS SDK for PHP to 3.394.10. The extension no longer bundles its own `guzzlehttp/promises`, `symfony/filesystem` or Symfony polyfills and uses the copies CiviCRM ships - previously the bundled ones replaced core's across the whole site. Only the SES client is shipped, shrinking `vendor/` from 57 MB to 5 MB.
+* [!38](https://lab.civicrm.org/extensions/ses/-/merge_requests/38) Run lint and PHPUnit in GitLab CI instead of CiviCARROT.
+
+## Release 1.5.0 (2026-08-28)
+
+* [!34](https://lab.civicrm.org/extensions/ses/-/merge_requests/34) Reject an access key or secret that is demonstrably corrupt when it is saved, naming the cause - leading/trailing whitespace, an SES SMTP password pasted in place of the IAM secret access key, or a value that has been HTML- or percent-encoded on its way in. Previously any of these saved silently and then failed every send with an `InvalidSignatureException` that named neither credential. The two field descriptions now say what each credential is, rather than "usually a 20-ish / 40-ish character alphanumeric key".
+* [!35](https://lab.civicrm.org/extensions/ses/-/merge_requests/35) Test the credentials against Amazon SES when the settings are saved, and report the result on the settings page. Also warns when suppression list removal is enabled but the IAM policy does not allow `ses:DeleteSuppressedDestination` - that combination was previously silent, leaving contacts taken off hold still suppressed at SES and their mail still dropped.
+
+## Release 1.4.2 (2026-08-26)
+
+* [!31](https://lab.civicrm.org/extensions/ses/-/merge_requests/31) Fix bounces and complaints being dropped for transactional emails on sites that have a localpart configured on their mail account - the transactional return-path was built without the localpart that CiviCRM core prefixes to every bulk-mailing VERP, so the webhook could not recover the job/queue/hash from it. Sites with an empty localpart were unaffected.
+* [!32](https://lab.civicrm.org/extensions/ses/-/merge_requests/32) Implement `hook_civicrm_idsException` for the webhook route so SNS notifications are not intercepted by CiviCRM's intrusion-detection filter. The endpoint is still gated by SNS signature verification.
+
 ## Release 1.4.1 (2026-08-06)
 
 * [!27](https://lab.civicrm.org/extensions/ses/-/merge_requests/27) Fix bounce/complaint handling for sub-addressed (plus-addressed) recipients - `verify_email_address()` was stripping everything up to the last `+`, so e.g. `user+tag@example.org` matched against the wrong contact or failed to match the queue row at all.

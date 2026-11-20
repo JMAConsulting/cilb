@@ -8,10 +8,10 @@
  *
  * This stub provides compatibility. It is not intended to be modified in a
  * substantive way. Property annotations may be added, but are not required.
- * @property string $id 
- * @property string $event_id 
- * @property string $template_id 
- * @property string $title 
+ * @property string $id
+ * @property string $event_id
+ * @property string $template_id
+ * @property string $title
  */
 class CRM_AdvancedEvents_DAO_EventTemplate extends CRM_AdvancedEvents_DAO_Base {
 

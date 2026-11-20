@@ -9,12 +9,9 @@
  +--------------------------------------------------------------------+
  */
 
-use Civi\Payment\Exception\PaymentProcessorException;
 use Civi\Payment\PropertyBag;
 use CRM_AuthNetEcheck_ExtensionUtil as E;
 use net\authorize\api\contract\v1 as AnetAPI;
-use net\authorize\api\controller as AnetController;
-use net\authorize\api\constants\ANetEnvironment as AnetEnvironment;
 
 class CRM_Core_Payment_AuthNetCreditcard extends CRM_Core_Payment_AuthorizeNetCommon {
 
@@ -24,10 +21,11 @@ class CRM_Core_Payment_AuthNetCreditcard extends CRM_Core_Payment_AuthorizeNetCo
    * Constructor
    *
    * @param string $mode the mode of operation: live or test
+   * @param array $paymentProcessor
    *
    * @return void
    */
-  function __construct($mode, &$paymentProcessor) {
+  public function __construct($mode, &$paymentProcessor) {
     parent::__construct($mode, $paymentProcessor);
   }
 
@@ -38,15 +36,6 @@ class CRM_Core_Payment_AuthNetCreditcard extends CRM_Core_Payment_AuthorizeNetCo
    */
   public function getPaymentTypeName() {
     return 'credit_card';
-  }
-
-  /**
-   * Override CRM_Core_Payment function
-   *
-   * @return string
-   */
-  public function getPaymentTypeLabel() {
-    return E::ts('Authorize.net (Credit Card)');
   }
 
   /**
@@ -64,12 +53,13 @@ class CRM_Core_Payment_AuthNetCreditcard extends CRM_Core_Payment_AuthorizeNetCo
   }
 
   private function getCardTypes(): array {
-    if (empty($this->getPaymentProcessor()['accepted_credit_cards'])) {
+    $acceptedCreditCards = $this->_paymentProcessor['accepted_credit_cards'] ?? NULL;
+    if (empty($acceptedCreditCards)) {
       return CRM_Contribute_PseudoConstant::creditCard();
     }
-    else {
-      return json_decode(($this->_paymentProcessor['accepted_credit_cards']), TRUE);
-    }
+    // accepted_credit_cards may arrive already decoded to an array, or still as
+    // a JSON string, depending on how the processor record was loaded.
+    return is_array($acceptedCreditCards) ? $acceptedCreditCards : json_decode($acceptedCreditCards, TRUE);
   }
 
   /**
@@ -112,7 +102,7 @@ class CRM_Core_Payment_AuthNetCreditcard extends CRM_Core_Payment_AuthorizeNetCo
         'is_required' => $isCVVRequired,
         'rules' => [
           [
-            'rule_message' => E::ts('Please enter a valid value for your card security code. This is usually the last 3-4 digits on the card\'s signature panel.'),
+            'rule_message' => E::ts("Please enter a valid value for your card security code. This is usually the last 3-4 digits on the card's signature panel."),
             'rule_name' => 'integer',
             'rule_parameters' => NULL,
           ],

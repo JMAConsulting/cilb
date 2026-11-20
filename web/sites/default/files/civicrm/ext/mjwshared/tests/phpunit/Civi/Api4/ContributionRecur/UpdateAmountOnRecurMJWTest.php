@@ -54,10 +54,18 @@ class UpdateAmountOnRecurMJWTest extends CiviUnitTestCase implements HeadlessInt
    */
   private int $contributionID;
 
-  /** @var Array name => ContactID */
+  /**
+   * Name => ContactID.
+   *
+   * @var array
+   */
   protected array $contacts;
 
-  /** @var Array contactID => recurID */
+  /**
+   * ContactID => recurID.
+   *
+   * @var array
+   */
   protected array $recurs;
 
   /**

@@ -18,11 +18,11 @@
     <url desc="Release Notes">https://lab.civicrm.org/extensions/mjwshared/-/blob/master/docs/releasenotes.md</url>
     <url desc="Licensing">https://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2026-08-07</releaseDate>
-  <version>1.5.11</version>
+  <releaseDate>2026-11-16</releaseDate>
+  <version>1.8.0</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>6.14</ver>
+    <ver>6.16</ver>
   </compatibility>
   <classloader>
     <psr0 prefix="CRM_" path="."/>
@@ -30,7 +30,7 @@
   </classloader>
   <civix>
     <namespace>CRM/Mjwshared</namespace>
-    <format>25.10.2</format>
+    <format>26.10.3</format>
   </civix>
   <mixins>
     <mixin>ang-php@1.0.0</mixin>

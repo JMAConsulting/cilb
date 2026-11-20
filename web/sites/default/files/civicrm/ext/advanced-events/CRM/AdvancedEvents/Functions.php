@@ -24,4 +24,5 @@ class CRM_AdvancedEvents_Functions {
       'repeat' => \Civi::settings()->get('advanced_events_function_repeat'),
     ];
   }
+
 }

@@ -1,3 +1,3 @@
-(function(angular, $, _) {
+(function(angular, $) {
   angular.module('accountsync', CRM.angRequires('accountsync'));
-})(angular, CRM.$, CRM._);
+})(angular, CRM.$);

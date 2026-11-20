@@ -132,7 +132,7 @@ class CRM_AdvancedEvents_Form_Task_CopyParticipants extends CRM_AdvancedEvents_F
           ->execute();
       }
     }
-    $eventCount = count($this->_eventIds) -1;
+    $eventCount = count($this->_eventIds) - 1;
 
     $status = E::ts('%1 participants added (or already existed) to %2 events.', [
       1 => $sourceParticipants->count(),

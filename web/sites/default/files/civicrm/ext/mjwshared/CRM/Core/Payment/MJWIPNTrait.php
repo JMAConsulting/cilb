@@ -20,7 +20,9 @@ use Civi\Payment\Exception\PaymentProcessorException;
 trait CRM_Core_Payment_MJWIPNTrait {
 
   /**
-   * @var \CRM_Core_Payment Payment processor
+   * Payment processor.
+   *
+   * @var \CRM_Core_Payment
    */
   protected $_paymentProcessor;
 

@@ -72,15 +72,9 @@ function mjwshared_symfony_civicrm_coreResourceList($event, $hook) {
 }
 
 /**
- * Implements hook_civicrm_links
- * Add links to membership list on contacts tab to view/setup direct debit
+ * Implements hook_civicrm_links().
  *
- * @param $op
- * @param $objectName
- * @param $objectId
- * @param $links
- * @param $mask
- * @param $values
+ * Add links to membership list on contacts tab to view/setup direct debit
  */
 function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$values) {
   if (!CRM_Core_Permission::check('refund contributions')) {
@@ -176,6 +170,7 @@ function mjwshared_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &
           'class' => 'medium-popup',
           'qs' => 'reset=1&payment_id=%%id%%&contribution_id=%%contribution_id%%',
           'title' => E::ts('Refund Payment'),
+          'weight' => 999,
         ];
       }
       catch (Throwable $e) {

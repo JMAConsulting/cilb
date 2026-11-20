@@ -1,11 +1,38 @@
-# Publishes tags to Composer Packages of the current project
-# @see https://lab.civicrm.org/infra/gitlab/-/issues/45
-publish:
+# Templates are shared; see https://lab.civicrm.org/infra/extension-ci
+#
+#   lint.yml      coding standards (civilint) and PHP version compatibility
+#   composer.yml  publishes a tag to the Composer Packages registry
+#   phpunit.yml   builds CiviCRM Standalone and runs tests/phpunit
+#   security.yml  dependency audits, secret scanning (gitleaks) and semgrep
+#   legacy.yml    deprecated core API, outdated civix scaffolding, Smarty 5 breakage
+include:
+  - project: 'infra/extension-ci'
+    ref: main
+    file:
+      - '/lint.yml'
+      - '/composer.yml'
+      - '/phpunit.yml'
+      - '/security.yml'
+      - '/legacy.yml'
+
+# Oldest supported stack. Must pass.
+phpunit:min:
+  extends: .phpunit-min
+
+# Early warning of core drift. Never blocks a merge request.
+phpunit:max:
+  extends: .phpunit-max
+  allow_failure: true
+
+# tests/js uses node's built-in runner, which karma.yml does not cover.
+node-test:
+  stage: test
+  interruptible: true
+  image: node:22-alpine
+  variables:
+    GIT_DEPTH: "1"
   rules:
-    - if: $CI_COMMIT_TAG
-      when: on_success
-    - when: never
-  image: curlimages/curl:latest
-  stage: build
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
-    - 'curl --fail-with-body --header "Job-Token: $CI_JOB_TOKEN" --data "tag=$CI_COMMIT_TAG" "${CI_API_V4_URL}/projects/$CI_PROJECT_ID/packages/composer"'
+    - npm test

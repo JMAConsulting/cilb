@@ -55,5 +55,6 @@ node --test
 | Test file | What it tests |
 |---|---|
 | `tests/js/crmPaymentRoundMoney.test.js` | Loads the real `js/crm.payment.js` in a sandboxed `vm` context (with minimal `document`/jQuery/`CRM` stubs - just enough for the file's top-level registration code to run without throwing) and exercises the resulting `CRM.payment.roundMoney()` against the exact rounding-boundary case from [stripe#510](https://lab.civicrm.org/extensions/stripe/-/work_items/510) (eg. `$20` + `7.625%` tax = `$21.525` exactly, which naive `Number.prototype.toFixed()` rounds the wrong way) plus other classic JS floating-point rounding edge cases. |
+| `tests/js/crmPaymentParseMoney.test.js` | Exercises `CRM.payment.parseMoney()`, which reads amounts formatted with the site's monetary separators (eg. `1,000.00`, `1.000,00`, `1 000,00`) the same way core's `CRM_Utils_Rule::cleanMoney()` does. Covers [stripe#524](https://lab.civicrm.org/extensions/stripe/-/work_items/524), where `parseFloat("1,000.00")` gave `1`. |
 
 This approach - loading the actual shipped file in a sandbox rather than re-implementing/copy-pasting the logic under test - means the test exercises exactly what ships to the browser, so it catches accidental regressions or typos in the real file.
