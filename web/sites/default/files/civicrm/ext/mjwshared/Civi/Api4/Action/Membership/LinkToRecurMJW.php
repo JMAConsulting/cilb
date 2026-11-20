@@ -9,7 +9,9 @@ namespace Civi\Api4\Action\Membership;
 class LinkToRecurMJW extends \Civi\Api4\Generic\AbstractUpdateAction {
 
   /**
-   * @var array field => REQUIRED
+   * Field => REQUIRED.
+   *
+   * @var array
    */
   private $whereFields = [
     'id' => TRUE,

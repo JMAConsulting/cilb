@@ -1,0 +1,12 @@
+# Templates are shared; see https://lab.civicrm.org/infra/extension-ci
+#
+#   lint.yml      coding standards (civilint) and PHP version compatibility
+#   security.yml  dependency audits, secret scanning (gitleaks) and semgrep
+#   legacy.yml    deprecated core API, outdated civix scaffolding, Smarty 5 breakage
+include:
+  - project: 'infra/extension-ci'
+    ref: main
+    file:
+      - '/lint.yml'
+      - '/security.yml'
+      - '/legacy.yml'

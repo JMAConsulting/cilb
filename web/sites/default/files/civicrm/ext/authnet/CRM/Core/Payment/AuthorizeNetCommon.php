@@ -18,7 +18,7 @@ use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
 use net\authorize\api\constants\ANetEnvironment as AnetEnvironment;
 use Authnetjson\AuthnetJsonResponse as AuthnetJsonResponse;
-use \Civi\MJW\Logger;
+use Civi\MJW\Logger;
 
 abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
 
@@ -41,6 +41,7 @@ abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
    * Constructor
    *
    * @param string $mode the mode of operation: live or test
+   * @param array $paymentProcessor
    */
   public function __construct($mode, &$paymentProcessor) {
     $this->_paymentProcessor = $paymentProcessor;
@@ -308,7 +309,7 @@ abstract class CRM_Core_Payment_AuthorizeNetCommon extends CRM_Core_Payment {
 
     //create a transaction
     $transactionRequest = new AnetAPI\TransactionRequestType();
-    $transactionRequest->setTransactionType( "refundTransaction");
+    $transactionRequest->setTransactionType("refundTransaction");
     $transactionRequest->setAmount($propertyBag->getAmount());
 
     $paymentDetails = $this->getRefundPaymentDetails($propertyBag);

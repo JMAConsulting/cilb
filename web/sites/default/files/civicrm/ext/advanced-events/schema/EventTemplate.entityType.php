@@ -1,5 +1,6 @@
 <?php
 use CRM_AdvancedEvents_ExtensionUtil as E;
+
 return [
   'name' => 'EventTemplate',
   'table' => 'civicrm_event_template',

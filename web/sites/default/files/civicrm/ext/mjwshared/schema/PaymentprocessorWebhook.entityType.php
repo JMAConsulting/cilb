@@ -98,7 +98,7 @@ return [
       'sql_type' => 'varchar(32)',
       'input_type' => 'Text',
       'required' => TRUE,
-      'description' => E::ts('Processing status'),
+      'description' => E::ts('Processing status: new, processing, success, or error.'),
       'default' => 'new',
     ],
     'identifier' => [
@@ -111,14 +111,14 @@ return [
       'title' => E::ts('Message'),
       'sql_type' => 'varchar(1024)',
       'input_type' => 'Text',
-      'description' => E::ts('Stores data sent that is needed for processing. JSON suggested.'),
+      'description' => E::ts('Human-readable status/error message from processing this event.'),
       'default' => '',
     ],
     'data' => [
       'title' => E::ts('Data'),
       'sql_type' => 'text',
       'input_type' => 'TextArea',
-      'description' => E::ts('Stores data sent that is needed for processing. JSON suggested.'),
+      'description' => E::ts('The webhook event payload, as received from the payment processor. JSON suggested.'),
     ],
   ],
 ];

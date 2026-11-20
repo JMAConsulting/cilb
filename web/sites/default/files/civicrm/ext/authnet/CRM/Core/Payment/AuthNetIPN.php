@@ -14,8 +14,8 @@ use Civi\Api4\PaymentprocessorWebhook;
 use Civi\MJW\Logger;
 use Civi\Payment\Exception\PaymentProcessorException;
 use CRM_AuthNetEcheck_ExtensionUtil as E;
-use \Authnetjson\AuthnetWebhook as AuthnetWebhook;
-use \Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
+use Authnetjson\AuthnetWebhook as AuthnetWebhook;
+use Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
 use Psr\Log\LogLevel;
 
 class CRM_Core_Payment_AuthNetIPN {
@@ -23,7 +23,7 @@ class CRM_Core_Payment_AuthNetIPN {
   use CRM_Core_Payment_MJWIPNTrait;
 
   /**
-   * @var \Civi\MJW\Logger $log
+   * @var \Civi\MJW\Logger
    */
   protected Logger $log;
 
@@ -216,7 +216,7 @@ class CRM_Core_Payment_AuthNetIPN {
           $subscriptionID = $this->getParamFromResponse($response, 'subscription_id');
           if (!$this->getRecurringContributionIDFromSubscriptionID($subscriptionID)) {
             $return->ok = FALSE;
-            $return->message = $this->_paymentProcessor->getPaymentTypeLabel() . ": Could not find matching recurring contribution for subscription ID: {$subscriptionID}.";
+            $return->message = $this->_paymentProcessor->getTitle() . ": Could not find matching recurring contribution for subscription ID: {$subscriptionID}.";
           }
         }
 
@@ -269,7 +269,7 @@ class CRM_Core_Payment_AuthNetIPN {
         // Check if we already recorded this payment?
         $payments = civicrm_api3('Mjwpayment', 'get_payment', [
           'trxn_id' => $this->getParamFromResponse($response, 'transaction_id'),
-          'status_id' => 'Completed'
+          'status_id' => 'Completed',
         ]);
         if ($payments['count'] > 0) {
           $contributionID = reset($payments['values'])['contribution_id'];
@@ -292,7 +292,7 @@ class CRM_Core_Payment_AuthNetIPN {
             'order_reference' => $this->getParamFromResponse($response, 'transaction_id'),
             'trxn_date' => $eventDate,
             'total_amount' => $this->getParamFromResponse($response, 'total_amount'),
-            'contribution_status_id' => $contribution['contribution_status_id']
+            'contribution_status_id' => $contribution['contribution_status_id'],
           ];
           $this->updateContributionCompleted($params);
           $return->ok = TRUE;

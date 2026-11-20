@@ -1,6 +1,7 @@
 <?php
 
 namespace Civi\Api4\Action\AuthnetUtilities;
+
 use CRM_Authnet_ExtensionUtil as E;
 
 /**
@@ -11,23 +12,20 @@ use CRM_Authnet_ExtensionUtil as E;
  * Test API functions for AuthNet
  *
  */
-use \Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
-use \Authnetjson\AuthnetWebhooksResponse as AuthnetWebhooksResponse;
+use Authnetjson\AuthnetApiFactory as AuthnetApiFactory;
 
 /**
  * Authnet.get_transaction_details API specification
  *
  */
-
-
 class GetTransactionDetails extends \Civi\Api4\Generic\AbstractAction {
 
   /**
    * paymentProcessorId
    *
    * Payment processor ID
-   * @required
    * @var int
+   * @required
    */
   protected $paymentProcessorId;
 
@@ -36,8 +34,8 @@ class GetTransactionDetails extends \Civi\Api4\Generic\AbstractAction {
    *
    * Authnet Transaction ID
    *
-   * @required
    * @var int
+   * @required
    */
   protected $transactionId;
 
@@ -65,4 +63,5 @@ class GetTransactionDetails extends \Civi\Api4\Generic\AbstractAction {
       }
     }
   }
+
 }

@@ -12,7 +12,7 @@
 namespace Civi\Authnet;
 
 use Civi\Core\Service\AutoSubscriber;
-use \CRM_AuthNetEcheck_ExtensionUtil as E;
+use CRM_AuthNetEcheck_ExtensionUtil as E;
 
 class Check extends AutoSubscriber {
 
@@ -28,7 +28,7 @@ class Check extends AutoSubscriber {
   /**
    * @var string
    */
-  const MIN_VERSION_MJWSHARED = '1.5.5';
+  const MIN_VERSION_MJWSHARED = '1.8.0';
 
   /**
    * @var array
@@ -56,10 +56,11 @@ class Check extends AutoSubscriber {
 
   /**
    * @param string $extensionName
+   * @param string $extensionKey
    * @param string $minVersion
    * @param string $actualVersion
    */
-  private function requireExtensionMinVersion(string $extensionName, string $minVersion, string $actualVersion) {
+  private function requireExtensionMinVersion(string $extensionName, string $extensionKey, string $minVersion, string $actualVersion) {
     $actualVersionModified = $actualVersion;
     if (substr($actualVersion, -4) === '-dev') {
       $actualVersionModified = substr($actualVersion, 0, -4);
@@ -91,7 +92,7 @@ class Check extends AutoSubscriber {
             1 => ucfirst(E::SHORT_NAME),
             2 => $extensionName,
             3 => $minVersion,
-            4 => $actualVersion
+            4 => $actualVersion,
           ]),
         E::ts('%1: Missing Requirements', [1 => ucfirst(E::SHORT_NAME)]),
         \Psr\Log\LogLevel::ERROR,
@@ -101,7 +102,7 @@ class Check extends AutoSubscriber {
         E::ts('Upgrade %1 now', [1 => $extensionName]),
         NULL,
         'href',
-        ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionName, 'key' => $extensionName]]
+        ['path' => 'civicrm/admin/extensions', 'query' => ['action' => 'update', 'id' => $extensionKey, 'key' => $extensionKey]]
       );
       $this->messages[] = $message;
     }
@@ -142,7 +143,7 @@ class Check extends AutoSubscriber {
       $this->messages[] = $message;
     }
     else {
-      $this->requireExtensionMinVersion($extensionName, self::MIN_VERSION_MJWSHARED, $extension['version']);
+      $this->requireExtensionMinVersion($extensionName, $extensionKey, self::MIN_VERSION_MJWSHARED, $extension['version']);
     }
   }
 

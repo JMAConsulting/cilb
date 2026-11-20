@@ -30,4 +30,17 @@ class PaymentMJW extends Generic\AbstractEntity {
       ->setCheckPermissions($checkPermissions);
   }
 
+  /**
+   * Refunding is gated on 'refund contributions', matching this extension's
+   * refund form and contribution link.
+   *
+   * @see \Civi\Api4\Generic\AbstractEntity::permissions()
+   * @return array
+   */
+  public static function permissions() {
+    $permissions = parent::permissions();
+    $permissions['refund'] = ['refund contributions'];
+    return $permissions;
+  }
+
 }

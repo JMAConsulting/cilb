@@ -48,6 +48,7 @@ return [
         'column_name' => 'hide_skip_participant_button',
       ],
       'match' => [
+        'custom_group_id',
         'name',
       ],
     ],
@@ -115,6 +116,7 @@ return [
       ],
       'match' => [
         'name',
+        'option_group_id',
       ],
     ],
   ],
@@ -133,6 +135,7 @@ return [
       ],
       'match' => [
         'name',
+        'option_group_id',
       ],
     ],
   ],
@@ -151,6 +154,7 @@ return [
       ],
       'match' => [
         'name',
+        'option_group_id',
       ],
     ],
   ],
@@ -173,6 +177,7 @@ return [
         'option_group_id.name' => 'Event_options_Participant_Visibility',
       ],
       'match' => [
+        'custom_group_id',
         'name',
       ],
     ],

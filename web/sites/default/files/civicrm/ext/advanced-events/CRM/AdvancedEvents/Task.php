@@ -16,7 +16,7 @@
  */
 class CRM_AdvancedEvents_Task extends CRM_Core_Task {
 
-  static $objectType = 'event';
+  public static $objectType = 'event';
 
   const TASK_COPYPARTICIPANTS = 600;
 
@@ -24,11 +24,9 @@ class CRM_AdvancedEvents_Task extends CRM_Core_Task {
    * These tasks are the core set of tasks that the user can perform
    * on a contact / group of contacts
    *
-   * @return array The set of tasks for a group of contacts
-   *            [ 'title' => The Task title,
-   *              'class' => The Task Form class name,
-   *              'result => Boolean.  FIXME: Not sure what this is for
-   *            ]
+   * @return array
+   *   The set of tasks for a group of contacts, each
+   *   ['title' => task title, 'class' => task form class name, 'result' => bool].
    */
   public static function tasks() {
     if (!self::$_tasks) {

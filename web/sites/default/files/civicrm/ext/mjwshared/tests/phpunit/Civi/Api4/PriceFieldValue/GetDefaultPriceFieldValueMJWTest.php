@@ -58,7 +58,7 @@ class GetDefaultPriceFieldValueMJWTest extends CiviUnitTestCase implements Headl
     $contribution = Contribution::create(FALSE)
       ->addValue('contact_id', $cid)
       ->addValue('total_amount', 5)
-      ->addValue('financial_type_id', 1)
+      ->addValue('financial_type_id:name', 'Donation')
       ->execute()
       ->first();
     $lineItem = LineItem::get(FALSE)
@@ -103,8 +103,8 @@ class GetDefaultPriceFieldValueMJWTest extends CiviUnitTestCase implements Headl
     $lineItem = [
       'line_total' => 5,
       'unit_price' => 5,
-      'price_field_id' => $priceFieldValue['id'],
-      'price_field_value_id' => $priceFieldValue['price_field_id'],
+      'price_field_id' => $priceFieldValue['price_field_id'],
+      'price_field_value_id' => $priceFieldValue['id'],
       // 'financial_type_id' => $this->getFinancialTypeID(),
       'qty' => 1,
       'entity_table' => 'civicrm_membership',

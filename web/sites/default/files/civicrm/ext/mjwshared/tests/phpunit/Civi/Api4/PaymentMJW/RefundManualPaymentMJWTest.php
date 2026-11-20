@@ -1,5 +1,6 @@
 <?php
 
+use Civi\API\Exception\UnauthorizedException;
 use Civi\Api4\Contribution;
 use Civi\Api4\Payment;
 use Civi\Api4\PaymentMJW;
@@ -8,14 +9,8 @@ use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
 
 /**
- * Refunding a manual / refund-unsupported payment must record cleanly.
- *
- * A manual payment (no payment processor — e.g. a recorded check) has no
- * external transaction id and no processor fee, so PaymentMJW::refund reaches
- * the record-refund step with $refund = ['refund_status' => 'Completed'] and
- * refund_trxn_id / fee_amount absent. Reading those unguarded emits an
- * undefined-array-key warning — which this suite (convertWarningsToExceptions)
- * turns into a failure — so this is a regression test for that guard.
+ * PaymentMJW::refund against a manual payment (no payment processor — e.g. a
+ * recorded check).
  *
  * @group headless
  */
@@ -33,11 +28,71 @@ class RefundManualPaymentMJWTest extends CiviUnitTestCase implements HeadlessInt
     parent::tearDown();
   }
 
+  /**
+   * A manual payment has no external transaction id and no processor fee, so
+   * refund reaches the record-refund step with refund_trxn_id / fee_amount
+   * absent. Reading those unguarded emits an undefined-array-key warning, which
+   * this suite (convertWarningsToExceptions) turns into a failure.
+   */
   public function testRefundManualPaymentRecordsCleanly(): void {
-    $contactID = $this->individualCreate();
+    [$contributionID, $paymentID] = $this->createManualPayment();
 
+    PaymentMJW::refund(FALSE)
+      ->setPaymentID($paymentID)
+      ->setRefundAmount(100)
+      ->execute();
+
+    $refund = $this->assertRefundRecorded($contributionID);
+    $this->assertEmpty($refund['trxn_id'], 'a manual refund has no external transaction id');
+  }
+
+  /**
+   * The extension's refund form and contribution link gate on 'refund
+   * contributions', so the API they hand off to must accept it too.
+   */
+  public function testRefundIsAllowedWithRefundContributionsPermission(): void {
+    [$contributionID, $paymentID] = $this->createManualPayment();
+
+    $this->setPermissions([
+      'access CiviCRM',
+      'access CiviContribute',
+      'edit contributions',
+      'refund contributions',
+    ]);
+
+    PaymentMJW::refund(TRUE)
+      ->setPaymentID($paymentID)
+      ->setRefundAmount(100)
+      ->execute();
+
+    $this->assertRefundRecorded($contributionID);
+  }
+
+  public function testRefundIsDeniedWithoutRefundContributionsPermission(): void {
+    [, $paymentID] = $this->createManualPayment();
+
+    $this->setPermissions([
+      'access CiviCRM',
+      'access CiviContribute',
+      'edit contributions',
+    ]);
+
+    $this->expectException(UnauthorizedException::class);
+
+    PaymentMJW::refund(TRUE)
+      ->setPaymentID($paymentID)
+      ->setRefundAmount(100)
+      ->execute();
+  }
+
+  /**
+   * Create a pending contribution and complete it with a manual payment.
+   *
+   * @return int[] [contribution ID, payment ID]
+   */
+  private function createManualPayment(): array {
     $contributionID = (int) Contribution::create(FALSE)
-      ->addValue('contact_id', $contactID)
+      ->addValue('contact_id', $this->individualCreate())
       ->addValue('financial_type_id:name', 'Donation')
       ->addValue('total_amount', 100)
       ->addValue('contribution_status_id:name', 'Pending')
@@ -45,8 +100,6 @@ class RefundManualPaymentMJWTest extends CiviUnitTestCase implements HeadlessInt
       ->execute()
       ->first()['id'];
 
-    // Record a MANUAL payment (no payment_processor_id) — the check / offline
-    // case the guard fix covers. This completes the contribution.
     civicrm_api3('Payment', 'create', [
       'contribution_id' => $contributionID,
       'total_amount' => 100,
@@ -61,14 +114,13 @@ class RefundManualPaymentMJWTest extends CiviUnitTestCase implements HeadlessInt
       ->execute()
       ->first()['id'];
 
-    // Before the guard this raised an undefined-array-key warning (fatal here)
-    // on $refund['refund_trxn_id'] / $refund['fee_amount']; it must now record
-    // the refund without error.
-    PaymentMJW::refund(FALSE)
-      ->setPaymentID($paymentID)
-      ->setRefundAmount(100)
-      ->execute();
+    return [$contributionID, $paymentID];
+  }
 
+  /**
+   * Assert a full refund was recorded against the contribution, and return it.
+   */
+  private function assertRefundRecorded(int $contributionID): array {
     $refund = Payment::get(FALSE)
       ->addSelect('id', 'total_amount', 'trxn_id')
       ->addWhere('contribution_id', '=', $contributionID)
@@ -78,7 +130,7 @@ class RefundManualPaymentMJWTest extends CiviUnitTestCase implements HeadlessInt
 
     $this->assertNotEmpty($refund, 'a refund (negative) payment was recorded');
     $this->assertEquals(-100.0, (float) $refund['total_amount']);
-    $this->assertEmpty($refund['trxn_id'], 'a manual refund has no external transaction id');
+    return $refund;
   }
 
 }

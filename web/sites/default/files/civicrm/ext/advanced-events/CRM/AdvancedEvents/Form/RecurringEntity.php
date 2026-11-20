@@ -153,13 +153,12 @@ class CRM_AdvancedEvents_Form_RecurringEntity {
     $form->add('text', 'exclude_date_list', E::ts('Exclude Dates'), ['class' => 'twenty']);
     $form->addElement('hidden', 'allowRepeatConfigToSubmit', '', ['id' => 'allowRepeatConfigToSubmit']);
     $form->addButtons([
-        [
-          'type' => 'submit',
-          'name' => E::ts('Create'),
-          'isDefault' => TRUE,
-        ],
-      ]
-    );
+      [
+        'type' => 'submit',
+        'name' => E::ts('Create'),
+        'isDefault' => TRUE,
+      ],
+    ]);
     // For client-side pluralization
     $form->assign('recurringFrequencyOptions', [
       'single' => CRM_Utils_Array::makeNonAssociative(CRM_Core_SelectValues::getRecurringFrequencyUnits()),
@@ -307,7 +306,7 @@ class CRM_AdvancedEvents_Form_RecurringEntity {
             'is_reserved' => 0,
             'is_active' => 1,
           ];
-          $opGroup = CRM_Core_BAO_OptionGroup::add($optionGroupParams);
+          $opGroup = CRM_Core_BAO_OptionGroup::writeRecord($optionGroupParams);
           if ($opGroup->id) {
             $oldWeight = 0;
             $fieldValues = ['option_group_id' => $opGroup->id];

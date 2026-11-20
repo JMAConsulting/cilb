@@ -41,7 +41,7 @@
 
       CRM.payment.addHandlerNonPaymentSubmitButtons();
 
-      for (i = 0; i < CRM.payment.submitButtons.length; ++i) {
+      for (let i = 0; i < CRM.payment.submitButtons.length; ++i) {
         CRM.payment.submitButtons[i].addEventListener('click', submitButtonClick);
       }
 
@@ -59,7 +59,7 @@
       }
 
       // Remove the onclick attribute added by CiviCRM.
-      for (i = 0; i < CRM.payment.submitButtons.length; ++i) {
+      for (let i = 0; i < CRM.payment.submitButtons.length; ++i) {
         CRM.payment.submitButtons[i].removeAttribute('onclick');
       }
 

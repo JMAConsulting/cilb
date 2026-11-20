@@ -42,8 +42,8 @@ function civicrm_api3_event_template_create($params) {
  */
 function civicrm_api3_event_template_delete($params) {
   /*if (empty($params['id'])) {
-    $eventTemplate = civicrm_api3('EventTemplate', 'getsingle', ['event_id' => $params['event_id']]);
-    $params['id'] = $eventTemplate['id'];
+  $eventTemplate = civicrm_api3('EventTemplate', 'getsingle', ['event_id' => $params['event_id']]);
+  $params['id'] = $eventTemplate['id'];
   }*/
   return _civicrm_api3_basic_delete(_civicrm_api3_get_BAO(__FUNCTION__), $params);
 }

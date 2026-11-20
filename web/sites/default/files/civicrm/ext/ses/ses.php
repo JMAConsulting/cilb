@@ -214,7 +214,8 @@ function ses_civicrm_alterMailParams(&$params, $context = NULL): void {
       // Add m to differentiate from bulk mailing
       $emailDomain = CRM_Core_BAO_MailSettings::defaultDomain();
       $verpSeparator = CRM_Core_Config::singleton()->verpSeparator;
-      $params['returnPath'] = implode($verpSeparator, ['m', $eventQueue->job_id, $eventQueue->id, $eventQueue->hash]) . "@$emailDomain";
+      $localPart = CRM_Core_BAO_MailSettings::defaultLocalpart() ?? '';
+      $params['returnPath'] = implode($verpSeparator, [$localPart . 'm', $eventQueue->job_id, $eventQueue->id, $eventQueue->hash]) . "@$emailDomain";
 
       // add custom headers
       // MJW: Not sure why this is needed?
@@ -244,4 +245,30 @@ function _isCiviMailEnabled(): bool {
     return FALSE;
   }
   return TRUE;
+}
+
+/**
+ * Implements hook_civicrm_postProcess().
+ *
+ * Tests the credentials against SES as soon as they are saved, so a broken
+ * configuration is reported here rather than as an opaque
+ * InvalidSignatureException on the next send.
+ */
+function ses_civicrm_postProcess($formName, &$form): void {
+  if ($formName !== 'CRM_Admin_Form_Generic'
+    || !is_callable([$form, 'getSettingPageFilter'])
+    || $form->getSettingPageFilter() !== 'ses') {
+    return;
+  }
+  CRM_Ses_ConnectionTest::reportToSession();
+}
+
+/**
+ * Implements hook_civicrm_idsException().
+ *
+ * The SNS payload is machine-generated JSON that PHPIDS flags as an attack;
+ * the endpoint is gated by SNS signature verification instead.
+ */
+function ses_civicrm_idsException(&$skip) {
+  $skip[] = 'civicrm/ses/webhook';
 }
