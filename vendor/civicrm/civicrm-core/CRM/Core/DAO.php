@@ -1,12 +1,12 @@
 <?php
 /*
- +--------------------------------------------------------------------+
- | Copyright CiviCRM LLC. All rights reserved.                        |
- |                                                                    |
- | This work is published under the GNU AGPLv3 license with some      |
- | permitted exceptions and without any warranty. For full license    |
- | and copyright information, see https://civicrm.org/licensing       |
- +--------------------------------------------------------------------+
++--------------------------------------------------------------------+
+| Copyright CiviCRM LLC. All rights reserved.                        |
+|                                                                    |
+| This work is published under the GNU AGPLv3 license with some      |
+| permitted exceptions and without any warranty. For full license    |
+| and copyright information, see https://civicrm.org/licensing       |
++--------------------------------------------------------------------+
  */
 
 /**
@@ -90,7 +90,7 @@ class CRM_Core_DAO extends DB_DataObject {
     DB_DAO_NOTNULL = 128,
     VALUE_SEPARATOR = "",
     BULK_INSERT_COUNT = 200,
-    BULK_INSERT_HIGH_COUNT = 200,
+    BULK_INSERT_HIGH_COUNT = 10000,
     QUERY_FORMAT_WILDCARD = 1,
     QUERY_FORMAT_NO_QUOTES = 2,
 
@@ -943,6 +943,11 @@ class CRM_Core_DAO extends DB_DataObject {
 
       // if there is no value then make the variable NULL
       if ($exists) {
+        // Trim string inputs
+        $inputType = $field['input_type'] ?? $field['html']['type'] ?? NULL;
+        if (in_array($inputType, ['Text', 'Email', 'Url'], TRUE) && is_string($value)) {
+          $value = mb_trim($value);
+        }
         if ($value === '') {
           if ($dbName === $primaryKey && $field['type'] === CRM_Utils_Type::T_INT) {
             // See also \Civi\Api4\Utils\FormattingUtil::formatWriteParams().
@@ -2098,11 +2103,17 @@ LIKE %1
    *
    * @param string $daoClass
    * @param int $sourceEntityID
+   * @param int|null $targetEntityID
+   *   An existing entity whose values are emptied where the source has none. File fields keep their file.
    * @return array
    */
-  protected static function buildCustomFieldCopyParams(string $daoClass, int $sourceEntityID): array {
+  protected static function buildCustomFieldCopyParams(string $daoClass, int $sourceEntityID, ?int $targetEntityID = NULL): array {
     $entity = CRM_Core_DAO_AllCoreTables::getEntityNameForClass($daoClass);
     $customValues = CRM_Core_BAO_CustomValueTable::getEntityValues($sourceEntityID, $entity);
+    if ($targetEntityID) {
+      $targetValues = array_filter(CRM_Core_BAO_CustomValueTable::getEntityValues($targetEntityID, $entity), fn($value, $field) => is_int($field) && $value !== NULL, ARRAY_FILTER_USE_BOTH);
+      $customValues += array_fill_keys(array_keys($targetValues), NULL);
+    }
     if (empty($customValues)) {
       return [];
     }
@@ -2117,7 +2128,10 @@ LIKE %1
 
     $customParams = [];
     foreach ($customValues as $field => $value) {
-      if ($value !== NULL) {
+      if ($value === NULL && $targetEntityID && !in_array($field, $htmlType)) {
+        $customParams["custom_{$field}_-1"] = '';
+      }
+      elseif ($value !== NULL) {
         if (in_array($field, $htmlType)) {
           $fileValues = CRM_Core_BAO_File::path($value, $sourceEntityID);
           $customParams["custom_{$field}_-1"] = [
@@ -2143,11 +2157,12 @@ LIKE %1
    * @param int $entityID
    * @param int $newEntityID
    * @param string $parentOperation
+   *   'edit' makes an existing entity match the source, emptying values the source does not have.
    */
   public function copyCustomFields($entityID, $newEntityID, $parentOperation = NULL) {
     $tableName = CRM_Core_DAO_AllCoreTables::getTableForClass(get_class($this));
     $entity = CRM_Core_DAO_AllCoreTables::getEntityNameForClass(get_class($this));
-    $customParams = self::buildCustomFieldCopyParams(get_class($this), $entityID);
+    $customParams = self::buildCustomFieldCopyParams(get_class($this), $entityID, $parentOperation === 'edit' ? (int) $newEntityID : NULL);
     if (!empty($customParams)) {
       CRM_Core_BAO_CustomValueTable::postProcess($customParams, $tableName, $newEntityID, $entity, $parentOperation ?? 'create');
     }
@@ -3283,14 +3298,25 @@ SELECT contact_id
     $bao = new static();
     $tableAlias ??= $bao->tableName();
     $entityName ??= CRM_Core_DAO_AllCoreTables::getEntityNameForClass(get_class($bao));
-    $finalClauses = [];
-    $fields = static::getSupportedFields();
     $selectWhereClauses = $bao->addSelectWhereClause($entityName, $userId, $conditions);
+    return self::formatSelectWhereClauses($selectWhereClauses, $tableAlias, static::getSupportedFields());
+  }
+
+  /**
+   * Format raw selectWhereClauses into SQL strings per field.
+   *
+   * @param array $selectWhereClauses
+   * @param string $tableAlias
+   * @param array $fields
+   * @return array
+   */
+  public static function formatSelectWhereClauses(array $selectWhereClauses, string $tableAlias, array $fields): array {
+    $finalClauses = [];
     foreach ($selectWhereClauses as $fieldName => $fieldClauses) {
       $finalClauses[$fieldName] = NULL;
       if ($fieldClauses) {
         if (!is_array($fieldClauses)) {
-          CRM_Core_Error::deprecatedWarning('Expected array of selectWhereClauses for ' . $bao->tableName() . '.' . $fieldName . ', instead got ' . json_encode($fieldClauses));
+          CRM_Core_Error::deprecatedWarning('Expected array of selectWhereClauses for ' . $tableAlias . '.' . $fieldName . ', instead got ' . json_encode($fieldClauses));
           $fieldClauses = (array) $fieldClauses;
         }
         $formattedClauses = [];
@@ -3303,9 +3329,11 @@ SELECT contact_id
             $formattedClauses[] = "(`$tableAlias`.`$fieldName` " . $subClause . ')';
           }
         }
-        $finalClauses[$fieldName] = '(' . implode(' AND ', $formattedClauses) . ')';
-        if (empty($fields[$fieldName]['required'])) {
-          $finalClauses[$fieldName] = "(`$tableAlias`.`$fieldName` IS NULL OR {$finalClauses[$fieldName]})";
+        if ($formattedClauses) {
+          $finalClauses[$fieldName] = '(' . implode(' AND ', $formattedClauses) . ')';
+          if (empty($fields[$fieldName]['required'])) {
+            $finalClauses[$fieldName] = "(`$tableAlias`.`$fieldName` IS NULL OR {$finalClauses[$fieldName]})";
+          }
         }
       }
     }

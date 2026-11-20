@@ -81,8 +81,13 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           # Configure Git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "${{ secrets.PR_COMMANDS_PAT }}" ]; then
+            git config user.name "civicrm-builder"
+            git config user.email "civicrm-builder@users.noreply.github.com"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+          fi
 
           STATE="${{ steps.pr_info.outputs.state }}"
           MERGE_COMMIT="${{ steps.pr_info.outputs.merge_commit }}"
@@ -163,12 +168,8 @@ jobs:
               UPSTREAM="origin/$base_branch"
             fi
 
-            if [ "$ACTION" = "rebase" ] && git merge-base --is-ancestor origin/$NEW_BASE HEAD; then
-              echo "Branch is already fast-forward mergeable with $NEW_BASE."
-              if [ "$NEW_BASE" != "$base_branch" ]; then
-                echo "Changing PR base branch to $NEW_BASE..."
-                gh pr edit ${{ github.event.issue.number }} --base $NEW_BASE --repo ${{ github.repository }}
-              fi
+            if [ "$ACTION" = "rebase" ] && [ "$NEW_BASE" = "$base_branch" ] && git merge-base --is-ancestor origin/$base_branch HEAD; then
+              echo "Branch is already up to date with $base_branch."
             else
               if ! git rebase --onto origin/$NEW_BASE $UPSTREAM HEAD; then
                 echo "REBASE_FAILED=true" >> $GITHUB_ENV

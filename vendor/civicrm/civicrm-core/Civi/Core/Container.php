@@ -397,6 +397,7 @@ class Container {
       'object',
       [new Reference('service_container')]
     ))->setFactory([new Reference(self::SELF), 'createEsmLoader'])->setPublic(TRUE);
+    $container->setParameter('civicrm.scheduled_job.class', \CRM_Core_ScheduledJob::class);
 
     \CRM_Utils_Hook::container($container);
 
@@ -445,6 +446,9 @@ class Container {
 
     $dispatcher->addListener('civi.api4.validate', $aliasMethodEvent('civi.api4.validate', 'getEntityName'), 100);
     $dispatcher->addListener('civi.api4.authorizeRecord', $aliasMethodEvent('civi.api4.authorizeRecord', 'getEntityName'), 100);
+    $dispatcher->addListener('civi.api4.authorizeRecord::Individual', ['\CRM_Contact_BAO_Contact', 'self_civi_api4_authorizeRecord']);
+    $dispatcher->addListener('civi.api4.authorizeRecord::Organization', ['\CRM_Contact_BAO_Contact', 'self_civi_api4_authorizeRecord']);
+    $dispatcher->addListener('civi.api4.authorizeRecord::Household', ['\CRM_Contact_BAO_Contact', 'self_civi_api4_authorizeRecord']);
 
     $dispatcher->addListener('civi.core.install', ['\Civi\Core\InstallationCanary', 'check']);
     $dispatcher->addListener('civi.core.install', ['\Civi\Core\DatabaseInitializer', 'initialize']);

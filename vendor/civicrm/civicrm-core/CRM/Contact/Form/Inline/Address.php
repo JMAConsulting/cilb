@@ -58,7 +58,7 @@ class CRM_Contact_Form_Inline_Address extends CRM_Contact_Form_Inline {
    * hence calling parent constructor
    */
   public function __construct() {
-    $locBlockNo = CRM_Utils_Request::retrieve('locno', 'Positive', CRM_Core_DAO::$_nullObject, TRUE);
+    $locBlockNo = CRM_Utils_Request::retrieve('locno', 'Positive', NULL, TRUE);
     $name = "Address_{$locBlockNo}";
 
     parent::__construct(NULL, CRM_Core_Action::NONE, 'post', $name);
@@ -162,7 +162,7 @@ class CRM_Contact_Form_Inline_Address extends CRM_Contact_Form_Inline {
     $params['updateBlankLocInfo'] = TRUE;
 
     // process shared contact address.
-    CRM_Contact_BAO_Contact_Utils::processSharedAddress($params['address']);
+    CRM_Contact_BAO_Contact_Utils::processSharedAddress($params['address'], $this->_values['address'] ?? []);
 
     if ($this->_parseStreetAddress) {
       CRM_Contact_Form_Contact::parseAddress($params);

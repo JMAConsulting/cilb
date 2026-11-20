@@ -77,14 +77,13 @@ class CRM_Financial_Page_AJAX {
       }
     }
     else {
-      $action = ($op === 'delete') ? 'delete' : 'edit';
       foreach ($records as $recordID) {
         $batch = Batch::get(FALSE)
           ->addWhere('id', '=', $recordID)
           ->addSelect('created_id')
           ->execute()
           ->first();
-        if (!$batch || !CRM_Batch_BAO_Batch::checkBatchPermission($action, $batch['created_id'])) {
+        if (!$batch || !CRM_Batch_BAO_Batch::checkBatchPermission($op, $batch['created_id'])) {
           CRM_Utils_System::permissionDenied();
         }
       }
@@ -288,7 +287,7 @@ class CRM_Financial_Page_AJAX {
         }
         elseif ($columnKey == 'payment_method' && $financialItem->$columnKey) {
           $row[$financialItem->id][$columnKey] = CRM_Core_PseudoConstant::getLabel('CRM_Batch_BAO_Batch', 'payment_instrument_id', $financialItem->$columnKey);
-          if ($row[$financialItem->id][$columnKey] == 'Check') {
+          if (in_array('check_number', CRM_Contribute_BAO_Contribution::getPaymentInstrumentFields($financialItem->payment_method), TRUE)) {
             $checkNumber = $financialItem->check_number ? ' (' . $financialItem->check_number . ')' : '';
             $row[$financialItem->id][$columnKey] = $row[$financialItem->id][$columnKey] . $checkNumber;
           }

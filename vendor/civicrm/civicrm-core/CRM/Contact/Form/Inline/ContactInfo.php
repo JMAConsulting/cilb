@@ -29,48 +29,42 @@ class CRM_Contact_Form_Inline_ContactInfo extends CRM_Contact_Form_Inline {
     // Build contact type specific fields
     $class = 'CRM_Contact_Form_Edit_' . $this->_contactType;
     $class::buildQuickForm($this, 2);
-    $this->addFormRule([$class, 'formRule'], $this);
+    if ($this->_contactType === 'Individual') {
+      $this->addFormRule([__CLASS__, 'formRule'], $this);
+    }
   }
 
   /**
-   * Set defaults for the form.
+   * Global validation rules for the form.
    *
-   * @return array
+   * @param array $fields
+   *   Posted values of the form.
+   * @param array $files
+   * @param self $form
+   *
+   * @return array|bool
    */
-  public function setDefaultValues() {
-    return parent::setDefaultValues();
+  public static function formRule($fields, $files, $form) {
+    $errors = [];
+    CRM_Contact_Form_Edit_Individual::validateEmployer($fields, $errors, $form->getContactID());
+    return empty($errors) ? TRUE : $errors;
   }
 
   /**
    * Process the form.
    */
   public function postProcess() {
-    $params = $this->exportValues();
-
-    // Process / save contact info
-    $params['contact_type'] = $this->_contactType;
-    $params['contact_id'] = $this->_contactId;
-
-    if (!empty($this->_contactSubType)) {
-      $params['contact_sub_type'] = $this->_contactSubType;
-    }
-
-    if ((($this->_contactType == 'Organization') || ($this->_contactType == 'Household')) && empty($params['is_deceased'])) {
-      $params['is_deceased'] = FALSE;
-      $params['deceased_date'] = '';
-    }
-
-    CRM_Contact_BAO_Contact::create($params);
+    $this->saveContact();
 
     // Saving current employer affects relationship tab, and possibly related memberships and contributions
     $this->ajaxResponse['updateTabs'] = [
-      '#tab_rel' => CRM_Contact_BAO_Contact::getCountComponent('rel', $this->_contactId),
+      '#tab_rel' => CRM_Contact_BAO_Contact::getCountComponent('rel', $this->getContactID()),
     ];
     if (CRM_Core_Permission::access('CiviContribute')) {
-      $this->ajaxResponse['updateTabs']['#tab_contribute'] = CRM_Contact_BAO_Contact::getCountComponent('contribution', $this->_contactId);
+      $this->ajaxResponse['updateTabs']['#tab_contribute'] = CRM_Contact_BAO_Contact::getCountComponent('contribution', $this->getContactID());
     }
     if (CRM_Core_Permission::access('CiviMember')) {
-      $this->ajaxResponse['updateTabs']['#tab_member'] = CRM_Contact_BAO_Contact::getCountComponent('membership', $this->_contactId);
+      $this->ajaxResponse['updateTabs']['#tab_member'] = CRM_Contact_BAO_Contact::getCountComponent('membership', $this->getContactID());
     }
 
     $this->response();
