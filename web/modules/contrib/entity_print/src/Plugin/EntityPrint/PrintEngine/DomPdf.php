@@ -69,6 +69,23 @@ class DomPdf extends PdfEngineBase implements ContainerFactoryPluginInterface {
   protected $request;
 
   /**
+   * The stream context used by Dompdf for remote requests.
+   *
+   * @var resource|null
+   */
+  protected $httpContext;
+
+  /**
+   * Headers that may only be sent to the site's own host.
+   *
+   * These carry the session cookie and the configured HTTP authentication
+   * credentials, so they must never be sent to third-party hosts.
+   *
+   * @var string[]
+   */
+  protected $ownHostHeaders = [];
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, ExportTypeInterface $export_type, Request $request, FileSystemInterface $file_system, SessionInterface $session) {
@@ -91,6 +108,18 @@ class DomPdf extends PdfEngineBase implements ContainerFactoryPluginInterface {
     $this->dompdfOptions->setIsFontSubsettingEnabled($this->configuration['font_subsetting']);
     $this->dompdfOptions->setIsPhpEnabled($this->configuration['embedded_php']);
     $this->dompdfOptions->setDpi($this->configuration['dpi']);
+
+    // Dompdf runs the protocol rules for every remote URL right before
+    // fetching it, using our shared HTTP context. Append a rule that scopes
+    // the sensitive headers of that context to the site's own host.
+    $allowed_protocols = $this->dompdfOptions->getAllowedProtocols();
+    foreach (['http://', 'https://'] as $protocol) {
+      if (isset($allowed_protocols[$protocol])) {
+        $rules = $allowed_protocols[$protocol]['rules'];
+        $rules[] = [$this, 'scopeHttpContextHeaders'];
+        $this->dompdfOptions->addAllowedProtocol($protocol, ...$rules);
+      }
+    }
 
     $this->dompdf = new DompdfLib($this->dompdfOptions);
     if ($this->configuration['disable_log']) {
@@ -276,17 +305,24 @@ class DomPdf extends PdfEngineBase implements ContainerFactoryPluginInterface {
         'verify_peer' => $this->configuration['verify_peer'],
         'verify_peer_name' => $this->configuration['verify_peer_name'],
       ],
+      'http' => [
+        'user_agent' => 'Drupal/' . \Drupal::VERSION . ' (+https://www.drupal.org/) Dompdf/' . $this->dompdf->version,
+      ],
     ];
     if ($this->configuration['cafile']) {
       $context_options['ssl']['cafile'] = $this->configuration['cafile'];
     }
 
+    // Never follow redirects: the stream wrapper would resend the own-host
+    // headers to whichever host the redirect points to.
+    $context_options['http']['follow_location'] = FALSE;
+    $context_options['http']['header'] = [];
+
+    $this->ownHostHeaders = [];
     // If we have authentication then add it to the request context.
     if (!empty($this->configuration['username'])) {
       $auth = base64_encode(sprintf('%s:%s', $this->configuration['username'], $this->configuration['password']));
-      $context_options['http']['header'] = [
-        'Authorization: Basic ' . $auth,
-      ];
+      $this->ownHostHeaders[] = 'Authorization: Basic ' . $auth;
     }
 
     // When embedding images from Drupal's private file system,
@@ -296,12 +332,57 @@ class DomPdf extends PdfEngineBase implements ContainerFactoryPluginInterface {
     // See \DomPdf\Image\Cache::resolve_url for details.
     if ($this->request->hasSession()) {
       $session = $this->request->getSession();
-      $cookie = 'Cookie: ' . $session->getName() . '=' . $session->getId();
-      $context_options['http']['header'][] = $cookie;
+      $this->ownHostHeaders[] = 'Cookie: ' . $session->getName() . '=' . $session->getId();
     }
 
-    $http_context = stream_context_create($context_options);
-    $this->dompdf->setHttpContext($http_context);
+    $this->httpContext = stream_context_create($context_options);
+    $this->dompdf->setHttpContext($this->httpContext);
+  }
+
+  /**
+   * Dompdf protocol rule scoping the sensitive headers to the site's host.
+   *
+   * The session cookie and HTTP authentication headers are only added to the
+   * shared HTTP context when the URL about to be fetched points to the site
+   * itself, so they are never leaked to third-party hosts.
+   *
+   * @param string $url
+   *   The remote URL Dompdf is about to fetch.
+   *
+   * @return array
+   *   The validation result, as expected by Dompdf: [TRUE, ''].
+   *
+   * @internal
+   */
+  public function scopeHttpContextHeaders(string $url): array {
+    if ($this->httpContext) {
+      $headers = $this->isOwnHost($url) ? $this->ownHostHeaders : [];
+      stream_context_set_option($this->httpContext, 'http', 'header', $headers);
+    }
+    return [TRUE, ''];
+  }
+
+  /**
+   * Checks whether the given URL points to the site's own scheme and host.
+   *
+   * @param string $url
+   *   The URL.
+   *
+   * @return bool
+   *   TRUE if the URL has the same scheme, host and port as the request.
+   */
+  protected function isOwnHost(string $url): bool {
+    $parts = parse_url($url);
+    if (empty($parts['scheme']) || empty($parts['host'])) {
+      return FALSE;
+    }
+    $scheme = strtolower($parts['scheme']);
+    $origin = $scheme . '://' . strtolower($parts['host']);
+    $default_port = $scheme === 'https' ? 443 : 80;
+    if (isset($parts['port']) && $parts['port'] != $default_port) {
+      $origin .= ':' . $parts['port'];
+    }
+    return $origin === strtolower($this->request->getSchemeAndHttpHost());
   }
 
   /**
