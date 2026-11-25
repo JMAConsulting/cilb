@@ -41,5 +41,5 @@ return array(
     '6124b4c8570aa390c21fafd04a26c69f' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
     '801c31d8ed748cfa537fa45402288c95' => $vendorDir . '/psy/psysh/src/functions.php',
     'db356362850385d08a5381de2638b5fd' => $vendorDir . '/mpdf/mpdf/src/functions.php',
-    '6f86442f787c2ed6105546661e72adfa' => $vendorDir . '/composer/autoload_civicrm_asset.php',
+    '631f0e9381782940e9917a5040b9d814' => $vendorDir . '/composer/autoload_civicrm_asset.php',
 );
