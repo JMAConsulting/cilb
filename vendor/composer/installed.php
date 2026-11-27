@@ -3,7 +3,7 @@
         'name' => 'drupal/recommended-project',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '1dd0563114e6fc82a4204cf9c3cd7cd86b24a323',
+        'reference' => 'e2cf75521e49d2f4c005583e48e7b8fce7c96b21',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -685,7 +685,7 @@
         'drupal/recommended-project' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '1dd0563114e6fc82a4204cf9c3cd7cd86b24a323',
+            'reference' => 'e2cf75521e49d2f4c005583e48e7b8fce7c96b21',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1013,9 +1013,9 @@
             'dev_requirement' => false,
         ),
         'mpdf/mpdf' => array(
-            'pretty_version' => 'v8.2.4',
-            'version' => '8.2.4.0',
-            'reference' => '9e3ff91606fed11cd58a130eabaaf60e56fdda88',
+            'pretty_version' => 'v8.3.1',
+            'version' => '8.3.1.0',
+            'reference' => '2a454ec334109911fdb323a284c19dbf3f049810',
             'type' => 'library',
             'install_path' => __DIR__ . '/../mpdf/mpdf',
             'aliases' => array(),
@@ -1046,9 +1046,9 @@
             ),
         ),
         'myclabs/deep-copy' => array(
-            'pretty_version' => '1.12.0',
-            'version' => '1.12.0.0',
-            'reference' => '3a6b9a42cd8f8771bd4295d13e1423fa7f3d942c',
+            'pretty_version' => '1.14.0',
+            'version' => '1.14.0.0',
+            'reference' => '8680aa248f8e07bc8fb43f56f0f5fc77a0c96aae',
             'type' => 'library',
             'install_path' => __DIR__ . '/../myclabs/deep-copy',
             'aliases' => array(),
@@ -1414,8 +1414,8 @@
         'psr/container-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.1|2.0',
-                1 => '^1.0',
+                0 => '^1.0',
+                1 => '1.1|2.0',
             ),
         ),
         'psr/event-dispatcher' => array(
@@ -1563,9 +1563,9 @@
             'dev_requirement' => false,
         ),
         'setasign/fpdi' => array(
-            'pretty_version' => 'v2.6.8',
-            'version' => '2.6.8.0',
-            'reference' => '881945be29a4996ad3d008eb18ddc01fa3df890c',
+            'pretty_version' => 'v2.6.10',
+            'version' => '2.6.10.0',
+            'reference' => 'be29a9d43c64f06569c1075f181e43d829a3d5bb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../setasign/fpdi',
             'aliases' => array(),
